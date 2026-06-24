@@ -765,9 +765,10 @@ RULES:
 - Be SPECIFIC and CONCRETE, not vague
 OUTPUT: ONLY raw lyrics. Zero commentary.`;
     try {
-      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1200,messages:[{role:"user",content:prompt}]})});
+      const res=await fetch("/api/lyrics",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
       const data=await res.json();
-      const text=data.content?.find(b=>b.type==="text")?.text||"Error.";
+      if(!res.ok) throw new Error(data.error||"Erreur serveur");
+      const text=data.text||"Error.";
       setLyricsTxt(text);
       setLyricsHistory(prev=>[...prev.slice(-2),text]);
       const nc=promptCount+1;setPromptCount(nc);

@@ -101,10 +101,50 @@ const STRUCT_BLOCKS = [
   {k:"outro",icon:"☠️",name:"Outro",desc:"Fin explosive ou fade chaotique"},
 ];
 
-// ── FREEMIUM CONFIG ──
-const FREE_LIMIT = 3;
-const PRO_PRICE = "$8.99/mois";
-const STRIPE_LINK = "https://buy.stripe.com/YOUR_STRIPE_LINK"; // ← remplace par ton lien Stripe
+// ── TIERS CONFIG ──
+const FREE_LIMIT = 1;
+
+const TIERS = {
+  free:  { id:"free",  label:"FREE",        price:"$0",      color:"#444",    badge:null },
+  forge: { id:"forge", label:"⚒️ FORGE",     price:"$4.99/mois", color:"#cc6600", badge:"FORGE",
+    stripe:"https://buy.stripe.com/YOUR_FORGE_LINK",
+    features:[
+      "✅ Prompts illimités",
+      "✅ Genre, Drums, Vocals, Guitar, Basse",
+      "✅ Structure & Time Signatures",
+      "✅ Exclude Tags",
+      "✅ BPM & Mood",
+      "❌ Paroles par IA",
+      "❌ Mode Organic / Anti-AI",
+      "❌ Historique",
+      "❌ Presets",
+    ]
+  },
+  pro: { id:"pro", label:"🔥 FORGE PRO",   price:"$8.99/mois", color:"#ff2e2e", badge:"PRO",
+    stripe:"https://buy.stripe.com/YOUR_PRO_LINK",
+    features:[
+      "✅ Tout de FORGE +",
+      "✅ Paroles par IA illimitées",
+      "✅ Mode Organic / Anti-AI",
+      "✅ Historique 50 prompts",
+      "✅ Tags avancés",
+      "❌ Presets sauvegardables",
+      "❌ Export PDF",
+      "❌ Accès prioritaire features",
+    ]
+  },
+  elite: { id:"elite", label:"💀 FORGE ELITE", price:"$14.99/mois", color:"#aa00ff", badge:"ELITE",
+    stripe:"https://buy.stripe.com/YOUR_ELITE_LINK",
+    features:[
+      "✅ Tout de FORGE PRO +",
+      "✅ Presets sauvegardables illimités",
+      "✅ Export PDF du prompt",
+      "✅ Accès prioritaire nouvelles features",
+      "✅ Badge ELITE dans l'app",
+      "✅ Support prioritaire direct",
+    ]
+  },
+};
 
 // ── STYLES ──
 const S = {
@@ -162,48 +202,58 @@ function Slider({ label, val, setVal }) {
   );
 }
 
-// ── PAYWALL MODAL ──
+// ── PAYWALL MODAL 3 TIERS ──
 function PaywallModal({ onClose, usedCount }) {
+  const [selected, setSelected] = useState("pro");
+  const tier = TIERS[selected];
+
   return (
-    <div style={{ position:"fixed", inset:0, background:"#000000cc", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
-      <div style={{ background:"#0f0f0f", border:`1px solid ${RED}`, borderRadius:"12px", padding:"28px 22px", maxWidth:"380px", width:"100%", textAlign:"center", boxShadow:`0 0 60px #ff000044` }}>
-        
-        <div style={{ fontSize:"2.5rem", marginBottom:"12px" }}>🔒</div>
-        
-        <div className="forge-title" style={{ fontSize:"1.4rem", color:RED, letterSpacing:"4px", marginBottom:"6px" }}>
-          LIMITE ATTEINTE
-        </div>
-        
-        <div style={{ fontSize:"0.75rem", color:"#666", marginBottom:"18px", lineHeight:1.7 }}>
-          Tu as utilisé tes <span style={{color:"#ff7070",fontWeight:700}}>{FREE_LIMIT} prompts gratuits</span>.<br/>
-          Passe à <strong style={{color:"#fff"}}>Metal Prompt Forge PRO</strong> pour un accès illimité.
+    <div style={{ position:"fixed", inset:0, background:"#000000dd", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:"16px", overflowY:"auto" }}>
+      <div style={{ background:"#0f0f0f", border:`1px solid #333`, borderRadius:"14px", padding:"22px 18px", maxWidth:"420px", width:"100%", boxShadow:`0 0 60px #00000099` }}>
+
+        <div style={{ textAlign:"center", marginBottom:"18px" }}>
+          <div style={{ fontSize:"0.6rem", color:"#555", letterSpacing:"3px", textTransform:"uppercase", marginBottom:"6px" }}>PROMPT GRATUIT UTILISÉ</div>
+          <div className="forge-title" style={{ fontSize:"1.5rem", color:"#fff", letterSpacing:"4px" }}>CHOISIS TON PLAN</div>
         </div>
 
-        <div style={{ background:"#1a0000", border:`1px solid #ff2e2e33`, borderRadius:"8px", padding:"16px", marginBottom:"18px" }}>
-          <div style={{ fontSize:"0.6rem", color:"#666", letterSpacing:"2px", textTransform:"uppercase", marginBottom:"8px" }}>CE QUE TU DÉBLOQUES</div>
-          {[
-            "✅ Prompts illimités — genre, drums, vocals, guitar",
-            "✅ Génération de paroles par IA illimitée",
-            "✅ Historique de tes 50 derniers prompts",
-            "✅ Presets sauvegardables",
-            "✅ Tags organiques & Anti-AI avancés",
-            "✅ Support prioritaire",
-          ].map(f => (
-            <div key={f} style={{ fontSize:"0.72rem", color:"#bbb", textAlign:"left", padding:"4px 0", borderBottom:"1px solid #1e1e1e" }}>{f}</div>
+        {/* Tier selector */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"8px", marginBottom:"18px" }}>
+          {Object.values(TIERS).filter(t=>t.id!=="free").map(t => (
+            <div key={t.id} onClick={()=>setSelected(t.id)}
+              style={{ background: selected===t.id ? "#1a0000" : "#111", border:`1.5px solid ${selected===t.id ? t.color : "#222"}`, borderRadius:"8px", padding:"10px 6px", textAlign:"center", cursor:"pointer", transition:"all 0.2s" }}>
+              <div style={{ fontSize:"0.65rem", fontWeight:900, color: selected===t.id ? t.color : "#555", letterSpacing:"1px", marginBottom:"4px" }}>{t.label}</div>
+              <div style={{ fontSize:"0.9rem", fontWeight:900, color:"#fff" }}>{t.price.split("/")[0]}</div>
+              <div style={{ fontSize:"0.5rem", color:"#444" }}>/mois</div>
+            </div>
           ))}
         </div>
 
-        <div style={{ fontSize:"1.8rem", fontWeight:900, color:"#fff", marginBottom:"4px" }}>{PRO_PRICE}</div>
-        <div style={{ fontSize:"0.6rem", color:"#555", marginBottom:"16px" }}>Annulable en tout temps · Paiement sécurisé</div>
+        {/* Features du tier sélectionné */}
+        <div style={{ background:"#0a0a0a", border:`1px solid ${tier.color}22`, borderRadius:"8px", padding:"14px", marginBottom:"16px", minHeight:"160px" }}>
+          <div style={{ fontSize:"0.58rem", color:tier.color, letterSpacing:"2px", textTransform:"uppercase", fontWeight:800, marginBottom:"10px" }}>{tier.label} — INCLUS</div>
+          {tier.features.map(f => (
+            <div key={f} style={{ fontSize:"0.7rem", color: f.startsWith("✅") ? "#ccc" : "#333", padding:"3px 0" }}>{f}</div>
+          ))}
+        </div>
 
-        <a href={STRIPE_LINK} target="_blank" rel="noreferrer"
-          style={{ display:"block", width:"100%", padding:"14px", background:RED, borderRadius:"8px", color:"#000", fontWeight:900, fontSize:"0.85rem", letterSpacing:"2px", textTransform:"uppercase", textDecoration:"none", boxShadow:"0 4px 24px #ff000066", marginBottom:"10px" }}>
-          🤘 DEVENIR PRO
+        {/* CTA */}
+        <a href={tier.stripe} target="_blank" rel="noreferrer"
+          style={{ display:"block", width:"100%", padding:"14px", background:tier.color, borderRadius:"8px", color:"#000", fontWeight:900, fontSize:"0.85rem", letterSpacing:"2px", textTransform:"uppercase", textDecoration:"none", textAlign:"center", boxShadow:`0 4px 20px ${tier.color}55`, marginBottom:"10px" }}>
+          🤘 COMMENCER {tier.label}
         </a>
 
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px", marginBottom:"10px" }}>
+          {Object.values(TIERS).filter(t=>t.id!=="free"&&t.id!==selected).map(t=>(
+            <a key={t.id} href={t.stripe} target="_blank" rel="noreferrer"
+              style={{ display:"block", padding:"8px", background:"#111", border:`1px solid ${t.color}44`, borderRadius:"6px", color:t.color, fontSize:"0.6rem", fontWeight:700, letterSpacing:"1px", textTransform:"uppercase", textDecoration:"none", textAlign:"center" }}>
+              {t.label} {t.price.split("/")[0]}
+            </a>
+          ))}
+        </div>
+
         <button onClick={onClose}
-          style={{ background:"none", border:"none", color:"#444", fontSize:"0.7rem", cursor:"pointer", textDecoration:"underline" }}>
-          Continuer gratuitement (encore {FREE_LIMIT - usedCount} prompts)
+          style={{ width:"100%", background:"none", border:"none", color:"#333", fontSize:"0.65rem", cursor:"pointer", textDecoration:"underline" }}>
+          Continuer sans abonnement
         </button>
       </div>
     </div>
@@ -254,7 +304,7 @@ function LandingPage({ onEnter }) {
         </button>
         
         <div style={{ fontSize:"0.6rem", color:"#444", marginTop:"10px" }}>
-          Gratuit · {FREE_LIMIT} prompts offerts · Aucune carte requise
+          Gratuit · 1 prompt offert · Aucune carte requise
         </div>
       </div>
 
@@ -290,35 +340,46 @@ function LandingPage({ onEnter }) {
           <div className="forge-title" style={{ fontSize:"1.3rem", color:"#fff", letterSpacing:"4px" }}>PLANS</div>
         </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px" }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr", gap:"12px" }}>
           {/* FREE */}
-          <div style={{ background:CARD, border:"1px solid #222", borderRadius:"10px", padding:"18px" }}>
-            <div style={{ fontSize:"0.6rem", color:"#555", letterSpacing:"2px", textTransform:"uppercase", marginBottom:"8px" }}>GRATUIT</div>
-            <div style={{ fontSize:"1.6rem", fontWeight:900, color:"#fff", marginBottom:"12px" }}>$0</div>
-            {["3 prompts/jour","Genre & drums","Pas de paroles IA","Pas d'historique"].map((f,i) => (
-              <div key={f} style={{ fontSize:"0.68rem", color:i<2?"#bbb":"#444", padding:"4px 0", textDecoration:i>=2?"line-through":"none" }}>
-                {i<2?"✓":"✗"} {f}
-              </div>
+          <div style={{ background:CARD, border:"1px solid #222", borderRadius:"10px", padding:"16px" }}>
+            <div style={{ fontSize:"0.6rem", color:"#555", letterSpacing:"2px", textTransform:"uppercase", marginBottom:"6px" }}>GRATUIT</div>
+            <div style={{ fontSize:"1.4rem", fontWeight:900, color:"#fff", marginBottom:"10px" }}>$0</div>
+            {["1 prompt d'essai","Accès basique genre & drums","❌ Paroles IA","❌ Historique","❌ Organic mode"].map((f,i) => (
+              <div key={f} style={{ fontSize:"0.68rem", color:i<2?"#bbb":"#333", padding:"3px 0" }}>{f}</div>
             ))}
-            <button onClick={onEnter} style={{ width:"100%", marginTop:"14px", padding:"10px", background:"#1a1a1a", border:"1px solid #333", borderRadius:"6px", color:"#888", fontSize:"0.72rem", fontWeight:700, letterSpacing:"1px", textTransform:"uppercase", cursor:"pointer" }}>
-              ESSAYER
-            </button>
+            <button onClick={onEnter} style={{ width:"100%", marginTop:"12px", padding:"9px", background:"#1a1a1a", border:"1px solid #333", borderRadius:"6px", color:"#777", fontSize:"0.72rem", fontWeight:700, letterSpacing:"1px", textTransform:"uppercase", cursor:"pointer" }}>ESSAYER</button>
+          </div>
+
+          {/* FORGE */}
+          <div style={{ background:"#110a00", border:`1px solid #cc660044`, borderRadius:"10px", padding:"16px" }}>
+            <div style={{ fontSize:"0.6rem", color:"#cc6600", letterSpacing:"2px", textTransform:"uppercase", marginBottom:"6px" }}>⚒️ FORGE</div>
+            <div style={{ fontSize:"1.4rem", fontWeight:900, color:"#fff", marginBottom:"10px" }}>$4.99<span style={{fontSize:"0.7rem",color:"#555"}}>/mois</span></div>
+            {["✅ Prompts illimités","✅ Genre, Drums, Vocals, Guitar, Basse","✅ Structure & Time Signatures","✅ Exclude Tags","❌ Paroles IA","❌ Organic mode"].map(f => (
+              <div key={f} style={{ fontSize:"0.68rem", color:f.startsWith("✅")?"#ccc":"#333", padding:"3px 0" }}>{f}</div>
+            ))}
+            <a href={TIERS.forge.stripe} target="_blank" rel="noreferrer" style={{ display:"block", width:"100%", marginTop:"12px", padding:"9px", background:"#cc6600", borderRadius:"6px", color:"#000", fontSize:"0.72rem", fontWeight:900, letterSpacing:"1px", textTransform:"uppercase", textDecoration:"none", textAlign:"center" }}>⚒️ COMMENCER</a>
           </div>
 
           {/* PRO */}
-          <div style={{ background:"#1a0000", border:`1px solid ${RED}`, borderRadius:"10px", padding:"18px", position:"relative" }}>
-            <div style={{ position:"absolute", top:"-10px", right:"12px", background:RED, color:"#000", fontSize:"0.55rem", fontWeight:900, letterSpacing:"1px", padding:"3px 8px", borderRadius:"10px", textTransform:"uppercase" }}>
-              POPULAIRE
-            </div>
-            <div style={{ fontSize:"0.6rem", color:RED, letterSpacing:"2px", textTransform:"uppercase", marginBottom:"8px" }}>PRO</div>
-            <div style={{ fontSize:"1.6rem", fontWeight:900, color:"#fff", marginBottom:"12px" }}>{PRO_PRICE}</div>
-            {["Prompts illimités","Paroles IA illimitées","Historique 50 prompts","Presets sauvegardables","Tags organic avancés","Support prioritaire"].map(f => (
-              <div key={f} style={{ fontSize:"0.68rem", color:"#ddd", padding:"4px 0" }}>✓ {f}</div>
+          <div style={{ background:"#1a0000", border:`1px solid ${RED}`, borderRadius:"10px", padding:"16px", position:"relative" }}>
+            <div style={{ position:"absolute", top:"-10px", right:"12px", background:RED, color:"#000", fontSize:"0.55rem", fontWeight:900, letterSpacing:"1px", padding:"3px 8px", borderRadius:"10px", textTransform:"uppercase" }}>POPULAIRE</div>
+            <div style={{ fontSize:"0.6rem", color:RED, letterSpacing:"2px", textTransform:"uppercase", marginBottom:"6px" }}>🔥 FORGE PRO</div>
+            <div style={{ fontSize:"1.4rem", fontWeight:900, color:"#fff", marginBottom:"10px" }}>$8.99<span style={{fontSize:"0.7rem",color:"#555"}}>/mois</span></div>
+            {["✅ Tout de FORGE +","✅ Paroles par IA illimitées","✅ Mode Organic / Anti-AI","✅ Historique 50 prompts","❌ Presets","❌ Export PDF"].map(f => (
+              <div key={f} style={{ fontSize:"0.68rem", color:f.startsWith("✅")?"#ccc":"#333", padding:"3px 0" }}>{f}</div>
             ))}
-            <a href={STRIPE_LINK} target="_blank" rel="noreferrer"
-              style={{ display:"block", width:"100%", marginTop:"14px", padding:"10px", background:RED, border:"none", borderRadius:"6px", color:"#000", fontSize:"0.72rem", fontWeight:900, letterSpacing:"1px", textTransform:"uppercase", textDecoration:"none", textAlign:"center", boxShadow:"0 2px 14px #ff000055" }}>
-              🤘 DEVENIR PRO
-            </a>
+            <a href={TIERS.pro.stripe} target="_blank" rel="noreferrer" style={{ display:"block", width:"100%", marginTop:"12px", padding:"9px", background:RED, borderRadius:"6px", color:"#000", fontSize:"0.72rem", fontWeight:900, letterSpacing:"1px", textTransform:"uppercase", textDecoration:"none", textAlign:"center", boxShadow:`0 2px 14px #ff000055` }}>🔥 COMMENCER</a>
+          </div>
+
+          {/* ELITE */}
+          <div style={{ background:"#0f0015", border:`1px solid #aa00ff44`, borderRadius:"10px", padding:"16px" }}>
+            <div style={{ fontSize:"0.6rem", color:"#aa00ff", letterSpacing:"2px", textTransform:"uppercase", marginBottom:"6px" }}>💀 FORGE ELITE</div>
+            <div style={{ fontSize:"1.4rem", fontWeight:900, color:"#fff", marginBottom:"10px" }}>$14.99<span style={{fontSize:"0.7rem",color:"#555"}}>/mois</span></div>
+            {["✅ Tout de FORGE PRO +","✅ Presets sauvegardables illimités","✅ Export PDF du prompt","✅ Accès prioritaire nouvelles features","✅ Badge ELITE dans l'app","✅ Support prioritaire direct"].map(f => (
+              <div key={f} style={{ fontSize:"0.68rem", color:"#ccc", padding:"3px 0" }}>{f}</div>
+            ))}
+            <a href={TIERS.elite.stripe} target="_blank" rel="noreferrer" style={{ display:"block", width:"100%", marginTop:"12px", padding:"9px", background:"#aa00ff", borderRadius:"6px", color:"#fff", fontSize:"0.72rem", fontWeight:900, letterSpacing:"1px", textTransform:"uppercase", textDecoration:"none", textAlign:"center" }}>💀 COMMENCER</a>
           </div>
         </div>
       </div>
@@ -334,24 +395,26 @@ function LandingPage({ onEnter }) {
 // ══════════════════════════════════════════
 // MAIN APP
 // ══════════════════════════════════════════
-export default function App({ user, onLogout }) {  const [view, setView] = useState("landing"); // "landing" | "app"
+export default function App({ user, onLogout }) {
+  const [view, setView] = useState("landing"); // "landing" | "app"
   const [tab, setTab] = useState("genre");
   const [showPaywall, setShowPaywall] = useState(false);
 
-  // Freemium state (localStorage)
-  const [promptCount, setPromptCount] = useState(() => {
-const [userTier, setUserTier] = useState("free");
-  const [tierLoading, setTierLoading] = useState(true);
+  // Tier from Supabase
+  const [promptCount, setPromptCount] = useState(0);
+  const [userTier, setUserTier] = useState("free");
 
   useEffect(() => {
     if (user?.email) {
       supabase.from('users').select('tier, prompts_used, lyrics_used')
         .eq('email', user.email).single()
         .then(({ data }) => {
-          if (data) setUserTier(data.tier || "free");
-          setTierLoading(false);
+          if (data) {
+            setUserTier(data.tier || "free");
+            setPromptCount(data.prompts_used || 0);
+          }
         });
-    } else setTierLoading(false);
+    }
   }, [user]);
 
   const isForge = userTier === "forge" || userTier === "pro" || userTier === "elite";
@@ -366,7 +429,7 @@ const [userTier, setUserTier] = useState("free");
     pro:   { prompts: 100, lyrics: 100 },
     elite: { prompts: 500, lyrics: 500 },
   };
-  const limit = LIMITS[userTier] || LIMITS.free;  });
+  const limit = LIMITS[userTier] || LIMITS.free;
 
   const useSet = (init=[]) => {
     const [s, setS] = useState(new Set(init));
@@ -439,7 +502,7 @@ const [userTier, setUserTier] = useState("free");
   });
 
   const saveToHistory = (prompt) => {
-    if (!isPro) return;
+    if (!isPro && !isElite) return;
     const entry = { date: new Date().toLocaleDateString("fr-CA"), prompt, id: Date.now() };
     const updated = [entry, ...history].slice(0,50);
     setHistory(updated);
@@ -448,7 +511,7 @@ const [userTier, setUserTier] = useState("free");
 
   // ── GENERATE ──
   const generate = () => {
-    if (!isPro && promptCount >= FREE_LIMIT) { setShowPaywall(true); return; }
+    if (promptCount >= limit.prompts) { setShowPaywall(true); return; }
 
     const allOrganic = [...orgRec,...orgDrm,...orgVoc,...orgGtr];
     const extraInst  = [...bassStyle,...bassTech,...bassTone,...bassTuning,...bassProd,...sax,...brass,...keys,...strings];
@@ -500,14 +563,16 @@ const [userTier, setUserTier] = useState("free");
     
     const newCount = promptCount + 1;
     setPromptCount(newCount);
-    try { localStorage.setItem("mpf_count", String(newCount)); } catch {}
+    if (user?.email) {
+      supabase.from('users').upsert({ email: user.email, prompts_used: newCount }, { onConflict: 'email' });
+    }
     saveToHistory(styleStr);
     setTab("output");
   };
 
   // ── GENERATE LYRICS ──
   const generateLyrics = async () => {
-    if (!isPro && promptCount >= FREE_LIMIT) { setShowPaywall(true); return; }
+    if (!isPro) { setShowPaywall(true); return; }
     setLyricsLoading(true); setLyricsErr(""); setLyricsTxt("");
     const langStr = lang.has("fr")?"french":lang.has("mix")?"a mix of english and french":"english";
     const genreList = [...genres].join("/")||"deathcore";
@@ -567,7 +632,7 @@ OUTPUT: ONLY raw lyrics, zero commentary.`;
     {id:"guitar",label:"🎵 Guitar"},{id:"bass",label:"🎸 Basse"},{id:"instru",label:"🎷 Instru"},{id:"structure",label:"📐 Structure"},
     {id:"paroles",label:"✍️ Paroles"},{id:"organic",label:"🌿 Organic"},{id:"exclude",label:"🚫 Exclude"},
     {id:"output",label:"📋 Output"},
-    ...(isPro?[{id:"history",label:"🕒 Historique"}]:[]),
+    ...(isPro||isElite?[{id:"history",label:"🕒 Historique"}]:[]),
   ];
 
   return (
@@ -579,14 +644,13 @@ OUTPUT: ONLY raw lyrics, zero commentary.`;
       <div style={S.header}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"10px" }}>
           <div className="forge-title" style={S.h1}>⚰️ Metal Prompt Forge</div>
-          {isPro && <span style={{ background:RED, color:"#000", fontSize:"0.5rem", fontWeight:900, padding:"2px 7px", borderRadius:"8px", letterSpacing:"1px" }}>PRO</span>}
+          {tierBadge && <span style={{ background:tierColor, color: isElite?"#fff":"#000", fontSize:"0.5rem", fontWeight:900, padding:"2px 7px", borderRadius:"8px", letterSpacing:"1px" }}>{tierBadge}</span>}
         </div>
         <div style={S.sub}>Suno AI · Deathcore × Metalcore × Groove Metal</div>
-        {!isPro && (
-          <div style={{ fontSize:"0.58rem", color:"#555", marginTop:"4px" }}>
-            {Math.max(0, FREE_LIMIT - promptCount)} prompt{Math.max(0, FREE_LIMIT - promptCount)!==1?"s":""} gratuit{Math.max(0, FREE_LIMIT - promptCount)!==1?"s":""} restant · <a href={STRIPE_LINK} target="_blank" rel="noreferrer" style={{ color:RED, textDecoration:"none", fontWeight:700 }}>Passer PRO →</a>
-          </div>
-        )}
+        <div style={{ fontSize:"0.58rem", color:"#555", marginTop:"4px", display:"flex", justifyContent:"center", gap:"10px", alignItems:"center" }}>
+          <span>{promptCount}/{limit.prompts} prompts · <a href={TIERS.pro.stripe} target="_blank" rel="noreferrer" style={{ color:RED, textDecoration:"none", fontWeight:700 }}>Voir les plans →</a></span>
+          {user && <button onClick={onLogout} style={{ background:"none", border:"1px solid #333", borderRadius:"4px", color:"#555", fontSize:"0.55rem", padding:"2px 6px", cursor:"pointer" }}>Déconnexion</button>}
+        </div>
       </div>
 
       {/* NAV */}
@@ -645,6 +709,39 @@ OUTPUT: ONLY raw lyrics, zero commentary.`;
         <div style={S.card}><div style={S.ctitle}>🎸 Techniques guitare</div><Tags list={GUITAR} sel={guitar} toggle={tGuitar}/></div>
         <div style={S.card}><div style={S.ctitle}>🎛️ Accordage</div><Tags list={TUNING} sel={tuning} toggle={tTuning}/></div>
         <div style={S.card}><div style={S.ctitle}>🔊 Production guitare</div><Tags list={GPROD} sel={gprod} toggle={tGprod}/></div>
+        <div style={{height:80}}/>
+      </div>}
+
+      {/* ── BASSE ── */}
+      {tab==="bass" && <div style={S.page}>
+        <div style={{...S.card,borderColor:"#ff2e2e22",background:"#110000"}}>
+          <div style={{...S.ctitle,color:RED}}>🎸 BASSE — Low-end brutal</div>
+          <div style={{fontSize:"0.7rem",color:"#666",lineHeight:1.8}}>Configure le son de basse qui va écraser les côtes de ton auditeur. Ces tags s'ajoutent directement aux Style Tags.</div>
+        </div>
+        <div style={S.card}>
+          <div style={S.ctitle}>🎸 Style de jeu</div>
+          <Tags list={BASS_STYLE} sel={bassStyle} toggle={tBassStyle}/>
+        </div>
+        <div style={S.card}>
+          <div style={S.ctitle}>🤘 Techniques avancées</div>
+          <Tags list={BASS_TECH} sel={bassTech} toggle={tBassTech}/>
+        </div>
+        <div style={S.card}>
+          <div style={S.ctitle}>🔊 Tone / Son</div>
+          <Tags list={BASS_TONE} sel={bassTone} toggle={tBassTone}/>
+          <div style={{marginTop:"10px",padding:"8px 10px",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"6px",fontSize:"0.68rem",color:"#cc4400",lineHeight:1.7}}>
+            🔑 <strong>Combo low-end recommandé :</strong><br/>
+            distorted bass + sub bass + chest-crushing bass
+          </div>
+        </div>
+        <div style={S.card}>
+          <div style={S.ctitle}>🎛️ Accordage basse</div>
+          <Tags list={BASS_TUNING} sel={bassTuning} toggle={tBassTuning}/>
+        </div>
+        <div style={S.card}>
+          <div style={S.ctitle}>⚡ Production basse</div>
+          <Tags list={BASS_PROD} sel={bassProd} toggle={tBassProd}/>
+        </div>
         <div style={{height:80}}/>
       </div>}
 
@@ -832,7 +929,7 @@ OUTPUT: ONLY raw lyrics, zero commentary.`;
       </div>}
 
       {/* ── HISTORIQUE (PRO) ── */}
-      {tab==="history" && isPro && <div style={S.page}>
+      {tab==="history" && (isPro||isElite) && <div style={S.page}>
         <div style={{...S.card,borderColor:"#ff2e2e22"}}>
           <div style={S.ctitle}>🕒 Historique PRO — {history.length}/50 prompts</div>
           {history.length===0 && <div style={{color:"#444",fontSize:"0.75rem",textAlign:"center",padding:"20px"}}>Aucun prompt encore. Génère quelque chose ! 🤘</div>}

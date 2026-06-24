@@ -378,10 +378,10 @@ const LEGAL = {
 Dernière mise à jour : 24 juin 2026
 
 1. QUI SOMMES-NOUS
-Le site MetalPrompt (« le Service ») est édité par MMF Technisolutions, entreprise enregistrée au Québec (NEQ : 2279516308), située au 2180 rue de Rome, Trois-Rivières (Québec). Cette politique est conforme à la Loi sur la protection des renseignements personnels dans le secteur privé du Québec (Loi 25).
+Le site MetalPrompt (« le Service ») est édité par MMF Techni-Solutions, entreprise enregistrée au Québec (NEQ : 2279516308), située au 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1. Cette politique est conforme à la Loi sur la protection des renseignements personnels dans le secteur privé du Québec (Loi 25).
 
 2. RESPONSABLE DE LA PROTECTION DES RENSEIGNEMENTS PERSONNELS
-François Lajoie — mmftechnisoltions@gmail.com
+François Lajoie-Levesque — mmftechnisolutions@gmail.com
 
 3. RENSEIGNEMENTS RECUEILLIS
 • Compte : adresse courriel, mot de passe chiffré.
@@ -406,7 +406,7 @@ Données conservées tant que le compte est actif, puis pour la durée requise p
 Mesures raisonnables : chiffrement des mots de passe, accès restreint, fournisseurs sécurisés.
 
 9. VOS DROITS (Loi 25)
-Accès, rectification, retrait du consentement / suppression, portabilité, et plainte auprès de la Commission d'accès à l'information du Québec (CAI). Pour exercer ces droits : mmftechnisoltions@gmail.com (réponse sous 30 jours).
+Accès, rectification, retrait du consentement / suppression, portabilité, et plainte auprès de la Commission d'accès à l'information du Québec (CAI). Pour exercer ces droits : mmftechnisolutions@gmail.com (réponse sous 30 jours).
 
 10. TÉMOINS (COOKIES)
 Le Service utilise uniquement des témoins strictement nécessaires à son fonctionnement (session, authentification). Aucun témoin de suivi ; aucun bandeau de consentement requis.
@@ -415,13 +415,13 @@ Le Service utilise uniquement des témoins strictement nécessaires à son fonct
 En cas d'incident à risque sérieux, nous aviserons les personnes concernées et la CAI.
 
 12. NOUS JOINDRE
-mmftechnisoltions@gmail.com — MMF Technisolutions, 2180 rue de Rome, Trois-Rivières (Québec).`,
+mmftechnisolutions@gmail.com — MMF Techni-Solutions, 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1.`,
 
   terms: `CONDITIONS D'UTILISATION — MetalPrompt
 Dernière mise à jour : 24 juin 2026
 
 1. ACCEPTATION
-En accédant au Service, édité par MMF Technisolutions (NEQ 2279516308), vous acceptez les présentes conditions.
+En accédant au Service, édité par MMF Techni-Solutions (NEQ 2279516308), vous acceptez les présentes conditions.
 
 2. DESCRIPTION
 MetalPrompt est un outil d'aide à la création de prompts pour la génération de musique par IA (notamment Suno AI). Le Service n'est PAS affilié à Suno ni à aucune plateforme tierce ; les marques citées appartiennent à leurs propriétaires.
@@ -433,7 +433,7 @@ Vous fournissez des informations exactes, gardez votre mot de passe confidentiel
 Interdit : usage illégal/frauduleux, contournement des limitations ou de la sécurité, revente non autorisée, surcharge/piratage de l'infrastructure, génération de contenu illégal ou portant atteinte aux droits d'autrui.
 
 5. PROPRIÉTÉ INTELLECTUELLE
-Le Service (code, design, textes, marque) appartient à MMF Technisolutions. Les prompts que vous générez vous appartiennent ; vous êtes seul responsable de leur usage sur des plateformes tierces.
+Le Service (code, design, textes, marque) appartient à MMF Techni-Solutions. Les prompts que vous générez vous appartiennent ; vous êtes seul responsable de leur usage sur des plateformes tierces.
 
 6. DISPONIBILITÉ
 Service fourni sans garantie d'absence d'interruption ; il peut évoluer, être suspendu ou modifié.
@@ -451,13 +451,13 @@ Lois de la province de Québec et du Canada. Tribunaux compétents du district d
 La version en vigueur est celle publiée avec sa date. L'usage continu vaut acceptation.
 
 11. CONTACT
-mmftechnisoltions@gmail.com`,
+mmftechnisolutions@gmail.com`,
 
   sales: `CONDITIONS GÉNÉRALES DE VENTE — MetalPrompt
 Dernière mise à jour : 24 juin 2026
 
 1. OBJET
-Vente des abonnements payants du Service, édité par MMF Technisolutions (NEQ 2279516308), 2180 rue de Rome, Trois-Rivières (Québec), sur https://metalprompt.com.
+Vente des abonnements payants du Service, édité par MMF Techni-Solutions (NEQ 2279516308), 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1, sur https://metalprompt.com.
 
 2. INFOS AVANT L'ACHAT (CONTRAT À DISTANCE)
 Avant votre paiement, nous indiquons : notre identité et nos coordonnées, la description du plan, le prix total en CAD (taxes indiquées au paiement), la fréquence de facturation et le renouvellement, les modalités de résiliation et de remboursement. Après l'achat, vous recevez par courriel une confirmation tenant lieu de copie du contrat.
@@ -472,7 +472,7 @@ Renouvellement automatique par périodes identiques au tarif en vigueur, sauf r�
 Possible à tout moment depuis votre compte ; effet à la fin de la période déjà payée, sans nouveau prélèvement.
 
 6. REMBOURSEMENTS
-La période déjà entamée n'est pas remboursée. Cette politique ne restreint pas vos droits prévus par la loi : rien dans les présentes ne limite les droits d'annulation, de résiliation ou de remboursement accordés au consommateur par la Loi sur la protection du consommateur du Québec ou toute autre loi applicable. En cas de conflit, la loi prévaut. Demandes : mmftechnisoltions@gmail.com.
+La période déjà entamée n'est pas remboursée. Cette politique ne restreint pas vos droits prévus par la loi : rien dans les présentes ne limite les droits d'annulation, de résiliation ou de remboursement accordés au consommateur par la Loi sur la protection du consommateur du Québec ou toute autre loi applicable. En cas de conflit, la loi prévaut. Demandes : mmftechnisolutions@gmail.com.
 
 7. GARANTIES ET RESPONSABILITÉ
 Service « tel quel », aucun résultat garanti. Cette clause ne porte pas atteinte aux garanties légales ni aux droits du consommateur. Dans la seule mesure permise par la loi, la responsabilité totale est limitée au montant payé sur les 12 derniers mois.
@@ -484,16 +484,16 @@ Les protections de la Loi sur la protection du consommateur du Québec sont d'or
 Lois du Québec et du Canada ; tribunaux du district de Trois-Rivières, sous réserve des règles protégeant le consommateur.
 
 10. CONTACT
-mmftechnisoltions@gmail.com`,
+mmftechnisolutions@gmail.com`,
 
   legal: `MENTIONS LÉGALES — MetalPrompt
 Dernière mise à jour : 24 juin 2026
 
 ÉDITEUR
-MMF Technisolutions — NEQ : 2279516308
-Adresse : 2180 rue de Rome, Trois-Rivières (Québec)
-Courriel : mmftechnisoltions@gmail.com
-Responsable de la publication : François Lajoie
+MMF Techni-Solutions — NEQ : 2279516308
+Adresse : 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1
+Courriel : mmftechnisolutions@gmail.com
+Responsable de la publication : François Lajoie-Levesque
 
 HÉBERGEMENT
 Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis — vercel.com
@@ -505,7 +505,7 @@ PROPRIÉTÉ INTELLECTUELLE
 La marque « MetalPrompt », le design, les textes et le code sont protégés. Reproduction non autorisée interdite.
 
 CONTACT
-mmftechnisoltions@gmail.com`,
+mmftechnisolutions@gmail.com`,
 };
 
 function SiteFooter({onOpen,uiLang}){

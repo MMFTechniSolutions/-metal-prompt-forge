@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.jsx'
 import Auth from './Auth.jsx'
 import { supabase } from './supabase.js'
+import { Analytics } from '@vercel/analytics/react'
 
 function Root() {
   const [user, setUser] = useState(null)
@@ -32,5 +33,6 @@ function Root() {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Root />
+    <Analytics />
   </StrictMode>
 )

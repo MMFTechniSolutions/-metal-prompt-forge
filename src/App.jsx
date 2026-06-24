@@ -9,7 +9,7 @@ const CARD = "#141414";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitar",bass:"🎸 Bass",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",history:"🕒 History"},
+    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitar",bass:"🎸 Bass",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",riff:"🎸 Riff 🔜",history:"🕒 History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (max ~120 chars)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -21,7 +21,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitare",bass:"🎸 Basse",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",history:"🕒 Historique"},
+    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitare",bass:"🎸 Basse",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",riff:"🎸 Riff 🔜",history:"🕒 Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (max ~120 car.)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -789,7 +789,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   const TABS=[
     {id:"genre",req:"free"},{id:"drums",req:"free"},{id:"vocals",req:"free"},
     {id:"guitar",req:"forge"},{id:"bass",req:"forge"},{id:"instru",req:"forge"},{id:"structure",req:"forge"},
-    {id:"paroles",req:"pro"},{id:"organic",req:"pro"},{id:"exclude",req:"elite"},{id:"output",req:"free"},
+    {id:"paroles",req:"pro"},{id:"organic",req:"pro"},{id:"exclude",req:"elite"},{id:"output",req:"free"},{id:"riff",req:"free"},
     ...(isPro?[{id:"history",req:"pro"}]:[]),
   ];
 
@@ -1041,6 +1041,17 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* OUTPUT */}
+      {tab==="riff"&&<div style={S.page}>
+        <div style={{...S.card,textAlign:"center",padding:"44px 24px",borderColor:"#ff2e2e44"}}>
+          <div style={{fontSize:"3rem",marginBottom:"10px"}}>🎸🥁</div>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.9rem",letterSpacing:"2px",color:"#fff"}}>RIFF / BEAT GENERATOR</div>
+          <div style={{display:"inline-block",margin:"14px 0",background:RED,color:"#fff",fontWeight:900,fontSize:"0.7rem",letterSpacing:"2px",padding:"6px 16px",borderRadius:"20px"}}>🔜 BIENTÔT DISPONIBLE</div>
+          <div style={{color:"#999",fontSize:"0.85rem",lineHeight:1.7,maxWidth:"430px",margin:"8px auto 0"}}>Génère des riffs et des beats metal directement dans MetalPrompt — boucles, patterns de batterie et export audio. On forge ça en ce moment. 🤘</div>
+          <div style={{color:"#555",fontSize:"0.72rem",marginTop:"18px"}}>Reste à l'affût — ça s'en vient fort.</div>
+        </div>
+        <div style={{height:80}}/>
+      </div>}
+
       {tab==="output"&&<div style={S.page}>
         {!styleTxt&&<div style={{...S.card,textAlign:"center",padding:"30px 20px",borderColor:"#222"}}>
           <div style={{fontSize:"2.5rem",marginBottom:"10px"}}>⚒️</div>

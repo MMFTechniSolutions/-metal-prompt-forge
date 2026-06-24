@@ -158,13 +158,17 @@ const BLOCK_RHYTHMS = [
 // ── TIERS ──
 const TIERS = {
   free:  {id:"free",  label:"FREE",         price:"$0",       color:"#444",    badge:null},
-  forge: {id:"forge", label:"⚒️ FORGE",      price:"$4.99/mois",color:"#cc6600",badge:"FORGE",stripe:"https://buy.stripe.com/YOUR_FORGE_LINK",
+  forge: {id:"forge", label:"⚒️ FORGE",      price:"$4.99/mois",color:"#cc6600",badge:"FORGE",stripe:"https://buy.stripe.com/4gM28t9RecTdgb88IvfQI00",
     features:["✅ Prompts illimités","✅ Genre, Drums, Vocals, Guitar, Basse","✅ Structure & Rhythm Feel","✅ BPM & Mood","❌ Paroles par IA","❌ Mode Organic / Anti-AI","❌ Exclude Tags","❌ Historique"]},
-  pro:   {id:"pro",   label:"🔥 FORGE PRO",  price:"$8.99/mois",color:"#ff2e2e",badge:"PRO",  stripe:"https://buy.stripe.com/YOUR_PRO_LINK",
+  pro:   {id:"pro",   label:"🔥 FORGE PRO",  price:"$8.99/mois",color:"#ff2e2e",badge:"PRO",  stripe:"https://buy.stripe.com/3cI14pfby4mH6Ay7ErfQI01",
     features:["✅ Tout de FORGE +","✅ Paroles par IA illimitées","✅ Mode Organic / Anti-AI","✅ Historique 50 prompts","❌ Exclude Tags","❌ Presets","❌ Export PDF"]},
-  elite: {id:"elite", label:"💀 FORGE ELITE",price:"$14.99/mois",color:"#aa00ff",badge:"ELITE",stripe:"https://buy.stripe.com/YOUR_ELITE_LINK",
+  elite: {id:"elite", label:"💀 FORGE ELITE",price:"$14.99/mois",color:"#aa00ff",badge:"ELITE",stripe:"https://buy.stripe.com/00w3cx5AYaL5cYW9MzfQI02",
     features:["✅ Tout de FORGE PRO +","✅ Exclude Tags avancés","✅ Presets sauvegardables illimités","✅ Export PDF du prompt","✅ Accès prioritaire features","✅ Badge ELITE dans l'app","✅ Support prioritaire direct"]},
 };
+const payUrl = (base, email) =>
+  base && !base.includes("YOUR_") && email
+    ? `${base}?prefilled_email=${encodeURIComponent(email)}`
+    : base;
 const TIER_RANK = {free:0,forge:1,pro:2,elite:3};
 const LIMITS = {free:{prompts:5,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity}};
 const TAB_REQ = {genre:"free",drums:"free",vocals:"free",guitar:"forge",bass:"forge",instru:"forge",structure:"forge",paroles:"pro",organic:"pro",exclude:"elite",output:"free",history:"pro"};
@@ -243,13 +247,13 @@ function HammerFab({onClick}) {
   );
 }
 
-function LockedOverlay({req,t}) {
+function LockedOverlay({req,t,email}) {
   const tier=TIERS[req];
   return (
     <div style={{...S.page,minHeight:"260px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"14px",textAlign:"center",padding:"40px 20px"}}>
       <div style={{fontSize:"3rem"}}>🔒</div>
       <div style={{fontSize:"0.9rem",fontWeight:700,color:"#e0e0e0"}}>{t.lockedMsg} <span style={{color:tier?.color||RED}}>{tier?.label}</span></div>
-      <a href={tier?.stripe||"#"} target="_blank" rel="noreferrer"
+      <a href={payUrl(tier?.stripe,email)||"#"} target="_blank" rel="noreferrer"
         style={{padding:"10px 24px",background:tier?.color||RED,borderRadius:"7px",color:req==="elite"?"#fff":"#000",fontSize:"0.8rem",fontWeight:900,letterSpacing:"2px",textDecoration:"none",textTransform:"uppercase"}}>
         {t.upgrade}
       </a>
@@ -257,7 +261,7 @@ function LockedOverlay({req,t}) {
   );
 }
 
-function PaywallModal({onClose}) {
+function PaywallModal({onClose,email}) {
   const [sel,setSel]=useState("pro");
   const tier=TIERS[sel];
   return (
@@ -281,7 +285,7 @@ function PaywallModal({onClose}) {
           <div style={{fontSize:"0.58rem",color:tier.color,letterSpacing:"2px",textTransform:"uppercase",fontWeight:800,marginBottom:"10px"}}>{tier.label} — INCLUS</div>
           {tier.features?.map(f=><div key={f} style={{fontSize:"0.7rem",color:f.startsWith("✅")?"#ccc":"#333",padding:"3px 0"}}>{f}</div>)}
         </div>
-        <a href={tier.stripe} target="_blank" rel="noreferrer"
+        <a href={payUrl(tier.stripe,email)} target="_blank" rel="noreferrer"
           style={{display:"block",width:"100%",padding:"14px",background:tier.color,borderRadius:"8px",color:sel==="elite"?"#fff":"#000",fontWeight:900,fontSize:"0.85rem",letterSpacing:"2px",textTransform:"uppercase",textDecoration:"none",textAlign:"center",marginBottom:"10px"}}>
           🤘 COMMENCER {tier.label}
         </a>
@@ -355,7 +359,7 @@ function LandingPage({onEnter,uiLang,setUiLang}) {
                 <div style={{fontSize:"0.6rem",color:tier.color,letterSpacing:"2px",textTransform:"uppercase",marginBottom:"6px"}}>{tier.label}</div>
                 <div style={{fontSize:"1.4rem",fontWeight:900,color:"#fff",marginBottom:"10px"}}>{tier.price.split("/")[0]}<span style={{fontSize:"0.7rem",color:"#555"}}>/mois</span></div>
                 {tier.features?.map(f=><div key={f} style={{fontSize:"0.68rem",color:f.startsWith("✅")?"#ccc":"#333",padding:"3px 0"}}>{f}</div>)}
-                <a href={tier.stripe} target="_blank" rel="noreferrer" style={{display:"block",width:"100%",marginTop:"12px",padding:"9px",background:tier.color,borderRadius:"6px",color:id==="elite"?"#fff":"#000",fontSize:"0.72rem",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textDecoration:"none",textAlign:"center",boxShadow:id==="pro"?`0 2px 14px #ff000055`:"none"}}>{tier.label.split(" ")[0]} COMMENCER</a>
+                <a href={payUrl(tier.stripe,email)} target="_blank" rel="noreferrer" style={{display:"block",width:"100%",marginTop:"12px",padding:"9px",background:tier.color,borderRadius:"6px",color:id==="elite"?"#fff":"#000",fontSize:"0.72rem",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textDecoration:"none",textAlign:"center",boxShadow:id==="pro"?`0 2px 14px #ff000055`:"none"}}>{tier.label.split(" ")[0]} COMMENCER</a>
               </div>
             );
           })}
@@ -791,7 +795,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   return (
     <div style={S.wrap}>
       <style>{css}</style>
-      {showPaywall&&<PaywallModal onClose={()=>setShowPaywall(false)}/>}
+      {showPaywall&&<PaywallModal onClose={()=>setShowPaywall(false)} email={user?.email}/>}
 
       {warnLogout&&(
         <div style={{position:"fixed",top:0,left:0,right:0,background:"#1a0000",borderBottom:`1px solid ${RED}`,padding:"8px",textAlign:"center",zIndex:500,fontSize:"0.65rem",color:"#ff9090"}}>
@@ -807,7 +811,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
         <div style={S.sub}>{t.sub}</div>
         <div style={{fontSize:"0.55rem",color:"#555",marginTop:"4px",display:"flex",justifyContent:"center",gap:"12px",alignItems:"center",flexWrap:"wrap"}}>
-          <span>{promptCount} {t.prompts} · <a href={TIERS.pro.stripe} target="_blank" rel="noreferrer" style={{color:RED,textDecoration:"none",fontWeight:700}}>{t.plans}</a></span>
+          <span>{promptCount} {t.prompts} · <a href={payUrl(TIERS.pro.stripe,user?.email)} target="_blank" rel="noreferrer" style={{color:RED,textDecoration:"none",fontWeight:700}}>{t.plans}</a></span>
           <div style={{display:"flex",gap:"6px",alignItems:"center"}}>
             {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#1a0000":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"3px",color:uiLang===l?RED:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{l.toUpperCase()}</button>)}
             {user&&<button onClick={onLogout} style={{background:"none",border:"1px solid #222",borderRadius:"4px",color:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{t.logout}</button>}
@@ -890,7 +894,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>}
 
       {/* GUITAR */}
-      {tab==="guitar"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t}/>:<div style={S.page}>
+      {tab==="guitar"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email}/>:<div style={S.page}>
         <div style={S.card}><div style={S.ctitle}>🎸 Techniques guitare</div><Tags list={GUITAR} sel={guitar} toggle={tGuitar}/></div>
         <div style={S.card}><div style={S.ctitle}>🎛️ Accordage</div><Tags list={TUNING} sel={tuning} toggle={tTuning}/></div>
         <div style={S.card}><div style={S.ctitle}>🔊 Production guitare</div><Tags list={GPROD} sel={gprod} toggle={tGprod}/></div>
@@ -898,7 +902,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* BASS */}
-      {tab==="bass"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t}/>:<div style={S.page}>
+      {tab==="bass"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email}/>:<div style={S.page}>
         <div style={{...S.card,borderColor:"#ff2e2e22",background:"#110000"}}><div style={{...S.ctitle,color:RED}}>🎸 BASSE — Low-end brutal</div><div style={{fontSize:"0.7rem",color:"#666",lineHeight:1.8}}>Configure le son de basse qui va écraser les côtes de ton auditeur.</div></div>
         <div style={S.card}><div style={S.ctitle}>🎸 Style de jeu</div><Tags list={BASS_STYLE} sel={bassStyle} toggle={tBassStyle}/></div>
         <div style={S.card}><div style={S.ctitle}>🤘 Techniques avancées</div><Tags list={BASS_TECH} sel={bassTech} toggle={tBassTech}/></div>
@@ -909,7 +913,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* INSTRU */}
-      {tab==="instru"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t}/>:<div style={S.page}>
+      {tab==="instru"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email}/>:<div style={S.page}>
         <div style={S.card}><div style={S.ctitle}>🎷 Saxophone</div><Tags list={SAX} sel={sax} toggle={tSax}/></div>
         <div style={S.card}><div style={S.ctitle}>🎺 Cuivres</div><Tags list={BRASS} sel={brass} toggle={tBrass}/></div>
         <div style={S.card}><div style={S.ctitle}>🎹 Claviers & Synth</div><Tags list={KEYS} sel={keys} toggle={tKeys}/></div>
@@ -918,7 +922,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* STRUCTURE */}
-      {tab==="structure"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t}/>:<div style={S.page}>
+      {tab==="structure"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email}/>:<div style={S.page}>
         <div style={S.card}>
           <div style={S.ctitle}>🎼 Feeling rythmique global — Style Tags</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginBottom:"8px"}}>
@@ -962,7 +966,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* PAROLES */}
-      {tab==="paroles"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t}/>:<div style={S.page}>
+      {tab==="paroles"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email}/>:<div style={S.page}>
         <div style={S.card}><div style={S.ctitle}>☠️ Thème principal</div><Tags list={THEMES} sel={themes} toggle={tTheme}/></div>
         <div style={S.card}><div style={S.ctitle}>🌑 Atmosphère</div><Tags list={LYRIC_ATMO} sel={latmo} toggle={tLatmo}/></div>
         <div style={S.card}>
@@ -1011,7 +1015,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* ORGANIC */}
-      {tab==="organic"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t}/>:<div style={S.page}>
+      {tab==="organic"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email}/>:<div style={S.page}>
         <div style={{...S.card,borderColor:"#1a3a00",background:"#0a120a"}}><div style={{...S.ctitle,color:"#4caf50"}}>💡 Anti-AI</div><div style={{fontSize:"0.72rem",color:"#688",lineHeight:1.9}}>Ces tags poussent Suno vers un rendu plus <strong style={{color:"#8f8"}}>organique et humain</strong>.</div></div>
         <div style={S.card}><div style={S.ctitle}>🎙️ Recording & Ambiance</div><Tags list={ORG_RECORD} sel={orgRec} toggle={tOrgRec}/></div>
         <div style={S.card}><div style={S.ctitle}>🥁 Batterie organique</div><Tags list={ORG_DRUMS} sel={orgDrm} toggle={tOrgDrm}/></div>
@@ -1022,7 +1026,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* EXCLUDE */}
-      {tab==="exclude"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t}/>:<div style={S.page}>
+      {tab==="exclude"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email}/>:<div style={S.page}>
         <div style={{...S.card,borderColor:"#3a0a00",background:"#0f0800"}}><div style={{...S.ctitle,color:"#ff6633"}}>🚫 Comment ça fonctionne</div><div style={{fontSize:"0.72rem",color:"#a86",lineHeight:1.9}}>Tags dans "Style of Music" précédés de <strong style={{color:"#ff5555"}}>"-"</strong> pour dire à Suno ce qu'il doit éviter.</div></div>
         <div style={S.card}><div style={S.ctitle}>🎵 Genres à exclure</div><Tags list={EXCL_GENRES} sel={exclGenre} toggle={tExclGenre}/></div>
         <div style={S.card}><div style={S.ctitle}>🎙️ Voix à exclure</div><Tags list={EXCL_VOCALS} sel={exclVocal} toggle={tExclVocal}/></div>

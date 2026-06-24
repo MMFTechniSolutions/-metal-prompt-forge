@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { supabase } from "./supabase.js";
 
 const RED = "#ff2e2e";
 const DARK = "#0a0a0a";
@@ -340,11 +341,33 @@ export default function App() {
 
   // Freemium state (localStorage)
   const [promptCount, setPromptCount] = useState(() => {
-    try { return parseInt(localStorage.getItem("mpf_count")||"0"); } catch { return 0; }
-  });
-  const [isPro] = useState(() => {
-    try { return localStorage.getItem("mpf_pro")==="true"; } catch { return false; }
-  });
+const [userTier, setUserTier] = useState("free");
+  const [tierLoading, setTierLoading] = useState(true);
+
+  useEffect(() => {
+    if (user?.email) {
+      supabase.from('users').select('tier, prompts_used, lyrics_used')
+        .eq('email', user.email).single()
+        .then(({ data }) => {
+          if (data) setUserTier(data.tier || "free");
+          setTierLoading(false);
+        });
+    } else setTierLoading(false);
+  }, [user]);
+
+  const isForge = userTier === "forge" || userTier === "pro" || userTier === "elite";
+  const isPro = userTier === "pro" || userTier === "elite";
+  const isElite = userTier === "elite";
+  const tierColor = TIERS[userTier]?.color || "#444";
+  const tierBadge = TIERS[userTier]?.badge || null;
+
+  const LIMITS = {
+    free:  { prompts: 5,   lyrics: 0 },
+    forge: { prompts: 10,  lyrics: 10 },
+    pro:   { prompts: 100, lyrics: 100 },
+    elite: { prompts: 500, lyrics: 500 },
+  };
+  const limit = LIMITS[userTier] || LIMITS.free;  });
 
   const useSet = (init=[]) => {
     const [s, setS] = useState(new Set(init));

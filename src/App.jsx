@@ -397,7 +397,7 @@ Créer et gérer votre compte ; fournir le Service ; traiter les paiements ; com
 En utilisant le Service, vous consentez à la collecte décrite. Vous pouvez retirer votre consentement en tout temps.
 
 6. SOUS-TRAITANTS
-Supabase (auth / base de données), Stripe (paiements), Vercel (hébergement). Certains traitent des données hors Québec ; nous procédons à une évaluation des facteurs relatifs à la vie privée avant toute communication hors Québec, conformément à la Loi 25.
+Supabase (auth / base de données), Stripe (paiements), Vercel (hébergement), Google (connexion « Se connecter avec Google »). Certains traitent des données hors Québec ; nous procédons à une évaluation des facteurs relatifs à la vie privée avant toute communication hors Québec, conformément à la Loi 25.
 
 7. CONSERVATION
 Données conservées tant que le compte est actif, puis pour la durée requise par nos obligations légales. Suppression du compte possible sur demande.

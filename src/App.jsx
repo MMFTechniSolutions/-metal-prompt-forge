@@ -295,7 +295,7 @@ function PaywallModal({onClose,email}) {
   );
 }
 
-function LandingPage({onEnter,uiLang,setUiLang}) {
+function LandingPage({onEnter,uiLang,setUiLang,email}) {
   const examples=[
     {tags:"deathcore, blast beats, pig squeals, drop B tuning, 180 BPM",genre:"DEATHCORE",color:"#ff2e2e"},
     {tags:"djent, polyrhythmic drums, 7-string guitar, groovy and headbang-worthy, 140 BPM",genre:"DJENT",color:"#ff6600"},
@@ -779,7 +779,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
   if(view==="landing") return (
     <>
-      <LandingPage onEnter={()=>setView("app")} uiLang={uiLang} setUiLang={setUiLang}/>
+      <LandingPage onEnter={()=>setView("app")} uiLang={uiLang} setUiLang={setUiLang} email={user?.email}/>
       <SiteFooter onOpen={setLegalDoc} uiLang={uiLang}/>
       <LegalModal doc={legalDoc} onClose={()=>setLegalDoc(null)} uiLang={uiLang}/>
     </>

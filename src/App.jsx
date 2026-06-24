@@ -170,7 +170,7 @@ const payUrl = (base, email) =>
     ? `${base}?prefilled_email=${encodeURIComponent(email)}`
     : base;
 const TIER_RANK = {free:0,forge:1,pro:2,elite:3};
-const LIMITS = {free:{prompts:5,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity}};
+const LIMITS = {free:{prompts:3,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity}};
 const TAB_REQ = {genre:"free",drums:"free",vocals:"free",guitar:"forge",bass:"forge",instru:"forge",structure:"forge",paroles:"pro",organic:"pro",exclude:"elite",output:"free",history:"pro"};
 
 // ── STYLES ──

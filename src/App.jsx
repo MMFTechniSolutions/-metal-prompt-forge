@@ -74,8 +74,9 @@ const css = `
 // ── DATA ──
 const GENRES_FREE  = ["deathcore","metalcore","death metal","groove metal"];
 const GENRES_FORGE = ["djent","melodic deathcore","thrash metal","nu-metal"];
-const GENRES_PRO   = ["mathcore","beatdown hardcore"];
-const GENRES_ELITE = ["slam metal","black metal","sludge metal","post-metal","doom metal","progressive metal"];
+const GENRES_PRO   = ["mathcore","beatdown hardcore","technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal"];
+const GENRES_ELITE = ["slam metal","black metal","sludge metal","post-metal","doom metal","progressive metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal"];
+const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal"];
 
 const MOOD     = ["crushing and heavy","sinister and dark","chaotic and frantic","groovy and headbang-worthy","melodic and atmospheric","dissonant","intense and aggressive","dark and menacing","epic","raw and abrasive"];
 const DRUMS    = ["blast beats","double bass drumming","half-time groove","polyrhythmic drums","breakbeat percussion","d-beat","syncopated rhythms","machine-gun double bass"];
@@ -198,13 +199,14 @@ const S = {
 };
 
 // ── COMPONENTS ──
-function Tags({list,sel,toggle,lockedItems=[]}) {
+function Tags({list,sel,toggle,lockedItems=[],newItems=[]}) {
   return (
     <div style={S.tags}>
       {list.map(v=>{
         const label=typeof v==="object"?v.l:v, val=typeof v==="object"?v.v:v;
         const locked=lockedItems.includes(val);
-        return <span key={val} style={S.tag(sel.has(val),locked)} onClick={()=>!locked&&toggle(val)}>{locked?"🔒 ":""}{label}</span>;
+        const isNew=newItems.includes(val);
+        return <span key={val} style={S.tag(sel.has(val),locked)} onClick={()=>!locked&&toggle(val)}>{locked?"🔒 ":""}{label}{isNew&&<span style={{marginLeft:"5px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 4px",letterSpacing:"0.5px",verticalAlign:"middle"}}>NEW</span>}</span>;
       })}
     </div>
   );
@@ -838,9 +840,9 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{marginTop:"8px",fontSize:"0.55rem",color:"#cc6600",letterSpacing:"1px",marginBottom:"5px"}}>⚒️ FORGE</div>
           <Tags list={GENRES_FORGE} sel={genres} toggle={tGenre} lockedItems={isForge?[]:GENRES_FORGE}/>
           <div style={{marginTop:"8px",fontSize:"0.55rem",color:RED,letterSpacing:"1px",marginBottom:"5px"}}>🔥 PRO</div>
-          <Tags list={GENRES_PRO} sel={genres} toggle={tGenre} lockedItems={isPro?[]:GENRES_PRO}/>
+          <Tags list={GENRES_PRO} sel={genres} toggle={tGenre} lockedItems={isPro?[]:GENRES_PRO} newItems={GENRES_NEW}/>
           <div style={{marginTop:"8px",fontSize:"0.55rem",color:"#aa00ff",letterSpacing:"1px",marginBottom:"5px"}}>💀 ELITE</div>
-          <Tags list={GENRES_ELITE} sel={genres} toggle={tGenre} lockedItems={isElite?[]:GENRES_ELITE}/>
+          <Tags list={GENRES_ELITE} sel={genres} toggle={tGenre} lockedItems={isElite?[]:GENRES_ELITE} newItems={GENRES_NEW}/>
         </div>
         <div style={S.card}><div style={S.ctitle}>🌡️ Intensité globale</div>
           <Slider label="Heaviness" val={heavy} setVal={setHeavy}/>

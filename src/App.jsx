@@ -334,8 +334,7 @@ function LandingPage({ onEnter }) {
 // ══════════════════════════════════════════
 // MAIN APP
 // ══════════════════════════════════════════
-export default function App() {
-  const [view, setView] = useState("landing"); // "landing" | "app"
+export default function App({ user, onLogout }) {  const [view, setView] = useState("landing"); // "landing" | "app"
   const [tab, setTab] = useState("genre");
   const [showPaywall, setShowPaywall] = useState(false);
 

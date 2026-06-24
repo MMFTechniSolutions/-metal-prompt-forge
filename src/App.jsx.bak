@@ -369,182 +369,10 @@ function LandingPage({onEnter,uiLang,setUiLang}) {
 // ══════════════════════════════════════════
 // MAIN APP
 // ══════════════════════════════════════════
-// ══════════════════════════════════════════
-// PAGES LÉGALES (Loi 25 / Québec)
-// ══════════════════════════════════════════
-// 🔧 Remplace les champs [ ] par tes vraies infos avant publication.
-const LEGAL = {
-  privacy: `POLITIQUE DE CONFIDENTIALITÉ — MetalPrompt
-Dernière mise à jour : 24 juin 2026
-
-1. QUI SOMMES-NOUS
-Le site MetalPrompt (« le Service ») est édité par MMF Technisolutions, entreprise enregistrée au Québec (NEQ : 2279516308), située au 2180 rue de Rome, Trois-Rivières (Québec). Cette politique est conforme à la Loi sur la protection des renseignements personnels dans le secteur privé du Québec (Loi 25).
-
-2. RESPONSABLE DE LA PROTECTION DES RENSEIGNEMENTS PERSONNELS
-François Lajoie — mmftechnisoltions@gmail.com
-
-3. RENSEIGNEMENTS RECUEILLIS
-• Compte : adresse courriel, mot de passe chiffré.
-• Paiement : historique d'abonnement, plan actif (via Stripe — nous ne stockons aucun numéro de carte).
-• Utilisation : prompts générés, préférences, historique.
-• Technique : adresse IP, type d'appareil, navigateur.
-Nous n'utilisons aucun outil de suivi publicitaire ni de mesure d'audience tiers (ex. Google Analytics).
-
-4. FINALITÉS
-Créer et gérer votre compte ; fournir le Service ; traiter les paiements ; communiquer avec vous ; améliorer et sécuriser le Service ; respecter nos obligations légales. Nous ne vendons jamais vos renseignements.
-
-5. CONSENTEMENT
-En utilisant le Service, vous consentez à la collecte décrite. Vous pouvez retirer votre consentement en tout temps.
-
-6. SOUS-TRAITANTS
-Supabase (auth / base de données), Stripe (paiements), Vercel (hébergement). Certains traitent des données hors Québec ; nous procédons à une évaluation des facteurs relatifs à la vie privée avant toute communication hors Québec, conformément à la Loi 25.
-
-7. CONSERVATION
-Données conservées tant que le compte est actif, puis pour la durée requise par nos obligations légales. Suppression du compte possible sur demande.
-
-8. SÉCURITÉ
-Mesures raisonnables : chiffrement des mots de passe, accès restreint, fournisseurs sécurisés.
-
-9. VOS DROITS (Loi 25)
-Accès, rectification, retrait du consentement / suppression, portabilité, et plainte auprès de la Commission d'accès à l'information du Québec (CAI). Pour exercer ces droits : mmftechnisoltions@gmail.com (réponse sous 30 jours).
-
-10. TÉMOINS (COOKIES)
-Le Service utilise uniquement des témoins strictement nécessaires à son fonctionnement (session, authentification). Aucun témoin de suivi ; aucun bandeau de consentement requis.
-
-11. INCIDENT DE CONFIDENTIALITÉ
-En cas d'incident à risque sérieux, nous aviserons les personnes concernées et la CAI.
-
-12. NOUS JOINDRE
-mmftechnisoltions@gmail.com — MMF Technisolutions, 2180 rue de Rome, Trois-Rivières (Québec).`,
-
-  terms: `CONDITIONS D'UTILISATION — MetalPrompt
-Dernière mise à jour : 24 juin 2026
-
-1. ACCEPTATION
-En accédant au Service, édité par MMF Technisolutions (NEQ 2279516308), vous acceptez les présentes conditions.
-
-2. DESCRIPTION
-MetalPrompt est un outil d'aide à la création de prompts pour la génération de musique par IA (notamment Suno AI). Le Service n'est PAS affilié à Suno ni à aucune plateforme tierce ; les marques citées appartiennent à leurs propriétaires.
-
-3. COMPTE
-Vous fournissez des informations exactes, gardez votre mot de passe confidentiel et êtes responsable de l'activité de votre compte. Nous pouvons suspendre un compte en cas de violation.
-
-4. UTILISATION ACCEPTABLE
-Interdit : usage illégal/frauduleux, contournement des limitations ou de la sécurité, revente non autorisée, surcharge/piratage de l'infrastructure, génération de contenu illégal ou portant atteinte aux droits d'autrui.
-
-5. PROPRIÉTÉ INTELLECTUELLE
-Le Service (code, design, textes, marque) appartient à MMF Technisolutions. Les prompts que vous générez vous appartiennent ; vous êtes seul responsable de leur usage sur des plateformes tierces.
-
-6. DISPONIBILITÉ
-Service fourni sans garantie d'absence d'interruption ; il peut évoluer, être suspendu ou modifié.
-
-7. LIMITATION DE RESPONSABILITÉ
-Service fourni « tel quel ». Dans les limites de la loi, aucune responsabilité pour les dommages indirects, la perte de données ou les résultats obtenus via des plateformes tierces. Aucun résultat musical précis n'est garanti. Rien dans les présentes ne limite les droits impératifs que la loi accorde au consommateur, notamment la Loi sur la protection du consommateur du Québec.
-
-8. DONNÉES PERSONNELLES
-Voir la Politique de confidentialité, qui fait partie des présentes conditions.
-
-9. DROIT APPLICABLE
-Lois de la province de Québec et du Canada. Tribunaux compétents du district de Trois-Rivières, Québec.
-
-10. MODIFICATIONS
-La version en vigueur est celle publiée avec sa date. L'usage continu vaut acceptation.
-
-11. CONTACT
-mmftechnisoltions@gmail.com`,
-
-  sales: `CONDITIONS GÉNÉRALES DE VENTE — MetalPrompt
-Dernière mise à jour : 24 juin 2026
-
-1. OBJET
-Vente des abonnements payants du Service, édité par MMF Technisolutions (NEQ 2279516308), 2180 rue de Rome, Trois-Rivières (Québec), sur https://metalprompt.com.
-
-2. INFOS AVANT L'ACHAT (CONTRAT À DISTANCE)
-Avant votre paiement, nous indiquons : notre identité et nos coordonnées, la description du plan, le prix total en CAD (taxes indiquées au paiement), la fréquence de facturation et le renouvellement, les modalités de résiliation et de remboursement. Après l'achat, vous recevez par courriel une confirmation tenant lieu de copie du contrat.
-
-3. PLANS ET PAIEMENT
-Plans et prix affichés sur la page des tarifs. Paiements sécurisés par Stripe ; aucune donnée complète de carte n'est stockée. Vous autorisez le prélèvement récurrent jusqu'à résiliation. Prix modifiables pour les périodes futures, avec préavis.
-
-4. RENOUVELLEMENT AUTOMATIQUE
-Renouvellement automatique par périodes identiques au tarif en vigueur, sauf résiliation avant l'échéance. Un avis de renouvellement est transmis lorsque la loi l'exige. Vous pouvez désactiver le renouvellement en tout temps.
-
-5. RÉSILIATION
-Possible à tout moment depuis votre compte ; effet à la fin de la période déjà payée, sans nouveau prélèvement.
-
-6. REMBOURSEMENTS
-La période déjà entamée n'est pas remboursée. Cette politique ne restreint pas vos droits prévus par la loi : rien dans les présentes ne limite les droits d'annulation, de résiliation ou de remboursement accordés au consommateur par la Loi sur la protection du consommateur du Québec ou toute autre loi applicable. En cas de conflit, la loi prévaut. Demandes : mmftechnisoltions@gmail.com.
-
-7. GARANTIES ET RESPONSABILITÉ
-Service « tel quel », aucun résultat garanti. Cette clause ne porte pas atteinte aux garanties légales ni aux droits du consommateur. Dans la seule mesure permise par la loi, la responsabilité totale est limitée au montant payé sur les 12 derniers mois.
-
-8. DROITS IMPÉRATIFS DU CONSOMMATEUR
-Les protections de la Loi sur la protection du consommateur du Québec sont d'ordre public et s'appliquent même si une clause dit le contraire. Plaintes : Office de la protection du consommateur (opc.gouv.qc.ca).
-
-9. DROIT APPLICABLE
-Lois du Québec et du Canada ; tribunaux du district de Trois-Rivières, sous réserve des règles protégeant le consommateur.
-
-10. CONTACT
-mmftechnisoltions@gmail.com`,
-
-  legal: `MENTIONS LÉGALES — MetalPrompt
-Dernière mise à jour : 24 juin 2026
-
-ÉDITEUR
-MMF Technisolutions — NEQ : 2279516308
-Adresse : 2180 rue de Rome, Trois-Rivières (Québec)
-Courriel : mmftechnisoltions@gmail.com
-Responsable de la publication : François Lajoie
-
-HÉBERGEMENT
-Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis — vercel.com
-
-SERVICES TIERS
-Supabase (auth / base de données), Stripe (paiements).
-
-PROPRIÉTÉ INTELLECTUELLE
-La marque « MetalPrompt », le design, les textes et le code sont protégés. Reproduction non autorisée interdite.
-
-CONTACT
-mmftechnisoltions@gmail.com`,
-};
-
-function SiteFooter({onOpen,uiLang}){
-  const fr=uiLang==="fr";
-  const lk={background:"none",border:"none",color:"#666",fontSize:"0.62rem",cursor:"pointer",textDecoration:"underline",padding:"2px 6px"};
-  return (
-    <div style={{borderTop:"1px solid #1a1a1a",padding:"18px 12px 40px",textAlign:"center",display:"flex",flexWrap:"wrap",gap:"4px",justifyContent:"center",alignItems:"center"}}>
-      <span style={{fontSize:"0.58rem",color:"#444"}}>© {new Date().getFullYear()} MetalPrompt ·</span>
-      <button style={lk} onClick={()=>onOpen("privacy")}>{fr?"Confidentialité":"Privacy"}</button>
-      <button style={lk} onClick={()=>onOpen("terms")}>{fr?"Conditions d'utilisation":"Terms"}</button>
-      <button style={lk} onClick={()=>onOpen("sales")}>{fr?"Conditions de vente":"Sales terms"}</button>
-      <button style={lk} onClick={()=>onOpen("legal")}>{fr?"Mentions légales":"Legal notice"}</button>
-    </div>
-  );
-}
-
-function LegalModal({doc,onClose,uiLang}){
-  if(!doc) return null;
-  const fr=uiLang==="fr";
-  const titles={privacy:fr?"Politique de confidentialité":"Privacy Policy",terms:fr?"Conditions d'utilisation":"Terms of Use",sales:fr?"Conditions de vente":"Sales Terms",legal:fr?"Mentions légales":"Legal Notice"};
-  return (
-    <div onClick={onClose} style={{position:"fixed",inset:0,background:"#000000cc",zIndex:1100,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"30px 12px",overflowY:"auto"}}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"#0c0c0c",border:"1px solid #2a2a2a",borderRadius:"10px",maxWidth:"720px",width:"100%",padding:"24px"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}}>
-          <div style={{color:RED,fontSize:"0.95rem",fontWeight:900}}>{titles[doc]}</div>
-          <button onClick={onClose} style={{background:"none",border:"1px solid #333",borderRadius:"4px",color:"#888",fontSize:"0.8rem",padding:"4px 10px",cursor:"pointer"}}>✕</button>
-        </div>
-        {!fr&&<div style={{fontSize:"0.6rem",color:"#777",marginBottom:"10px",fontStyle:"italic"}}>Legal documents are provided in French (Québec law).</div>}
-        <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.72rem",lineHeight:1.7,color:"#bbb"}}>{LEGAL[doc]}</pre>
-      </div>
-    </div>
-  );
-}
-
 export default function App({ user, onLogout }) {
   const [view,setView]=useState("landing");
   const [tab,setTab]=useState("genre");
   const [showPaywall,setShowPaywall]=useState(false);
-  const [legalDoc,setLegalDoc]=useState(null);
   const [uiLang,setUiLang]=useState(()=>(navigator.language||"en").startsWith("fr")?"fr":"en");
   const t=T[uiLang]||T.en;
 
@@ -773,13 +601,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
   const sendLyricsToOutput=()=>{setFullTxt((fullTxt?fullTxt+"\n\n":"")+`=== PAROLES ===\n${lyricsTxt}`);setTab("output");};
 
-  if(view==="landing") return (
-    <>
-      <LandingPage onEnter={()=>setView("app")} uiLang={uiLang} setUiLang={setUiLang}/>
-      <SiteFooter onOpen={setLegalDoc} uiLang={uiLang}/>
-      <LegalModal doc={legalDoc} onClose={()=>setLegalDoc(null)} uiLang={uiLang}/>
-    </>
-  );
+  if(view==="landing") return <LandingPage onEnter={()=>setView("app")} uiLang={uiLang} setUiLang={setUiLang}/>;
 
   const TABS=[
     {id:"genre",req:"free"},{id:"drums",req:"free"},{id:"vocals",req:"free"},
@@ -1127,8 +949,6 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <div style={{height:80}}/>
       </div>}
 
-      <SiteFooter onOpen={setLegalDoc} uiLang={uiLang}/>
-      <LegalModal doc={legalDoc} onClose={()=>setLegalDoc(null)} uiLang={uiLang}/>
       <HammerFab onClick={generate}/>
     </div>
   );

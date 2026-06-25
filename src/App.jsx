@@ -9,7 +9,7 @@ const CARD = "#141414";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitar",bass:"🎸 Bass",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",riff:"🔜 Soon",history:"🕒 History"},
+    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitar",bass:"🎸 Bass",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Learn",riff:"🔜 Soon",history:"🕒 History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (max ~120 chars)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -21,7 +21,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitare",bass:"🎸 Basse",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",riff:"🔜 Bientôt",history:"🕒 Historique"},
+    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitare",bass:"🎸 Basse",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Tuto",riff:"🔜 Bientôt",history:"🕒 Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (max ~120 car.)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -328,6 +328,14 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
           🤘 {uiLang==="fr"?"LANCER L'APP":"LAUNCH APP"}
         </button>
         <div style={{fontSize:"0.6rem",color:"#444",marginTop:"10px"}}>{uiLang==="fr"?"Gratuit · 3 prompts offerts · Aucune carte requise":"Free · 3 prompts included · No card required"}</div>
+      </div>
+
+      {/* MISSION / POURQUOI */}
+      <div style={{padding:"34px 20px",textAlign:"center",borderBottom:"1px solid #1a1a1a",background:"linear-gradient(180deg,#0d0606,#0a0a0a)"}}>
+        <div style={{maxWidth:"580px",margin:"0 auto"}}>
+          <div style={{fontSize:"0.6rem",color:RED,letterSpacing:"3px",fontWeight:800,textTransform:"uppercase",marginBottom:"12px"}}>{uiLang==="fr"?"Notre mission":"Our mission"}</div>
+          <div style={{fontSize:"0.95rem",color:"#ddd",lineHeight:1.85}}>{uiLang==="fr"?"On était tannés d'entendre du metal IA qui sonne en plastique. Alors on a bâti l'outil qu'on voulait : un forgeron de prompts qui sort du VRAI metal — brutal, organique, humain. Notre mission : aider les musiciens à progresser, ET ouvrir la création musicale à ceux qui ne jouent pas du tout. Que l'idée brutale dans ta tête devienne une toune. 🤘":"We were sick of AI metal that sounds like plastic. So we built the tool we wanted: a prompt forge that delivers REAL metal — brutal, organic, human. Our mission: help musicians level up, AND open music creation to those who don't play at all. Turn the brutal idea in your head into a track. 🤘"}</div>
+        </div>
       </div>
 
       <div style={{padding:"36px 20px",maxWidth:"560px",margin:"0 auto"}}>
@@ -796,7 +804,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   const TABS=[
     {id:"genre",req:"free"},{id:"drums",req:"free"},{id:"vocals",req:"free"},
     {id:"guitar",req:"forge"},{id:"bass",req:"forge"},{id:"instru",req:"forge"},{id:"structure",req:"forge"},
-    {id:"paroles",req:"pro"},{id:"organic",req:"pro"},{id:"exclude",req:"elite"},{id:"output",req:"free"},{id:"riff",req:"free"},
+    {id:"paroles",req:"pro"},{id:"organic",req:"pro"},{id:"exclude",req:"elite"},{id:"output",req:"free"},{id:"tuto",req:"free"},{id:"riff",req:"free"},
     ...(isPro?[{id:"history",req:"pro"}]:[]),
   ];
 
@@ -1069,6 +1077,55 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
           </div>
         ))}
+        <div style={{height:80}}/>
+      </div>}
+
+      {tab==="tuto"&&<div style={S.page}>
+        <div style={{...S.card,textAlign:"center",padding:"26px 22px",borderColor:"#ff2e2e44"}}>
+          <div style={{fontSize:"2.2rem",marginBottom:"6px"}}>📚</div>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:"2px",color:"#fff"}}>APPRENDRE LE METAL</div>
+          <div style={{color:"#999",fontSize:"0.8rem",marginTop:"6px",lineHeight:1.5}}>MetalPrompt, c'est plus qu'un prompteur — c'est <b style={{color:"#fff"}}>LA plateforme du metalhead</b>. 🤘</div>
+        </div>
+
+        <div style={S.card}>
+          <div style={S.ctitle}>⚡ Démarrage rapide — de 0 à toune</div>
+          {[
+            "Choisis ton genre, ta batterie et tes voix dans les onglets.",
+            "Clique sur l'enclume ⚒️ FORGER pour générer ton prompt.",
+            "Onglet Output : copie le « Style of Music » et colle-le dans le champ Style de Suno.",
+            "Colle les blocs de structure EN HAUT du champ Lyrics de Suno.",
+            "Génère dans Suno, écoute, ajuste. C'est ta toune. 🤘",
+          ].map((s,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<4?"1px solid #1a1a1a":"none"}}>
+              <div style={S.stepNum(RED)}>{i+1}</div>
+              <div style={{fontSize:"0.8rem",color:"#ccc",lineHeight:1.6,paddingTop:"3px"}}>{s}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={S.card}>
+          <div style={S.ctitle}>🎓 Cliniques de musique en ligne</div>
+          <div style={{fontSize:"0.78rem",color:"#999",lineHeight:1.7,marginBottom:"14px"}}>
+            Des sessions live avec de vrais musiciens pour passer au niveau supérieur — riffs, mix, écriture, voix extrêmes. Que tu joues déjà ou pas du tout, on t'aide à progresser.
+          </div>
+          {[
+            {i:"🎸",t:"Riffing & composition",d:"Construire des riffs qui frappent et structurer une toune."},
+            {i:"🎙️",t:"Voix extrêmes",d:"Scream, growl, fry — technique et santé vocale."},
+            {i:"🎚️",t:"Mix & son metal",d:"Faire sonner gros : guitares, batterie, basse."},
+          ].map(c=>(
+            <div key={c.t} style={{...S.card,display:"flex",alignItems:"center",gap:"14px",marginBottom:"10px"}}>
+              <div style={{fontSize:"1.8rem"}}>{c.i}</div>
+              <div style={{flex:1}}>
+                <div style={{color:"#fff",fontWeight:800,fontSize:"0.88rem"}}>{c.t} <span style={{marginLeft:"6px",fontSize:"0.52rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"6px",padding:"2px 7px",letterSpacing:"0.5px",verticalAlign:"middle"}}>BIENTÔT</span></div>
+                <div style={{color:"#888",fontSize:"0.74rem",marginTop:"3px",lineHeight:1.5}}>{c.d}</div>
+              </div>
+            </div>
+          ))}
+          <a href="mailto:mmftechnisolutions@gmail.com?subject=Clinique%20de%20musique%20en%20ligne" style={{display:"block",textAlign:"center",marginTop:"6px",padding:"12px",background:RED,borderRadius:"8px",color:"#000",fontWeight:900,fontSize:"0.8rem",letterSpacing:"1px",textTransform:"uppercase",textDecoration:"none"}}>
+            🤘 Tu donnes des cliniques ? Écris-nous
+          </a>
+          <div style={{fontSize:"0.6rem",color:"#555",textAlign:"center",marginTop:"8px"}}>Musiciens, profs, créateurs — proposez vos cliniques sur la plateforme.</div>
+        </div>
         <div style={{height:80}}/>
       </div>}
 

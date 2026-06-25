@@ -756,6 +756,12 @@ export default function App({ user, onLogout }) {
   const [structNotes,setStructNotes]=useState("");
   const [excludeTxt,setExcludeTxt]=useState("");
   const [fullTxt,setFullTxt]=useState("");
+  const [styleTxtC,setStyleTxtC]=useState("");
+  const [structTxtC,setStructTxtC]=useState("");
+  const [compact,setCompact]=useState(false);
+  const [conflicts,setConflicts]=useState([]);
+  const styleShown=compact?(styleTxtC||styleTxt):styleTxt;
+  const structShown=compact?(structTxtC||structTxt):structTxt;
   const [keywords,setKeywords]=useState("");
   const [lyricsTxt,setLyricsTxt]=useState("");
   const [lyricsLoading,setLyricsLoading]=useState(false);
@@ -776,8 +782,23 @@ export default function App({ user, onLogout }) {
     const extraInst=[...bassStyle,...bassTech,...bassTone,...bassTuning,...bassProd,...sax,...brass,...keys,...strings];
     const rFor=k=>blockRhythm[k]?`, ${blockRhythm[k]}`:"";
     const tempoWord=bpm>=210?"blistering fast tempo":bpm>=170?"fast tempo":bpm>=120?"mid-tempo":bpm>=90?"slow groovy tempo":"slow doom tempo";
-    const styleTags=[...[...genres],`${bpm} BPM`,tempoWord,...[...drums],...[...guitar].slice(0,3),...[...tuning].slice(0,1),...[...vocals].slice(0,3),...[...mood].slice(0,3),...[...prod].slice(0,2),...allOrganic.slice(0,4),...[...globalRhythm]];
-    const styleStr=styleTags.join(", ");
+    const dedup=arr=>{const s=new Set();return arr.filter(x=>{const k=String(x).toLowerCase().trim();if(!x||s.has(k))return false;s.add(k);return true;});};
+    const gArr=[...genres],dArr=[...drums],vArr=[...vocals],mArr=[...mood];
+    const fullTags=dedup([...gArr,`${bpm} BPM`,tempoWord,...dArr,...[...guitar].slice(0,3),...[...tuning].slice(0,1),...vArr.slice(0,3),...mArr.slice(0,3),...[...prod].slice(0,2),...allOrganic.slice(0,4),...[...globalRhythm]]);
+    const compactCore=dedup([...gArr.slice(0,2),`${bpm} BPM`,tempoWord,...dArr.slice(0,2),...[...guitar].slice(0,1),...vArr.slice(0,1),...mArr.slice(0,1)]);
+    const overflow=fullTags.filter(x=>!compactCore.includes(x));
+    const styleStr=fullTags.join(", ");
+    const styleStrC=compactCore.join(", ");
+    // ── détecteur de conflits ──
+    const lc=x=>String(x).toLowerCase();
+    const vTxt=vArr.map(lc).join(" ");
+    const conf=[];
+    if(/clean|melodic sing|clean sing/.test(vTxt)&&/growl|scream|guttural|pig squeal|shriek|harsh/.test(vTxt)) conf.push(L("Voix claires + voix extrêmes ensemble — Suno peut hésiter.","Clean + extreme vocals together — Suno may waver."));
+    if(bpm<110&&dArr.some(d=>/blast/.test(lc(d)))) conf.push(L("Blast beats avec un BPM bas — monte le tempo pour rester cohérent.","Blast beats with a low BPM — raise the tempo to stay consistent."));
+    if(allOrganic.some(o=>/imperfect|loose|human|drift|drunk/.test(lc(o)))) conf.push(L("Tag organique de timing « lâche » actif — enlève-le si tu veux un BPM serré.","Loose-timing organic tag active — remove it for a tight BPM."));
+    if(gArr.length>2) conf.push(L(gArr.length+" genres sélectionnés — garde 1-2 max, sinon Suno se mélange.",gArr.length+" genres selected — keep 1-2 max or Suno gets confused."));
+    if(([...guitar].length+extraInst.length)>4) conf.push(L("Beaucoup d'instruments — Suno gère mieux 3-4 max.","Many instruments — Suno handles 3-4 best."));
+    setConflicts(conf);
     const excStr=allExclude.join(", ");
     const blockMapClean={
       intro:`[Intro${rFor("intro")}]`,buildup:`[Build-up${rFor("buildup")}]`,verse:`[Verse${rFor("verse")}]`,
@@ -808,7 +829,10 @@ export default function App({ user, onLogout }) {
       outro:`Outro → ${chaos>=7?"frenzy blast":"breakdown final"}${rFor("outro")}`,
     };
     const activeBlocks=[...structs];
-    const structStr=[`[${bpm} BPM]`,...activeBlocks.map(b=>blockMapClean[b]||"").filter(Boolean)].join("\n");
+    const blocksClean=activeBlocks.map(b=>blockMapClean[b]||"").filter(Boolean);
+    const structStr=[`[${bpm} BPM]`,...blocksClean].join("\n");
+    const overflowLine=overflow.length?`[${overflow.join(", ")}]`:"";
+    const structStrC=[`[${bpm} BPM]`,overflowLine,...blocksClean].filter(Boolean).join("\n");
     const structNotesTxt=activeBlocks.map(b=>blockMapNotes[b]||"").filter(Boolean).join("\n");
     const heavyD=heavy>=8?"extremely heavy and crushing":heavy>=5?"heavy and punishing":"moderately heavy";
     const grooveD=groove>=8?"deeply groovy":groove>=5?"mid-paced groovy":"straight aggressive";
@@ -821,7 +845,7 @@ ${structStr}
 
 === PRODUCTION NOTES (keep for yourself) ===
 ${heavyD}. ${grooveD}. ${chaosD}. ${melodyD}. ${bpm} BPM.${allOrganic.length>0?"\nOrganic: "+allOrganic.join(", "):""}`;
-    setStyleTxt(styleStr);setStructTxt(structStr||"");setStructNotes(structNotesTxt);setExcludeTxt(excStr);setFullTxt(full);
+    setStyleTxt(styleStr);setStyleTxtC(styleStrC);setStructTxt(structStr||"");setStructTxtC(structStrC||"");setStructNotes(structNotesTxt);setExcludeTxt(excStr);setFullTxt(full);
     const nc=promptCount+1;setPromptCount(nc);
     if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
     saveToHistory(styleStr);
@@ -1230,6 +1254,20 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{fontSize:"0.82rem",color:"#444"}}>{t.noPrompt}</div>
         </div>}
         {styleTxt&&<>
+          {/* COMPACT TOGGLE + CONFLICTS */}
+          <div style={{...S.card,display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",borderColor:"#2a2a2a"}}>
+            <div>
+              <div style={{fontSize:"0.74rem",fontWeight:800,color:"#e0e0e0"}}>⚡ {L("Mode Compact","Compact mode")}</div>
+              <div style={{fontSize:"0.58rem",color:"#666",marginTop:"2px"}}>{L("Réduit le style ≤120 car. · surplus → champ Lyrics","Trim style ≤120 chars · overflow → Lyrics field")}</div>
+            </div>
+            <button onClick={()=>setCompact(c=>!c)} style={{background:compact?RED:"#1a1a1a",border:`1px solid ${compact?RED:"#333"}`,borderRadius:"20px",width:"50px",height:"26px",position:"relative",cursor:"pointer",flexShrink:0,padding:0}}>
+              <span style={{position:"absolute",top:"2px",left:compact?"26px":"2px",width:"20px",height:"20px",borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
+            </button>
+          </div>
+          {conflicts.length>0&&<div style={{...S.card,borderColor:"#5a4a00",background:"#0f0c00"}}>
+            <div style={{fontSize:"0.62rem",fontWeight:800,color:"#e6c200",letterSpacing:"1px",marginBottom:"6px"}}>⚠️ {L("Conflits possibles","Possible conflicts")}</div>
+            {conflicts.map((c,i)=><div key={i} style={{fontSize:"0.68rem",color:"#cba",lineHeight:1.6,padding:"2px 0"}}>• {c}</div>)}
+          </div>}
           {/* STEP 1 */}
           <div style={{...S.card,borderColor:"#ff2e2e33",background:"#0d0000"}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
@@ -1238,10 +1276,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
             <div style={{fontSize:"0.63rem",color:"#888",marginBottom:"10px",lineHeight:1.6}}>{t.step1d}</div>
             <div style={{background:"#0a0a0a",border:"1px solid #3a0000",borderRadius:"6px",padding:"10px",position:"relative"}}>
-              <CopyBtn getText={()=>styleTxt}/>
-              <div style={{color:"#ff9090",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{styleTxt}</div>
+              <CopyBtn getText={()=>styleShown}/>
+              <div style={{color:"#ff9090",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{styleShown}</div>
             </div>
-            <div style={{fontSize:"0.58rem",marginTop:"7px",textAlign:"right",fontWeight:700,color:styleTxt.length<=120?"#4caf50":styleTxt.length<=180?"#cc9900":"#ff5555"}}>{styleTxt.length} {L("car.","chars")} · {styleTxt.length<=120?L("idéal Suno ✓","ideal for Suno ✓"):styleTxt.length<=180?L("un peu long","a bit long"):L("trop long — Suno risque d'ignorer le tempo/détails","too long — Suno may drop tempo/details")}</div>
+            <div style={{fontSize:"0.58rem",marginTop:"7px",textAlign:"right",fontWeight:700,color:styleShown.length<=120?"#4caf50":styleShown.length<=180?"#cc9900":"#ff5555"}}>{styleShown.length} {L("car.","chars")} · {styleShown.length<=120?L("idéal Suno ✓","ideal for Suno ✓"):styleShown.length<=180?L("un peu long","a bit long"):L("trop long — Suno risque d'ignorer le tempo/détails","too long — Suno may drop tempo/details")}</div>
           </div>
           {/* STEP 2 */}
           {structTxt&&<div style={{...S.card,borderColor:"#00aa4433",background:"#030f03"}}>
@@ -1251,8 +1289,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
             <div style={{fontSize:"0.63rem",color:"#688",marginBottom:"10px",lineHeight:1.6}}>{t.step2d}</div>
             <div style={{background:"#0a0a0a",border:"1px solid #1a4a1a",borderRadius:"6px",padding:"10px",position:"relative"}}>
-              <CopyBtn getText={()=>structTxt}/>
-              <pre style={{whiteSpace:"pre-wrap",fontFamily:"monospace",fontSize:"0.82rem",lineHeight:2,color:"#aaffaa",paddingRight:"50px"}}>{structTxt}</pre>
+              <CopyBtn getText={()=>structShown}/>
+              <pre style={{whiteSpace:"pre-wrap",fontFamily:"monospace",fontSize:"0.82rem",lineHeight:2,color:"#aaffaa",paddingRight:"50px"}}>{structShown}</pre>
             </div>
           </div>}
           {/* STEP 3 */}

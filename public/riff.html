@@ -321,7 +321,12 @@ async function renderAndDownload(p){
   document.getElementById('btnRender').disabled=true;
 
   const off=new OfflineAudioContext(2,totalSamples,sr);
-  const master=off.createGain();master.gain.value=0.78;master.connect(off.destination);
+  const master=off.createGain();master.gain.value=0.5;
+  // compresseur-limiteur (évite le clipping et le "crescendo" quand les notes s'empilent)
+  const comp=off.createDynamicsCompressor();
+  comp.threshold.value=-4;comp.knee.value=0;comp.ratio.value=20;comp.attack.value=0.002;comp.release.value=0.12;
+  const outGain=off.createGain();outGain.gain.value=0.9;
+  master.connect(comp);comp.connect(outGain);outGain.connect(off.destination);
 
   const rootHz=noteFreqHz(p.root);
   const bassHz=rootHz/2;
@@ -367,7 +372,7 @@ async function renderAndDownload(p){
       const o=off.createOscillator(),g=off.createGain();
       const ck=off.createOscillator(),cg=off.createGain();
       o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(38,t+.1);
-      g.gain.setValueAtTime(1.1,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);
+      g.gain.setValueAtTime(0.8,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);
       ck.frequency.value=1200;cg.gain.setValueAtTime(.28,t);cg.gain.exponentialRampToValueAtTime(.001,t+.012);
       o.connect(g);g.connect(master);ck.connect(cg);cg.connect(master);
       o.start(t);o.stop(t+.35);ck.start(t);ck.stop(t+.02);

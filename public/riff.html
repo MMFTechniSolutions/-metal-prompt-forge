@@ -131,7 +131,8 @@
       <div class="cg">
         <label>Ou importe TON groove MIDI 🎹</label>
         <input type="file" id="midiDrum" accept=".mid,.midi">
-        <div class="sb" id="midiStatus" style="font-size:.58rem;color:var(--ash);">Charge un .mid de ton pack — il reste sur ton appareil.</div>
+        <div class="sb" id="midiStatus" style="font-size:.58rem;color:var(--ash);">Menu actif. Charge un .mid pour utiliser TON groove (reste sur ton appareil).</div>
+        <button class="bs" id="midiClear" style="display:none;font-size:.6rem;padding:4px 10px;margin-top:5px;">✕ Retirer — revenir au menu</button>
       </div>
       <div class="cg">
         <label>Structure (mesures)</label>
@@ -585,8 +586,19 @@ document.getElementById('midiDrum').addEventListener('change',async(e)=>{
     const r=parseMidiToDrum(await f.arrayBuffer());
     if(!r){importedDrum=null;st.textContent='⚠ MIDI illisible ou vide';return;}
     importedDrum=r;
-    st.textContent='✓ '+f.name+' importé — clique ⚡ Générer';
+    st.innerHTML='🎹 <b style="color:var(--ember-hot)">'+f.name+'</b> ACTIF — remplace le menu. Clique ⚡ Générer.';
+    document.getElementById('midiClear').style.display='inline-block';
   }catch(err){importedDrum=null;st.textContent='⚠ '+(err.message||'erreur');}
+});
+document.getElementById('midiClear').addEventListener('click',()=>{
+  importedDrum=null;document.getElementById('midiDrum').value='';
+  document.getElementById('midiStatus').textContent='Menu Pattern Drums actif.';
+  document.getElementById('midiClear').style.display='none';
+});
+document.getElementById('drums').addEventListener('change',()=>{
+  if(importedDrum){importedDrum=null;document.getElementById('midiDrum').value='';
+    document.getElementById('midiClear').style.display='none';
+    document.getElementById('midiStatus').textContent='Menu Pattern Drums actif (MIDI retiré).';}
 });
 document.getElementById('btnGen').addEventListener('click',async()=>{
   const tier=new URLSearchParams(location.search).get('tier')||'free';

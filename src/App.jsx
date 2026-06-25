@@ -853,87 +853,26 @@ export default function App({ user, onLogout, onRequestAuth }) {
   };
 
   // ── GENERATE ──
-  const generate=()=>{
+  const generate=async()=>{
     if(promptCount>=limit.prompts){if(!user){onRequestAuth&&onRequestAuth();return;}setView("landing");return;}
-    const allOrganic=isPro?[...orgRec,...orgDrm,...orgVoc,...orgGtr]:[];
-    const allExclude=isElite?[...exclGenre,...exclVocal,...exclProd,...exclInst,...exclCustom.split(",").map(s=>s.trim()).filter(Boolean)]:[];
-    const extraInst=[...bassStyle,...bassTech,...bassTone,...bassTuning,...bassProd,...sax,...brass,...keys,...strings];
-    const rFor=k=>blockRhythm[k]?`, ${blockRhythm[k]}`:"";
-    const tempoWord=bpm>=210?"blistering fast tempo":bpm>=170?"fast tempo":bpm>=120?"mid-tempo":bpm>=90?"slow groovy tempo":"slow doom tempo";
-    const dedup=arr=>{const s=new Set();return arr.filter(x=>{const k=String(x).toLowerCase().trim();if(!x||s.has(k))return false;s.add(k);return true;});};
-    const gArr=[...genres],dArr=[...drums],vArr=[...vocals],mArr=[...mood];
-    // ── sauce secrète : les sliders glissent des tags SUBTILS que Suno interprète, fondus dans le lot (max 2) ──
-    const sliderTags=[];
-    if(heavy>=8)sliderTags.push("bone-crushing low end");else if(heavy<=3)sliderTags.push("open and breathable mix");
-    if(groove>=7)sliderTags.push("deep pocket groove");else if(groove<=3)sliderTags.push("relentless forward drive");
-    if(chaos>=8)sliderTags.push("unhinged dissonance");else if(chaos<=2)sliderTags.push("locked-in and surgical");
-    if(melody>=7)sliderTags.push("soaring melodic lead");else if(melody<=2)sliderTags.push("no-frills brutality");
-    const secret=sliderTags.slice(0,2); // discret : max 2 tags, noyés au milieu
-    const fullTags=dedup([...gArr,`${bpm} BPM`,tempoWord,...dArr,...[...guitar].slice(0,3),...[...tuning].slice(0,1),...vArr.slice(0,3),...[...vrange].slice(0,2),...mArr.slice(0,3),...secret,...[...prod].slice(0,2),...allOrganic.slice(0,4),...[...globalRhythm]]);
-    const compactCore=dedup([...gArr.slice(0,2),`${bpm} BPM`,tempoWord,...dArr.slice(0,2),...[...guitar].slice(0,1),...vArr.slice(0,1),...mArr.slice(0,1),...secret.slice(0,1)]);
-    const overflow=fullTags.filter(x=>!compactCore.includes(x));
-    const styleStr=fullTags.join(", ");
-    const styleStrC=compactCore.join(", ");
-    // ── détecteur de conflits ──
-    const lc=x=>String(x).toLowerCase();
-    const vTxt=vArr.map(lc).join(" ");
-    const conf=[];
-    if(/clean|melodic sing|clean sing/.test(vTxt)&&/growl|scream|guttural|pig squeal|shriek|harsh/.test(vTxt)) conf.push(L("Voix claires + voix extrêmes ensemble — Suno peut hésiter.","Clean + extreme vocals together — Suno may waver."));
-    if(bpm<110&&dArr.some(d=>/blast/.test(lc(d)))) conf.push(L("Blast beats avec un BPM bas — monte le tempo pour rester cohérent.","Blast beats with a low BPM — raise the tempo to stay consistent."));
-    if(allOrganic.some(o=>/imperfect|loose|human|drift|drunk/.test(lc(o)))) conf.push(L("Tag organique de timing « lâche » actif — enlève-le si tu veux un BPM serré.","Loose-timing organic tag active — remove it for a tight BPM."));
-    if(gArr.length>2) conf.push(L(gArr.length+" genres sélectionnés — garde 1-2 max, sinon Suno se mélange.",gArr.length+" genres selected — keep 1-2 max or Suno gets confused."));
-    if(([...guitar].length+extraInst.length)>4) conf.push(L("Beaucoup d'instruments — Suno gère mieux 3-4 max.","Many instruments — Suno handles 3-4 best."));
-    setConflicts(conf);
-    const excStr=allExclude.join(", ");
-    const blockMapClean={
-      intro:`[Intro${rFor("intro")}]`,buildup:`[Build-up${rFor("buildup")}]`,verse:`[Verse${rFor("verse")}]`,
-      prechorus:`[Pre-Chorus${rFor("prechorus")}]`,chorus:`[Chorus${rFor("chorus")}]`,breakdown:`[Breakdown${rFor("breakdown")}]`,
-      halftime:`[Half-Time${rFor("halftime")}]`,blastsection:`[Blast Section${rFor("blastsection")}]`,drop:`[Drop${rFor("drop")}]`,
-      solo:`[Guitar Solo${rFor("solo")}]`,interlude:`[Interlude${rFor("interlude")}]`,atmosphericbreak:`[Atmospheric Break${rFor("atmosphericbreak")}]`,
-      spokenword:`[Spoken Word${rFor("spokenword")}]`,gangchant:`[Gang Chant${rFor("gangchant")}]`,scream:`[Scream Section${rFor("scream")}]`,
-      riffbreak:`[Riff Break${rFor("riffbreak")}]`,bridge:`[Bridge${rFor("bridge")}]`,outro:`[Outro${rFor("outro")}]`,
+    const body={
+      genres:[...genres],drums:[...drums],vocals:[...vocals],guitar:[...guitar],tuning:[...tuning],mood:[...mood],prod:[...prod],globalRhythm:[...globalRhythm],vrange:[...vrange],
+      bassStyle:[...bassStyle],bassTech:[...bassTech],bassTone:[...bassTone],bassTuning:[...bassTuning],bassProd:[...bassProd],sax:[...sax],brass:[...brass],keys:[...keys],strings:[...strings],
+      org:isPro?[...orgRec,...orgDrm,...orgVoc,...orgGtr]:[],
+      excl:isElite?{g:[...exclGenre],v:[...exclVocal],p:[...exclProd],i:[...exclInst],c:exclCustom}:null,
+      structs:[...structs],blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,
     };
-    const blockMapNotes={
-      intro:`Intro → ${drums.has("blast beats")?"blast beat fury":"crushing riff"}${rFor("intro")}`,
-      buildup:`Build-up → ${heavy>=8?"murs de distortion":"couches progressives"}, pas de voix${rFor("buildup")}`,
-      verse:`Verse → ${vocals.has("pig squeals")?"pig squeal + ":""}growls sur ${guitar.has("chugging riffs")?"chugging riffs":"riffs lourds"}${rFor("verse")}`,
-      prechorus:`Pre-Chorus → tension montante${rFor("prechorus")}`,
-      chorus:`Chorus → ${groove>=6?"riff groovy headbang":"assaut total"}${rFor("chorus")}`,
-      breakdown:`Breakdown → ${groove>=7?"groove lent, gang shouts":"mosh brutal"}${rFor("breakdown")}`,
-      halftime:`Half-Time → ${bpm>160?Math.round(bpm/2)+" BPM":bpm+" BPM"}, palm-mute lourd${rFor("halftime")}`,
-      blastsection:`Blast Section → blast beats ${bpm} BPM${rFor("blastsection")}`,
-      drop:`Drop → silence puis riff dévastateur${rFor("drop")}`,
-      solo:`Guitar Solo → ${guitar.has("sweep picking solos")?"sweep shred":"riff lead"}${rFor("solo")}`,
-      interlude:`Interlude → instrumental${rFor("interlude")}`,
-      atmosphericbreak:`Atmospheric Break → ${chaos>=7?"dissonance":"calme"}${rFor("atmosphericbreak")}`,
-      spokenword:`Spoken Word → voix seule${rFor("spokenword")}`,
-      gangchant:`Gang Chant → chant collectif${rFor("gangchant")}`,
-      scream:`Scream Section → cri brut${rFor("scream")}`,
-      riffbreak:`Riff Break → guitares seules${rFor("riffbreak")}`,
-      bridge:`Bridge → ${chaos>=7?"chaotique":"atmosphérique"}${rFor("bridge")}`,
-      outro:`Outro → ${chaos>=7?"frenzy blast":"breakdown final"}${rFor("outro")}`,
-    };
-    const activeBlocks=[...structs];
-    const blocksClean=activeBlocks.map(b=>blockMapClean[b]||"").filter(Boolean);
-    const structStr=[`[${bpm} BPM]`,...blocksClean].join("\n");
-    const overflowLine=overflow.length?`[${overflow.join(", ")}]`:"";
-    const structStrC=[`[${bpm} BPM]`,overflowLine,...blocksClean].filter(Boolean).join("\n");
-    const structNotesTxt=activeBlocks.map(b=>blockMapNotes[b]||"").filter(Boolean).join("\n");
-    const heavyD=heavy>=8?"extremely heavy and crushing":heavy>=5?"heavy and punishing":"moderately heavy";
-    const grooveD=groove>=8?"deeply groovy":groove>=5?"mid-paced groovy":"straight aggressive";
-    const chaosD=chaos>=8?"chaotic and unpredictable":chaos>=5?"controlled chaos":"tight and structured";
-    const melodyD=melody>=7?"rich melodic leads":melody>=4?"sparse melodic accents":"pure brutality";
-    const full=`=== STYLE TAGS (→ Style of Music) ===\n${styleStr}${excStr?`\n\nEXCLUDE: ${excStr.split(", ").map(x=>"-"+x).join(", ")}`:""}
-
-=== STRUCTURE (→ top of Lyrics) ===
-${structStr}
-
-=== PRODUCTION NOTES (keep for yourself) ===
-${heavyD}. ${grooveD}. ${chaosD}. ${melodyD}. ${bpm} BPM.${allOrganic.length>0?"\nOrganic: "+allOrganic.join(", "):""}`;
-    setStyleTxt(styleStr);setStyleTxtC(styleStrC);setStructTxt(structStr||"");setStructTxtC(structStrC||"");setStructNotes(structNotesTxt);setExcludeTxt(excStr);setFullTxt(full);
+    let data;
+    try{
+      const r=await fetch('/api/forge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      data=await r.json();
+      if(!r.ok)throw new Error('forge');
+    }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie 🤘":"Generation error, try again 🤘"); return; }
+    setConflicts(data.conflicts||[]);
+    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");
     const nc=promptCount+1;setPromptCount(nc);
     if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
-    saveToHistory(styleStr);
+    saveToHistory(data.styleStr);
     setTab("output");
   };
 

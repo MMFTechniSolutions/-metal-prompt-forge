@@ -217,6 +217,11 @@ function CopyBtn({getText}) {
   return <button style={S.copyBtn} onClick={()=>navigator.clipboard.writeText(getText()).then(()=>{setTxt("✅");setTimeout(()=>setTxt("COPY"),1500)}).catch(()=>setTxt("ERR"))}>{txt}</button>;
 }
 
+function MiniCopy({text,style}) {
+  const [txt,setTxt]=useState("COPY");
+  return <button onClick={()=>navigator.clipboard.writeText(text).then(()=>{setTxt("✅ Copié");setTimeout(()=>setTxt("COPY"),1500)}).catch(()=>setTxt("ERR"))} style={style}>{txt}</button>;
+}
+
 function Slider({label,val,setVal}) {
   const pct=((val-1)/9*100).toFixed(1)+"%";
   return (
@@ -1138,7 +1143,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             <div key={h.id} style={{borderBottom:"1px solid #1a1a1a",padding:"10px 0"}}>
               <div style={{fontSize:"0.58rem",color:"#555",letterSpacing:"1px",marginBottom:"4px"}}>#{history.length-i} · {h.date}</div>
               <div style={{fontSize:"0.72rem",color:"#aaa",lineHeight:1.6,fontFamily:"monospace"}}>{h.prompt.slice(0,120)}...</div>
-              <button onClick={()=>navigator.clipboard.writeText(h.prompt)} style={{marginTop:"5px",background:"none",border:"1px solid #222",borderRadius:"4px",color:"#555",fontSize:"0.6rem",padding:"3px 8px",cursor:"pointer"}}>COPY</button>
+              <MiniCopy text={h.prompt} style={{marginTop:"5px",background:"none",border:"1px solid #222",borderRadius:"4px",color:"#888",fontSize:"0.6rem",padding:"3px 8px",cursor:"pointer"}}/>
             </div>
           ))}
         </div>

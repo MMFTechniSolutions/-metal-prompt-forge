@@ -180,83 +180,8 @@
 
 </main>
 <script>
-const STYLE_PAT = {
-  thrash:   [1,0,1,0,1,0,1,0,1,1,0,1,0,1,0,1],
-  death:    [1,1,0,1,1,0,1,0,1,1,0,1,1,0,1,1],
-  doom:     [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-  blackened:[1,1,1,0,1,1,0,1,1,1,0,1,0,1,1,0],
-  groove:   [1,0,0,1,0,1,0,0,1,0,0,1,0,0,1,0],
-  djent:    [1,0,1,1,0,0,1,0,1,0,1,0,0,1,0,1],
-  speed:    [1,0,1,0,1,1,0,1,1,0,1,0,1,1,0,1],
-  slam:       [1,0,0,0,1,1,0,0,1,0,0,0,1,1,0,0],
-  sludge:     [1,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0],
-  postmetal:  [1,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0],
-  grindcore:  [1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1],
-  funeraldoom:[1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
-  dissonant:  [1,0,1,0,0,1,1,0,1,0,0,1,0,1,0,1],
-};
-const BASS_PAT = {
-  thrash:   [1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0],
-  death:    [1,0,1,0,1,1,0,1,0,1,0,1,1,0,0,1],
-  doom:     [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-  blackened:[1,0,0,1,0,0,1,0,1,0,0,1,0,0,0,1],
-  groove:   [1,0,1,0,0,1,0,0,1,0,1,0,0,1,0,0],
-  djent:    [1,0,0,1,0,1,0,0,1,0,0,0,1,0,1,0],
-  speed:    [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],
-  slam:       [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],
-  sludge:     [1,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0],
-  postmetal:  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
-  grindcore:  [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],
-  funeraldoom:[1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
-  dissonant:  [1,0,0,1,0,1,0,0,1,0,0,1,0,0,1,0],
-};
-const DRUM_PAT = {
-  standard:   {kick:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],snare:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0],hihat:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
-  double_kick:{kick:[1,0,1,0,1,0,1,0,1,1,0,1,0,1,1,0],snare:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0],hihat:[1,1,0,1,1,0,1,0,1,1,0,1,1,0,1,0]},
-  blast_beat: {kick:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],snare:[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],hihat:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},
-  half_time:  {kick:[1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],hihat:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
-  breakdown:  {kick:[1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1],hihat:[1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0]},
-};
-const NOTE_SEQ = {
-  thrash:[0,0,3,0,5,0,7,3],death:[0,0,1,0,6,1,0,8],doom:[0,7,5,3,0,7,5,0],
-  blackened:[0,0,1,5,0,1,0,6],groove:[0,5,7,0,3,5,0,7],djent:[0,0,7,0,5,0,3,0],speed:[0,3,5,7,0,5,3,0],
-  slam:[0,0,1,0,0,2,0,1],sludge:[0,3,0,5,0,3,0,0],postmetal:[0,7,12,7,0,5,7,0],grindcore:[0,1,0,2,0,1,3,0],funeraldoom:[0,0,3,0,0,5,0,0],dissonant:[0,1,6,0,1,8,0,6],
-};
-
-// steps: 16=4/4 · 14=7/8 · 12=6/8 · 20=5/4 · 8=2/4
-const STRUCTURES = {
-  loop:   {bars:[{}]},
-  vbd:    {bars:[{},{},{drum:'breakdown'},{drum:'breakdown'}]},
-  irbo:   {bars:[{drum:'half_time'},{},{},{drum:'breakdown'}]},
-  drop:   {bars:[{drum:'half_time'},{drum:'double_kick'},{drum:'blast_beat'},{drum:'breakdown'}]},
-  djent7: {bars:[{},{steps:14},{},{steps:14,drum:'breakdown'}]},
-  prog:   {bars:[{steps:14},{steps:12},{},{steps:20}]},
-};
-const METER={16:'4/4',14:'7/8',12:'6/8',20:'5/4',8:'2/4',10:'5/8'};
-const LEAD_RHY=[1,0,0,0,1,0,1,0,0,1,0,0,1,0,1,0];
-const LEAD_VOICE={
-  saxophone:{wave:'sawtooth',cut:2200,q:3},
-  violon:{wave:'sawtooth',cut:3600,q:1.2},
-  synth:{wave:'square',cut:4200,q:1},
-  cuivres:{wave:'square',cut:1700,q:4},
-};
-function buildArrangement(p){
-  const st=STRUCTURES[p.structure]||STRUCTURES.loop;
-  const out={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],L:0};
-  st.bars.forEach(bar=>{
-    const dp=DRUM_PAT[bar.drum||p.drumKey]||p.drum;
-    const tr=bar.transpose||0;
-    const n=bar.steps||16;
-    for(let i=0;i<n;i++){
-      const j=i%16;
-      out.guit.push(p.guit[j]);out.bass.push(p.bass[j]);
-      out.kick.push(dp.kick[j]);out.snare.push(dp.snare[j]);out.hihat.push(dp.hihat[j]);
-      out.trans.push(tr);
-    }
-  });
-  out.L=out.guit.length;
-  return out;
-}
+// ── Patterns + arrangement + tablature : logique secrète déplacée côté serveur (/api/riff) ──
+// Le client n'envoie que des paramètres et reçoit l'arrangement déjà calculé.
 
 let toneReady=false,synth=null,bassSynth=null,drumKit=null,leadSynth=null,leadFilter=null;
 let seqs=[],isPlaying=false,currentPat=null,animF=null,analyser=null;
@@ -302,36 +227,7 @@ async function initTone(){
 
 function semFreq(base,semi){return Tone.Frequency(base).transpose(semi).toNote();}
 
-function buildTab(p){
-  const TUNE={E2:'E ',Eb2:'Eb',D2:'D ',Db2:'C#',C2:'C ',B1:'B '};
-  const low=TUNE[p.root]||'E ';
-  const isDrop=(p.root==='Db2');
-  let ni=0;const rootC=[],fifthC=[];
-  for(let s=0;s<16;s++){
-    if(p.guit[s]){const f=p.noteSeq[ni%p.noteSeq.length];ni++;rootC.push((''+f).padEnd(2,'-'));fifthC.push((''+(isDrop?f:f+2)).padEnd(2,'-'));}
-    else{rootC.push('--');fifthC.push('--');}
-  }
-  const empty=Array(16).fill('--').join('-');
-  const gtr=['e |'+empty+'|','B |'+empty+'|','G |'+empty+'|','D |'+empty+'|','A |'+fifthC.join('-')+'|',low+'|'+rootC.join('-')+'|'].join('\n');
-  const bassC=[];for(let s=0;s<16;s++)bassC.push(p.bass[s]?'0-':'--');
-  const bass=low+'|'+bassC.join('-')+'|';
-  const dl=(lbl,pat,sym)=>lbl+'|'+pat.map(v=>v?sym:'-').join('')+'|';
-  const drums=[dl('HH',p.drum.hihat,'x'),dl('SN',p.drum.snare,'o'),dl('KK',p.drum.kick,'o')].join('\n');
-  const shape=isDrop?'Drop — 1 doigt (meme case)':'Standard — quinte +2 cases';
-  const TNAME={E2:'Standard E',Eb2:'Eb',D2:'D Standard',Db2:'Drop D/C#',C2:'C Standard',B1:'B Standard'};
-  let leadStr='';
-  if(p.lead&&p.lead!=='none'){
-    const ROOT_PC={E2:4,Eb2:3,D2:2,Db2:1,C2:0,B1:11};
-    const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-    let li=0;const notes=[];
-    for(let s=0;s<16;s++){if(LEAD_RHY[s]){const semi=p.noteSeq[li%p.noteSeq.length]+12;li++;notes.push(NAMES[((ROOT_PC[p.root]||4)+semi)%12]);}}
-    leadStr='\n\n// LEAD ('+p.lead+') — notes (octave +1):\n'+notes.join('  ');
-  }
-  return '// '+p.style+' · '+(TNAME[p.root]||p.root)+' · '+p.bpm+' BPM · PM=palm mute\n'+
-    '// GUITARE (power chords · '+shape+')\n'+gtr+'\n\n'+
-    '// BASSE (pedale de fondamentale)\n'+bass+'\n\n'+
-    '// BATTERIE  (x=hihat · o=snare/kick)\n'+drums+leadStr;
-}
+// buildTab() : déplacé côté serveur (/api/riff) — la partition arrive déjà calculée.
 
 function renderViz(p){
   const c=document.getElementById('tracksViz');c.innerHTML='';
@@ -367,7 +263,7 @@ async function startPlay(p){
   Tone.getTransport().bpm.value=p.bpm;
   let ni=0;
   const root=p.root;
-  const a=p.arr||buildArrangement(p);
+  const a=p.arr;
   const makeSeq=(cb)=>new Tone.Sequence(cb,[...Array(a.L).keys()],'16n');
   seqs.forEach(s=>{try{s.stop();s.dispose();}catch(e){}});seqs=[];
   seqs.push(makeSeq((t,step)=>{
@@ -378,11 +274,11 @@ async function startPlay(p){
   seqs.push(makeSeq((t,step)=>{if(a.kick[step])drumKit.kick.triggerAttackRelease('C1','8n',t);}));
   seqs.push(makeSeq((t,step)=>{if(a.snare[step])drumKit.snare.triggerAttackRelease('8n',t);}));
   seqs.push(makeSeq((t,step)=>{if(a.hihat[step])drumKit.hihat.triggerAttackRelease('16n',t);}));
-  if(p.lead&&p.lead!=='none'){
-    const v=LEAD_VOICE[p.lead]||LEAD_VOICE.synth;
+  if(p.lead&&p.lead!=='none'&&p.leadVoice&&p.leadRhy){
+    const v=p.leadVoice;
     leadSynth.oscillator.type=v.wave;leadFilter.frequency.value=v.cut;leadFilter.Q.value=v.q;
     let li=0;
-    seqs.push(makeSeq((t,step)=>{if(LEAD_RHY[step%16]){const semi=p.noteSeq[li%p.noteSeq.length]+12+a.trans[step];li++;leadSynth.triggerAttackRelease(semFreq(root,semi),'8n',t,.5);}}));
+    seqs.push(makeSeq((t,step)=>{if(p.leadRhy[step%16]){const semi=p.noteSeq[li%p.noteSeq.length]+12+a.trans[step];li++;leadSynth.triggerAttackRelease(semFreq(root,semi),'8n',t,.5);}}));
   }
   seqs.forEach(s=>s.start(0));
   Tone.getTransport().start();
@@ -435,9 +331,9 @@ async function renderAndDownload(p){
 
   const rootHz=noteFreqHz(p.root);
   const bassHz=rootHz/2;
-  const a=p.arr||buildArrangement(p);
+  const a=p.arr;
   let gi=0;
-  const LEAD=(p.lead&&p.lead!=='none');const LV=LEAD_VOICE[p.lead]||LEAD_VOICE.synth;let leadI=0;
+  const LEAD=(p.lead&&p.lead!=='none'&&p.leadRhy&&p.leadVoice);const LV=p.leadVoice||{wave:'square',cut:4000,q:1};let leadI=0;
 
   for(let step=0;step<totalSteps;step++){
     const t=step*stepDur+0.05;
@@ -508,7 +404,7 @@ async function renderAndDownload(p){
       const g=off.createGain();g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);
       src.connect(f);f.connect(g);g.connect(master);src.start(t);
     }
-    if(LEAD&&LEAD_RHY[i%16]){
+    if(LEAD&&p.leadRhy[i%16]){
       const semi=p.noteSeq[leadI%p.noteSeq.length]+12+a.trans[i];leadI++;
       const freq=semiHz(rootHz,semi);
       const o=off.createOscillator(),f2=off.createBiquadFilter(),g2=off.createGain();
@@ -597,32 +493,35 @@ const IS_ELITE=(new URLSearchParams(location.search).get('tier')||'free')==='eli
 })();
 
 // ── EVENTS ──
-document.getElementById('btnGen').addEventListener('click',()=>{
-  const style=document.getElementById('style').value;
-  currentPat={
-    style,bpm:parseInt(document.getElementById('bpm').value),
-    root:document.getElementById('tuning').value,
-    dist:parseInt(document.getElementById('dist').value),
-    guit:STYLE_PAT[style],bass:BASS_PAT[style],
-    drum:DRUM_PAT[document.getElementById('drums').value],
-    drumKey:document.getElementById('drums').value,
+document.getElementById('btnGen').addEventListener('click',async()=>{
+  const tier=new URLSearchParams(location.search).get('tier')||'free';
+  const body={
+    style:document.getElementById('style').value,
+    tuning:document.getElementById('tuning').value,
+    bpm:document.getElementById('bpm').value,
+    dist:document.getElementById('dist').value,
+    drums:document.getElementById('drums').value,
     structure:document.getElementById('structure').value,
     lead:document.getElementById('lead').value,
-    noteSeq:NOTE_SEQ[style],
+    tier,
   };
-  currentPat.arr=buildArrangement(currentPat);
+  const btn=document.getElementById('btnGen');btn.disabled=true;
+  document.getElementById('txtPlay').textContent='Génération…';
+  let data;
+  try{
+    const r=await fetch('/api/riff',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    data=await r.json();
+    if(!r.ok)throw new Error((data&&data.error)||'Erreur');
+  }catch(e){btn.disabled=false;document.getElementById('txtPlay').textContent='⚠ '+(e.message||'Erreur de génération');return;}
+  btn.disabled=false;
+  currentPat=data;
   renderViz(currentPat);
-  if(IS_ELITE){
-    document.getElementById('tabOut').textContent=buildTab(currentPat);
-    document.getElementById('btnCopyTab').disabled=false;
-  }else{
-    document.getElementById('tabOut').textContent='🔒 Tablature ASCII — réservée aux comptes Elite';
-    document.getElementById('btnCopyTab').disabled=true;
-  }
+  document.getElementById('tabOut').textContent=currentPat.tab||'';
+  document.getElementById('btnCopyTab').disabled=!IS_ELITE;
   document.getElementById('btnPlay').disabled=false;
   document.getElementById('btnRender').disabled=false;
   document.getElementById('txtRec').textContent='Prêt à render';
-  document.getElementById('txtPlay').textContent=`Riff généré — ${style} · ${currentPat.bpm} BPM`;
+  document.getElementById('txtPlay').textContent='Riff généré — '+currentPat.style+' · '+currentPat.bpm+' BPM';
 });
 document.getElementById('btnPlay').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat);}});
 document.getElementById('btnStop').addEventListener('click',stopPlay);

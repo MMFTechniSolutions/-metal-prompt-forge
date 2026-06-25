@@ -88,6 +88,7 @@ const VOCALS_PRO   = ["whispered spoken word","demonic inhale vocals","falsetto 
 const VOCALS_ELITE = ["throat singing","black metal shrieks","operatic vocals","goblin vocals","spoken word narration","choir vocals","tunnel-throat gutturals"];
 
 const VFX    = ["vocal reverb","vocal distortion","pitch-shifted vocals","dual vocal tracking","megaphone effect","layered vocal harmonies","telephone EQ vocals","reverb tail vocals","doubled screams","gated vocal fx"];
+const VOCAL_RANGE = ["piccolo highs","tenor","baritone","bass vocals","falsetto","soprano","alto","mezzo-soprano","countertenor","false chord highs","fry screams","mid-range screams","low gutturals","subharmonic lows","tunnel-throat lows"];
 const GUITAR = ["chugging riffs","palm muting","pinch harmonics","tremolo picking","sweep picking solos","djent-style syncopated riffs","open string riffs","legato runs","tapping","whammy bar dives"];
 const TUNING = ["standard E tuning","drop D tuning","drop C tuning","drop B tuning","drop A tuning","7-string guitar","8-string guitar"];
 const GPROD  = ["heavy distortion","high gain amplifier","layered guitar tracks","tight low-end guitar tone","djent-style clean tone contrast","808 sub bass guitar","wall of sound guitar"];
@@ -759,6 +760,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [drums,tDrums,setDrums]=useSet(["blast beats","double bass drumming"]);
   const [drumP,tDrumP]=useSet(["triggered drums"]);
   const [vocals,tVocal,setVocals]=useSet(["guttural death growls","pig squeals"]);
+  const [vrange,tVrange]=useSet([]);
   const [vfx,tVfx]=useSet([]);
   const [guitar,tGuitar,setGuitar]=useSet(["chugging riffs","palm muting"]);
   const [tuning,tTuning,setTuning]=useSet(["drop B tuning"]);
@@ -860,7 +862,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
     const tempoWord=bpm>=210?"blistering fast tempo":bpm>=170?"fast tempo":bpm>=120?"mid-tempo":bpm>=90?"slow groovy tempo":"slow doom tempo";
     const dedup=arr=>{const s=new Set();return arr.filter(x=>{const k=String(x).toLowerCase().trim();if(!x||s.has(k))return false;s.add(k);return true;});};
     const gArr=[...genres],dArr=[...drums],vArr=[...vocals],mArr=[...mood];
-    const fullTags=dedup([...gArr,`${bpm} BPM`,tempoWord,...dArr,...[...guitar].slice(0,3),...[...tuning].slice(0,1),...vArr.slice(0,3),...mArr.slice(0,3),...[...prod].slice(0,2),...allOrganic.slice(0,4),...[...globalRhythm]]);
+    const fullTags=dedup([...gArr,`${bpm} BPM`,tempoWord,...dArr,...[...guitar].slice(0,3),...[...tuning].slice(0,1),...vArr.slice(0,3),...[...vrange].slice(0,2),...mArr.slice(0,3),...[...prod].slice(0,2),...allOrganic.slice(0,4),...[...globalRhythm]]);
     const compactCore=dedup([...gArr.slice(0,2),`${bpm} BPM`,tempoWord,...dArr.slice(0,2),...[...guitar].slice(0,1),...vArr.slice(0,1),...mArr.slice(0,1)]);
     const overflow=fullTags.filter(x=>!compactCore.includes(x));
     const styleStr=fullTags.join(", ");
@@ -1129,6 +1131,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{marginTop:"8px",fontSize:"0.55rem",color:"#aa00ff",letterSpacing:"1px",marginBottom:"5px"}}>💀 ELITE</div>
           <Tags list={VOCALS_ELITE} sel={vocals} toggle={tVocal} lockedItems={isElite?[]:VOCALS_ELITE}/>
         </div>
+        <div style={S.card}><div style={S.ctitle}>{L("🎚️ Registre / Tessiture","🎚️ Range / Register")}</div><Tags list={VOCAL_RANGE} sel={vrange} toggle={tVrange}/></div>
         <div style={S.card}><div style={S.ctitle}>{L("🎛️ Effets vocaux","🎛️ Vocal effects")}</div><Tags list={VFX} sel={vfx} toggle={tVfx}/></div>
         <div style={{height:80}}/>
       </div>}

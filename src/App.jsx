@@ -9,7 +9,7 @@ const CARD = "#141414";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",instrums:"🎸 Instruments",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Learn",riff:"🔜 Soon",history:"🕒 History"},
+    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",instrums:"🎸 Instruments",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Learn",riff:"🎸 Riff",history:"🕒 History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (max ~120 chars)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -21,7 +21,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",instrums:"🎸 Instruments",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Tuto",riff:"🔜 Bientôt",history:"🕒 Historique"},
+    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",instrums:"🎸 Instruments",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Tuto",riff:"🎸 Riff",history:"🕒 Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (max ~120 car.)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -961,7 +961,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   const TABS=[
     {id:"genre",req:"free"},{id:"drums",req:"free"},{id:"vocals",req:"free"},
     {id:"instrums",req:"forge"},{id:"structure",req:"forge"},
-    {id:"paroles",req:"pro"},{id:"organic",req:"pro"},{id:"exclude",req:"elite"},{id:"output",req:"free"},{id:"tuto",req:"free"},{id:"riff",req:"free"},
+    {id:"paroles",req:"pro"},{id:"organic",req:"pro"},{id:"exclude",req:"elite"},{id:"output",req:"free"},{id:"tuto",req:"free"},{id:"riff",req:"pro"},
     ...(isPro?[{id:"history",req:"pro"}]:[]),
   ];
 
@@ -1236,27 +1236,20 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* OUTPUT */}
-      {tab==="riff"&&<div style={S.page}>
-        <div style={{...S.card,textAlign:"center",padding:"30px 22px",borderColor:"#ff2e2e44"}}>
-          <div style={{fontSize:"2.4rem",marginBottom:"6px"}}>🔜</div>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:"2px",color:"#fff"}}>{L("BIENTÔT SUR METALPROMPT","COMING SOON ON METALPROMPT")}</div>
-          <div style={{color:"#999",fontSize:"0.8rem",marginTop:"6px"}}>{L("Ce qui s'en vient — reste à l'affût 🤘","What's coming — stay tuned 🤘")}</div>
+      {tab==="riff"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email}/>:<div style={S.page}>
+        <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ff2e2e44"}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>🎸 RIFF / BEAT GENERATOR</div>
+          <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un riff + beat, écoute-le, et exporte un WAV prêt pour Suno (Style Reference / Custom Model). 🤘","Generate a riff + beat, listen, and export a WAV ready for Suno (Style Reference / Custom Model). 🤘")}</div>
         </div>
-        {[
-          {i:"🎸",t:"Riff / Beat Generator",d:L("Génère riffs et patterns de batterie, avec export audio.","Generate riffs and drum patterns, with audio export.")},
-          {i:"🎬",t:L("Idée express","Quick Idea"),d:L("Aperçu vidéo + maquette musicale de ton prompt avant Suno.","Video preview + musical mockup of your prompt before Suno.")},
-          {i:"🎚️",t:"Mastering",d:L("Masterise ta toune Suno directement dans MetalPrompt.","Master your Suno track directly in MetalPrompt.")},
-        ].map(f=>(
-          <div key={f.t} style={{...S.card,display:"flex",alignItems:"center",gap:"14px"}}>
-            <div style={{fontSize:"1.9rem"}}>{f.i}</div>
-            <div style={{flex:1}}>
-              <div style={{color:"#fff",fontWeight:800,fontSize:"0.9rem"}}>{f.t} <span style={{marginLeft:"6px",fontSize:"0.52rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"6px",padding:"2px 7px",letterSpacing:"0.5px",verticalAlign:"middle"}}>{L("BIENTÔT","SOON")}</span></div>
-              <div style={{color:"#888",fontSize:"0.76rem",marginTop:"3px",lineHeight:1.5}}>{f.d}</div>
-            </div>
-          </div>
-        ))}
+        <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
+          <iframe src="/riff.html" title="Riff Generator" style={{width:"100%",height:"78vh",minHeight:"560px",border:"none",display:"block",background:DARK}}/>
+        </div>
+        <div style={{...S.card,textAlign:"center"}}>
+          <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>🔜 {L("Bientôt aussi","Also coming soon")}</div>
+          <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>🎬 {L("Idée express","Quick Idea")} · 🎚️ Mastering</div>
+        </div>
         <div style={{height:80}}/>
-      </div>}
+      </div>)}
 
       {tab==="tuto"&&<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"26px 22px",borderColor:"#ff2e2e44"}}>

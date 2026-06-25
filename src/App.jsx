@@ -730,8 +730,14 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [promptCount,setPromptCount]=useState(0);
   const [userTier,setUserTier]=useState("free");
   useEffect(()=>{
-    if(user?.email) supabase.from('users').select('tier,prompts_used').eq('email',user.email).single()
-      .then(({data})=>{if(data){setUserTier(data.tier||"free");setPromptCount(data.prompts_used||0);}});
+    if(user?.email){
+      supabase.from('users').select('tier,prompts_used').eq('email',user.email).single()
+        .then(({data})=>{setUserTier(data?.tier||"free");setPromptCount(data?.prompts_used||0);});
+    } else {
+      // invité ou déconnexion → on remet le tier gratuit (sinon accès illimité collé)
+      setUserTier("free");
+      setPromptCount(0);
+    }
   },[user]);
   const isForge=TIER_RANK[userTier]>=1;
   const isPro=TIER_RANK[userTier]>=2;

@@ -15,7 +15,7 @@ const T = {
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
     step3t:"STEP 3 — Production notes (DO NOT paste in Suno)",step3d:"Keep these for yourself — Suno would sing them as lyrics.",
     step4t:"STEP 4 — Exclude tags",step4d:"Add AFTER your style tags with minus sign: deathcore, -pop, -clean vocals",
-    lockedMsg:"Requires",upgrade:"Upgrade →",logout:"Logout",
+    lockedMsg:"Requires",upgrade:"Upgrade →",logout:"Logout",signup:"🤘 Create free account",
     warn:"⚠️ Auto-logout in 5 min (inactivity)",plans:"See plans →",prompts:"prompts",
     noPrompt:"Hit the anvil ⚒️ to forge your prompt!",
   },
@@ -27,7 +27,7 @@ const T = {
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
     step3t:"ÉTAPE 3 — Notes de prod (NE PAS coller dans Suno)",step3d:"Garde ces notes pour toi — Suno les chanterait comme des paroles.",
     step4t:"ÉTAPE 4 — Tags d'exclusion",step4d:"Ajoute APRÈS tes style tags avec un signe moins : deathcore, -pop, -voix claires",
-    lockedMsg:"Nécessite",upgrade:"Passer au plan →",logout:"Déconnexion",
+    lockedMsg:"Nécessite",upgrade:"Passer au plan →",logout:"Déconnexion",signup:"🤘 Créer un compte gratuit",
     warn:"⚠️ Déconnexion auto dans 5 min (inactivité)",plans:"Voir les plans →",prompts:"prompts",
     noPrompt:"Clique sur l'enclume ⚒️ pour forger ton prompt !",
   },
@@ -268,16 +268,16 @@ function HammerFab({onClick}) {
   );
 }
 
-function LockedOverlay({req,t,email}) {
+function LockedOverlay({req,t,email,onRequestAuth}) {
   const tier=TIERS[req];
+  const btnStyle={padding:"10px 24px",background:tier?.color||RED,borderRadius:"7px",color:req==="elite"?"#fff":"#000",fontSize:"0.8rem",fontWeight:900,letterSpacing:"2px",textDecoration:"none",textTransform:"uppercase",border:"none",cursor:"pointer"};
   return (
     <div style={{...S.page,minHeight:"260px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"14px",textAlign:"center",padding:"40px 20px"}}>
       <div style={{fontSize:"3rem"}}>🔒</div>
       <div style={{fontSize:"0.9rem",fontWeight:700,color:"#e0e0e0"}}>{t.lockedMsg} <span style={{color:tier?.color||RED}}>{tier?.label}</span></div>
-      <a href={payUrl(tier?.stripe,email)||"#"} target="_blank" rel="noreferrer"
-        style={{padding:"10px 24px",background:tier?.color||RED,borderRadius:"7px",color:req==="elite"?"#fff":"#000",fontSize:"0.8rem",fontWeight:900,letterSpacing:"2px",textDecoration:"none",textTransform:"uppercase"}}>
-        {t.upgrade}
-      </a>
+      {email
+        ? <a href={payUrl(tier?.stripe,email)||"#"} target="_blank" rel="noreferrer" style={btnStyle}>{t.upgrade}</a>
+        : <button onClick={onRequestAuth} style={btnStyle}>{t.signup}</button>}
     </div>
   );
 }
@@ -640,6 +640,7 @@ function SiteFooter({onOpen,uiLang}){
     <div style={{borderTop:"1px solid #1a1a1a",padding:"18px 12px 40px",textAlign:"center",display:"flex",flexWrap:"wrap",gap:"4px",justifyContent:"center",alignItems:"center"}}>
       <span style={{fontSize:"0.58rem",color:"#444"}}>© {new Date().getFullYear()} MetalPrompt ·</span>
       <button style={{...lk,color:RED,fontWeight:700}} onClick={()=>onOpen("about")}>{fr?"À propos":"About"}</button>
+      <a href="/guide.html" target="_blank" rel="noreferrer" style={{...lk,display:"inline-block"}}>{fr?"Guide Suno":"Suno Guide"}</a>
       <button style={lk} onClick={()=>onOpen("privacy")}>{fr?"Confidentialité":"Privacy"}</button>
       <button style={lk} onClick={()=>onOpen("terms")}>{fr?"Conditions d'utilisation":"Terms"}</button>
       <button style={lk} onClick={()=>onOpen("sales")}>{fr?"Conditions de vente":"Sales terms"}</button>
@@ -666,7 +667,7 @@ function LegalModal({doc,onClose,uiLang}){
   );
 }
 
-export default function App({ user, onLogout }) {
+export default function App({ user, onLogout, onRequestAuth }) {
   const [view,setView]=useState("app");
   const [tab,setTab]=useState("genre");
   const [showPaywall,setShowPaywall]=useState(false);
@@ -813,7 +814,7 @@ export default function App({ user, onLogout }) {
 
   // ── GENERATE ──
   const generate=()=>{
-    if(promptCount>=limit.prompts){setView("landing");return;}
+    if(promptCount>=limit.prompts){if(!user){onRequestAuth&&onRequestAuth();return;}setView("landing");return;}
     const allOrganic=isPro?[...orgRec,...orgDrm,...orgVoc,...orgGtr]:[];
     const allExclude=isElite?[...exclGenre,...exclVocal,...exclProd,...exclInst,...exclCustom.split(",").map(s=>s.trim()).filter(Boolean)]:[];
     const extraInst=[...bassStyle,...bassTech,...bassTone,...bassTuning,...bassProd,...sax,...brass,...keys,...strings];
@@ -990,7 +991,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <span>{promptCount} {t.prompts} · <a href={payUrl(TIERS.pro.stripe,user?.email)} target="_blank" rel="noreferrer" style={{color:RED,textDecoration:"none",fontWeight:700}}>{t.plans}</a></span>
           <div style={{display:"flex",gap:"6px",alignItems:"center"}}>
             {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#1a0000":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"3px",color:uiLang===l?RED:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{l.toUpperCase()}</button>)}
-            {user&&<button onClick={onLogout} style={{background:"none",border:"1px solid #222",borderRadius:"4px",color:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{t.logout}</button>}
+            {user?<button onClick={onLogout} style={{background:"none",border:"1px solid #222",borderRadius:"4px",color:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{t.logout}</button>:<button onClick={onRequestAuth} style={{background:RED,border:"none",borderRadius:"4px",color:"#000",fontSize:"0.5rem",fontWeight:800,padding:"3px 9px",cursor:"pointer",letterSpacing:"0.5px"}}>{uiLang==="fr"?"Se connecter":"Sign in"}</button>}
           </div>
         </div>
       </div>
@@ -1095,7 +1096,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>}
 
       {/* GUITAR */}
-      {tab==="instrums"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email}/>:<div style={S.page}>
+      {tab==="instrums"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         {/* --- GUITARE --- */}
         <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("🎸 GUITARE","🎸 GUITAR")}</div></div>
         <div style={S.card}><div style={S.ctitle}>{L("🎸 Techniques guitare","🎸 Guitar techniques")}</div><Tags list={GUITAR} sel={guitar} toggle={tGuitar}/></div>
@@ -1120,7 +1121,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* STRUCTURE */}
-      {tab==="structure"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email}/>:<div style={S.page}>
+      {tab==="structure"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={S.card}>
           <div style={S.ctitle}>{L("🎼 Feeling rythmique global — Style Tags","🎼 Global rhythmic feel — Style Tags")}</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginBottom:"8px"}}>
@@ -1164,7 +1165,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* PAROLES */}
-      {tab==="paroles"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email}/>:<div style={S.page}>
+      {tab==="paroles"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={S.card}><div style={S.ctitle}>{L("☠️ Thème principal","☠️ Main theme")}</div><Tags list={THEMES} sel={themes} toggle={tTheme} tr={uiLang==="en"?THEME_TR:null}/></div>
         <div style={S.card}><div style={S.ctitle}>{L("🌑 Atmosphère","🌑 Atmosphere")}</div><Tags list={LYRIC_ATMO} sel={latmo} toggle={tLatmo} tr={uiLang==="en"?ATMO_TR:null}/></div>
         <div style={S.card}>
@@ -1213,7 +1214,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* ORGANIC */}
-      {tab==="organic"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email}/>:<div style={S.page}>
+      {tab==="organic"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,borderColor:"#1a3a00",background:"#0a120a"}}><div style={{...S.ctitle,color:"#4caf50"}}>💡 Anti-AI</div><div style={{fontSize:"0.72rem",color:"#688",lineHeight:1.9}}>{L("Ces tags poussent Suno vers un rendu plus ","These tags push Suno toward a more ")}<strong style={{color:"#8f8"}}>{L("organique et humain","organic and human")}</strong>.</div></div>
         <div style={S.card}><div style={S.ctitle}>{L("🎙️ Recording & Ambiance","🎙️ Recording & Ambience")}</div><Tags list={ORG_RECORD} sel={orgRec} toggle={tOrgRec}/></div>
         <div style={S.card}><div style={S.ctitle}>{L("🥁 Batterie organique","🥁 Organic drums")}</div><Tags list={ORG_DRUMS} sel={orgDrm} toggle={tOrgDrm}/></div>
@@ -1224,7 +1225,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* EXCLUDE */}
-      {tab==="exclude"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email}/>:<div style={S.page}>
+      {tab==="exclude"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,borderColor:"#3a0a00",background:"#0f0800"}}><div style={{...S.ctitle,color:"#ff6633"}}>{L("🚫 Comment ça fonctionne","🚫 How it works")}</div><div style={{fontSize:"0.72rem",color:"#a86",lineHeight:1.9}}>{L('Tags dans "Style of Music" précédés de ','Tags in "Style of Music" prefixed with ')}<strong style={{color:"#ff5555"}}>"-"</strong>{L(" pour dire à Suno ce qu'il doit éviter."," to tell Suno what to avoid.")}</div></div>
         <div style={S.card}><div style={S.ctitle}>{L("🎵 Genres à exclure","🎵 Genres to exclude")}</div><Tags list={EXCL_GENRES} sel={exclGenre} toggle={tExclGenre}/></div>
         <div style={S.card}><div style={S.ctitle}>{L("🎙️ Voix à exclure","🎙️ Vocals to exclude")}</div><Tags list={EXCL_VOCALS} sel={exclVocal} toggle={tExclVocal}/></div>
@@ -1238,7 +1239,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* OUTPUT */}
-      {tab==="riff"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email}/>:<div style={S.page}>
+      {tab==="riff"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ff2e2e44"}}>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>🎸 RIFF / BEAT GENERATOR</div>
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un riff + beat, écoute-le, et exporte un WAV prêt pour Suno (Style Reference / Custom Model). 🤘","Generate a riff + beat, listen, and export a WAV ready for Suno (Style Reference / Custom Model). 🤘")}</div>
@@ -1253,7 +1254,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <div style={{height:80}}/>
       </div>)}
 
-      {tab==="master"&&(!canAccess("eliteplus")?<LockedOverlay req="eliteplus" t={t} email={user?.email}/>:<div style={S.page}>
+      {tab==="master"&&(!canAccess("eliteplus")?<LockedOverlay req="eliteplus" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ffcc0044"}}>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>🎚️ MASTERING</div>
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Charge ta toune Suno → EQ + compression + limiteur → WAV plus fort et serré, prêt à publier. 🤘","Load your Suno track → EQ + compression + limiter → louder, tighter WAV, ready to publish. 🤘")}</div>

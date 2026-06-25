@@ -3,7 +3,7 @@ import { supabase } from "./supabase";
 
 const RED = "#ff2e2e";
 
-export default function Auth({ onLogin }) {
+export default function Auth({ onLogin, onClose }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignup, setIsSignup] = useState(false);
@@ -97,6 +97,12 @@ export default function Auth({ onLogin }) {
             {isSignup ? "Se connecter" : "S'inscrire"}
           </span>
         </div>
+
+        {onClose && (
+          <div style={{ textAlign:"center", marginTop:"16px" }}>
+            <span onClick={onClose} style={{ color:"#666", fontSize:"0.72rem", cursor:"pointer" }}>← Continuer sans compte</span>
+          </div>
+        )}
       </div>
     </div>
   );

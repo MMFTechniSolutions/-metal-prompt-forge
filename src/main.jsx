@@ -10,6 +10,7 @@ import HelpChat from './HelpChat.jsx'
 function Root() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [showAuth, setShowAuth] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -28,7 +29,8 @@ function Root() {
     </div>
   )
 
-  return user ? <App user={user} onLogout={() => supabase.auth.signOut()} /> : <Auth onLogin={setUser} />
+  if (showAuth && !user) return <Auth onLogin={(u) => { setUser(u); setShowAuth(false) }} onClose={() => setShowAuth(false)} />
+  return <App user={user} onLogout={() => supabase.auth.signOut()} onRequestAuth={() => setShowAuth(true)} />
 }
 
 createRoot(document.getElementById('root')).render(

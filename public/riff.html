@@ -142,7 +142,7 @@
   </div>
 
   <div class="panel">
-    <h2>Tablature ASCII</h2>
+    <h2>Partition — Guitare · Basse · Batterie</h2>
     <pre id="tabOut" style="font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--bone);overflow-x:auto;white-space:pre;line-height:1.5;margin:0;">Génère un riff pour voir la tablature</pre>
     <div class="btn-row"><button class="bs" id="btnCopyTab" disabled>⧉ Copier la tab</button></div>
   </div>
@@ -289,9 +289,16 @@ function buildTab(p){
     else{rootC.push('--');fifthC.push('--');}
   }
   const empty=Array(16).fill('--').join('-');
-  const lines=['e |'+empty+'|','B |'+empty+'|','G |'+empty+'|','D |'+empty+'|','A |'+fifthC.join('-')+'|',low+'|'+rootC.join('-')+'|'];
-  const shape=isDrop?'Drop — power chords 1 doigt (meme case)':'Standard — quinte +2 cases';
-  return '// '+p.style+' · '+p.root+' · '+p.bpm+' BPM\n// PM = palm mute · power chords (fondamentale + quinte) · '+shape+'\n'+lines.join('\n');
+  const gtr=['e |'+empty+'|','B |'+empty+'|','G |'+empty+'|','D |'+empty+'|','A |'+fifthC.join('-')+'|',low+'|'+rootC.join('-')+'|'].join('\n');
+  const bassC=[];for(let s=0;s<16;s++)bassC.push(p.bass[s]?'0-':'--');
+  const bass=low+'|'+bassC.join('-')+'|';
+  const dl=(lbl,pat,sym)=>lbl+'|'+pat.map(v=>v?sym:'-').join('')+'|';
+  const drums=[dl('HH',p.drum.hihat,'x'),dl('SN',p.drum.snare,'o'),dl('KK',p.drum.kick,'o')].join('\n');
+  const shape=isDrop?'Drop — 1 doigt (meme case)':'Standard — quinte +2 cases';
+  return '// '+p.style+' · '+p.root+' · '+p.bpm+' BPM · PM=palm mute\n'+
+    '// GUITARE (power chords · '+shape+')\n'+gtr+'\n\n'+
+    '// BASSE (pedale de fondamentale)\n'+bass+'\n\n'+
+    '// BATTERIE  (x=hihat · o=snare/kick)\n'+drums;
 }
 
 function renderViz(p){

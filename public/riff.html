@@ -115,6 +115,17 @@
         </select>
       </div>
       <div class="cg">
+        <label>Structure (mesures)</label>
+        <select id="structure">
+          <option value="loop">Loop — 1 mesure</option>
+          <option value="vbd">Couplet → Breakdown</option>
+          <option value="irbo">Intro → Riff → Breakdown</option>
+          <option value="drop">Build-up → Drop</option>
+          <option value="djent7">Djent — switch 7/8</option>
+          <option value="prog">Prog — métriques impaires</option>
+        </select>
+      </div>
+      <div class="cg">
         <label>Distorsion — <span id="distLbl">80</span>%</label>
         <input type="range" id="dist" min="10" max="100" value="80" oninput="document.getElementById('distLbl').textContent=this.value">
       </div>
@@ -202,6 +213,34 @@ const NOTE_SEQ = {
   slam:[0,0,1,0,0,2,0,1],sludge:[0,3,0,5,0,3,0,0],postmetal:[0,7,12,7,0,5,7,0],grindcore:[0,1,0,2,0,1,3,0],funeraldoom:[0,0,3,0,0,5,0,0],dissonant:[0,1,6,0,1,8,0,6],
 };
 
+// steps: 16=4/4 · 14=7/8 · 12=6/8 · 20=5/4 · 8=2/4
+const STRUCTURES = {
+  loop:   {bars:[{}]},
+  vbd:    {bars:[{},{},{drum:'breakdown'},{drum:'breakdown'}]},
+  irbo:   {bars:[{drum:'half_time'},{},{},{drum:'breakdown'}]},
+  drop:   {bars:[{drum:'half_time'},{drum:'double_kick'},{drum:'blast_beat'},{drum:'breakdown'}]},
+  djent7: {bars:[{},{steps:14},{},{steps:14,drum:'breakdown'}]},
+  prog:   {bars:[{steps:14},{steps:12},{},{steps:20}]},
+};
+const METER={16:'4/4',14:'7/8',12:'6/8',20:'5/4',8:'2/4',10:'5/8'};
+function buildArrangement(p){
+  const st=STRUCTURES[p.structure]||STRUCTURES.loop;
+  const out={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],L:0};
+  st.bars.forEach(bar=>{
+    const dp=DRUM_PAT[bar.drum||p.drumKey]||p.drum;
+    const tr=bar.transpose||0;
+    const n=bar.steps||16;
+    for(let i=0;i<n;i++){
+      const j=i%16;
+      out.guit.push(p.guit[j]);out.bass.push(p.bass[j]);
+      out.kick.push(dp.kick[j]);out.snare.push(dp.snare[j]);out.hihat.push(dp.hihat[j]);
+      out.trans.push(tr);
+    }
+  });
+  out.L=out.guit.length;
+  return out;
+}
+
 let toneReady=false,synth=null,bassSynth=null,drumKit=null;
 let seqs=[],isPlaying=false,currentPat=null,animF=null,analyser=null;
 
@@ -243,15 +282,16 @@ function semFreq(base,semi){return Tone.Frequency(base).transpose(semi).toNote()
 function buildTab(p){
   const TUNE={E2:'E ',Eb2:'Eb',D2:'D ',Db2:'C#',C2:'C ',B1:'B '};
   const low=TUNE[p.root]||'E ';
-  let ni=0;const cells=[];
+  const isDrop=(p.root==='Db2');
+  let ni=0;const rootC=[],fifthC=[];
   for(let s=0;s<16;s++){
-    if(p.guit[s]){const f=p.noteSeq[ni%p.noteSeq.length];ni++;cells.push((''+f).padEnd(2,'-'));}
-    else cells.push('--');
+    if(p.guit[s]){const f=p.noteSeq[ni%p.noteSeq.length];ni++;rootC.push((''+f).padEnd(2,'-'));fifthC.push((''+(isDrop?f:f+2)).padEnd(2,'-'));}
+    else{rootC.push('--');fifthC.push('--');}
   }
-  const body=cells.join('-');
   const empty=Array(16).fill('--').join('-');
-  const lines=['e |'+empty+'|','B |'+empty+'|','G |'+empty+'|','D |'+empty+'|','A |'+empty+'|',low+'|'+body+'|'];
-  return '// '+p.style+' · '+p.root+' · '+p.bpm+' BPM · riff corde grave (PM)\n'+lines.join('\n')+'\n   PM = palm mute · chiffres = frettes (power chords +7)';
+  const lines=['e |'+empty+'|','B |'+empty+'|','G |'+empty+'|','D |'+empty+'|','A |'+fifthC.join('-')+'|',low+'|'+rootC.join('-')+'|'];
+  const shape=isDrop?'Drop — power chords 1 doigt (meme case)':'Standard — quinte +2 cases';
+  return '// '+p.style+' · '+p.root+' · '+p.bpm+' BPM\n// PM = palm mute · power chords (fondamentale + quinte) · '+shape+'\n'+lines.join('\n');
 }
 
 function renderViz(p){
@@ -288,17 +328,17 @@ async function startPlay(p){
   Tone.getTransport().bpm.value=p.bpm;
   let ni=0;
   const root=p.root;
-  const broot=root.replace(/\d/,m=>String(parseInt(m)-1));
-  const makeSeq=(cb)=>new Tone.Sequence(cb,[...Array(16).keys()],'16n');
+  const a=p.arr||buildArrangement(p);
+  const makeSeq=(cb)=>new Tone.Sequence(cb,[...Array(a.L).keys()],'16n');
   seqs.forEach(s=>{try{s.stop();s.dispose();}catch(e){}});seqs=[];
   seqs.push(makeSeq((t,step)=>{
-    hlStep(step);
-    if(p.guit[step]){const semi=p.noteSeq[ni%p.noteSeq.length];synth.triggerAttackRelease(semFreq(root,semi),'16n',t,.8);synth.triggerAttackRelease(semFreq(root,semi+7),'16n',t,.45);ni++;}
+    hlStep(step%16);
+    if(a.guit[step]){const semi=p.noteSeq[ni%p.noteSeq.length]+a.trans[step];synth.triggerAttackRelease(semFreq(root,semi),'16n',t,.8);synth.triggerAttackRelease(semFreq(root,semi+7),'16n',t,.45);ni++;}
   }));
-  seqs.push(makeSeq((t,step)=>{if(p.bass[step])bassSynth.triggerAttackRelease(broot,'16n',t,.65);}));
-  seqs.push(makeSeq((t,step)=>{if(p.drum.kick[step])drumKit.kick.triggerAttackRelease('C1','8n',t);}));
-  seqs.push(makeSeq((t,step)=>{if(p.drum.snare[step])drumKit.snare.triggerAttackRelease('8n',t);}));
-  seqs.push(makeSeq((t,step)=>{if(p.drum.hihat[step])drumKit.hihat.triggerAttackRelease('16n',t);}));
+  seqs.push(makeSeq((t,step)=>{if(a.bass[step]){const broot=Tone.Frequency(root).transpose(a.trans[step]-12).toNote();bassSynth.triggerAttackRelease(broot,'16n',t,.65);}}));
+  seqs.push(makeSeq((t,step)=>{if(a.kick[step])drumKit.kick.triggerAttackRelease('C1','8n',t);}));
+  seqs.push(makeSeq((t,step)=>{if(a.snare[step])drumKit.snare.triggerAttackRelease('8n',t);}));
+  seqs.push(makeSeq((t,step)=>{if(a.hihat[step])drumKit.hihat.triggerAttackRelease('16n',t);}));
   seqs.forEach(s=>s.start(0));
   Tone.getTransport().start();
   isPlaying=true;
@@ -350,13 +390,15 @@ async function renderAndDownload(p){
 
   const rootHz=noteFreqHz(p.root);
   const bassHz=rootHz/2;
+  const a=p.arr||buildArrangement(p);
+  let gi=0;
 
   for(let step=0;step<totalSteps;step++){
     const t=step*stepDur+0.05;
-    const i=step%16;
-    const semi=p.noteSeq[step%p.noteSeq.length];
+    const i=step%a.L;
 
-    if(p.guit[i]){
+    if(a.guit[i]){
+      const semi=p.noteSeq[gi%p.noteSeq.length]+a.trans[i];gi++;
       [0,7].forEach((interval,fi)=>{
         const freq=semiHz(rootHz,semi+interval);
         const o1=off.createOscillator(),o2=off.createOscillator();
@@ -378,17 +420,18 @@ async function renderAndDownload(p){
         o2.start(t);o2.stop(t+stepDur+.05);
       });
     }
-    if(p.bass[i]){
+    if(a.bass[i]){
+      const bh=semiHz(bassHz,a.trans[i]);
       const o=off.createOscillator(),o2=off.createOscillator();
       const f=off.createBiquadFilter(),d=off.createWaveShaper(),g=off.createGain();
-      o.type='triangle';o.frequency.value=bassHz;
-      o2.type='sawtooth';o2.frequency.value=bassHz*1.003;
+      o.type='triangle';o.frequency.value=bh;
+      o2.type='sawtooth';o2.frequency.value=bh*1.003;
       d.curve=makeCurve(.25);f.type='lowpass';f.frequency.value=500;
       g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.48,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+stepDur*.9);
       o.connect(d);o2.connect(d);d.connect(f);f.connect(g);g.connect(master);
       o.start(t);o.stop(t+stepDur+.05);o2.start(t);o2.stop(t+stepDur+.05);
     }
-    if(p.drum.kick[i]){
+    if(a.kick[i]){
       const o=off.createOscillator(),g=off.createGain();
       const ck=off.createOscillator(),cg=off.createGain();
       o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(38,t+.1);
@@ -397,7 +440,7 @@ async function renderAndDownload(p){
       o.connect(g);g.connect(master);ck.connect(cg);cg.connect(master);
       o.start(t);o.stop(t+.35);ck.start(t);ck.stop(t+.02);
     }
-    if(p.drum.snare[i]){
+    if(a.snare[i]){
       const len=Math.ceil(.18*sr);
       const buf=off.createBuffer(1,len,sr);const data=buf.getChannelData(0);
       for(let k=0;k<len;k++)data[k]=(Math.random()*2-1)*(1-k/len);
@@ -410,7 +453,7 @@ async function renderAndDownload(p){
       src.connect(f);f.connect(g);g.connect(master);body.connect(bg);bg.connect(master);
       src.start(t);body.start(t);body.stop(t+.12);
     }
-    if(p.drum.hihat[i]){
+    if(a.hihat[i]){
       const len=Math.ceil(.05*sr);
       const buf=off.createBuffer(1,len,sr);const data=buf.getChannelData(0);
       for(let k=0;k<len;k++)data[k]=Math.random()*2-1;
@@ -507,8 +550,11 @@ document.getElementById('btnGen').addEventListener('click',()=>{
     dist:parseInt(document.getElementById('dist').value),
     guit:STYLE_PAT[style],bass:BASS_PAT[style],
     drum:DRUM_PAT[document.getElementById('drums').value],
+    drumKey:document.getElementById('drums').value,
+    structure:document.getElementById('structure').value,
     noteSeq:NOTE_SEQ[style],
   };
+  currentPat.arr=buildArrangement(currentPat);
   renderViz(currentPat);
   if(IS_ELITE){
     document.getElementById('tabOut').textContent=buildTab(currentPat);

@@ -131,6 +131,12 @@
   </div>
 
   <div class="panel">
+    <h2>Tablature ASCII</h2>
+    <pre id="tabOut" style="font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--bone);overflow-x:auto;white-space:pre;line-height:1.5;margin:0;">Génère un riff pour voir la tablature</pre>
+    <div class="btn-row"><button class="bs" id="btnCopyTab" disabled>⧉ Copier la tab</button></div>
+  </div>
+
+  <div class="panel">
     <h2>Lecture</h2>
     <canvas id="waveCanvas"></canvas>
     <div class="btn-row">
@@ -233,6 +239,20 @@ async function initTone(){
 }
 
 function semFreq(base,semi){return Tone.Frequency(base).transpose(semi).toNote();}
+
+function buildTab(p){
+  const TUNE={E2:'E ',Eb2:'Eb',D2:'D ',Db2:'C#',C2:'C ',B1:'B '};
+  const low=TUNE[p.root]||'E ';
+  let ni=0;const cells=[];
+  for(let s=0;s<16;s++){
+    if(p.guit[s]){const f=p.noteSeq[ni%p.noteSeq.length];ni++;cells.push((''+f).padEnd(2,'-'));}
+    else cells.push('--');
+  }
+  const body=cells.join('-');
+  const empty=Array(16).fill('--').join('-');
+  const lines=['e |'+empty+'|','B |'+empty+'|','G |'+empty+'|','D |'+empty+'|','A |'+empty+'|',low+'|'+body+'|'];
+  return '// '+p.style+' · '+p.root+' · '+p.bpm+' BPM · riff corde grave (PM)\n'+lines.join('\n')+'\n   PM = palm mute · chiffres = frettes (power chords +7)';
+}
 
 function renderViz(p){
   const c=document.getElementById('tracksViz');c.innerHTML='';
@@ -488,6 +508,8 @@ document.getElementById('btnGen').addEventListener('click',()=>{
     noteSeq:NOTE_SEQ[style],
   };
   renderViz(currentPat);
+  document.getElementById('tabOut').textContent=buildTab(currentPat);
+  document.getElementById('btnCopyTab').disabled=false;
   document.getElementById('btnPlay').disabled=false;
   document.getElementById('btnRender').disabled=false;
   document.getElementById('txtRec').textContent='Prêt à render';
@@ -496,6 +518,10 @@ document.getElementById('btnGen').addEventListener('click',()=>{
 document.getElementById('btnPlay').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat);}});
 document.getElementById('btnStop').addEventListener('click',stopPlay);
 document.getElementById('btnRender').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await renderAndDownload(currentPat);}});
+document.getElementById('btnCopyTab').addEventListener('click',()=>{
+  const txt=document.getElementById('tabOut').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('btnCopyTab');b.textContent='✓ Copié';setTimeout(()=>b.textContent='⧉ Copier la tab',1500);});
+});
 </script>
 </body>
 </html>

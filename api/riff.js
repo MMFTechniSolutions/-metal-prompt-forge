@@ -70,6 +70,8 @@ const LEAD_VOICE={
   violon:{wave:'sawtooth',cut:3600,q:1.2},
   synth:{wave:'square',cut:4200,q:1},
   cuivres:{wave:'square',cut:1700,q:4},
+  guitarelec:{wave:'sawtooth',cut:4200,q:1.4},
+  guitarclass:{wave:'triangle',cut:2600,q:0.9,pluck:true},
 };
 const ELITE_STYLES=['slam','sludge','postmetal','grindcore','funeraldoom','dissonant'];
 

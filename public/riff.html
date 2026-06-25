@@ -131,6 +131,8 @@
           <option value="none">Aucun</option>
           <option value="saxophone">Saxophone</option>
           <option value="violon">Violon</option>
+          <option value="guitarelec">Guitare électrique</option>
+          <option value="guitarclass">Guitare classique</option>
           <option value="synth">Synth Lead</option>
           <option value="cuivres">Cuivres</option>
         </select>
@@ -277,6 +279,8 @@ async function startPlay(p){
   if(p.lead&&p.lead!=='none'&&p.leadVoice&&p.leadRhy){
     const v=p.leadVoice;
     leadSynth.oscillator.type=v.wave;leadFilter.frequency.value=v.cut;leadFilter.Q.value=v.q;
+    if(v.pluck){leadSynth.envelope.attack=0.005;leadSynth.envelope.decay=0.18;leadSynth.envelope.sustain=0.1;leadSynth.envelope.release=0.15;}
+    else{leadSynth.envelope.attack=0.03;leadSynth.envelope.decay=0.2;leadSynth.envelope.sustain=0.55;leadSynth.envelope.release=0.25;}
     let li=0;
     seqs.push(makeSeq((t,step)=>{if(p.leadRhy[step%16]){const semi=p.noteSeq[li%p.noteSeq.length]+12+a.trans[step];li++;leadSynth.triggerAttackRelease(semFreq(root,semi),'8n',t,.5);}}));
   }
@@ -421,7 +425,8 @@ async function renderAndDownload(p){
       const o=off.createOscillator(),f2=off.createBiquadFilter(),g2=off.createGain();
       o.type=LV.wave;o.frequency.value=freq;
       f2.type='lowpass';f2.frequency.value=LV.cut;f2.Q.value=LV.q;
-      g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(.16,t+.02);g2.gain.exponentialRampToValueAtTime(.001,t+stepDur*1.6);
+      const ldec=LV.pluck?stepDur*0.6:stepDur*1.6;const latk=LV.pluck?0.005:0.02;
+      g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(.16,t+latk);g2.gain.exponentialRampToValueAtTime(.001,t+ldec);
       o.connect(f2);f2.connect(g2);g2.connect(master);o.start(t);o.stop(t+stepDur*1.8);
     }
   }

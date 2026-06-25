@@ -126,6 +126,16 @@
         </select>
       </div>
       <div class="cg">
+        <label>Lead (mélodie)</label>
+        <select id="lead">
+          <option value="none">Aucun</option>
+          <option value="saxophone">Saxophone</option>
+          <option value="violon">Violon</option>
+          <option value="synth">Synth Lead</option>
+          <option value="cuivres">Cuivres</option>
+        </select>
+      </div>
+      <div class="cg">
         <label>Distorsion — <span id="distLbl">80</span>%</label>
         <input type="range" id="dist" min="10" max="100" value="80" oninput="document.getElementById('distLbl').textContent=this.value">
       </div>
@@ -223,6 +233,13 @@ const STRUCTURES = {
   prog:   {bars:[{steps:14},{steps:12},{},{steps:20}]},
 };
 const METER={16:'4/4',14:'7/8',12:'6/8',20:'5/4',8:'2/4',10:'5/8'};
+const LEAD_RHY=[1,0,0,0,1,0,1,0,0,1,0,0,1,0,1,0];
+const LEAD_VOICE={
+  saxophone:{wave:'sawtooth',cut:2200,q:3},
+  violon:{wave:'sawtooth',cut:3600,q:1.2},
+  synth:{wave:'square',cut:4200,q:1},
+  cuivres:{wave:'square',cut:1700,q:4},
+};
 function buildArrangement(p){
   const st=STRUCTURES[p.structure]||STRUCTURES.loop;
   const out={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],L:0};
@@ -241,7 +258,7 @@ function buildArrangement(p){
   return out;
 }
 
-let toneReady=false,synth=null,bassSynth=null,drumKit=null;
+let toneReady=false,synth=null,bassSynth=null,drumKit=null,leadSynth=null,leadFilter=null;
 let seqs=[],isPlaying=false,currentPat=null,animF=null,analyser=null;
 
 async function initTone(){
@@ -272,6 +289,12 @@ async function initTone(){
     snare:new Tone.NoiseSynth({noise:{type:'white'},envelope:{attack:.001,decay:.14,sustain:0,release:.04}}).connect(new Tone.Filter({type:'bandpass',frequency:2800,Q:1}).connect(dv)),
     hihat:new Tone.MetalSynth({frequency:400,envelope:{attack:.001,decay:.04,release:.01},harmonicity:5.1,modulationIndex:32,resonance:4000,octaves:1.5}).connect(new Tone.Volume(-10).connect(dv)),
   };
+  // Lead (sax / violon / synth / cuivres)
+  leadFilter=new Tone.Filter({type:'lowpass',frequency:2500,Q:2});
+  const lverb=new Tone.Reverb({decay:1.1,wet:.22});
+  const lvol=new Tone.Volume(-7);
+  leadSynth=new Tone.Synth({oscillator:{type:'sawtooth'},envelope:{attack:.03,decay:.2,sustain:.55,release:.25}});
+  leadSynth.connect(leadFilter);leadFilter.connect(lverb);lverb.connect(lvol);lvol.connect(lim);
   analyser=Tone.getContext().rawContext.createAnalyser();
   analyser.fftSize=2048;
   Tone.getDestination().connect(analyser);
@@ -295,10 +318,19 @@ function buildTab(p){
   const dl=(lbl,pat,sym)=>lbl+'|'+pat.map(v=>v?sym:'-').join('')+'|';
   const drums=[dl('HH',p.drum.hihat,'x'),dl('SN',p.drum.snare,'o'),dl('KK',p.drum.kick,'o')].join('\n');
   const shape=isDrop?'Drop — 1 doigt (meme case)':'Standard — quinte +2 cases';
-  return '// '+p.style+' · '+p.root+' · '+p.bpm+' BPM · PM=palm mute\n'+
+  const TNAME={E2:'Standard E',Eb2:'Eb',D2:'D Standard',Db2:'Drop D/C#',C2:'C Standard',B1:'B Standard'};
+  let leadStr='';
+  if(p.lead&&p.lead!=='none'){
+    const ROOT_PC={E2:4,Eb2:3,D2:2,Db2:1,C2:0,B1:11};
+    const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    let li=0;const notes=[];
+    for(let s=0;s<16;s++){if(LEAD_RHY[s]){const semi=p.noteSeq[li%p.noteSeq.length]+12;li++;notes.push(NAMES[((ROOT_PC[p.root]||4)+semi)%12]);}}
+    leadStr='\n\n// LEAD ('+p.lead+') — notes (octave +1):\n'+notes.join('  ');
+  }
+  return '// '+p.style+' · '+(TNAME[p.root]||p.root)+' · '+p.bpm+' BPM · PM=palm mute\n'+
     '// GUITARE (power chords · '+shape+')\n'+gtr+'\n\n'+
     '// BASSE (pedale de fondamentale)\n'+bass+'\n\n'+
-    '// BATTERIE  (x=hihat · o=snare/kick)\n'+drums;
+    '// BATTERIE  (x=hihat · o=snare/kick)\n'+drums+leadStr;
 }
 
 function renderViz(p){
@@ -346,6 +378,12 @@ async function startPlay(p){
   seqs.push(makeSeq((t,step)=>{if(a.kick[step])drumKit.kick.triggerAttackRelease('C1','8n',t);}));
   seqs.push(makeSeq((t,step)=>{if(a.snare[step])drumKit.snare.triggerAttackRelease('8n',t);}));
   seqs.push(makeSeq((t,step)=>{if(a.hihat[step])drumKit.hihat.triggerAttackRelease('16n',t);}));
+  if(p.lead&&p.lead!=='none'){
+    const v=LEAD_VOICE[p.lead]||LEAD_VOICE.synth;
+    leadSynth.oscillator.type=v.wave;leadFilter.frequency.value=v.cut;leadFilter.Q.value=v.q;
+    let li=0;
+    seqs.push(makeSeq((t,step)=>{if(LEAD_RHY[step%16]){const semi=p.noteSeq[li%p.noteSeq.length]+12+a.trans[step];li++;leadSynth.triggerAttackRelease(semFreq(root,semi),'8n',t,.5);}}));
+  }
   seqs.forEach(s=>s.start(0));
   Tone.getTransport().start();
   isPlaying=true;
@@ -399,6 +437,7 @@ async function renderAndDownload(p){
   const bassHz=rootHz/2;
   const a=p.arr||buildArrangement(p);
   let gi=0;
+  const LEAD=(p.lead&&p.lead!=='none');const LV=LEAD_VOICE[p.lead]||LEAD_VOICE.synth;let leadI=0;
 
   for(let step=0;step<totalSteps;step++){
     const t=step*stepDur+0.05;
@@ -468,6 +507,15 @@ async function renderAndDownload(p){
       const f=off.createBiquadFilter();f.type='highpass';f.frequency.value=9000;
       const g=off.createGain();g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);
       src.connect(f);f.connect(g);g.connect(master);src.start(t);
+    }
+    if(LEAD&&LEAD_RHY[i%16]){
+      const semi=p.noteSeq[leadI%p.noteSeq.length]+12+a.trans[i];leadI++;
+      const freq=semiHz(rootHz,semi);
+      const o=off.createOscillator(),f2=off.createBiquadFilter(),g2=off.createGain();
+      o.type=LV.wave;o.frequency.value=freq;
+      f2.type='lowpass';f2.frequency.value=LV.cut;f2.Q.value=LV.q;
+      g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(.16,t+.02);g2.gain.exponentialRampToValueAtTime(.001,t+stepDur*1.6);
+      o.connect(f2);f2.connect(g2);g2.connect(master);o.start(t);o.stop(t+stepDur*1.8);
     }
   }
 
@@ -559,6 +607,7 @@ document.getElementById('btnGen').addEventListener('click',()=>{
     drum:DRUM_PAT[document.getElementById('drums').value],
     drumKey:document.getElementById('drums').value,
     structure:document.getElementById('structure').value,
+    lead:document.getElementById('lead').value,
     noteSeq:NOTE_SEQ[style],
   };
   currentPat.arr=buildArrangement(currentPat);

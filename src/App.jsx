@@ -667,6 +667,35 @@ function LegalModal({doc,onClose,uiLang}){
   );
 }
 
+function UserChip({user,uiLang,tierBadge,tierColor,isElite,onLogout,onRequestAuth}){
+  const [open,setOpen]=useState(false);
+  const fr=uiLang==="fr";
+  if(!user) return <button onClick={onRequestAuth} style={{background:RED,border:"none",borderRadius:"6px",color:"#000",fontSize:"0.55rem",fontWeight:800,padding:"5px 11px",cursor:"pointer",letterSpacing:"0.5px"}}>🤘 {fr?"Se connecter":"Sign in"}</button>;
+  const email=user.email||"";
+  const initial=(email[0]||"M").toUpperCase();
+  return (
+    <div style={{position:"relative"}}>
+      <button onClick={()=>setOpen(o=>!o)} style={{display:"flex",alignItems:"center",gap:"6px",background:"#1a1a1a",border:"1px solid #2a2a2a",borderRadius:"20px",padding:"3px 8px 3px 3px",cursor:"pointer"}}>
+        <span style={{width:"20px",height:"20px",borderRadius:"50%",background:tierColor||RED,color:isElite?"#fff":"#000",fontSize:"0.6rem",fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}}>{initial}</span>
+        <span style={{fontSize:"0.55rem",color:"#bbb",maxWidth:"90px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{email.split("@")[0]}</span>
+        <span style={{width:"6px",height:"6px",borderRadius:"50%",background:"#4caf50",boxShadow:"0 0 6px #4caf50"}}/>
+        <span style={{fontSize:"0.5rem",color:"#666"}}>▾</span>
+      </button>
+      {open&&(
+        <div style={{position:"absolute",right:0,top:"32px",background:"#0f0f0f",border:"1px solid #2a2a2a",borderRadius:"8px",padding:"12px",minWidth:"180px",zIndex:300,boxShadow:"0 8px 28px #000c",textAlign:"left"}}>
+          <div style={{fontSize:"0.5rem",color:"#4caf50",letterSpacing:"1px",textTransform:"uppercase",marginBottom:"3px"}}>● {fr?"Connecté":"Signed in"}</div>
+          <div style={{fontSize:"0.62rem",color:"#ddd",wordBreak:"break-all",marginBottom:"10px"}}>{email}</div>
+          <div style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"10px"}}>
+            <span style={{fontSize:"0.5rem",color:"#666",textTransform:"uppercase",letterSpacing:"1px"}}>{fr?"Plan":"Plan"}</span>
+            <span style={{background:tierColor||"#444",color:isElite?"#fff":"#000",fontSize:"0.5rem",fontWeight:900,padding:"2px 8px",borderRadius:"8px",letterSpacing:"0.5px"}}>{tierBadge||"FREE"}</span>
+          </div>
+          <button onClick={onLogout} style={{width:"100%",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"5px",color:"#ff7070",fontSize:"0.6rem",fontWeight:700,padding:"7px",cursor:"pointer",letterSpacing:"0.5px"}}>{fr?"Déconnexion":"Log out"}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App({ user, onLogout, onRequestAuth }) {
   const [view,setView]=useState("app");
   const [tab,setTab]=useState("genre");
@@ -991,7 +1020,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <span>{promptCount} {t.prompts} · <a href={payUrl(TIERS.pro.stripe,user?.email)} target="_blank" rel="noreferrer" style={{color:RED,textDecoration:"none",fontWeight:700}}>{t.plans}</a></span>
           <div style={{display:"flex",gap:"6px",alignItems:"center"}}>
             {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#1a0000":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"3px",color:uiLang===l?RED:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{l.toUpperCase()}</button>)}
-            {user?<button onClick={onLogout} style={{background:"none",border:"1px solid #222",borderRadius:"4px",color:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{t.logout}</button>:<button onClick={onRequestAuth} style={{background:RED,border:"none",borderRadius:"4px",color:"#000",fontSize:"0.5rem",fontWeight:800,padding:"3px 9px",cursor:"pointer",letterSpacing:"0.5px"}}>{uiLang==="fr"?"Se connecter":"Sign in"}</button>}
+            <UserChip user={user} uiLang={uiLang} tierBadge={tierBadge} tierColor={tierColor} isElite={isElite} onLogout={onLogout} onRequestAuth={onRequestAuth}/>
           </div>
         </div>
       </div>

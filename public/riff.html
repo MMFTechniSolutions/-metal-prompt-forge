@@ -185,7 +185,7 @@
 // ── Patterns + arrangement + tablature : logique secrète déplacée côté serveur (/api/riff) ──
 // Le client n'envoie que des paramètres et reçoit l'arrangement déjà calculé.
 
-let toneReady=false,synth=null,bassSynth=null,drumKit=null,leadSynth=null,leadFilter=null;
+let toneReady=false,synth=null,bassSynth=null,drumKit=null,leadSynth=null,leadFilter=null,padSynth=null;
 let seqs=[],isPlaying=false,currentPat=null,animF=null,analyser=null;
 
 async function initTone(){
@@ -222,6 +222,12 @@ async function initTone(){
   const lvol=new Tone.Volume(-7);
   leadSynth=new Tone.Synth({oscillator:{type:'sawtooth'},envelope:{attack:.03,decay:.2,sustain:.55,release:.25}});
   leadSynth.connect(leadFilter);leadFilter.connect(lverb);lverb.connect(lvol);lvol.connect(lim);
+  // Nappe de cordes symphonique (atmosphère black/doom)
+  const padF=new Tone.Filter({type:'lowpass',frequency:2400});
+  const padVerb=new Tone.Reverb({decay:4,wet:.5});
+  const padVol=new Tone.Volume(-15);
+  padSynth=new Tone.PolySynth(Tone.Synth,{oscillator:{type:'sawtooth'},envelope:{attack:1.4,decay:.5,sustain:.7,release:2}});
+  padSynth.connect(padF);padF.connect(padVerb);padVerb.connect(padVol);padVol.connect(lim);
   analyser=Tone.getContext().rawContext.createAnalyser();
   analyser.fftSize=2048;
   Tone.getDestination().connect(analyser);
@@ -283,6 +289,9 @@ async function startPlay(p){
     else{leadSynth.envelope.attack=0.03;leadSynth.envelope.decay=0.2;leadSynth.envelope.sustain=0.55;leadSynth.envelope.release=0.25;}
     let li=0;
     seqs.push(makeSeq((t,step)=>{if(p.leadRhy[step%16]){const semi=p.noteSeq[li%p.noteSeq.length]+12+a.trans[step];li++;leadSynth.triggerAttackRelease(semFreq(root,semi),'8n',t,.5);}}));
+  }
+  if(p.atmos&&padSynth){
+    seqs.push(makeSeq((t,step)=>{if(step%16===0){padSynth.triggerAttackRelease([semFreq(root,12+a.trans[step]),semFreq(root,19+a.trans[step]),semFreq(root,24+a.trans[step])],'2n',t,.4);}}));
   }
   seqs.forEach(s=>s.start(0));
   Tone.getTransport().start();
@@ -428,6 +437,17 @@ async function renderAndDownload(p){
       const ldec=LV.pluck?stepDur*0.6:stepDur*1.6;const latk=LV.pluck?0.005:0.02;
       g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(.16,t+latk);g2.gain.exponentialRampToValueAtTime(.001,t+ldec);
       o.connect(f2);f2.connect(g2);g2.connect(master);o.start(t);o.stop(t+stepDur*1.8);
+    }
+    if(p.atmos && (step%16)===0){
+      const barDur=16*stepDur;
+      [0,7,12].forEach(iv=>{
+        const o=off.createOscillator(),o2=off.createOscillator(),f=off.createBiquadFilter(),g=off.createGain();
+        o.type='sawtooth';o.frequency.value=semiHz(rootHz,iv)*2;
+        o2.type='sawtooth';o2.frequency.value=semiHz(rootHz,iv)*2*1.006;
+        f.type='lowpass';f.frequency.value=2400;f.Q.value=0.7;
+        g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05,t+barDur*0.35);g.gain.exponentialRampToValueAtTime(.001,t+barDur*1.1);
+        o.connect(f);o2.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+barDur*1.15);o2.start(t);o2.stop(t+barDur*1.15);
+      });
     }
   }
 

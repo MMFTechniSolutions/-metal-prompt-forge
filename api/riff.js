@@ -74,6 +74,8 @@ const LEAD_VOICE={
   guitarclass:{wave:'triangle',cut:2600,q:0.9,pluck:true},
 };
 const ELITE_STYLES=['slam','sludge','postmetal','grindcore','funeraldoom','dissonant'];
+const TREMOLO=['blackened','postmetal','funeraldoom','dissonant'];   // guitare trémolo continue (mur black metal)
+const ATMOS=['blackened','postmetal','funeraldoom','dissonant','sludge','doom']; // nappe de cordes symphonique
 
 function buildArrangement(p){
   const st=STRUCTURES[p.structure]||STRUCTURES.loop;
@@ -148,7 +150,7 @@ export default function handler(req, res){
     drumKey,
     structure: STRUCTURES[b.structure] ? b.structure : 'loop',
     lead: b.lead || 'none',
-    guit: STYLE_PAT[style],
+    guit: TREMOLO.includes(style) ? [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] : STYLE_PAT[style],
     bass: BASS_PAT[style],
     drum: DRUM_PAT[drumKey],
     noteSeq: NOTE_SEQ[style],
@@ -162,7 +164,7 @@ export default function handler(req, res){
   return res.status(200).json({
     style: p.style, bpm: p.bpm, root: p.root, dist: p.dist,
     drumKey: p.drumKey, structure: p.structure, lead: p.lead,
-    noteSeq: p.noteSeq, guit: p.guit, bass: p.bass, drum: p.drum,
+    noteSeq: p.noteSeq, guit: p.guit, bass: p.bass, drum: p.drum, atmos: ATMOS.includes(p.style),
     arr, leadVoice, leadRhy: leadVoice ? LEAD_RHY : null, tab,
   });
 }

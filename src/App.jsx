@@ -1275,6 +1275,27 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
 
         <div style={S.card}>
+          <div style={S.ctitle}>🎛️ {L("Réglages avancés Suno (More Options)","Suno advanced sliders (More Options)")}</div>
+          <div style={{fontSize:"0.72rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("Dans Suno, ouvre « More Options ». Réglages conseillés pour le metal :","In Suno, open « More Options ». Recommended settings for metal:")}</div>
+          {[
+            {n:"Weirdness",v:"40-60%",d:L("Garde ça cohérent. Plus haut = chaos / expérimental.","Keep it coherent. Higher = chaos / experimental.")},
+            {n:"Style Influence",v:"70-90%",d:L("HAUT — pour que Suno respecte tes tags MetalPrompt précis.","HIGH — so Suno respects your precise MetalPrompt tags.")},
+            {n:"Audio Influence",v:"55-75%",d:L("Apparaît avec un upload. Plus haut = colle à ta référence (ex. ton WAV du Riff Generator).","Appears with an upload. Higher = sticks to your reference (e.g. your Riff Generator WAV).")},
+            {n:"Vocal Gender",v:"Male",d:L("Male pour la plupart du metal (Female pour certains styles).","Male for most metal (Female for some styles).")},
+            {n:"Exclude styles",v:"↔",d:L("Recopie tes tags de l'onglet Exclude (pop, clean vocals…).","Copy your tags from the Exclude tab (pop, clean vocals…).")},
+          ].map((r,i)=>(
+            <div key={r.n} style={{padding:"8px 0",borderBottom:i<4?"1px solid #1a1a1a":"none"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:"8px"}}>
+                <span style={{fontSize:"0.8rem",fontWeight:800,color:"#e0e0e0"}}>{r.n}</span>
+                <span style={{fontSize:"0.74rem",fontWeight:900,color:RED,fontFamily:"monospace"}}>{r.v}</span>
+              </div>
+              <div style={{fontSize:"0.68rem",color:"#888",lineHeight:1.5,marginTop:"2px"}}>{r.d}</div>
+            </div>
+          ))}
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("💡 Règle d'or : Style Influence haut + Weirdness modéré = Suno suit ton prompt sans déraper.","💡 Rule of thumb: high Style Influence + moderate Weirdness = Suno follows your prompt without going off the rails.")}</div>
+        </div>
+
+        <div style={S.card}>
           <div style={S.ctitle}>{L("🎓 Cliniques de musique en ligne","🎓 Online music clinics")}</div>
           <div style={{fontSize:"0.78rem",color:"#999",lineHeight:1.7,marginBottom:"14px"}}>
             {L("Des sessions live avec de vrais musiciens pour passer au niveau supérieur — riffs, mix, écriture, voix extrêmes. Que tu joues déjà ou pas du tout, on t'aide à progresser.","Live sessions with real musicians to level up — riffs, mixing, songwriting, extreme vocals. Whether you already play or not at all, we help you progress.")}

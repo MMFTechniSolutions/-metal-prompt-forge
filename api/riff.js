@@ -39,18 +39,30 @@ const DRUM_PAT = {
   half_time:  {kick:[1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],hihat:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
   breakdown:  {kick:[1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1],hihat:[1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0]},
 };
+// Phrases de 16 notes (question/réponse) → le riff se développe au lieu de tourner en rond
 const NOTE_SEQ = {
-  thrash:[0,0,3,0,5,0,7,3],death:[0,0,1,0,6,1,0,8],doom:[0,7,5,3,0,7,5,0],
-  blackened:[0,0,1,5,0,1,0,6],groove:[0,5,7,0,3,5,0,7],djent:[0,0,7,0,5,0,3,0],speed:[0,3,5,7,0,5,3,0],
-  slam:[0,0,1,0,0,2,0,1],sludge:[0,3,0,5,0,3,0,0],postmetal:[0,7,12,7,0,5,7,0],grindcore:[0,1,0,2,0,1,3,0],funeraldoom:[0,0,3,0,0,5,0,0],dissonant:[0,1,6,0,1,8,0,6],
+  thrash:[0,0,3,0,5,3,7,5,0,0,3,0,8,7,5,3],
+  death:[0,0,1,0,6,1,8,6,0,0,1,3,6,5,3,1],
+  doom:[0,7,5,3,0,5,3,2,0,7,8,7,5,3,2,0],
+  blackened:[0,0,1,5,0,1,6,5,0,1,5,7,6,5,1,0],
+  groove:[0,5,7,0,3,5,7,3,0,7,5,3,5,7,3,0],
+  djent:[0,0,7,0,5,7,3,0,0,5,0,7,3,5,0,0],
+  speed:[0,3,5,7,8,7,5,3,0,5,7,10,8,7,5,0],
+  slam:[0,0,1,0,2,1,0,3,0,0,1,2,1,0,2,0],
+  sludge:[0,3,5,3,0,5,7,5,0,3,2,0,3,5,3,0],
+  postmetal:[0,7,12,7,5,7,12,10,0,5,7,12,10,7,5,0],
+  grindcore:[0,1,0,2,3,2,1,0,0,1,3,2,1,0,2,0],
+  funeraldoom:[0,0,3,0,5,3,0,0,0,0,5,3,2,0,0,0],
+  dissonant:[0,1,6,0,1,8,6,1,0,1,8,6,11,8,6,0],
 };
+// transpose = décalage de hauteur (variété par section) · fill = roulement de snare en fin de phrase
 const STRUCTURES = {
   loop:   {bars:[{}]},
-  vbd:    {bars:[{},{},{drum:'breakdown'},{drum:'breakdown'}]},
-  irbo:   {bars:[{drum:'half_time'},{},{},{drum:'breakdown'}]},
-  drop:   {bars:[{drum:'half_time'},{drum:'double_kick'},{drum:'blast_beat'},{drum:'breakdown'}]},
-  djent7: {bars:[{},{steps:14},{},{steps:14,drum:'breakdown'}]},
-  prog:   {bars:[{steps:14},{steps:12},{},{steps:20}]},
+  vbd:    {bars:[{},{},{drum:'breakdown'},{drum:'breakdown',fill:true}]},
+  irbo:   {bars:[{drum:'half_time'},{},{transpose:5},{drum:'breakdown',fill:true}]},
+  drop:   {bars:[{drum:'half_time'},{drum:'double_kick',transpose:3},{drum:'blast_beat',transpose:5},{drum:'breakdown',fill:true}]},
+  djent7: {bars:[{},{steps:14,transpose:3},{},{steps:14,drum:'breakdown',fill:true}]},
+  prog:   {bars:[{steps:14},{steps:12,transpose:5},{transpose:7},{steps:20,fill:true}]},
 };
 const LEAD_RHY=[1,0,0,0,1,0,1,0,0,1,0,0,1,0,1,0];
 const LEAD_VOICE={
@@ -71,7 +83,9 @@ function buildArrangement(p){
     for(let i=0;i<n;i++){
       const j=i%16;
       out.guit.push(p.guit[j]);out.bass.push(p.bass[j]);
-      out.kick.push(dp.kick[j]);out.snare.push(dp.snare[j]);out.hihat.push(dp.hihat[j]);
+      out.kick.push(dp.kick[j]);
+      out.snare.push((bar.fill && i >= n - 4) ? 1 : dp.snare[j]);
+      out.hihat.push(dp.hihat[j]);
       out.trans.push(tr);
     }
   });

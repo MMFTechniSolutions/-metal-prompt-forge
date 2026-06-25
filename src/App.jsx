@@ -554,6 +554,24 @@ NOS VALEURS
 • Accessible à tous — pro ou débutant total.
 • Honnête et direct.
 
+UNE LETTRE DE L'ÉQUIPE
+
+À toi, le metalhead,
+
+On va te parler franchement. On était tannés du metal IA qui sonne en plastique — plat, sans âme, craché à la chaîne pis oublié aussi vite. De la musique jetable.
+
+Le metal, ç'a jamais été ça. Ça frappe, ça vit, ça vient des tripes. Une vraie toune transporte une émotion — pis quand c'est la tienne qui prend vie, ça te donne des frissons.
+
+C'est pour ça qu'on a bâti MetalPrompt. Pas une poubelle à chansons jetables : une forge. Un outil pour construire — du succès, de l'apprentissage, du plaisir.
+
+Que tu joues depuis vingt ans ou que t'aies jamais touché une guitare, si t'as du metal dans la tête, on veut te donner le moyen de le sortir.
+
+Pis que ce soit clair : c'est pour les musiciens. Jamais contre. On grandit ensemble.
+
+Bienvenue dans la forge.
+
+— L'équipe de MetalPrompt
+
 MetalPrompt — la plateforme du metalhead. 🤘
 
 Édité par MMF Techni-Solutions · mmftechnisolutions@gmail.com`,

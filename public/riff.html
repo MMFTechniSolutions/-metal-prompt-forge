@@ -206,6 +206,7 @@
 // Le client n'envoie que des paramètres et reçoit l'arrangement déjà calculé.
 
 let toneReady=false,synth=null,bassSynth=null,drumKit=null,leadSynth=null,leadFilter=null,padSynth=null;
+let drumBuf=null,drumBus=null;
 let importedDrum=null;
 // Parse un MIDI de batterie (les notes restent dans ton navigateur, jamais envoyées/stockées)
 function parseMidiToDrum(buf){
@@ -238,6 +239,41 @@ function parseMidiToDrum(buf){
 }
 let seqs=[],isPlaying=false,currentPat=null,animF=null,analyser=null;
 
+// ===== Vrais samples de batterie : rendus une fois (sub+click+corps+bruit+saturation), joués comme un sampler =====
+function genDrumData(sr){
+  const env=(t,tau)=>Math.exp(-t/tau);
+  // KICK ~0.34s : pitch-drop sub + corps + click de batte + transient bruit, saturé
+  const kl=Math.ceil(.34*sr), kick=new Float32Array(kl);
+  for(let k=0;k<kl;k++){const t=k/sr;
+    const f=48+(118-48)*Math.exp(-t/0.028);
+    const sub=Math.sin(2*Math.PI*f*t)*env(t,0.14);
+    const body=Math.sin(2*Math.PI*72*t)*env(t,0.19)*0.5;
+    const clickN=(t<0.008?(Math.random()*2-1)*(1-t/0.008):0)*0.55;
+    const blip=(t<0.006?Math.sin(2*Math.PI*1750*t):0)*0.4;
+    kick[k]=Math.tanh((sub+body+clickN+blip)*1.6);
+  }
+  // SNARE ~0.2s : timbre (2 sinus) + caisse claire (bruit highpass) + crack
+  const sl=Math.ceil(.2*sr), snare=new Float32Array(sl); let prev=0;
+  for(let k=0;k<sl;k++){const t=k/sr;
+    const tone=(Math.sin(2*Math.PI*182*t)+0.7*Math.sin(2*Math.PI*291*t))*env(t,0.06)*0.5;
+    const n=(Math.random()*2-1); const nb=n-prev; prev=n;
+    const noise=nb*env(t,0.13)*0.95;
+    const crack=(t<0.005?(Math.random()*2-1):0)*0.5;
+    snare[k]=Math.tanh((tone+noise+crack)*1.3);
+  }
+  // HIHAT ~0.05s : bruit très brillant (double dérivée) décroissance rapide
+  const hl=Math.ceil(.05*sr), hihat=new Float32Array(hl); let p1=0,p2=0;
+  for(let k=0;k<hl;k++){const t=k/sr;
+    const n=Math.random()*2-1; const b=n-p1; p1=n; const b2=b-p2; p2=b;
+    hihat[k]=b2*env(t,0.014)*0.5;
+  }
+  const norm=a=>{let m=0;for(const v of a)if(Math.abs(v)>m)m=Math.abs(v);if(m>0){const g=0.95/m;for(let i=0;i<a.length;i++)a[i]*=g;}};
+  norm(kick);norm(snare);norm(hihat);
+  return {kick,snare,hihat};
+}
+function toDrumBuf(ctx,data){const b=ctx.createBuffer(1,data.length,ctx.sampleRate);b.copyToChannel(data,0);return b;}
+function playDrum(buf,t,g){const ctx=Tone.getContext().rawContext;const s=ctx.createBufferSource();s.buffer=buf;const gn=ctx.createGain();gn.gain.value=g;s.connect(gn);gn.connect(drumBus);s.start(t);}
+
 async function initTone(){
   if(toneReady)return;
   await Tone.start();
@@ -266,6 +302,11 @@ async function initTone(){
     snare:new Tone.NoiseSynth({noise:{type:'white'},envelope:{attack:.001,decay:.14,sustain:0,release:.04}}).connect(new Tone.Filter({type:'bandpass',frequency:2800,Q:1}).connect(dv)),
     hihat:new Tone.MetalSynth({frequency:400,envelope:{attack:.001,decay:.04,release:.01},harmonicity:5.1,modulationIndex:32,resonance:4000,octaves:1.5}).connect(new Tone.Volume(-10).connect(dv)),
   };
+  // Vrais samples (rendus originaux) -> joués comme un sampler, branchés sur le limiteur
+  const _rc=Tone.getContext().rawContext;
+  const _dd=genDrumData(_rc.sampleRate);
+  drumBuf={kick:toDrumBuf(_rc,_dd.kick),snare:toDrumBuf(_rc,_dd.snare),hihat:toDrumBuf(_rc,_dd.hihat)};
+  drumBus=_rc.createGain();drumBus.gain.value=1.15;Tone.connect(drumBus,lim);
   // Lead (sax / violon / synth / cuivres)
   leadFilter=new Tone.Filter({type:'lowpass',frequency:2500,Q:2});
   const lverb=new Tone.Reverb({decay:1.1,wet:.22});
@@ -329,9 +370,9 @@ async function startPlay(p){
     if(a.guit[step]){const semi=p.noteSeq[ni%p.noteSeq.length]+a.trans[step];synth.triggerAttackRelease(semFreq(root,semi),'16n',t,.8);synth.triggerAttackRelease(semFreq(root,semi+7),'16n',t,.45);ni++;}
   }));
   seqs.push(makeSeq((t,step)=>{if(a.bass[step]){const broot=Tone.Frequency(root).transpose(a.trans[step]-12).toNote();bassSynth.triggerAttackRelease(broot,'16n',t,.65);}}));
-  seqs.push(makeSeq((t,step)=>{if(a.kick[step])drumKit.kick.triggerAttackRelease('C1','8n',t);}));
-  seqs.push(makeSeq((t,step)=>{if(a.snare[step])drumKit.snare.triggerAttackRelease('8n',t);}));
-  seqs.push(makeSeq((t,step)=>{if(a.hihat[step])drumKit.hihat.triggerAttackRelease('16n',t);}));
+  seqs.push(makeSeq((t,step)=>{if(a.kick[step])playDrum(drumBuf.kick,t,1.0);}));
+  seqs.push(makeSeq((t,step)=>{if(a.snare[step])playDrum(drumBuf.snare,t,0.9);}));
+  seqs.push(makeSeq((t,step)=>{if(a.hihat[step])playDrum(drumBuf.hihat,t,0.5);}));
   if(p.lead&&p.lead!=='none'&&p.leadVoice&&p.leadRhy){
     const v=p.leadVoice;
     leadSynth.oscillator.type=v.wave;leadFilter.frequency.value=v.cut;leadFilter.Q.value=v.q;
@@ -397,6 +438,9 @@ async function renderAndDownload(p){
   const a=p.arr;
   let gi=0;
   const LEAD=(p.lead&&p.lead!=='none'&&p.leadRhy&&p.leadVoice);const LV=p.leadVoice||{wave:'square',cut:4000,q:1};let leadI=0;
+  const _od=genDrumData(sr);
+  const obuf={kick:toDrumBuf(off,_od.kick),snare:toDrumBuf(off,_od.snare),hihat:toDrumBuf(off,_od.hihat)};
+  const playOff=(buf,t,g)=>{const s=off.createBufferSource();s.buffer=buf;const gn=off.createGain();gn.gain.value=g;s.connect(gn);gn.connect(master);s.start(t);};
 
   for(let step=0;step<totalSteps;step++){
     const t=step*stepDur+0.05;
@@ -443,41 +487,9 @@ async function renderAndDownload(p){
       o.connect(d);o2.connect(d);d.connect(lo);lo.connect(pres);pres.connect(hi);hi.connect(g);g.connect(master);
       o.start(t);o.stop(t+stepDur+.05);o2.start(t);o2.stop(t+stepDur+.05);
     }
-    if(a.kick[i]){
-      const o=off.createOscillator(),g=off.createGain();
-      const ck=off.createOscillator(),cg=off.createGain();
-      o.frequency.setValueAtTime(170,t);o.frequency.exponentialRampToValueAtTime(45,t+.05);
-      g.gain.setValueAtTime(0.9,t);g.gain.exponentialRampToValueAtTime(.001,t+.13);
-      ck.type='square';ck.frequency.value=3600;cg.gain.setValueAtTime(.5,t);cg.gain.exponentialRampToValueAtTime(.001,t+.01);
-      const nlen=Math.ceil(.02*sr);const nb=off.createBuffer(1,nlen,sr);const nd=nb.getChannelData(0);
-      for(let k=0;k<nlen;k++)nd[k]=(Math.random()*2-1)*(1-k/nlen);
-      const ns=off.createBufferSource();ns.buffer=nb;const nf=off.createBiquadFilter();nf.type='highpass';nf.frequency.value=2500;const ng=off.createGain();ng.gain.setValueAtTime(.3,t);ng.gain.exponentialRampToValueAtTime(.001,t+.015);
-      o.connect(g);g.connect(master);ck.connect(cg);cg.connect(master);ns.connect(nf);nf.connect(ng);ng.connect(master);
-      o.start(t);o.stop(t+.18);ck.start(t);ck.stop(t+.015);ns.start(t);
-    }
-    if(a.snare[i]){
-      const len=Math.ceil(.16*sr);
-      const buf=off.createBuffer(1,len,sr);const data=buf.getChannelData(0);
-      for(let k=0;k<len;k++)data[k]=(Math.random()*2-1)*(1-k/len);
-      const src=off.createBufferSource();src.buffer=buf;
-      const hpf=off.createBiquadFilter();hpf.type='highpass';hpf.frequency.value=400;
-      const f=off.createBiquadFilter();f.type='bandpass';f.frequency.value=3200;f.Q.value=0.8;
-      const body=off.createOscillator(),bg=off.createGain();
-      body.frequency.setValueAtTime(220,t);body.frequency.exponentialRampToValueAtTime(110,t+.06);
-      bg.gain.setValueAtTime(.35,t);bg.gain.exponentialRampToValueAtTime(.001,t+.08);
-      const g=off.createGain();g.gain.setValueAtTime(.7,t);g.gain.exponentialRampToValueAtTime(.001,t+.15);
-      src.connect(hpf);hpf.connect(f);f.connect(g);g.connect(master);body.connect(bg);bg.connect(master);
-      src.start(t);body.start(t);body.stop(t+.1);
-    }
-    if(a.hihat[i]){
-      const len=Math.ceil(.05*sr);
-      const buf=off.createBuffer(1,len,sr);const data=buf.getChannelData(0);
-      for(let k=0;k<len;k++)data[k]=Math.random()*2-1;
-      const src=off.createBufferSource();src.buffer=buf;
-      const f=off.createBiquadFilter();f.type='highpass';f.frequency.value=9000;
-      const g=off.createGain();g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);
-      src.connect(f);f.connect(g);g.connect(master);src.start(t);
-    }
+    if(a.kick[i])playOff(obuf.kick,t,1.0);
+    if(a.snare[i])playOff(obuf.snare,t,0.9);
+    if(a.hihat[i])playOff(obuf.hihat,t,0.5);
     if(LEAD&&p.leadRhy[i%16]){
       const semi=p.noteSeq[leadI%p.noteSeq.length]+12+a.trans[i];leadI++;
       const freq=semiHz(rootHz,semi);

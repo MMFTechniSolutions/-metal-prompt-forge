@@ -775,7 +775,8 @@ export default function App({ user, onLogout }) {
     const allExclude=isElite?[...exclGenre,...exclVocal,...exclProd,...exclInst,...exclCustom.split(",").map(s=>s.trim()).filter(Boolean)]:[];
     const extraInst=[...bassStyle,...bassTech,...bassTone,...bassTuning,...bassProd,...sax,...brass,...keys,...strings];
     const rFor=k=>blockRhythm[k]?`, ${blockRhythm[k]}`:"";
-    const styleTags=[...[...genres],...[...drums],...[...guitar].slice(0,3),...[...tuning].slice(0,1),...[...vocals].slice(0,3),...[...mood].slice(0,3),...[...prod].slice(0,2),...allOrganic.slice(0,4),...[...globalRhythm],`${bpm} BPM`];
+    const tempoWord=bpm>=210?"blistering fast tempo":bpm>=170?"fast tempo":bpm>=120?"mid-tempo":bpm>=90?"slow groovy tempo":"slow doom tempo";
+    const styleTags=[...[...genres],`${bpm} BPM`,tempoWord,...[...drums],...[...guitar].slice(0,3),...[...tuning].slice(0,1),...[...vocals].slice(0,3),...[...mood].slice(0,3),...[...prod].slice(0,2),...allOrganic.slice(0,4),...[...globalRhythm]];
     const styleStr=styleTags.join(", ");
     const excStr=allExclude.join(", ");
     const blockMapClean={
@@ -807,7 +808,7 @@ export default function App({ user, onLogout }) {
       outro:`Outro → ${chaos>=7?"frenzy blast":"breakdown final"}${rFor("outro")}`,
     };
     const activeBlocks=[...structs];
-    const structStr=activeBlocks.map(b=>blockMapClean[b]||"").filter(Boolean).join("\n");
+    const structStr=[`[${bpm} BPM]`,...activeBlocks.map(b=>blockMapClean[b]||"").filter(Boolean)].join("\n");
     const structNotesTxt=activeBlocks.map(b=>blockMapNotes[b]||"").filter(Boolean).join("\n");
     const heavyD=heavy>=8?"extremely heavy and crushing":heavy>=5?"heavy and punishing":"moderately heavy";
     const grooveD=groove>=8?"deeply groovy":groove>=5?"mid-paced groovy":"straight aggressive";
@@ -1240,6 +1241,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <CopyBtn getText={()=>styleTxt}/>
               <div style={{color:"#ff9090",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{styleTxt}</div>
             </div>
+            <div style={{fontSize:"0.58rem",marginTop:"7px",textAlign:"right",fontWeight:700,color:styleTxt.length<=120?"#4caf50":styleTxt.length<=180?"#cc9900":"#ff5555"}}>{styleTxt.length} {L("car.","chars")} · {styleTxt.length<=120?L("idéal Suno ✓","ideal for Suno ✓"):styleTxt.length<=180?L("un peu long","a bit long"):L("trop long — Suno risque d'ignorer le tempo/détails","too long — Suno may drop tempo/details")}</div>
           </div>
           {/* STEP 2 */}
           {structTxt&&<div style={{...S.card,borderColor:"#00aa4433",background:"#030f03"}}>

@@ -177,7 +177,7 @@ const TAB_REQ = {genre:"free",drums:"free",vocals:"free",guitar:"forge",bass:"fo
 // ── STYLES ──
 const S = {
   wrap:    {background:DARK,color:"#e0e0e0",minHeight:"100vh"},
-  header:  {background:"linear-gradient(135deg,#1a0000 0%,#0a0a0a 60%)",borderBottom:"1px solid #ff2e2e33",padding:"14px 20px 10px",textAlign:"center",position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 40px #ff000022"},
+  header:  {background:"linear-gradient(135deg,#1a0000 0%,#0a0a0a 60%)",borderBottom:"1px solid #ff2e2e33",padding:"14px 20px 10px",textAlign:"center",position:"relative",boxShadow:"0 2px 40px #ff000022"},
   h1:      {fontSize:"1.6rem",letterSpacing:"6px",color:RED,textShadow:"0 0 30px #ff0000"},
   sub:     {fontSize:"0.55rem",color:"#444",letterSpacing:"4px",textTransform:"uppercase",marginTop:"2px"},
   navBtn:  (a,locked)=>({flex:"1",minWidth:"70px",padding:"10px 4px",fontSize:"0.55rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center",cursor:"pointer",border:"none",background:a?"#1a0000":"none",color:locked?"#2a2a2a":a?RED:"#555",borderBottom:a?`2px solid ${RED}`:"2px solid transparent",whiteSpace:"nowrap",transition:"all 0.2s"}),
@@ -811,7 +811,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
       )}
 
-      {/* HEADER */}
+      {/* HEADER + NAV (sticky) */}
+      <div style={{position:"sticky",top:0,zIndex:100}}>
       <div style={S.header}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"10px"}}>
           <div className="forge-title" style={S.h1}>⚰️ Metal Prompt Forge</div>
@@ -835,6 +836,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             {locked?"🔒 ":""}{t.tabs[tb.id]||tb.id}
           </button>;
         })}
+      </div>
       </div>
 
       {/* GENRE */}

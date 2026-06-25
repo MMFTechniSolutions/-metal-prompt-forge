@@ -344,20 +344,24 @@ async function renderAndDownload(p){
       [0,7].forEach((interval,fi)=>{
         const freq=semiHz(rootHz,semi+interval);
         const o1=off.createOscillator(),o2=off.createOscillator();
-        const d=off.createWaveShaper(),f=off.createBiquadFilter();
-        const lo=off.createBiquadFilter(),hi=off.createBiquadFilter();
+        const d=off.createWaveShaper();
+        const hp=off.createBiquadFilter(),body=off.createBiquadFilter(),scoop=off.createBiquadFilter(),pres=off.createBiquadFilter(),lp1=off.createBiquadFilter(),lp2=off.createBiquadFilter();
         const g=off.createGain();
         o1.type='sawtooth';o1.frequency.value=freq;
-        o2.type='square';o2.frequency.value=freq*1.004;
-        d.curve=makeCurve(p.dist/100);d.oversample='4x';
-        f.type='bandpass';f.frequency.value=1100;f.Q.value=.9;
-        lo.type='highpass';lo.frequency.value=80;
-        hi.type='lowpass';hi.frequency.value=5500;
-        const amp=fi===0?.38:.22;
+        o2.type='sawtooth';o2.frequency.value=freq*0.996;
+        d.curve=makeCurve(Math.min(1,p.dist/100*1.35));d.oversample='4x';
+        hp.type='highpass';hp.frequency.value=95;hp.Q.value=0.7;
+        body.type='peaking';body.frequency.value=230;body.Q.value=1;body.gain.value=4;
+        scoop.type='peaking';scoop.frequency.value=750;scoop.Q.value=1.1;scoop.gain.value=-5;
+        pres.type='peaking';pres.frequency.value=3100;pres.Q.value=1.2;pres.gain.value=5;
+        lp1.type='lowpass';lp1.frequency.value=5000;lp1.Q.value=0.7;
+        lp2.type='lowpass';lp2.frequency.value=5200;lp2.Q.value=0.7;
+        const amp=fi===0?.4:.24;
         g.gain.setValueAtTime(0,t);
-        g.gain.linearRampToValueAtTime(amp,t+.004);
-        g.gain.exponentialRampToValueAtTime(.001,t+stepDur*.88);
-        o1.connect(d);o2.connect(d);d.connect(f);f.connect(lo);lo.connect(hi);hi.connect(g);g.connect(master);
+        g.gain.linearRampToValueAtTime(amp,t+.003);
+        g.gain.exponentialRampToValueAtTime(amp*0.55,t+stepDur*.35);
+        g.gain.exponentialRampToValueAtTime(.001,t+stepDur*.82);
+        o1.connect(d);o2.connect(d);d.connect(hp);hp.connect(body);body.connect(scoop);scoop.connect(pres);pres.connect(lp1);lp1.connect(lp2);lp2.connect(g);g.connect(master);
         o1.start(t);o1.stop(t+stepDur+.05);
         o2.start(t);o2.stop(t+stepDur+.05);
       });
@@ -365,35 +369,42 @@ async function renderAndDownload(p){
     if(a.bass[i]){
       const bh=semiHz(bassHz,a.trans[i]);
       const o=off.createOscillator(),o2=off.createOscillator();
-      const f=off.createBiquadFilter(),d=off.createWaveShaper(),g=off.createGain();
-      o.type='triangle';o.frequency.value=bh;
-      o2.type='sawtooth';o2.frequency.value=bh*1.003;
-      d.curve=makeCurve(.25);f.type='lowpass';f.frequency.value=500;
-      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.48,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+stepDur*.9);
-      o.connect(d);o2.connect(d);d.connect(f);f.connect(g);g.connect(master);
+      const d=off.createWaveShaper(),lo=off.createBiquadFilter(),pres=off.createBiquadFilter(),hi=off.createBiquadFilter(),g=off.createGain();
+      o.type='sawtooth';o.frequency.value=bh;
+      o2.type='square';o2.frequency.value=bh*0.5;
+      d.curve=makeCurve(.55);d.oversample='2x';
+      lo.type='lowshelf';lo.frequency.value=120;lo.gain.value=5;
+      pres.type='peaking';pres.frequency.value=2200;pres.Q.value=1;pres.gain.value=6;
+      hi.type='lowpass';hi.frequency.value=4000;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.42,t+.006);g.gain.exponentialRampToValueAtTime(.001,t+stepDur*.85);
+      o.connect(d);o2.connect(d);d.connect(lo);lo.connect(pres);pres.connect(hi);hi.connect(g);g.connect(master);
       o.start(t);o.stop(t+stepDur+.05);o2.start(t);o2.stop(t+stepDur+.05);
     }
     if(a.kick[i]){
       const o=off.createOscillator(),g=off.createGain();
       const ck=off.createOscillator(),cg=off.createGain();
-      o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(38,t+.1);
-      g.gain.setValueAtTime(0.8,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);
-      ck.frequency.value=1200;cg.gain.setValueAtTime(.28,t);cg.gain.exponentialRampToValueAtTime(.001,t+.012);
-      o.connect(g);g.connect(master);ck.connect(cg);cg.connect(master);
-      o.start(t);o.stop(t+.35);ck.start(t);ck.stop(t+.02);
+      o.frequency.setValueAtTime(170,t);o.frequency.exponentialRampToValueAtTime(45,t+.05);
+      g.gain.setValueAtTime(0.9,t);g.gain.exponentialRampToValueAtTime(.001,t+.13);
+      ck.type='square';ck.frequency.value=3600;cg.gain.setValueAtTime(.5,t);cg.gain.exponentialRampToValueAtTime(.001,t+.01);
+      const nlen=Math.ceil(.02*sr);const nb=off.createBuffer(1,nlen,sr);const nd=nb.getChannelData(0);
+      for(let k=0;k<nlen;k++)nd[k]=(Math.random()*2-1)*(1-k/nlen);
+      const ns=off.createBufferSource();ns.buffer=nb;const nf=off.createBiquadFilter();nf.type='highpass';nf.frequency.value=2500;const ng=off.createGain();ng.gain.setValueAtTime(.3,t);ng.gain.exponentialRampToValueAtTime(.001,t+.015);
+      o.connect(g);g.connect(master);ck.connect(cg);cg.connect(master);ns.connect(nf);nf.connect(ng);ng.connect(master);
+      o.start(t);o.stop(t+.18);ck.start(t);ck.stop(t+.015);ns.start(t);
     }
     if(a.snare[i]){
-      const len=Math.ceil(.18*sr);
+      const len=Math.ceil(.16*sr);
       const buf=off.createBuffer(1,len,sr);const data=buf.getChannelData(0);
       for(let k=0;k<len;k++)data[k]=(Math.random()*2-1)*(1-k/len);
       const src=off.createBufferSource();src.buffer=buf;
-      const f=off.createBiquadFilter();f.type='bandpass';f.frequency.value=2500;f.Q.value=1.1;
+      const hpf=off.createBiquadFilter();hpf.type='highpass';hpf.frequency.value=400;
+      const f=off.createBiquadFilter();f.type='bandpass';f.frequency.value=3200;f.Q.value=0.8;
       const body=off.createOscillator(),bg=off.createGain();
-      body.frequency.setValueAtTime(200,t);body.frequency.exponentialRampToValueAtTime(90,t+.08);
-      bg.gain.setValueAtTime(.38,t);bg.gain.exponentialRampToValueAtTime(.001,t+.1);
-      const g=off.createGain();g.gain.setValueAtTime(.62,t);g.gain.exponentialRampToValueAtTime(.001,t+.18);
-      src.connect(f);f.connect(g);g.connect(master);body.connect(bg);bg.connect(master);
-      src.start(t);body.start(t);body.stop(t+.12);
+      body.frequency.setValueAtTime(220,t);body.frequency.exponentialRampToValueAtTime(110,t+.06);
+      bg.gain.setValueAtTime(.35,t);bg.gain.exponentialRampToValueAtTime(.001,t+.08);
+      const g=off.createGain();g.gain.setValueAtTime(.7,t);g.gain.exponentialRampToValueAtTime(.001,t+.15);
+      src.connect(hpf);hpf.connect(f);f.connect(g);g.connect(master);body.connect(bg);bg.connect(master);
+      src.start(t);body.start(t);body.stop(t+.1);
     }
     if(a.hihat[i]){
       const len=Math.ceil(.05*sr);

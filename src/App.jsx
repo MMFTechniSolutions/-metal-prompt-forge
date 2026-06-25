@@ -173,7 +173,7 @@ const TIERS = {
   forge: {id:"forge", label:"⚒️ FORGE",      price:"$4.99/mois",color:"#cc6600",badge:"FORGE",stripe:"https://buy.stripe.com/4gM28t9RecTdgb88IvfQI00",
     features:["✅ Prompts illimités","✅ Genre, Drums, Vocals, Guitar, Basse","✅ Structure & Rhythm Feel","✅ BPM & Mood","❌ Paroles par IA","❌ Mode Organic / Anti-AI","❌ Exclude Tags","❌ Historique"],featuresEn:["✅ Unlimited prompts","✅ Genre, Drums, Vocals, Guitar, Bass","✅ Structure & Rhythm Feel","✅ BPM & Mood","❌ AI lyrics","❌ Organic / Anti-AI Mode","❌ Exclude Tags","❌ History"]},
   pro:   {id:"pro",   label:"🔥 FORGE PRO",  price:"$8.99/mois",color:"#ff2e2e",badge:"PRO",  stripe:"https://buy.stripe.com/3cI14pfby4mH6Ay7ErfQI01",
-    features:["✅ Tout de FORGE +","✅ Paroles par IA illimitées","✅ Mode Organic / Anti-AI","✅ Historique 50 prompts","❌ Exclude Tags","❌ Presets","❌ Export PDF"],featuresEn:["✅ Everything in FORGE +","✅ Unlimited AI lyrics","✅ Organic / Anti-AI Mode","✅ History 50 prompts","❌ Exclude Tags","❌ Presets","❌ PDF export"]},
+    features:["✅ Tout de FORGE +","✅ Paroles par IA illimitées","✅ Mode Organic / Anti-AI","✅ Historique 50 prompts","❌ Exclude Tags","✅ Mon Sound (custom model)","❌ Export PDF"],featuresEn:["✅ Everything in FORGE +","✅ Unlimited AI lyrics","✅ Organic / Anti-AI Mode","✅ History 50 prompts","❌ Exclude Tags","✅ My Sound (custom model)","❌ PDF export"]},
   elite: {id:"elite", label:"💀 FORGE ELITE",price:"$14.99/mois",color:"#aa00ff",badge:"ELITE",stripe:"https://buy.stripe.com/00w3cx5AYaL5cYW9MzfQI02",
     features:["✅ Tout de FORGE PRO +","✅ Exclude Tags avancés","✅ Presets sauvegardables illimités","✅ Export PDF du prompt","✅ Accès prioritaire features","✅ Badge ELITE dans l'app","✅ Support prioritaire direct"],featuresEn:["✅ Everything in FORGE PRO +","✅ Advanced Exclude Tags","✅ Unlimited savable presets","✅ Prompt PDF export","✅ Priority access to features","✅ ELITE badge in the app","✅ Direct priority support"]},
 };
@@ -771,6 +771,21 @@ export default function App({ user, onLogout }) {
     if(p.guitar)setGuitar(p.guitar);
     if(p.tuning)setTuning(p.tuning);
   };
+  // ── MON SOUND (custom model perso, localStorage) ──
+  const [sounds,setSounds]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_sounds")||"[]")}catch{return[]}});
+  const persistSounds=arr=>{setSounds(arr);try{localStorage.setItem("mpf_sounds",JSON.stringify(arr))}catch{}};
+  const saveSound=()=>{
+    if(!canAccess("pro")){setShowPaywall(true);return;}
+    const name=window.prompt(uiLang==="fr"?"Nom de ton sound :":"Name your sound:");
+    if(!name||!name.trim())return;
+    const data={genres:[...genres],bpm,drums:[...drums],vocals:[...vocals],mood:[...mood],guitar:[...guitar],tuning:[...tuning]};
+    persistSounds([{name:name.trim(),data,id:Date.now()},...sounds].slice(0,30));
+  };
+  const loadSound=s=>{
+    const d=s.data||{};
+    setGenres(d.genres||[]);setBPM(d.bpm||180);setDrums(d.drums||[]);setVocals(d.vocals||[]);setMood(d.mood||[]);setGuitar(d.guitar||[]);setTuning(d.tuning||[]);
+  };
+  const delSound=id=>persistSounds(sounds.filter(x=>x.id!==id));
   const [styleTxt,setStyleTxt]=useState("");
   const [structTxt,setStructTxt]=useState("");
   const [structNotes,setStructNotes]=useState("");
@@ -999,6 +1014,21 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <button key={k} onClick={()=>applyPreset(k)} style={{background:lk?"#101010":"#1a0000",border:`1px solid ${lk?"#222":"#5a0000"}`,borderRadius:"8px",padding:"8px 13px",fontSize:"0.72rem",fontWeight:700,color:lk?"#444":"#ff9090",cursor:"pointer"}}>{lk?"🔒 ":"⚡ "}{p.label}</button>
             );})}
           </div>
+        </div>
+        <div style={S.card}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
+            <div style={{...S.ctitle,marginBottom:0}}>🧬 {L("Mon Sound","My Sound")}{!canAccess("pro")?" 🔒":""}</div>
+            <button onClick={saveSound} style={{background:"#1a0000",border:`1px solid ${RED}`,borderRadius:"6px",color:RED,fontSize:"0.6rem",fontWeight:800,padding:"5px 11px",cursor:"pointer",letterSpacing:"0.5px"}}>＋ {L("Sauver","Save")}</button>
+          </div>
+          <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"9px",lineHeight:1.5}}>{L("Sauve ton ADN sonore et recharge-le en un clic — la base de ton custom model Suno.","Save your sonic DNA and reload it in one click — the base for your Suno custom model.")}</div>
+          {sounds.length===0&&<div style={{fontSize:"0.62rem",color:"#444"}}>{L("Aucun sound sauvegardé.","No saved sound yet.")}</div>}
+          {sounds.map(s=>(
+            <div key={s.id} style={{display:"flex",alignItems:"center",gap:"8px",padding:"6px 0",borderBottom:"1px solid #1a1a1a"}}>
+              <button onClick={()=>loadSound(s)} style={{flex:1,textAlign:"left",background:"none",border:"none",color:"#ff9090",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",padding:0}}>⚡ {s.name}</button>
+              <span style={{fontSize:"0.55rem",color:"#555"}}>{s.data?.bpm} BPM</span>
+              <button onClick={()=>delSound(s.id)} style={{background:"none",border:"none",color:"#5a0000",fontSize:"0.72rem",cursor:"pointer"}}>🗑️</button>
+            </div>
+          ))}
         </div>
         <div style={S.card}>
           <div style={S.ctitle}>🤘 Genres</div>
@@ -1273,6 +1303,23 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             {L("🤘 Tu donnes des cliniques ? Écris-nous","🤘 You run clinics? Get in touch")}
           </a>
           <div style={{fontSize:"0.6rem",color:"#555",textAlign:"center",marginTop:"8px"}}>{L("Musiciens, profs, créateurs — proposez vos cliniques sur la plateforme.","Musicians, teachers, creators — offer your clinics on the platform.")}</div>
+        </div>
+
+        <div style={S.card}>
+          <div style={S.ctitle}>🧬 {L("Custom Model Studio","Custom Model Studio")}</div>
+          <div style={{fontSize:"0.74rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("Entraîne un modèle Suno sur TON sound. MetalPrompt produit le jeu d'entraînement cohérent — c'est la clé d'un bon custom model.","Train a Suno model on YOUR sound. MetalPrompt produces the consistent training set — the key to a good custom model.")}</div>
+          {[
+            L("Sauve ton profil dans « 🧬 Mon Sound » (onglet Genre) : tags, BPM, voix signature.","Save your profile in « 🧬 My Sound » (Genre tab): tags, BPM, signature vocals."),
+            L("Génère 6 à 8 tounes COHÉRENTES dans Suno avec ce même profil.","Generate 6-8 CONSISTENT tracks in Suno with that same profile."),
+            L("Dans Suno : menu du modèle → « Create Custom Model » → uploade tes 6+ tounes (que tu possèdes).","In Suno: model menu → « Create Custom Model » → upload your 6+ tracks (that you own)."),
+            L("Génère avec ton custom model + tes prompts MetalPrompt pour diriger chaque toune.","Generate with your custom model + your MetalPrompt prompts to steer each track."),
+          ].map((s,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<3?"1px solid #1a1a1a":"none"}}>
+              <div style={S.stepNum(RED)}>{i+1}</div>
+              <div style={{fontSize:"0.8rem",color:"#ccc",lineHeight:1.6,paddingTop:"3px"}}>{s}</div>
+            </div>
+          ))}
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("ℹ️ Custom Models : Suno Pro/Premier · ~2-5 min d'entraînement · jusqu'à 3 modèles · 6+ chansons que tu possèdes.","ℹ️ Custom Models: Suno Pro/Premier · ~2-5 min training · up to 3 models · 6+ songs you own.")}</div>
         </div>
         <div style={{height:80}}/>
       </div>}

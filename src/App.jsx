@@ -9,7 +9,7 @@ const CARD = "#141414";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitar",bass:"🎸 Bass",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Learn",riff:"🔜 Soon",history:"🕒 History"},
+    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",instrums:"🎸 Instruments",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Learn",riff:"🔜 Soon",history:"🕒 History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (max ~120 chars)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -21,7 +21,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitare",bass:"🎸 Basse",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Tuto",riff:"🔜 Bientôt",history:"🕒 Historique"},
+    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",instrums:"🎸 Instruments",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Tuto",riff:"🔜 Bientôt",history:"🕒 Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (max ~120 car.)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -55,7 +55,7 @@ const css = `
   ::-webkit-scrollbar { width:4px; }
   ::-webkit-scrollbar-track { background:#111; }
   ::-webkit-scrollbar-thumb { background:#ff2e2e44; border-radius:2px; }
-  .nav-scroll { scrollbar-width:none; overflow-x:auto; display:flex; }
+  .nav-scroll { scrollbar-width:none; overflow-x:auto; display:flex; flex-wrap:wrap; justify-content:center; }
   input[type=range] {
     width:100%; -webkit-appearance:none; height:4px; border-radius:2px; outline:none; cursor:pointer;
     background: linear-gradient(to right, #ff2e2e 0%, #ff2e2e var(--pct,80%), #222 var(--pct,80%));
@@ -180,7 +180,7 @@ const S = {
   header:  {background:"linear-gradient(135deg,#1a0000 0%,#0a0a0a 60%)",borderBottom:"1px solid #ff2e2e33",padding:"14px 20px 10px",textAlign:"center",position:"relative",boxShadow:"0 2px 40px #ff000022"},
   h1:      {fontSize:"1.6rem",letterSpacing:"6px",color:RED,textShadow:"0 0 30px #ff0000"},
   sub:     {fontSize:"0.55rem",color:"#444",letterSpacing:"4px",textTransform:"uppercase",marginTop:"2px"},
-  navBtn:  (a,locked)=>({flex:"0 0 auto",padding:"10px 13px",fontSize:"0.55rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center",cursor:"pointer",border:"none",background:a?"#1a0000":"none",color:locked?"#2a2a2a":a?RED:"#555",borderBottom:a?`2px solid ${RED}`:"2px solid transparent",whiteSpace:"nowrap",transition:"all 0.2s"}),
+  navBtn:  (a,locked)=>({flex:"0 0 auto",padding:"7px 9px",fontSize:"0.52rem",fontWeight:700,letterSpacing:"0.5px",textTransform:"uppercase",textAlign:"center",cursor:"pointer",border:"none",background:a?"#1a0000":"none",color:locked?"#2a2a2a":a?RED:"#555",borderBottom:a?`2px solid ${RED}`:"2px solid transparent",whiteSpace:"nowrap",transition:"all 0.2s"}),
   page:    {padding:"14px",maxWidth:"600px",margin:"0 auto"},
   card:    {background:CARD,border:"1px solid #1e1e1e",borderRadius:"10px",padding:"13px",marginBottom:"11px"},
   ctitle:  {fontSize:"0.58rem",textTransform:"uppercase",letterSpacing:"2px",color:RED,fontWeight:800,marginBottom:"10px"},
@@ -803,7 +803,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
   const TABS=[
     {id:"genre",req:"free"},{id:"drums",req:"free"},{id:"vocals",req:"free"},
-    {id:"guitar",req:"forge"},{id:"bass",req:"forge"},{id:"instru",req:"forge"},{id:"structure",req:"forge"},
+    {id:"instrums",req:"forge"},{id:"structure",req:"forge"},
     {id:"paroles",req:"pro"},{id:"organic",req:"pro"},{id:"exclude",req:"elite"},{id:"output",req:"free"},{id:"tuto",req:"free"},{id:"riff",req:"free"},
     ...(isPro?[{id:"history",req:"pro"}]:[]),
   ];
@@ -912,26 +912,23 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>}
 
       {/* GUITAR */}
-      {tab==="guitar"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email}/>:<div style={S.page}>
+      {tab==="instrums"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email}/>:<div style={S.page}>
+        {/* --- GUITARE --- */}
+        <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>🎸 GUITARE</div></div>
         <div style={S.card}><div style={S.ctitle}>🎸 Techniques guitare</div><Tags list={GUITAR} sel={guitar} toggle={tGuitar}/></div>
         <div style={S.card}><div style={S.ctitle}>🎛️ Accordage</div><Tags list={TUNING} sel={tuning} toggle={tTuning}/></div>
         <div style={S.card}><div style={S.ctitle}>🔊 Production guitare</div><Tags list={GPROD} sel={gprod} toggle={tGprod}/></div>
-        <div style={{height:80}}/>
-      </div>)}
 
-      {/* BASS */}
-      {tab==="bass"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email}/>:<div style={S.page}>
-        <div style={{...S.card,borderColor:"#ff2e2e22",background:"#110000"}}><div style={{...S.ctitle,color:RED}}>🎸 BASSE — Low-end brutal</div><div style={{fontSize:"0.7rem",color:"#666",lineHeight:1.8}}>Configure le son de basse qui va écraser les côtes de ton auditeur.</div></div>
+        {/* --- BASSE --- */}
+        <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center",marginTop:"18px"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>🎸 BASSE</div></div>
         <div style={S.card}><div style={S.ctitle}>🎸 Style de jeu</div><Tags list={BASS_STYLE} sel={bassStyle} toggle={tBassStyle}/></div>
         <div style={S.card}><div style={S.ctitle}>🤘 Techniques avancées</div><Tags list={BASS_TECH} sel={bassTech} toggle={tBassTech}/></div>
         <div style={S.card}><div style={S.ctitle}>🔊 Tone / Son</div><Tags list={BASS_TONE} sel={bassTone} toggle={tBassTone}/></div>
         <div style={S.card}><div style={S.ctitle}>🎛️ Accordage basse</div><Tags list={BASS_TUNING} sel={bassTuning} toggle={tBassTuning}/></div>
         <div style={S.card}><div style={S.ctitle}>⚡ Production basse</div><Tags list={BASS_PROD} sel={bassProd} toggle={tBassProd}/></div>
-        <div style={{height:80}}/>
-      </div>)}
 
-      {/* INSTRU */}
-      {tab==="instru"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email}/>:<div style={S.page}>
+        {/* --- INSTRU --- */}
+        <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center",marginTop:"18px"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>🎷 AUTRES INSTRUMENTS</div></div>
         <div style={S.card}><div style={S.ctitle}>🎷 Saxophone</div><Tags list={SAX} sel={sax} toggle={tSax}/></div>
         <div style={S.card}><div style={S.ctitle}>🎺 Cuivres</div><Tags list={BRASS} sel={brass} toggle={tBrass}/></div>
         <div style={S.card}><div style={S.ctitle}>🎹 Claviers & Synth</div><Tags list={KEYS} sel={keys} toggle={tKeys}/></div>

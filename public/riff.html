@@ -488,11 +488,13 @@ function triggerDownload(blob,filename){
 }
 
 // ── ELITE GATING (soft, via ?tier=) ──
+const IS_ELITE=(new URLSearchParams(location.search).get('tier')||'free')==='elite';
 (function(){
-  const tier=new URLSearchParams(location.search).get('tier')||'free';
-  if(tier!=='elite'){
+  if(!IS_ELITE){
     const g=document.getElementById('eliteGroup');
     if(g){g.label='ELITE 🔒';[...g.children].forEach(o=>{o.disabled=true;o.textContent='🔒 '+o.textContent;});}
+    const tab=document.getElementById('tabOut');
+    if(tab)tab.textContent='🔒 Tablature ASCII — réservée aux comptes Elite';
   }
 })();
 
@@ -508,8 +510,13 @@ document.getElementById('btnGen').addEventListener('click',()=>{
     noteSeq:NOTE_SEQ[style],
   };
   renderViz(currentPat);
-  document.getElementById('tabOut').textContent=buildTab(currentPat);
-  document.getElementById('btnCopyTab').disabled=false;
+  if(IS_ELITE){
+    document.getElementById('tabOut').textContent=buildTab(currentPat);
+    document.getElementById('btnCopyTab').disabled=false;
+  }else{
+    document.getElementById('tabOut').textContent='🔒 Tablature ASCII — réservée aux comptes Elite';
+    document.getElementById('btnCopyTab').disabled=true;
+  }
   document.getElementById('btnPlay').disabled=false;
   document.getElementById('btnRender').disabled=false;
   document.getElementById('txtRec').textContent='Prêt à render';

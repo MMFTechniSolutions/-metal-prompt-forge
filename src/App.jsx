@@ -9,7 +9,7 @@ const CARD = "#141414";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitar",bass:"🎸 Bass",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",riff:"🎸 Riff 🔜",history:"🕒 History"},
+    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitar",bass:"🎸 Bass",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",riff:"🔜 Soon",history:"🕒 History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (max ~120 chars)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -21,7 +21,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitare",bass:"🎸 Basse",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",riff:"🎸 Riff 🔜",history:"🕒 Historique"},
+    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",guitar:"🎵 Guitare",bass:"🎸 Basse",instru:"🎷 Instru",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",riff:"🔜 Bientôt",history:"🕒 Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (max ~120 car.)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -1051,13 +1051,24 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* OUTPUT */}
       {tab==="riff"&&<div style={S.page}>
-        <div style={{...S.card,textAlign:"center",padding:"44px 24px",borderColor:"#ff2e2e44"}}>
-          <div style={{fontSize:"3rem",marginBottom:"10px"}}>🎸🥁</div>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.9rem",letterSpacing:"2px",color:"#fff"}}>RIFF / BEAT GENERATOR</div>
-          <div style={{display:"inline-block",margin:"14px 0",background:RED,color:"#fff",fontWeight:900,fontSize:"0.7rem",letterSpacing:"2px",padding:"6px 16px",borderRadius:"20px"}}>🔜 BIENTÔT DISPONIBLE</div>
-          <div style={{color:"#999",fontSize:"0.85rem",lineHeight:1.7,maxWidth:"430px",margin:"8px auto 0"}}>Génère des riffs et des beats metal directement dans MetalPrompt — boucles, patterns de batterie et export audio. On forge ça en ce moment. 🤘</div>
-          <div style={{color:"#555",fontSize:"0.72rem",marginTop:"18px"}}>Reste à l'affût — ça s'en vient fort.</div>
+        <div style={{...S.card,textAlign:"center",padding:"30px 22px",borderColor:"#ff2e2e44"}}>
+          <div style={{fontSize:"2.4rem",marginBottom:"6px"}}>🔜</div>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:"2px",color:"#fff"}}>BIENTÔT SUR METALPROMPT</div>
+          <div style={{color:"#999",fontSize:"0.8rem",marginTop:"6px"}}>Ce qui s'en vient — reste à l'affût 🤘</div>
         </div>
+        {[
+          {i:"🎸",t:"Riff / Beat Generator",d:"Génère riffs et patterns de batterie, avec export audio."},
+          {i:"🎬",t:"Idée express",d:"Aperçu vidéo + maquette musicale de ton prompt avant Suno."},
+          {i:"🎚️",t:"Mastering",d:"Masterise ta toune Suno directement dans MetalPrompt."},
+        ].map(f=>(
+          <div key={f.t} style={{...S.card,display:"flex",alignItems:"center",gap:"14px"}}>
+            <div style={{fontSize:"1.9rem"}}>{f.i}</div>
+            <div style={{flex:1}}>
+              <div style={{color:"#fff",fontWeight:800,fontSize:"0.9rem"}}>{f.t} <span style={{marginLeft:"6px",fontSize:"0.52rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"6px",padding:"2px 7px",letterSpacing:"0.5px",verticalAlign:"middle"}}>BIENTÔT</span></div>
+              <div style={{color:"#888",fontSize:"0.76rem",marginTop:"3px",lineHeight:1.5}}>{f.d}</div>
+            </div>
+          </div>
+        ))}
         <div style={{height:80}}/>
       </div>}
 

@@ -547,7 +547,7 @@ function LegalModal({doc,onClose,uiLang}){
 }
 
 export default function App({ user, onLogout }) {
-  const [view,setView]=useState("landing");
+  const [view,setView]=useState("app");
   const [tab,setTab]=useState("genre");
   const [showPaywall,setShowPaywall]=useState(false);
   const [legalDoc,setLegalDoc]=useState(null);
@@ -660,7 +660,7 @@ export default function App({ user, onLogout }) {
 
   // ── GENERATE ──
   const generate=()=>{
-    if(promptCount>=limit.prompts){setShowPaywall(true);return;}
+    if(promptCount>=limit.prompts){setView("landing");return;}
     const allOrganic=isPro?[...orgRec,...orgDrm,...orgVoc,...orgGtr]:[];
     const allExclude=isElite?[...exclGenre,...exclVocal,...exclProd,...exclInst,...exclCustom.split(",").map(s=>s.trim()).filter(Boolean)]:[];
     const extraInst=[...bassStyle,...bassTech,...bassTone,...bassTuning,...bassProd,...sax,...brass,...keys,...strings];

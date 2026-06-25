@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MetalPrompt – Mastering</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap');
+  :root{--void:#0a0a0b;--forge:#111114;--steel:#1c1c22;--ember:#c0392b;--ember-hot:#e74c3c;--iron:#3a3a44;--ash:#6b6b78;--bone:#c8c8d0;--white:#f0f0f4;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--void);color:var(--bone);font-family:'Inter',sans-serif;font-weight:300;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+  header{width:100%;padding:20px 32px 18px;display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--iron);}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.08em;color:var(--white);}
+  .logo span{color:var(--ember);}
+  .badge{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--ember);border:1px solid var(--ember);padding:2px 7px;letter-spacing:.1em;}
+  main{width:100%;max-width:820px;padding:28px 18px 60px;display:flex;flex-direction:column;gap:20px;}
+  h2{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.15em;color:var(--ash);text-transform:uppercase;margin-bottom:2px;}
+  .panel{background:var(--forge);border:1px solid var(--iron);padding:20px;display:flex;flex-direction:column;gap:16px;}
+  label{font-family:'Share Tech Mono',monospace;font-size:.66rem;color:var(--ash);letter-spacing:.09em;text-transform:uppercase;}
+  input[type=range]{width:100%;accent-color:var(--ember);cursor:pointer;}
+  input[type=file]{font-size:.78rem;color:var(--bone);}
+  .rv{font-family:'Share Tech Mono',monospace;font-size:.76rem;color:var(--ember-hot);}
+  .cg{display:flex;flex-direction:column;gap:6px;}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;}
+  .pst{font-family:'Share Tech Mono',monospace;font-size:.7rem;background:var(--steel);border:1px solid var(--iron);color:var(--bone);padding:8px 14px;cursor:pointer;}
+  .pst.on{border-color:var(--ember);color:var(--ember-hot);background:#1a0000;}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+  button{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.1em;padding:9px 20px;border:none;cursor:pointer;transition:.12s;}
+  .bp{background:var(--ember);color:var(--white);}
+  .bp:hover{background:var(--ember-hot);}
+  .bp:disabled{background:var(--iron);color:var(--ash);cursor:not-allowed;}
+  .prog-wrap{background:var(--steel);border:1px solid var(--iron);height:3px;width:100%;}
+  .prog-bar{height:100%;background:var(--ember);width:0%;transition:width .3s linear;}
+  .sb{font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--ash);}
+  .dl-info{font-size:.76rem;color:var(--ash);line-height:1.6;}
+  .dl-info strong{color:var(--bone);}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Metal<span>Prompt</span></div>
+  <div class="badge">MASTERING</div>
+</header>
+<main>
+
+  <div class="panel">
+    <h2>1 · Charge ta toune</h2>
+    <p class="dl-info">Glisse ton fichier <strong>.wav / .mp3</strong> (ta toune Suno). Le mastering se fait dans ton navigateur — rien n'est envoyé sur un serveur.</p>
+    <input type="file" id="file" accept="audio/*">
+    <div class="sb" id="fileInfo">Aucun fichier chargé.</div>
+  </div>
+
+  <div class="panel">
+    <h2>2 · Style de master</h2>
+    <div class="presets" id="presets">
+      <div class="pst on" data-p="metal">METAL LOUD</div>
+      <div class="pst" data-p="balanced">ÉQUILIBRÉ</div>
+      <div class="pst" data-p="warm">WARM / VINTAGE</div>
+      <div class="pst" data-p="brutal">BRUTAL (slam)</div>
+    </div>
+    <div class="cg">
+      <label>Volume final (loudness) — <span id="loudLbl" class="rv">-9</span> LUFS approx.</label>
+      <input type="range" id="loud" min="-16" max="-5" value="-9" oninput="document.getElementById('loudLbl').textContent=this.value">
+    </div>
+    <div class="cg">
+      <label>Présence / mordant — <span id="presLbl" class="rv">4</span> dB</label>
+      <input type="range" id="pres" min="0" max="8" value="4" step="0.5" oninput="document.getElementById('presLbl').textContent=this.value">
+    </div>
+    <div class="cg">
+      <label>Grave (low end) — <span id="lowLbl" class="rv">3</span> dB</label>
+      <input type="range" id="low" min="-3" max="8" value="3" step="0.5" oninput="document.getElementById('lowLbl').textContent=this.value">
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>3 · Masteriser</h2>
+    <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
+    <div class="btn-row"><button class="bp" id="btnMaster" disabled>⚒ Masteriser + Download</button></div>
+    <div class="sb" id="status">Charge une toune d'abord.</div>
+    <p class="dl-info">Chaîne : passe-haut → EQ (grave + présence + air) → compression « glue » → limiteur brickwall → loudness. Sort un <strong>.wav</strong> plus fort, plus serré, prêt à publier.</p>
+  </div>
+
+</main>
+<script>
+const PRESETS={
+  metal:    {low:3, pres:4,  air:3, comp:{thr:-20,ratio:3,att:.005,rel:.15}, loud:-9},
+  balanced: {low:1.5,pres:2.5,air:2, comp:{thr:-18,ratio:2.5,att:.01,rel:.2}, loud:-11},
+  warm:     {low:4, pres:1,  air:0.5,comp:{thr:-22,ratio:3.5,att:.02,rel:.25},loud:-12},
+  brutal:   {low:5, pres:6,  air:4, comp:{thr:-24,ratio:4,att:.003,rel:.1}, loud:-7},
+};
+let audioBuf=null, fileName='master';
+let curPreset='metal';
+
+document.querySelectorAll('.pst').forEach(el=>el.addEventListener('click',()=>{
+  document.querySelectorAll('.pst').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');curPreset=el.dataset.p;
+  const p=PRESETS[curPreset];
+  document.getElementById('low').value=p.low;document.getElementById('lowLbl').textContent=p.low;
+  document.getElementById('pres').value=p.pres;document.getElementById('presLbl').textContent=p.pres;
+  document.getElementById('loud').value=p.loud;document.getElementById('loudLbl').textContent=p.loud;
+}));
+
+document.getElementById('file').addEventListener('change',async(e)=>{
+  const f=e.target.files[0];if(!f)return;
+  fileName=(f.name||'master').replace(/\.[^.]+$/,'');
+  document.getElementById('fileInfo').textContent='Décodage…';
+  try{
+    const ab=await f.arrayBuffer();
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    audioBuf=await ctx.decodeAudioData(ab);
+    ctx.close();
+    const dur=audioBuf.duration.toFixed(1);
+    document.getElementById('fileInfo').textContent='✓ '+f.name+' · '+dur+'s · '+audioBuf.numberOfChannels+'ch · '+audioBuf.sampleRate+'Hz';
+    document.getElementById('btnMaster').disabled=false;
+    document.getElementById('status').textContent='Prêt à masteriser.';
+  }catch(err){document.getElementById('fileInfo').textContent='⚠ Fichier illisible : '+err.message;}
+});
+
+document.getElementById('btnMaster').addEventListener('click',async()=>{
+  if(!audioBuf)return;
+  const btn=document.getElementById('btnMaster');btn.disabled=true;
+  document.getElementById('status').textContent='Mastering en cours…';
+  const prog=document.getElementById('progBar');
+  const startT=Date.now();const est=audioBuf.duration*400;
+  const ticker=setInterval(()=>{prog.style.width=Math.min(90,(Date.now()-startT)/est*100)+'%';},150);
+
+  const low=parseFloat(document.getElementById('low').value);
+  const pres=parseFloat(document.getElementById('pres').value);
+  const loud=parseFloat(document.getElementById('loud').value);
+  const p=PRESETS[curPreset];
+
+  const ch=audioBuf.numberOfChannels, sr=audioBuf.sampleRate, len=audioBuf.length;
+  const off=new OfflineAudioContext(ch, len, sr);
+  const src=off.createBufferSource();src.buffer=audioBuf;
+
+  // High-pass (enlève le boue sub)
+  const hp=off.createBiquadFilter();hp.type='highpass';hp.frequency.value=30;
+  // Low shelf (grave)
+  const ls=off.createBiquadFilter();ls.type='lowshelf';ls.frequency.value=90;ls.gain.value=low;
+  // Presence (mordant guitare/voix)
+  const pk=off.createBiquadFilter();pk.type='peaking';pk.frequency.value=3200;pk.Q.value=1;pk.gain.value=pres;
+  // Air
+  const hs=off.createBiquadFilter();hs.type='highshelf';hs.frequency.value=9000;hs.gain.value=p.air;
+  // Glue compression
+  const comp=off.createDynamicsCompressor();
+  comp.threshold.value=p.comp.thr;comp.knee.value=6;comp.ratio.value=p.comp.ratio;comp.attack.value=p.comp.att;comp.release.value=p.comp.rel;
+  // Makeup gain (vers la cible loudness : plus la cible est haute, plus on pousse)
+  const makeup=off.createGain();makeup.gain.value=Math.pow(10,((loud+14)/20)); // approx
+  // Limiteur brickwall
+  const lim=off.createDynamicsCompressor();
+  lim.threshold.value=-1.0;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
+  const out=off.createGain();out.gain.value=0.96;
+
+  src.connect(hp);hp.connect(ls);ls.connect(pk);pk.connect(hs);hs.connect(comp);comp.connect(makeup);makeup.connect(lim);lim.connect(out);out.connect(off.destination);
+  src.start(0);
+
+  let rendered;
+  try{rendered=await off.startRendering();}
+  catch(err){clearInterval(ticker);document.getElementById('status').textContent='⚠ Erreur : '+err.message;btn.disabled=false;return;}
+  clearInterval(ticker);prog.style.width='100%';
+
+  const wav=encodeWAV(rendered);
+  triggerDownload(wav, fileName+'_master_'+curPreset+'.wav');
+  document.getElementById('status').textContent='✓ Mastered ('+curPreset+') — téléchargement lancé 🤘';
+  btn.disabled=false;
+  setTimeout(()=>{prog.style.width='0%';},2000);
+});
+
+function encodeWAV(buf){
+  const nCh=buf.numberOfChannels,sr=buf.sampleRate,len=buf.length;
+  const ab=new ArrayBuffer(44+len*nCh*2);const v=new DataView(ab);
+  const ws=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+  ws(0,'RIFF');v.setUint32(4,36+len*nCh*2,true);ws(8,'WAVE');ws(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);
+  v.setUint16(22,nCh,true);v.setUint32(24,sr,true);v.setUint32(28,sr*nCh*2,true);v.setUint16(32,nCh*2,true);v.setUint16(34,16,true);ws(36,'data');v.setUint32(40,len*nCh*2,true);
+  let off=44;
+  for(let i=0;i<len;i++)for(let c=0;c<nCh;c++){const s=Math.max(-1,Math.min(1,buf.getChannelData(c)[i]));v.setInt16(off,s<0?s*0x8000:s*0x7FFF,true);off+=2;}
+  return new Blob([ab],{type:'audio/wav'});
+}
+function triggerDownload(blob,filename){
+  try{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);document.body.removeChild(a);},3000);}
+  catch(e){const r=new FileReader();r.onload=function(){const a=document.createElement('a');a.href=r.result;a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>document.body.removeChild(a),1000);};r.readAsDataURL(blob);}
+}
+</script>
+</body>
+</html>

@@ -9,7 +9,7 @@ const CARD = "#141414";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",instrums:"🎸 Instruments",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Learn",riff:"🎸 Riff",history:"🕒 History"},
+    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",instrums:"🎸 Instruments",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Learn",riff:"🎸 Riff",master:"🎚️ Master",history:"🕒 History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (max ~120 chars)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -21,7 +21,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",instrums:"🎸 Instruments",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Tuto",riff:"🎸 Riff",history:"🕒 Historique"},
+    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",instrums:"🎸 Instruments",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Tuto",riff:"🎸 Riff",master:"🎚️ Master",history:"🕒 Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (max ~120 car.)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -176,13 +176,15 @@ const TIERS = {
     features:["✅ Tout de FORGE +","✅ Paroles par IA illimitées","✅ Mode Organic / Anti-AI","✅ Historique 50 prompts","❌ Exclude Tags","✅ Mon Sound (custom model)","❌ Export PDF"],featuresEn:["✅ Everything in FORGE +","✅ Unlimited AI lyrics","✅ Organic / Anti-AI Mode","✅ History 50 prompts","❌ Exclude Tags","✅ My Sound (custom model)","❌ PDF export"]},
   elite: {id:"elite", label:"💀 FORGE ELITE",price:"$14.99/mois",color:"#aa00ff",badge:"ELITE",stripe:"https://buy.stripe.com/00w3cx5AYaL5cYW9MzfQI02",
     features:["✅ Tout de FORGE PRO +","✅ Exclude Tags avancés","✅ Presets sauvegardables illimités","✅ Export PDF du prompt","✅ Accès prioritaire features","✅ Badge ELITE dans l'app","✅ Support prioritaire direct"],featuresEn:["✅ Everything in FORGE PRO +","✅ Advanced Exclude Tags","✅ Unlimited savable presets","✅ Prompt PDF export","✅ Priority access to features","✅ ELITE badge in the app","✅ Direct priority support"]},
+  eliteplus: {id:"eliteplus", label:"🔱 ELITE PLUS",price:"$34.99/mois",color:"#ffcc00",badge:"ELITE+",stripe:"https://buy.stripe.com/YOUR_ELITEPLUS_MONTHLY",stripeYear:"https://buy.stripe.com/YOUR_ELITEPLUS_ANNUAL",
+    features:["✅ Tout de ELITE +","✅ 🎚️ Mastering (EQ + compression + limiteur)","✅ 🎬 Idée express (bientôt)","✅ Annuel 350$ (≈ 2 mois gratuits)","✅ Support VIP + accès anticipé"],featuresEn:["✅ Everything in ELITE +","✅ 🎚️ Mastering (EQ + compression + limiter)","✅ 🎬 Quick Idea (soon)","✅ Annual $350 (≈ 2 months free)","✅ VIP support + early access"]},
 };
 const payUrl = (base, email) =>
   base && !base.includes("YOUR_") && email
     ? `${base}?prefilled_email=${encodeURIComponent(email)}`
     : base;
-const TIER_RANK = {free:0,forge:1,pro:2,elite:3};
-const LIMITS = {free:{prompts:3,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity}};
+const TIER_RANK = {free:0,forge:1,pro:2,elite:3,eliteplus:4};
+const LIMITS = {free:{prompts:3,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity},eliteplus:{prompts:Infinity,lyrics:Infinity}};
 const TAB_REQ = {genre:"free",drums:"free",vocals:"free",guitar:"forge",bass:"forge",instru:"forge",structure:"forge",paroles:"pro",organic:"pro",exclude:"elite",output:"free",history:"pro"};
 
 // ── STYLES ──
@@ -961,7 +963,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   const TABS=[
     {id:"genre",req:"free"},{id:"drums",req:"free"},{id:"vocals",req:"free"},
     {id:"instrums",req:"forge"},{id:"structure",req:"forge"},
-    {id:"paroles",req:"pro"},{id:"organic",req:"pro"},{id:"exclude",req:"elite"},{id:"output",req:"free"},{id:"tuto",req:"free"},{id:"riff",req:"pro"},
+    {id:"paroles",req:"pro"},{id:"organic",req:"pro"},{id:"exclude",req:"elite"},{id:"output",req:"free"},{id:"tuto",req:"free"},{id:"riff",req:"pro"},{id:"master",req:"eliteplus"},
     ...(isPro?[{id:"history",req:"pro"}]:[]),
   ];
 
@@ -1246,7 +1248,22 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
         <div style={{...S.card,textAlign:"center"}}>
           <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>🔜 {L("Bientôt aussi","Also coming soon")}</div>
-          <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>🎬 {L("Idée express","Quick Idea")} · 🎚️ Mastering</div>
+          <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>🎬 {L("Idée express","Quick Idea")} · 🎚️ Mastering (Elite Plus)</div>
+        </div>
+        <div style={{height:80}}/>
+      </div>)}
+
+      {tab==="master"&&(!canAccess("eliteplus")?<LockedOverlay req="eliteplus" t={t} email={user?.email}/>:<div style={S.page}>
+        <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ffcc0044"}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>🎚️ MASTERING</div>
+          <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Charge ta toune Suno → EQ + compression + limiteur → WAV plus fort et serré, prêt à publier. 🤘","Load your Suno track → EQ + compression + limiter → louder, tighter WAV, ready to publish. 🤘")}</div>
+        </div>
+        <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
+          <iframe src="/master.html" title="Mastering" style={{width:"100%",height:"78vh",minHeight:"560px",border:"none",display:"block",background:DARK}}/>
+        </div>
+        <div style={{...S.card,textAlign:"center"}}>
+          <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>🔜 {L("Bientôt — Elite Plus","Soon — Elite Plus")}</div>
+          <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>🎬 {L("Idée express — aperçu vidéo + maquette (Lyra/Gemini)","Quick Idea — video preview + mockup (Lyra/Gemini)")}</div>
         </div>
         <div style={{height:80}}/>
       </div>)}

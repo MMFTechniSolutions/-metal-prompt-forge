@@ -110,9 +110,28 @@
           <option value="standard">Standard Rock</option>
           <option value="double_kick" selected>Double Kick</option>
           <option value="blast_beat">Blast Beat</option>
+          <option value="gravity">Gravity Blast</option>
+          <option value="thrash">Thrash Beat</option>
+          <option value="deathcore">Deathcore Groove</option>
+          <option value="dbeat">D-Beat</option>
+          <option value="groove">Groove Metal</option>
+          <option value="two_step">Two-Step</option>
+          <option value="bounce">Bounce (deathcore)</option>
+          <option value="slam">Slam</option>
+          <option value="mathcore">Mathcore</option>
+          <option value="doom">Doom</option>
+          <option value="skank">Skank / Grind</option>
+          <option value="bombblast">Bomb Blast</option>
+          <option value="halfgroove">Half-Groove</option>
+          <option value="tribal">Tribal Toms</option>
           <option value="half_time">Half-Time</option>
           <option value="breakdown">Breakdown</option>
         </select>
+      </div>
+      <div class="cg">
+        <label>Ou importe TON groove MIDI 🎹</label>
+        <input type="file" id="midiDrum" accept=".mid,.midi">
+        <div class="sb" id="midiStatus" style="font-size:.58rem;color:var(--ash);">Charge un .mid de ton pack — il reste sur ton appareil.</div>
       </div>
       <div class="cg">
         <label>Structure (mesures)</label>
@@ -186,6 +205,36 @@
 // Le client n'envoie que des paramètres et reçoit l'arrangement déjà calculé.
 
 let toneReady=false,synth=null,bassSynth=null,drumKit=null,leadSynth=null,leadFilter=null,padSynth=null;
+let importedDrum=null;
+// Parse un MIDI de batterie (les notes restent dans ton navigateur, jamais envoyées/stockées)
+function parseMidiToDrum(buf){
+  const d=new Uint8Array(buf);
+  if(d.length<14||String.fromCharCode(d[0],d[1],d[2],d[3])!=='MThd')return null;
+  const tpb=((d[12]<<8)|d[13])||96;
+  const KICK=new Set([35,36]),SN=new Set([37,38,40]),HH=new Set([42,44,46,60,61,62]);
+  const kick=Array(16).fill(0),snare=Array(16).fill(0),hihat=Array(16).fill(0);
+  const barTicks=tpb*4,stepTicks=tpb/4;
+  const u32=o=>((d[o]<<24)|(d[o+1]<<16)|(d[o+2]<<8)|d[o+3])>>>0;
+  let p=8+u32(4),any=false;
+  while(p+8<=d.length){
+    if(String.fromCharCode(d[p],d[p+1],d[p+2],d[p+3])!=='MTrk'){p++;continue;}
+    const len=u32(p+4);let i=p+8;const end=i+len;let status=0,tick=0;
+    const vlq=()=>{let v=0;while(i<end){const b=d[i++];v=(v<<7)|(b&0x7f);if(!(b&0x80))break;}return v;};
+    while(i<end){
+      tick+=vlq();let b=d[i];
+      if(b&0x80){status=b;i++;}
+      if(status===0xFF){i++;const l=vlq();i+=l;}
+      else if(status===0xF0||status===0xF7){const l=vlq();i+=l;}
+      else{const hi=status&0xF0;
+        if(hi===0x90){const note=d[i],vel=d[i+1];i+=2;if(vel>0&&tick<barTicks){const step=Math.round(tick/stepTicks)%16;if(KICK.has(note)){kick[step]=1;any=true;}else if(SN.has(note)){snare[step]=1;any=true;}else if(HH.has(note)){hihat[step]=1;any=true;}}}
+        else if(hi===0x80||hi===0xA0||hi===0xB0||hi===0xE0){i+=2;}
+        else if(hi===0xC0||hi===0xD0){i+=1;}
+        else{i++;}}
+    }
+    p=end;
+  }
+  return any?{kick,snare,hihat}:null;
+}
 let seqs=[],isPlaying=false,currentPat=null,animF=null,analyser=null;
 
 async function initTone(){
@@ -529,6 +578,16 @@ const IS_ELITE=(new URLSearchParams(location.search).get('tier')||'free')==='eli
 })();
 
 // ── EVENTS ──
+document.getElementById('midiDrum').addEventListener('change',async(e)=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const st=document.getElementById('midiStatus');st.textContent='Lecture…';
+  try{
+    const r=parseMidiToDrum(await f.arrayBuffer());
+    if(!r){importedDrum=null;st.textContent='⚠ MIDI illisible ou vide';return;}
+    importedDrum=r;
+    st.textContent='✓ '+f.name+' importé — clique ⚡ Générer';
+  }catch(err){importedDrum=null;st.textContent='⚠ '+(err.message||'erreur');}
+});
 document.getElementById('btnGen').addEventListener('click',async()=>{
   const tier=new URLSearchParams(location.search).get('tier')||'free';
   const body={
@@ -539,6 +598,7 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
     drums:document.getElementById('drums').value,
     structure:document.getElementById('structure').value,
     lead:document.getElementById('lead').value,
+    customDrum:importedDrum,
     tier,
   };
   const btn=document.getElementById('btnGen');btn.disabled=true;

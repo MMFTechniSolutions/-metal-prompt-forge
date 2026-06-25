@@ -38,6 +38,20 @@ const DRUM_PAT = {
   blast_beat: {kick:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],snare:[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],hihat:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},
   half_time:  {kick:[1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],hihat:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
   breakdown:  {kick:[1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1],hihat:[1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0]},
+  gravity:    {kick:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],snare:[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],hihat:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
+  thrash:     {kick:[1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],hihat:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},
+  deathcore:  {kick:[1,0,1,1,0,0,1,0,1,0,1,1,0,1,0,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1],hihat:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
+  dbeat:      {kick:[1,0,0,1,0,1,0,0,1,0,0,1,0,1,0,0],snare:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0],hihat:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
+  groove:     {kick:[1,0,0,1,0,1,0,0,1,0,0,1,0,1,0,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],hihat:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
+  two_step:   {kick:[1,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],hihat:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
+  bounce:     {kick:[1,0,0,1,0,0,1,1,0,0,1,0,0,1,1,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],hihat:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
+  slam:       {kick:[1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],hihat:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0]},
+  mathcore:   {kick:[1,0,1,0,0,1,0,1,1,0,0,1,0,1,0,0],snare:[0,0,1,0,1,0,0,1,0,1,0,0,1,0,1,0],hihat:[1,1,0,1,0,1,1,0,1,0,1,1,0,1,0,1]},
+  doom:       {kick:[1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],hihat:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0]},
+  skank:      {kick:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],snare:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0],hihat:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},
+  bombblast:  {kick:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],snare:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],hihat:[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]},
+  halfgroove: {kick:[1,0,0,1,0,0,0,0,1,0,1,0,0,0,0,0],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],hihat:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
+  tribal:     {kick:[1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1],snare:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0],hihat:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
 };
 // Phrases de 16 notes (question/réponse) → le riff se développe au lieu de tourner en rond
 const NOTE_SEQ = {
@@ -81,7 +95,7 @@ function buildArrangement(p){
   const st=STRUCTURES[p.structure]||STRUCTURES.loop;
   const out={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],L:0};
   st.bars.forEach(bar=>{
-    const dp=DRUM_PAT[bar.drum||p.drumKey]||p.drum;
+    const dp = p.custom ? p.drum : (DRUM_PAT[bar.drum||p.drumKey]||p.drum);
     const tr=bar.transpose||0;
     const n=bar.steps||16;
     for(let i=0;i<n;i++){
@@ -142,6 +156,9 @@ export default function handler(req, res){
   }
 
   const drumKey = DRUM_PAT[b.drums] ? b.drums : 'double_kick';
+  // groove importé par l'utilisateur (MIDI parsé côté client) — reste à l'utilisateur, jamais stocké
+  const cd = b.customDrum;
+  const customDrum = (cd && Array.isArray(cd.kick) && Array.isArray(cd.snare) && Array.isArray(cd.hihat)) ? { kick: cd.kick.slice(0, 16), snare: cd.snare.slice(0, 16), hihat: cd.hihat.slice(0, 16) } : null;
   const p = {
     style,
     bpm: Math.max(60, Math.min(280, parseInt(b.bpm) || 160)),
@@ -152,7 +169,8 @@ export default function handler(req, res){
     lead: b.lead || 'none',
     guit: TREMOLO.includes(style) ? [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] : STYLE_PAT[style],
     bass: BASS_PAT[style],
-    drum: DRUM_PAT[drumKey],
+    drum: customDrum || DRUM_PAT[drumKey],
+    custom: !!customDrum,
     noteSeq: NOTE_SEQ[style],
   };
 

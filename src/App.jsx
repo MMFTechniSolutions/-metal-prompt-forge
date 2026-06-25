@@ -862,14 +862,15 @@ export default function App({ user, onLogout, onRequestAuth }) {
     const tempoWord=bpm>=210?"blistering fast tempo":bpm>=170?"fast tempo":bpm>=120?"mid-tempo":bpm>=90?"slow groovy tempo":"slow doom tempo";
     const dedup=arr=>{const s=new Set();return arr.filter(x=>{const k=String(x).toLowerCase().trim();if(!x||s.has(k))return false;s.add(k);return true;});};
     const gArr=[...genres],dArr=[...drums],vArr=[...vocals],mArr=[...mood];
-    // ── les sliders d'intensité ajoutent de vrais tags de style (poussés aux extrêmes) ──
+    // ── sauce secrète : les sliders glissent des tags SUBTILS que Suno interprète, fondus dans le lot (max 2) ──
     const sliderTags=[];
-    if(heavy>=8)sliderTags.push("crushing heaviness");else if(heavy<=3)sliderTags.push("restrained heaviness");
-    if(groove>=7)sliderTags.push("deeply groovy");else if(groove<=3)sliderTags.push("straight aggressive");
-    if(chaos>=8)sliderTags.push("chaotic and dissonant");else if(chaos<=2)sliderTags.push("tight and precise");
-    if(melody>=7)sliderTags.push("melodic leads");else if(melody<=2)sliderTags.push("pure brutality");
-    const fullTags=dedup([...gArr,`${bpm} BPM`,tempoWord,...sliderTags,...dArr,...[...guitar].slice(0,3),...[...tuning].slice(0,1),...vArr.slice(0,3),...[...vrange].slice(0,2),...mArr.slice(0,3),...[...prod].slice(0,2),...allOrganic.slice(0,4),...[...globalRhythm]]);
-    const compactCore=dedup([...gArr.slice(0,2),`${bpm} BPM`,tempoWord,...sliderTags.slice(0,2),...dArr.slice(0,2),...[...guitar].slice(0,1),...vArr.slice(0,1),...mArr.slice(0,1)]);
+    if(heavy>=8)sliderTags.push("bone-crushing low end");else if(heavy<=3)sliderTags.push("open and breathable mix");
+    if(groove>=7)sliderTags.push("deep pocket groove");else if(groove<=3)sliderTags.push("relentless forward drive");
+    if(chaos>=8)sliderTags.push("unhinged dissonance");else if(chaos<=2)sliderTags.push("locked-in and surgical");
+    if(melody>=7)sliderTags.push("soaring melodic lead");else if(melody<=2)sliderTags.push("no-frills brutality");
+    const secret=sliderTags.slice(0,2); // discret : max 2 tags, noyés au milieu
+    const fullTags=dedup([...gArr,`${bpm} BPM`,tempoWord,...dArr,...[...guitar].slice(0,3),...[...tuning].slice(0,1),...vArr.slice(0,3),...[...vrange].slice(0,2),...mArr.slice(0,3),...secret,...[...prod].slice(0,2),...allOrganic.slice(0,4),...[...globalRhythm]]);
+    const compactCore=dedup([...gArr.slice(0,2),`${bpm} BPM`,tempoWord,...dArr.slice(0,2),...[...guitar].slice(0,1),...vArr.slice(0,1),...mArr.slice(0,1),...secret.slice(0,1)]);
     const overflow=fullTags.filter(x=>!compactCore.includes(x));
     const styleStr=fullTags.join(", ");
     const styleStrC=compactCore.join(", ");

@@ -110,6 +110,15 @@ const EXCL_GENRES = ["pop","jazz","classical","country","r&b","hip hop","electro
 const EXCL_VOCALS = ["clean vocals","autotune","pitch correction","electronic vocals","vocoder","falsetto","soft vocals","whisper vocals","pop vocals","processed vocals","digital vocal fx"];
 const EXCL_PROD   = ["polished production","crisp mix","over-produced","digital production","perfect timing","quantized drums","sterile mix","radio mix"];
 const EXCL_INSTRU = ["acoustic guitar","ukulele","bossa nova","flute","harp","banjo","mandolin","steel drum"];
+// ── PRESETS (config optimisée Suno par sous-genre) ──
+const PRESETS = {
+  deathcore:  {label:"Deathcore", req:"free",  bpm:180, genres:["deathcore"], drums:["blast beats","double bass drumming","machine-gun double bass"], vocals:["guttural death growls","pig squeals"], mood:["crushing and heavy","sinister and dark"]},
+  metalcore:  {label:"Metalcore", req:"free",  bpm:160, genres:["metalcore"], drums:["double bass drumming","half-time groove"], vocals:["metalcore screams","high-pitched screams"], mood:["intense and aggressive","melodic and atmospheric"]},
+  djent:      {label:"Djent",     req:"forge", bpm:140, genres:["djent"], drums:["polyrhythmic drums","syncopated rhythms"], vocals:["mid-range harsh vocals"], guitar:["djent-style syncopated riffs","palm muting"], tuning:["8-string guitar"], mood:["groovy and headbang-worthy","intense and aggressive"]},
+  thrash:     {label:"Thrash",    req:"forge", bpm:185, genres:["thrash metal"], drums:["d-beat","double bass drumming"], vocals:["raspy harsh vocals","high-pitched screams"], guitar:["tremolo picking","palm muting"], tuning:["standard E tuning"], mood:["intense and aggressive","raw and abrasive"]},
+  blackmetal: {label:"Black Metal",req:"elite", bpm:200, genres:["black metal"], drums:["blast beats","hyperblast beats"], vocals:["black metal shrieks","high-pitched screams"], guitar:["tremolo picking","open string riffs"], tuning:["standard E tuning"], mood:["sinister and dark","dark and menacing"]},
+  doom:       {label:"Doom",      req:"elite", bpm:70,  genres:["doom metal"], drums:["half-time groove","tom-heavy fills"], vocals:["tortured screams"], guitar:["palm muting","open string riffs"], tuning:["drop C tuning"], mood:["crushing and heavy","dark and menacing"]},
+};
 const THEMES = ["mort et décomposition","apocalypse","chaos intérieur","guerre et destruction","trahison","démons et obscurité","résistance et rébellion","nihilisme","vengeance","aliénation et solitude","horreur cosmique","violence et brutalité"];
 const LYRIC_ATMO = ["sombre et menaçant","poétique et métaphorique","direct et violent","philosophique","narratif comme une histoire","cri de rage"];
 const THEME_TR = {"mort et décomposition":"death and decay","apocalypse":"apocalypse","chaos intérieur":"inner chaos","guerre et destruction":"war and destruction","trahison":"betrayal","démons et obscurité":"demons and darkness","résistance et rébellion":"resistance and rebellion","nihilisme":"nihilism","vengeance":"vengeance","aliénation et solitude":"alienation and solitude","horreur cosmique":"cosmic horror","violence et brutalité":"violence and brutality"};
@@ -700,17 +709,18 @@ export default function App({ user, onLogout }) {
   const useSet=(init=[])=>{
     const [s,setS]=useState(new Set(init));
     const toggle=v=>setS(p=>{const n=new Set(p);n.has(v)?n.delete(v):n.add(v);return n;});
-    return [s,toggle];
+    const setAll=arr=>setS(new Set(arr));
+    return [s,toggle,setAll];
   };
 
-  const [genres,tGenre]=useSet(["deathcore","metalcore"]);
-  const [mood,tMood]=useSet(["crushing and heavy","groovy and headbang-worthy"]);
-  const [drums,tDrums]=useSet(["blast beats","double bass drumming"]);
+  const [genres,tGenre,setGenres]=useSet(["deathcore","metalcore"]);
+  const [mood,tMood,setMood]=useSet(["crushing and heavy","groovy and headbang-worthy"]);
+  const [drums,tDrums,setDrums]=useSet(["blast beats","double bass drumming"]);
   const [drumP,tDrumP]=useSet(["triggered drums"]);
-  const [vocals,tVocal]=useSet(["guttural death growls","pig squeals"]);
+  const [vocals,tVocal,setVocals]=useSet(["guttural death growls","pig squeals"]);
   const [vfx,tVfx]=useSet([]);
-  const [guitar,tGuitar]=useSet(["chugging riffs","palm muting"]);
-  const [tuning,tTuning]=useSet(["drop B tuning"]);
+  const [guitar,tGuitar,setGuitar]=useSet(["chugging riffs","palm muting"]);
+  const [tuning,tTuning,setTuning]=useSet(["drop B tuning"]);
   const [gprod,tGprod]=useSet(["heavy distortion","layered guitar tracks"]);
   const [bassStyle,tBassStyle]=useSet(["fingerstyle bass"]);
   const [bassTech,tBassTech]=useSet([]);
@@ -751,6 +761,16 @@ export default function App({ user, onLogout }) {
   const [melody,setMelody]=useState(3);
   const [bpm,setBpmVal]=useState(180);
   const setBPM=v=>setBpmVal(Math.max(60,Math.min(280,v)));
+  const applyPreset=key=>{
+    const p=PRESETS[key]; if(!p) return;
+    if(!canAccess(p.req)){setShowPaywall(true);return;}
+    setGenres(p.genres); setBPM(p.bpm);
+    if(p.drums)setDrums(p.drums);
+    if(p.vocals)setVocals(p.vocals);
+    if(p.mood)setMood(p.mood);
+    if(p.guitar)setGuitar(p.guitar);
+    if(p.tuning)setTuning(p.tuning);
+  };
   const [styleTxt,setStyleTxt]=useState("");
   const [structTxt,setStructTxt]=useState("");
   const [structNotes,setStructNotes]=useState("");
@@ -971,6 +991,15 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* GENRE */}
       {tab==="genre"&&<div style={S.page}>
+        <div style={S.card}>
+          <div style={S.ctitle}>⚡ {L("Presets rapides","Quick presets")}</div>
+          <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"9px",lineHeight:1.5}}>{L("Un clic = config optimisée pour Suno (genre, BPM, drums, voix…)","One click = Suno-optimized setup (genre, BPM, drums, vocals…)")}</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>
+            {Object.entries(PRESETS).map(([k,p])=>{const lk=!canAccess(p.req);return(
+              <button key={k} onClick={()=>applyPreset(k)} style={{background:lk?"#101010":"#1a0000",border:`1px solid ${lk?"#222":"#5a0000"}`,borderRadius:"8px",padding:"8px 13px",fontSize:"0.72rem",fontWeight:700,color:lk?"#444":"#ff9090",cursor:"pointer"}}>{lk?"🔒 ":"⚡ "}{p.label}</button>
+            );})}
+          </div>
+        </div>
         <div style={S.card}>
           <div style={S.ctitle}>🤘 Genres</div>
           <Tags list={GENRES_FREE} sel={genres} toggle={tGenre}/>

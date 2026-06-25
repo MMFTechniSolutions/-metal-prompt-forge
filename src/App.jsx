@@ -525,6 +525,38 @@ La marque « MetalPrompt », le design, les textes et le code sont protégés. R
 
 CONTACT
 mmftechnisolutions@gmail.com`,
+
+  about: `À PROPOS — MetalPrompt
+
+MetalPrompt, c'est plus qu'un prompteur. C'est LA plateforme du metalhead. 🤘
+
+NOTRE MISSION
+Aider les musiciens à progresser, ET ouvrir la création musicale à ceux qui ne jouent pas du tout.
+
+NOTRE MANIFESTE
+On était tannés du metal IA qui sonne en plastique. Ces tounes plates, sans âme, crachées à la chaîne pis oubliées aussi vite. De la musique jetable.
+
+Le metal, c'est pas ça. Le metal, ça frappe. Ça vit. Ça vient des tripes. Une vraie toune transporte une émotion, dit quelque chose — et te donne des frissons.
+
+Alors on a bâti MetalPrompt : pas une poubelle à chansons jetables, mais une forge. Tu prends ton idée brute, ton émotion, ton message — tu les martèles, et t'en sors du vrai metal, brutal, organique, humain.
+
+Que tu joues depuis 20 ans ou que t'aies jamais touché une guitare, peu importe. C'est un outil pour construire : du succès, de l'apprentissage, du plaisir. Pour les musiciens, jamais contre.
+
+Si t'as du metal dans la tête, on te donne le moyen de le sortir — et de le ressentir.
+
+NOS VALEURS
+• Pas une poubelle à chansons jetables — qualité et sens avant quantité.
+• La musique transporte une émotion — le but : que tu aies des frissons.
+• Un outil de construction — de succès, d'apprentissage, de plaisir.
+• Le son humain avant tout — organique, brut, vivant.
+• Partage et croissance — on grandit ensemble.
+• Pour les musiciens, jamais contre.
+• Accessible à tous — pro ou débutant total.
+• Honnête et direct.
+
+MetalPrompt — la plateforme du metalhead. 🤘
+
+Édité par MMF Techni-Solutions · mmftechnisolutions@gmail.com`,
 };
 
 function SiteFooter({onOpen,uiLang}){
@@ -533,6 +565,7 @@ function SiteFooter({onOpen,uiLang}){
   return (
     <div style={{borderTop:"1px solid #1a1a1a",padding:"18px 12px 40px",textAlign:"center",display:"flex",flexWrap:"wrap",gap:"4px",justifyContent:"center",alignItems:"center"}}>
       <span style={{fontSize:"0.58rem",color:"#444"}}>© {new Date().getFullYear()} MetalPrompt ·</span>
+      <button style={{...lk,color:RED,fontWeight:700}} onClick={()=>onOpen("about")}>{fr?"À propos":"About"}</button>
       <button style={lk} onClick={()=>onOpen("privacy")}>{fr?"Confidentialité":"Privacy"}</button>
       <button style={lk} onClick={()=>onOpen("terms")}>{fr?"Conditions d'utilisation":"Terms"}</button>
       <button style={lk} onClick={()=>onOpen("sales")}>{fr?"Conditions de vente":"Sales terms"}</button>
@@ -544,7 +577,7 @@ function SiteFooter({onOpen,uiLang}){
 function LegalModal({doc,onClose,uiLang}){
   if(!doc) return null;
   const fr=uiLang==="fr";
-  const titles={privacy:fr?"Politique de confidentialité":"Privacy Policy",terms:fr?"Conditions d'utilisation":"Terms of Use",sales:fr?"Conditions de vente":"Sales Terms",legal:fr?"Mentions légales":"Legal Notice"};
+  const titles={about:fr?"À propos":"About",privacy:fr?"Politique de confidentialité":"Privacy Policy",terms:fr?"Conditions d'utilisation":"Terms of Use",sales:fr?"Conditions de vente":"Sales Terms",legal:fr?"Mentions légales":"Legal Notice"};
   return (
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"#000000cc",zIndex:1100,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"30px 12px",overflowY:"auto"}}>
       <div onClick={e=>e.stopPropagation()} style={{background:"#0c0c0c",border:"1px solid #2a2a2a",borderRadius:"10px",maxWidth:"720px",width:"100%",padding:"24px"}}>

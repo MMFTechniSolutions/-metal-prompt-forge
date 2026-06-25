@@ -682,7 +682,8 @@ function UserChip({user,uiLang,tierBadge,tierColor,isElite,onLogout,onRequestAut
         <span style={{width:"6px",height:"6px",borderRadius:"50%",background:"#4caf50",boxShadow:"0 0 6px #4caf50"}}/>
         <span style={{fontSize:"0.5rem",color:"#666"}}>▾</span>
       </button>
-      {open&&(
+      {open&&(<>
+        <div onClick={()=>setOpen(false)} style={{position:"fixed",inset:0,zIndex:299}}/>
         <div style={{position:"absolute",right:0,top:"32px",background:"#0f0f0f",border:"1px solid #2a2a2a",borderRadius:"8px",padding:"12px",minWidth:"180px",zIndex:300,boxShadow:"0 8px 28px #000c",textAlign:"left"}}>
           <div style={{display:"flex",justifyContent:"center",marginBottom:"8px"}}><img src={avatar} alt="" style={{width:"52px",height:"52px",borderRadius:"50%",border:`2px solid ${tierColor||RED}`}}/></div>
           <div style={{fontSize:"0.5rem",color:"#4caf50",letterSpacing:"1px",textTransform:"uppercase",marginBottom:"3px",textAlign:"center"}}>● {fr?"Connecté":"Signed in"}</div>
@@ -693,7 +694,7 @@ function UserChip({user,uiLang,tierBadge,tierColor,isElite,onLogout,onRequestAut
           </div>
           <button onClick={onLogout} style={{width:"100%",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"5px",color:"#ff7070",fontSize:"0.6rem",fontWeight:700,padding:"7px",cursor:"pointer",letterSpacing:"0.5px"}}>{fr?"Déconnexion":"Log out"}</button>
         </div>
-      )}
+      </>)}
     </div>
   );
 }

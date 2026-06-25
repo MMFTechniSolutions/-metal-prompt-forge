@@ -322,7 +322,7 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
         <button onClick={onEnter} className="pulse" style={{padding:"16px 36px",background:RED,border:"none",borderRadius:"8px",color:"#000",fontSize:"1rem",fontWeight:900,letterSpacing:"3px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 6px 30px #ff000077"}}>
           🤘 {uiLang==="fr"?"LANCER L'APP":"LAUNCH APP"}
         </button>
-        <div style={{fontSize:"0.6rem",color:"#444",marginTop:"10px"}}>{uiLang==="fr"?"Gratuit · 1 prompt offert · Aucune carte requise":"Free · 1 prompt included · No card required"}</div>
+        <div style={{fontSize:"0.6rem",color:"#444",marginTop:"10px"}}>{uiLang==="fr"?"Gratuit · 3 prompts offerts · Aucune carte requise":"Free · 3 prompts included · No card required"}</div>
       </div>
 
       <div style={{padding:"36px 20px",maxWidth:"560px",margin:"0 auto"}}>
@@ -350,7 +350,7 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
           <div style={{background:CARD,border:"1px solid #222",borderRadius:"10px",padding:"16px"}}>
             <div style={{fontSize:"0.6rem",color:"#555",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"6px"}}>GRATUIT</div>
             <div style={{fontSize:"1.4rem",fontWeight:900,color:"#fff",marginBottom:"10px"}}>$0</div>
-            {["1 prompt d'essai","Accès basique genre & drums","❌ Paroles IA","❌ Organic mode","❌ Exclude Tags"].map((f,i)=><div key={f} style={{fontSize:"0.68rem",color:i<2?"#bbb":"#333",padding:"3px 0"}}>{f}</div>)}
+            {["3 prompts d'essai","Accès basique genre & drums","❌ Paroles IA","❌ Organic mode","❌ Exclude Tags"].map((f,i)=><div key={f} style={{fontSize:"0.68rem",color:i<2?"#bbb":"#333",padding:"3px 0"}}>{f}</div>)}
             <button onClick={onEnter} style={{width:"100%",marginTop:"12px",padding:"9px",background:"#1a1a1a",border:"1px solid #333",borderRadius:"6px",color:"#777",fontSize:"0.72rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>ESSAYER</button>
           </div>
           {["forge","pro","elite"].map(id=>{

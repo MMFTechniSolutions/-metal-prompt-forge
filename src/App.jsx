@@ -672,18 +672,20 @@ function UserChip({user,uiLang,tierBadge,tierColor,isElite,onLogout,onRequestAut
   const fr=uiLang==="fr";
   if(!user) return <button onClick={onRequestAuth} style={{background:RED,border:"none",borderRadius:"6px",color:"#000",fontSize:"0.55rem",fontWeight:800,padding:"5px 11px",cursor:"pointer",letterSpacing:"0.5px"}}>🤘 {fr?"Se connecter":"Sign in"}</button>;
   const email=user.email||"";
-  const initial=(email[0]||"M").toUpperCase();
+  const avIdx=(Array.from(email).reduce((a,c)=>a+c.charCodeAt(0),0)%6)+1;
+  const avatar="/avatars/av"+avIdx+".png";
   return (
     <div style={{position:"relative"}}>
       <button onClick={()=>setOpen(o=>!o)} style={{display:"flex",alignItems:"center",gap:"6px",background:"#1a1a1a",border:"1px solid #2a2a2a",borderRadius:"20px",padding:"3px 8px 3px 3px",cursor:"pointer"}}>
-        <span style={{width:"20px",height:"20px",borderRadius:"50%",background:tierColor||RED,color:isElite?"#fff":"#000",fontSize:"0.6rem",fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}}>{initial}</span>
+        <img src={avatar} alt="" style={{width:"22px",height:"22px",borderRadius:"50%",border:`1.5px solid ${tierColor||RED}`,objectFit:"cover"}}/>
         <span style={{fontSize:"0.55rem",color:"#bbb",maxWidth:"90px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{email.split("@")[0]}</span>
         <span style={{width:"6px",height:"6px",borderRadius:"50%",background:"#4caf50",boxShadow:"0 0 6px #4caf50"}}/>
         <span style={{fontSize:"0.5rem",color:"#666"}}>▾</span>
       </button>
       {open&&(
         <div style={{position:"absolute",right:0,top:"32px",background:"#0f0f0f",border:"1px solid #2a2a2a",borderRadius:"8px",padding:"12px",minWidth:"180px",zIndex:300,boxShadow:"0 8px 28px #000c",textAlign:"left"}}>
-          <div style={{fontSize:"0.5rem",color:"#4caf50",letterSpacing:"1px",textTransform:"uppercase",marginBottom:"3px"}}>● {fr?"Connecté":"Signed in"}</div>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:"8px"}}><img src={avatar} alt="" style={{width:"52px",height:"52px",borderRadius:"50%",border:`2px solid ${tierColor||RED}`}}/></div>
+          <div style={{fontSize:"0.5rem",color:"#4caf50",letterSpacing:"1px",textTransform:"uppercase",marginBottom:"3px",textAlign:"center"}}>● {fr?"Connecté":"Signed in"}</div>
           <div style={{fontSize:"0.62rem",color:"#ddd",wordBreak:"break-all",marginBottom:"10px"}}>{email}</div>
           <div style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"10px"}}>
             <span style={{fontSize:"0.5rem",color:"#666",textTransform:"uppercase",letterSpacing:"1px"}}>{fr?"Plan":"Plan"}</span>

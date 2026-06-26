@@ -1328,33 +1328,31 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
           </div>
           <div style={{fontSize:"0.57rem",color:"#333",marginBottom:"10px"}}>{L("Feel → s'ajoute dans la balise : ","Feel → added inside the tag: ")}<span style={{color:"#aaffaa",fontFamily:"monospace"}}>[Breakdown, half-time feel]</span></div>
-          {STRUCT_BLOCKS.map(b=>{
-            const hasR=!!blockRhythm[b.k];
-            return (
-              <div key={b.k} style={{...S.structBlock,flexDirection:"column",alignItems:"stretch",gap:"6px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
-                  <span style={{fontSize:"1rem"}}>{b.icon}</span>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:"0.78rem",fontWeight:600,color:structs.has(b.k)?"#e0e0e0":"#444"}}>{b.name}</div>
-                    <div style={{fontSize:"0.58rem",color:"#333"}}>{uiLang==="fr"?b.desc:(b.descEn||b.desc)}</div>
-                  </div>
-                  <button style={S.togBtn(structs.has(b.k))} onClick={()=>tStruct(b.k)}>{structs.has(b.k)?"✓":"+"}</button>
-                </div>
-                {structs.has(b.k)&&(
-                  <div style={{display:"flex",alignItems:"center",gap:"5px",flexWrap:"wrap",paddingLeft:"28px"}}>
-                    <span style={{fontSize:"0.55rem",color:"#333",letterSpacing:"1px",textTransform:"uppercase",flexShrink:0}}>Feel:</span>
+          <div style={S.tags}>
+            {STRUCT_BLOCKS.map(b=>(
+              <span key={b.k} onClick={()=>tStruct(b.k)} title={uiLang==="fr"?b.desc:(b.descEn||b.desc)} style={S.tag(structs.has(b.k),false)}>{b.icon} {b.name}</span>
+            ))}
+          </div>
+          {STRUCT_BLOCKS.some(b=>structs.has(b.k))&&(
+            <div style={{marginTop:"14px",borderTop:"1px solid #1a1a1a",paddingTop:"12px"}}>
+              <div style={{fontSize:"0.55rem",color:"#666",letterSpacing:"1.5px",marginBottom:"9px",fontWeight:700}}>{L("🎚️ FEEL PAR SECTION (optionnel)","🎚️ FEEL PER SECTION (optional)")}</div>
+              {STRUCT_BLOCKS.filter(b=>structs.has(b.k)).map(b=>{
+                const hasR=!!blockRhythm[b.k];
+                return (
+                  <div key={b.k} style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap",marginBottom:"8px"}}>
+                    <span style={{fontSize:"0.64rem",color:"#bbb",minWidth:"96px",fontWeight:600}}>{b.icon} {b.name}</span>
                     {BLOCK_RHYTHMS.map(r=>(
                       <span key={r.v} onClick={()=>blockRhythm[b.k]===r.v?clearBlockR(b.k):setBlockR(b.k,r.v)}
-                        style={{background:blockRhythm[b.k]===r.v?"#002a00":"#111",border:`1px solid ${blockRhythm[b.k]===r.v?"#4caf50":"#222"}`,borderRadius:"4px",padding:"3px 7px",fontSize:"0.63rem",cursor:"pointer",color:blockRhythm[b.k]===r.v?"#4caf50":"#444",fontWeight:blockRhythm[b.k]===r.v?700:400}}>
+                        style={{background:blockRhythm[b.k]===r.v?"#002a00":"#111",border:`1px solid ${blockRhythm[b.k]===r.v?"#4caf50":"#222"}`,borderRadius:"4px",padding:"3px 7px",fontSize:"0.6rem",cursor:"pointer",color:blockRhythm[b.k]===r.v?"#4caf50":"#555",fontWeight:blockRhythm[b.k]===r.v?700:400}}>
                         {r.l}
                       </span>
                     ))}
                     {hasR&&<span onClick={()=>clearBlockR(b.k)} style={{fontSize:"0.55rem",color:"#ff5555",cursor:"pointer",padding:"3px 6px",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"4px"}}>✕</span>}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          )}
         </div>
         <div style={S.card}><div style={S.ctitle}>{L("🎚️ Production globale","🎚️ Global production")}</div><Tags list={PROD} sel={prod} toggle={tProd}/></div>
         <div style={{height:80}}/>
@@ -1362,8 +1360,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* PAROLES */}
       {tab==="paroles"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
-        <div style={S.card}><div style={S.ctitle}>{L("☠️ Thème principal","☠️ Main theme")}</div><Tags list={THEMES} sel={themes} toggle={tTheme} tr={uiLang==="en"?THEME_TR:null}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🌑 Atmosphère","🌑 Atmosphere")}</div><Tags list={LYRIC_ATMO} sel={latmo} toggle={tLatmo} tr={uiLang==="en"?ATMO_TR:null}/></div>
+        <Collapse title={L("☠️ Thème principal","☠️ Main theme")} n={THEMES.length} selCount={themes.size}><Tags list={THEMES} sel={themes} toggle={tTheme} tr={uiLang==="en"?THEME_TR:null}/></Collapse>
+        <Collapse title={L("🌑 Atmosphère","🌑 Atmosphere")} n={LYRIC_ATMO.length} selCount={latmo.size}><Tags list={LYRIC_ATMO} sel={latmo} toggle={tLatmo} tr={uiLang==="en"?ATMO_TR:null}/></Collapse>
         <div style={S.card}>
           <div style={S.ctitle}>{L("🎯 Angle créatif (optionnel)","🎯 Creative angle (optional)")}</div>
           <input value={lyricsAngle} onChange={e=>setLyricsAngle(e.target.value)} placeholder={L("ex: vue d'une machine qui s'éveille, métaphores de noyade...","e.g. a machine waking up, drowning metaphors...")}
@@ -1393,8 +1391,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             style={{width:"100%",background:"#111",border:"1px solid #5a1100",borderRadius:"6px",padding:"10px",color:"#ff7070",fontSize:"0.8rem"}}/>
           {lyricsHistory.length>0&&<button onClick={()=>setLyricsHistory([])} style={{marginTop:"7px",padding:"5px 12px",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"5px",color:"#ff5555",fontSize:"0.65rem",cursor:"pointer"}}>{L("🗑️ Effacer mémoire","🗑️ Clear memory")} ({lyricsHistory.length})</button>}
         </div>
-        <div style={S.card}><div style={S.ctitle}>{L("🌐 Langue des paroles","🌐 Lyrics language")}</div><Tags list={LYRIC_LANGS} sel={lang} toggle={tLang}/></div>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("📐 Blocs à générer","📐 Blocks to generate")}</div><SelAll all={LYRIC_BLOCKS.map(b=>b.v)} set={setLblocks} L={L}/></div><Tags list={LYRIC_BLOCKS} sel={lblocks} toggle={tLblock}/></div>
+        <Collapse title={L("🌐 Langue des paroles","🌐 Lyrics language")} n={LYRIC_LANGS.length} selCount={lang.size} defaultOpen={true}><Tags list={LYRIC_LANGS} sel={lang} toggle={tLang}/></Collapse>
+        <Collapse title={L("📐 Blocs à générer","📐 Blocks to generate")} n={LYRIC_BLOCKS.length} selCount={lblocks.size}><div style={{marginBottom:"10px"}}><SelAll all={LYRIC_BLOCKS.map(b=>b.v)} set={setLblocks} L={L}/></div><Tags list={LYRIC_BLOCKS} sel={lblocks} toggle={tLblock}/></Collapse>
         <button style={S.genBtn} onClick={generateLyrics} disabled={lyricsLoading}>{lyricsLoading?"⚒️ "+t.generating:L("⚒️ GÉNÉRER LES PAROLES","⚒️ GENERATE LYRICS")}</button>
         {lyricsLoading&&<div style={{textAlign:"center",padding:"20px"}}><div style={{fontSize:"1.8rem",animation:"spin 1s linear infinite",display:"inline-block"}}>⚒️</div><div style={{color:"#444",fontSize:"0.7rem",letterSpacing:"2px",marginTop:"8px"}}>{L("CLAUDE COMPOSE...","CLAUDE IS COMPOSING...")}</div></div>}
         {lyricsErr&&<div style={{color:"#ff5555",fontSize:"0.8rem",padding:"10px",background:"#1a0000",borderRadius:"8px",marginBottom:"10px"}}>{lyricsErr}</div>}

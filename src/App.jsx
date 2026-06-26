@@ -805,7 +805,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [orgDrm,tOrgDrm]=useSet([]);
   const [orgVoc,tOrgVoc]=useSet([]);
   const [orgGtr,tOrgGtr]=useSet([]);
-  const [structs,tStruct]=useSet(["intro","verse","chorus","breakdown","outro"]);
+  const [structs,tStruct,setStructs]=useSet(["intro","verse","chorus","breakdown","outro"]);
   const [themes,tTheme]=useSet(["mort et décomposition"]);
   const [latmo,tLatmo]=useSet(["sombre et menaçant"]);
   const [lblocks,tLblock]=useSet(["verse","chorus","breakdown"]);
@@ -1144,7 +1144,13 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{fontSize:"0.58rem",color:"#333",marginTop:"4px",lineHeight:1.6}}>{L("→ Ces tags vont dans Style of Music · Suno les comprend vraiment","→ These tags go in Style of Music · Suno really understands them")}</div>
         </div>
         <div style={S.card}>
-          <div style={S.ctitle}>{L("📐 Blocs & Feeling par section","📐 Blocks & per-section feel")}</div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"8px",flexWrap:"wrap",marginBottom:"6px"}}>
+            <div style={{...S.ctitle,marginBottom:0}}>{L("📐 Blocs & Feeling par section","📐 Blocks & per-section feel")}</div>
+            <div style={{display:"flex",gap:"6px"}}>
+              <button onClick={()=>setStructs(STRUCT_BLOCKS.map(b=>b.k))} style={{background:"#0a1f00",border:"1px solid #2a5a2a",borderRadius:"5px",padding:"4px 11px",fontSize:"0.62rem",fontWeight:700,color:"#7fdd7f",cursor:"pointer"}}>{L("✓ Tout","✓ All")}</button>
+              <button onClick={()=>setStructs([])} style={{background:"#1a0000",border:"1px solid #4a1010",borderRadius:"5px",padding:"4px 11px",fontSize:"0.62rem",fontWeight:700,color:"#cc6666",cursor:"pointer"}}>{L("✕ Vider","✕ Clear")}</button>
+            </div>
+          </div>
           <div style={{fontSize:"0.57rem",color:"#333",marginBottom:"10px"}}>{L("Feel → s'ajoute dans la balise : ","Feel → added inside the tag: ")}<span style={{color:"#aaffaa",fontFamily:"monospace"}}>[Breakdown, half-time feel]</span></div>
           {STRUCT_BLOCKS.map(b=>{
             const hasR=!!blockRhythm[b.k];

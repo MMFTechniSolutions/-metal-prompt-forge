@@ -821,6 +821,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
 
   const [genres,tGenre,setGenres]=useSet(["deathcore","metalcore"]);
   const [genreFilter,setGenreFilter]=useState("");
+  const [openFam,setOpenFam]=useState({});
   const [mood,tMood,setMood]=useSet(["crushing and heavy","groovy and headbang-worthy"]);
   const [drums,tDrums,setDrums]=useSet(["blast beats","double bass drumming"]);
   const [drumP,tDrumP,setDrumP]=useSet(["triggered drums"]);
@@ -1091,11 +1092,17 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {GENRE_FAMILIES.map(fam=>{
             const list=fam.genres.map(x=>x.g);
             const f=genreFilter.trim().toLowerCase();
-            if(f && !list.some(g=>g.toLowerCase().includes(f))) return null;
+            const hasMatch=!f||list.some(g=>g.toLowerCase().includes(f));
+            if(f && !hasMatch) return null;
             const locked=fam.genres.filter(x=>!canAccess(x.req)).map(x=>x.g);
-            return (<div key={fam.name}>
-              <div style={{marginTop:"10px",fontSize:"0.55rem",color:"#888",letterSpacing:"1.5px",marginBottom:"6px",fontWeight:700}}>{fam.icon} {fam.name.toUpperCase()}</div>
-              <Tags list={list} sel={genres} toggle={tGenre} lockedItems={locked} newItems={GENRES_NEW} filter={genreFilter}/>
+            const selCount=list.filter(g=>genres.has(g)).length;
+            const open=f?true:!!openFam[fam.name];
+            return (<div key={fam.name} style={{borderTop:"1px solid #1a1a1a"}}>
+              <div onClick={()=>!f&&setOpenFam(p=>({...p,[fam.name]:!open}))} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:f?"default":"pointer",userSelect:"none",padding:"10px 2px"}}>
+                <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{fam.icon} {fam.name.toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
+                <span style={{color:"#777",fontSize:"0.75rem"}}>{open?"▾":"▸"}</span>
+              </div>
+              {open&&<div style={{marginBottom:"8px"}}><Tags list={list} sel={genres} toggle={tGenre} lockedItems={locked} newItems={GENRES_NEW} filter={genreFilter}/></div>}
             </div>);
           })}
           {genreFilter.trim() && !GENRE_FAMILIES.some(fam=>fam.genres.some(x=>x.g.toLowerCase().includes(genreFilter.trim().toLowerCase()))) && <div style={{fontSize:"0.7rem",color:"#666",padding:"10px 0"}}>{L("Aucun genre trouvé.","No genre found.")}</div>}

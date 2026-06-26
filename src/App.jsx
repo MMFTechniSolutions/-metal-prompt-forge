@@ -72,10 +72,7 @@ const css = `
 `;
 
 // ── DATA ──
-const GENRES_FREE  = ["deathcore","metalcore","death metal","groove metal"];
-const GENRES_FORGE = ["djent","melodic deathcore","thrash metal","nu-metal","melodic metalcore","post-hardcore","modern metalcore","alternative metal"];
-const GENRES_PRO   = ["mathcore","beatdown hardcore","technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","electronicore","arena metalcore","synth metalcore","atmospheric metalcore"];
-const GENRES_ELITE = ["slam metal","black metal","sludge metal","post-metal","doom metal","progressive metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","ambient metalcore","pop metalcore","progressive post-hardcore","modern alternative metal"];
+// Genres : listes par tier remplacées par GENRE_FAMILIES (par époque). GENRES_NEW conservé pour les badges.
 const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal","hard rock","heavy metal","proto-metal","blues rock","traditional heavy metal","nwobhm","speed metal","power metal","glam metal","punk rock","hardcore punk","crossover thrash","d-beat","powerviolence"];
 // Genres groupés par ÉPOQUE (arbre généalogique du metal) — styles seulement, tier conservé
 const GENRE_FAMILIES = [
@@ -108,7 +105,7 @@ const GENRE_FAMILIES = [
 ];
 
 const MOOD     = ["crushing and heavy","sinister and dark","chaotic and frantic","groovy and headbang-worthy","melodic and atmospheric","dissonant","intense and aggressive","dark and menacing","epic","raw and abrasive"];
-const DRUMS    = ["blast beats","double bass drumming","half-time groove","polyrhythmic drums","breakbeat percussion","d-beat","syncopated rhythms","machine-gun double bass","gravity blast beats","hyperblast beats","skank beat","tom-heavy fills","china cymbal accents","groovy mid-tempo drums","tribal toms","stomp breakdown drums"];
+// Drums (style) : remplacé par DRUM_ERAS (par époque).
 const DRUM_PROD= ["triggered drums","live drum sound","massive snare","clicky kick drum","trashy cymbals","programmed drums","natural room drums","reverb-heavy drums","punchy compressed drums","organic acoustic kit","raw garage drums","tight modern production","huge ambient drums","lo-fi drum sound"];
 const DRUM_ERAS = [
   {name:"Années 60-70 (Racines)", icon:"🩸", d:[
@@ -129,10 +126,7 @@ const DRUM_ERAS = [
 ];
 const DRUM_NEW = ["thrash beat","galloping drums","two-step beat","deathcore groove","bounce groove","djent groove","math metal drums","modern hybrid blast","straight rock beat","four-on-the-floor","bluesy shuffle","swing groove","big room toms"];
 
-const VOCALS_FREE  = ["guttural death growls","pig squeals","high-pitched screams","metalcore screams","raspy harsh vocals"];
-const VOCALS_FORGE = ["mid-range harsh vocals","clean melodic chorus vocals","gang shouts","tortured screams","raspy mid screams","layered harsh vocals"];
-const VOCALS_PRO   = ["whispered spoken word","demonic inhale vocals","falsetto screams","whisper-to-scream dynamics","guttural gurgles","fry screams"];
-const VOCALS_ELITE = ["throat singing","black metal shrieks","operatic vocals","goblin vocals","spoken word narration","choir vocals","tunnel-throat gutturals"];
+// Vocals : listes par tier remplacées par VOCAL_ERAS (par époque). VOCAL_NEW conservé pour les badges.
 // Voix par ÉPOQUE (bibliothèque enrichie · tier conservé) — mélange les ères pour des hybrides uniques
 const VOCAL_ERAS = [
   {name:"Années 60-70 (Racines)", icon:"🩸", vox:[
@@ -163,7 +157,7 @@ const VOCAL_NEW = ["clean powerful vocals","melodic clean singing","heavy metal 
 
 const VFX    = ["vocal reverb","vocal distortion","pitch-shifted vocals","dual vocal tracking","megaphone effect","layered vocal harmonies","telephone EQ vocals","reverb tail vocals","doubled screams","gated vocal fx"];
 const VOCAL_RANGE = ["piccolo highs","tenor","baritone","bass vocals","falsetto","soprano","alto","mezzo-soprano","countertenor","false chord highs","fry screams","mid-range screams","low gutturals","subharmonic lows","tunnel-throat lows"];
-const GUITAR = ["chugging riffs","palm muting","pinch harmonics","tremolo picking","sweep picking solos","djent-style syncopated riffs","open string riffs","legato runs","tapping","whammy bar dives"];
+// Guitar (techniques) : remplacé par GUITAR_ERAS (par époque).
 const GUITAR_ERAS = [
   {name:"Années 60-70 (Racines)", icon:"🩸", d:[
     {v:"bluesy bends",req:"free"},{v:"pentatonic riffs",req:"free"},{v:"fuzz riffs",req:"free"},{v:"wah-wah leads",req:"forge"},{v:"vintage overdrive licks",req:"forge"},
@@ -326,7 +320,6 @@ const S = {
   page:    {padding:"14px",maxWidth:"600px",margin:"0 auto"},
   card:    {background:CARD,border:"1px solid #1e1e1e",borderRadius:"10px",padding:"13px",marginBottom:"11px"},
   ctitle:  {fontSize:"0.58rem",textTransform:"uppercase",letterSpacing:"2px",color:RED,fontWeight:800,marginBottom:"10px"},
-  rowTitle:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"8px",flexWrap:"wrap",marginBottom:"10px"},
   tags:    {display:"flex",flexWrap:"wrap",gap:"7px"},
   tag:     (on,locked)=>({background:on?"#2a0000":locked?"#0f0f0f":"#181818",border:on?`1.5px solid ${RED}`:locked?"1.5px solid #1a1a1a":"1.5px solid #222",borderRadius:"20px",padding:"5px 12px",fontSize:"0.72rem",cursor:locked?"default":"pointer",color:on?"#ff7070":locked?"#2a2a2a":"#888",fontWeight:on?700:400,boxShadow:on?"0 0 10px #ff000033":"none",transition:"all 0.15s",userSelect:"none"}),
   outBox:  {background:"#0d0d0d",border:"1px solid #222",borderRadius:"8px",padding:"12px",fontSize:"0.77rem",lineHeight:1.75,color:"#ccc",wordBreak:"break-word",position:"relative",marginBottom:"12px"},

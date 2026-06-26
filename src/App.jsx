@@ -76,30 +76,33 @@ const GENRES_FREE  = ["deathcore","metalcore","death metal","groove metal"];
 const GENRES_FORGE = ["djent","melodic deathcore","thrash metal","nu-metal","melodic metalcore","post-hardcore","modern metalcore","alternative metal"];
 const GENRES_PRO   = ["mathcore","beatdown hardcore","technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","electronicore","arena metalcore","synth metalcore","atmospheric metalcore"];
 const GENRES_ELITE = ["slam metal","black metal","sludge metal","post-metal","doom metal","progressive metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","ambient metalcore","pop metalcore","progressive post-hardcore","modern alternative metal"];
-const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal"];
-// Genres groupés par FAMILLE (le tier de chaque genre est conservé pour le verrouillage)
+const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal","hard rock","heavy metal","proto-metal","blues rock","traditional heavy metal","nwobhm","speed metal","power metal","glam metal"];
+// Genres groupés par ÉPOQUE (arbre généalogique du metal) — styles seulement, tier conservé
 const GENRE_FAMILIES = [
-  {name:"Extreme", icon:"💀", genres:[
-    {g:"death metal",req:"free"},{g:"deathcore",req:"free"},{g:"melodic deathcore",req:"forge"},
-    {g:"technical death metal",req:"pro"},{g:"blackened deathcore",req:"pro"},{g:"melodic death metal",req:"pro"},
-    {g:"black metal",req:"elite"},{g:"blackened death metal",req:"elite"},{g:"atmospheric black metal",req:"elite"},
-    {g:"grindcore",req:"elite"},{g:"slam metal",req:"elite"},{g:"funeral doom",req:"elite"},{g:"dissonant death metal",req:"elite"},
+  {name:"Années 60-70 (Racines)", icon:"🩸", genres:[
+    {g:"hard rock",req:"free"},{g:"heavy metal",req:"free"},{g:"proto-metal",req:"forge"},{g:"blues rock",req:"forge"},
   ]},
-  {name:"Core", icon:"🔩", genres:[
-    {g:"metalcore",req:"free"},
-    {g:"melodic metalcore",req:"forge"},{g:"post-hardcore",req:"forge"},{g:"modern metalcore",req:"forge"},
-    {g:"mathcore",req:"pro"},{g:"beatdown hardcore",req:"pro"},{g:"progressive metalcore",req:"pro"},{g:"electronicore",req:"pro"},{g:"arena metalcore",req:"pro"},{g:"synth metalcore",req:"pro"},{g:"atmospheric metalcore",req:"pro"},
-    {g:"ambient metalcore",req:"elite"},{g:"pop metalcore",req:"elite"},{g:"progressive post-hardcore",req:"elite"},
+  {name:"Années 80", icon:"🎸", genres:[
+    {g:"traditional heavy metal",req:"forge"},{g:"nwobhm",req:"forge"},{g:"speed metal",req:"forge"},{g:"power metal",req:"forge"},{g:"glam metal",req:"forge"},
+    {g:"thrash metal",req:"forge"},{g:"death metal",req:"free"},{g:"black metal",req:"elite"},{g:"doom metal",req:"elite"},{g:"grindcore",req:"elite"},
   ]},
-  {name:"Trad / Groove", icon:"🤘", genres:[
-    {g:"groove metal",req:"free"},
-    {g:"thrash metal",req:"forge"},{g:"nu-metal",req:"forge"},
-    {g:"sludge metal",req:"elite"},{g:"doom metal",req:"elite"},
+  {name:"Années 90", icon:"⛓️", genres:[
+    {g:"groove metal",req:"free"},{g:"metalcore",req:"free"},{g:"nu-metal",req:"forge"},{g:"alternative metal",req:"forge"},
+    {g:"melodic death metal",req:"pro"},{g:"technical death metal",req:"pro"},{g:"mathcore",req:"pro"},{g:"beatdown hardcore",req:"pro"},{g:"industrial metal",req:"pro"},{g:"symphonic metal",req:"pro"},
+    {g:"blackened death metal",req:"elite"},{g:"atmospheric black metal",req:"elite"},{g:"funeral doom",req:"elite"},{g:"sludge metal",req:"elite"},{g:"post-metal",req:"elite"},{g:"progressive metal",req:"elite"},
   ]},
-  {name:"Moderne / Prog", icon:"🌌", genres:[
-    {g:"djent",req:"forge"},{g:"alternative metal",req:"forge"},
-    {g:"symphonic metal",req:"pro"},{g:"industrial metal",req:"pro"},
-    {g:"progressive metal",req:"elite"},{g:"post-metal",req:"elite"},{g:"avant-garde metal",req:"elite"},{g:"modern alternative metal",req:"elite"},
+  {name:"Années 2000", icon:"🔥", genres:[
+    {g:"deathcore",req:"free"},{g:"melodic deathcore",req:"forge"},{g:"melodic metalcore",req:"forge"},{g:"post-hardcore",req:"forge"},
+    {g:"blackened deathcore",req:"pro"},
+    {g:"slam metal",req:"elite"},{g:"dissonant death metal",req:"elite"},{g:"avant-garde metal",req:"elite"},
+  ]},
+  {name:"Années 2010", icon:"⚙️", genres:[
+    {g:"djent",req:"forge"},{g:"modern metalcore",req:"forge"},
+    {g:"progressive metalcore",req:"pro"},{g:"electronicore",req:"pro"},{g:"arena metalcore",req:"pro"},{g:"atmospheric metalcore",req:"pro"},
+  ]},
+  {name:"Années 2020", icon:"🌌", genres:[
+    {g:"synth metalcore",req:"pro"},
+    {g:"ambient metalcore",req:"elite"},{g:"pop metalcore",req:"elite"},{g:"progressive post-hardcore",req:"elite"},{g:"modern alternative metal",req:"elite"},
   ]},
 ];
 

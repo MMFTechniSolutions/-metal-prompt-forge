@@ -173,17 +173,17 @@ const GUITAR_ERAS = [
   ]},
 ];
 const GUITAR_NEW = ["galloping riffs","melodic shred solos","groove riffs","drop-tuned riffs","breakdown chugs","dual guitar harmonies","melodic lead harmonies","polymetric riffs","tapped arpeggios","djent chug-stutter","ambient lead textures"];
-const TUNING = ["standard E tuning","drop D tuning","drop C tuning","drop B tuning","drop A tuning","7-string guitar","8-string guitar"];
-const GPROD  = ["heavy distortion","high gain amplifier","layered guitar tracks","tight low-end guitar tone","djent-style clean tone contrast","808 sub bass guitar","wall of sound guitar"];
-const BASS_STYLE = ["fingerstyle bass","picked bass","slap bass","fretless bass","muted bass","palm mute bass","aggressive bass","grinding bass"];
-const BASS_TECH  = ["bass tapping","bass harmonics","bass sweep","whammy bass","bass chord strums","two-hand tapping bass","bass tremolo","bass pinch harmonics"];
-const BASS_TONE  = ["distorted bass","overdriven bass","clean bass","sub bass","growling bass","scooped bass tone","mid-heavy bass","dirty bass","fuzz bass"];
-const BASS_TUNING= ["bass drop A","bass drop B","bass drop C","bass drop D","5-string bass","6-string bass","8-string bass","standard bass tuning"];
-const BASS_PROD  = ["bass heavy mix","bass-forward production","sub-bass boosted","tight punchy bass","808 bass","wall of low-end","chest-crushing bass"];
-const SAX    = ["aggressive saxophone","baritone saxophone","alto saxophone","tenor saxophone","saxophone screech and wail","saxophone solo"];
-const BRASS  = ["brass section","trumpet","trombone","french horn"];
-const KEYS   = ["keyboards","synthesizer","organ","piano","theremin"];
-const STRINGS= ["violin","cello","string orchestra"];
+const TUNING = ["standard E tuning","drop D tuning","drop C tuning","drop B tuning","drop A tuning","drop G tuning","7-string guitar","8-string guitar","9-string guitar","baritone guitar"];
+const GPROD  = ["heavy distortion","high gain amplifier","layered guitar tracks","quad-tracked guitars","tight low-end guitar tone","scooped mids tone","djent-style clean tone contrast","808 sub bass guitar","wall of sound guitar","reamped tone","doom fuzz wall","fizzy high-gain"];
+const BASS_STYLE = ["fingerstyle bass","picked bass","slap bass","fretless bass","muted bass","palm mute bass","aggressive bass","grinding bass","tapped bass","lead bass","chord bass"];
+const BASS_TECH  = ["bass tapping","bass harmonics","bass sweep","whammy bass","bass chord strums","two-hand tapping bass","bass tremolo","bass pinch harmonics","slap-pop bass","bass dive bombs"];
+const BASS_TONE  = ["distorted bass","overdriven bass","clean bass","sub bass","growling bass","scooped bass tone","mid-heavy bass","dirty bass","fuzz bass","clanky bass tone","Dingwall-style bass","grindy pick bass","distorted fingerstyle bass"];
+const BASS_TUNING= ["bass drop A","bass drop B","bass drop C","bass drop D","bass drop G","5-string bass","6-string bass","8-string bass","fanned-fret bass","standard bass tuning"];
+const BASS_PROD  = ["bass heavy mix","bass-forward production","sub-bass boosted","tight punchy bass","808 bass","wall of low-end","chest-crushing bass","click bass attack","bass distortion layer"];
+const SAX    = ["aggressive saxophone","baritone saxophone","alto saxophone","tenor saxophone","saxophone screech and wail","saxophone solo","skronking free-jazz sax","dissonant sax"];
+const BRASS  = ["brass section","trumpet","trombone","french horn","epic horn section","fanfare brass","dissonant brass stabs"];
+const KEYS   = ["keyboards","synthesizer","organ","piano","theremin","church organ","harpsichord","ambient synth pads","horror synth","mellotron","choir synth"];
+const STRINGS= ["violin","cello","string orchestra","staccato strings","epic film strings","cello section","dissonant string clusters","tremolo strings"];
 const PROD   = ["heavy production","lo-fi raw recording","modern metal production","wall of sound mixing","crisp high-end mix","analog warm tone"];
 const ORG_RECORD = ["live recording","analog tape","rehearsal recording","room ambience","studio bleed","natural room sound","lo-fi raw recording","imperfect takes"];
 const ORG_DRUMS  = ["live drums","natural drum room","overhead mics","snare bleed","kick bleed","human feel drumming","slightly loose tempo","natural drum dynamics","imperfect timing"];
@@ -345,6 +345,20 @@ function Tags({list,sel,toggle,lockedItems=[],newItems=[],tr=null,filter=""}) {
         const isNew=newItems.includes(val);
         return <span key={val} style={S.tag(sel.has(val),locked)} onClick={()=>!locked&&toggle(val)}>{locked?"🔒 ":""}{disp}{isNew&&<span style={{marginLeft:"5px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 4px",letterSpacing:"0.5px",verticalAlign:"middle"}}>NEW</span>}</span>;
       })}
+    </div>
+  );
+}
+
+// Carte repliable réutilisable (cohérent avec les accordéons par époque)
+function Collapse({title,n,selCount=0,defaultOpen=false,children}) {
+  const [open,setOpen]=useState(defaultOpen);
+  return (
+    <div style={S.card}>
+      <div onClick={()=>setOpen(o=>!o)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",userSelect:"none"}}>
+        <span style={{...S.ctitle,marginBottom:0}}>{title}{n!=null&&<span style={{color:"#555",marginLeft:"6px",fontWeight:400}}>({n})</span>}{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px",verticalAlign:"middle"}}>{selCount}</span>}</span>
+        <span style={{color:"#777",fontSize:"0.75rem"}}>{open?"▾":"▸"}</span>
+      </div>
+      {open&&<div style={{marginTop:"12px"}}>{children}</div>}
     </div>
   );
 }
@@ -1277,23 +1291,23 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>);
           })}
         </div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎛️ Accordage","🎛️ Tuning")}</div><Tags list={TUNING} sel={tuning} toggle={tTuning}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🔊 Production guitare","🔊 Guitar production")}</div><Tags list={GPROD} sel={gprod} toggle={tGprod}/></div>
+        <Collapse title={L("🎛️ Accordage","🎛️ Tuning")} n={TUNING.length} selCount={tuning.size}><Tags list={TUNING} sel={tuning} toggle={tTuning}/></Collapse>
+        <Collapse title={L("🔊 Production guitare","🔊 Guitar production")} n={GPROD.length} selCount={gprod.size}><Tags list={GPROD} sel={gprod} toggle={tGprod}/></Collapse>
 
         {/* --- BASSE --- */}
         <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center",marginTop:"18px"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("🎸 BASSE","🎸 BASS")}</div></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎸 Style de jeu","🎸 Playing style")}</div><Tags list={BASS_STYLE} sel={bassStyle} toggle={tBassStyle}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🤘 Techniques avancées","🤘 Advanced techniques")}</div><Tags list={BASS_TECH} sel={bassTech} toggle={tBassTech}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🔊 Tone / Son","🔊 Tone")}</div><Tags list={BASS_TONE} sel={bassTone} toggle={tBassTone}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎛️ Accordage basse","🎛️ Bass tuning")}</div><Tags list={BASS_TUNING} sel={bassTuning} toggle={tBassTuning}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("⚡ Production basse","⚡ Bass production")}</div><Tags list={BASS_PROD} sel={bassProd} toggle={tBassProd}/></div>
+        <Collapse title={L("🎸 Style de jeu","🎸 Playing style")} n={BASS_STYLE.length} selCount={bassStyle.size}><Tags list={BASS_STYLE} sel={bassStyle} toggle={tBassStyle}/></Collapse>
+        <Collapse title={L("🤘 Techniques avancées","🤘 Advanced techniques")} n={BASS_TECH.length} selCount={bassTech.size}><Tags list={BASS_TECH} sel={bassTech} toggle={tBassTech}/></Collapse>
+        <Collapse title={L("🔊 Tone / Son","🔊 Tone")} n={BASS_TONE.length} selCount={bassTone.size}><Tags list={BASS_TONE} sel={bassTone} toggle={tBassTone}/></Collapse>
+        <Collapse title={L("🎛️ Accordage basse","🎛️ Bass tuning")} n={BASS_TUNING.length} selCount={bassTuning.size}><Tags list={BASS_TUNING} sel={bassTuning} toggle={tBassTuning}/></Collapse>
+        <Collapse title={L("⚡ Production basse","⚡ Bass production")} n={BASS_PROD.length} selCount={bassProd.size}><Tags list={BASS_PROD} sel={bassProd} toggle={tBassProd}/></Collapse>
 
         {/* --- INSTRU --- */}
         <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center",marginTop:"18px"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("🎷 AUTRES INSTRUMENTS","🎷 OTHER INSTRUMENTS")}</div></div>
-        <div style={S.card}><div style={S.ctitle}>🎷 Saxophone</div><Tags list={SAX} sel={sax} toggle={tSax}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎺 Cuivres","🎺 Brass")}</div><Tags list={BRASS} sel={brass} toggle={tBrass}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎹 Claviers & Synth","🎹 Keys & Synth")}</div><Tags list={KEYS} sel={keys} toggle={tKeys}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎻 Cordes","🎻 Strings")}</div><Tags list={STRINGS} sel={strings} toggle={tStr}/></div>
+        <Collapse title="🎷 Saxophone" n={SAX.length} selCount={sax.size}><Tags list={SAX} sel={sax} toggle={tSax}/></Collapse>
+        <Collapse title={L("🎺 Cuivres","🎺 Brass")} n={BRASS.length} selCount={brass.size}><Tags list={BRASS} sel={brass} toggle={tBrass}/></Collapse>
+        <Collapse title={L("🎹 Claviers & Synth","🎹 Keys & Synth")} n={KEYS.length} selCount={keys.size}><Tags list={KEYS} sel={keys} toggle={tKeys}/></Collapse>
+        <Collapse title={L("🎻 Cordes","🎻 Strings")} n={STRINGS.length} selCount={strings.size}><Tags list={STRINGS} sel={strings} toggle={tStr}/></Collapse>
         <div style={{height:80}}/>
       </div>)}
 

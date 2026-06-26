@@ -71,6 +71,18 @@
       <label>Grave (low end) — <span id="lowLbl" class="rv">3</span> dB</label>
       <input type="range" id="low" min="-3" max="8" value="3" step="0.5" oninput="document.getElementById('lowLbl').textContent=this.value">
     </div>
+    <div class="cg">
+      <label>🤖 Cut de boue (anti-flou IA) — <span id="mudLbl" class="rv">2</span> dB</label>
+      <input type="range" id="mud" min="0" max="6" value="2" step="0.5" oninput="document.getElementById('mudLbl').textContent=this.value">
+    </div>
+    <div class="cg">
+      <label>🤖 Dureté / sibilance (tamer) — <span id="harshLbl" class="rv">1.5</span> dB</label>
+      <input type="range" id="harsh" min="0" max="6" value="1.5" step="0.5" oninput="document.getElementById('harshLbl').textContent=this.value">
+    </div>
+    <div class="cg">
+      <label>🔥 Chaleur / saturation analogique — <span id="satLbl" class="rv">2</span></label>
+      <input type="range" id="sat" min="0" max="5" value="2" step="0.5" oninput="document.getElementById('satLbl').textContent=this.value">
+    </div>
   </div>
 
   <div class="panel">
@@ -83,24 +95,28 @@
 
 </main>
 <script>
-// mud = atténuation boue 200-400Hz · harsh = tamer dureté 2.5-7kHz · sat = chaleur analogique (anti-froid IA)
-const PRESETS={
-  metal:    {low:3, pres:4,  air:3,  mud:2,  harsh:1.5, sat:2,   comp:{thr:-20,ratio:3,att:.005,rel:.15}, loud:-9},
-  balanced: {low:1.5,pres:2.5,air:2,  mud:1.5,harsh:1,   sat:1.2, comp:{thr:-18,ratio:2.5,att:.01,rel:.2}, loud:-11},
-  warm:     {low:4, pres:1,  air:0.5,mud:2.5,harsh:1,   sat:3,   comp:{thr:-22,ratio:3.5,att:.02,rel:.25},loud:-12},
-  brutal:   {low:5, pres:6,  air:4,  mud:1.5,harsh:2,   sat:2.5, comp:{thr:-24,ratio:4,att:.003,rel:.1}, loud:-7},
-  ia:       {low:2, pres:3,  air:2.5,mud:3,  harsh:3,   sat:2.5, comp:{thr:-20,ratio:3,att:.005,rel:.18},loud:-10},
+// Fallback générique ; la vraie calibration vient de /api/master (secret serveur).
+let PRESETS={
+  metal:    {low:2, pres:3,  air:2,  mud:1.5,harsh:1,  sat:1.5,comp:{thr:-20,ratio:3,att:.005,rel:.15}, loud:-9},
+  balanced: {low:1, pres:2,  air:1.5,mud:1,  harsh:1,  sat:1,  comp:{thr:-18,ratio:2.5,att:.01,rel:.2}, loud:-11},
+  warm:     {low:3, pres:1,  air:1,  mud:2,  harsh:1,  sat:2,  comp:{thr:-22,ratio:3,att:.02,rel:.25}, loud:-12},
+  brutal:   {low:3, pres:4,  air:2,  mud:1.5,harsh:1.5,sat:2,  comp:{thr:-24,ratio:4,att:.003,rel:.1}, loud:-7},
+  ia:       {low:2, pres:2,  air:2,  mud:2,  harsh:2,  sat:2,  comp:{thr:-20,ratio:3,att:.005,rel:.18},loud:-10},
 };
+let CHAIN={hpHz:30,mudHz:280,mudQ:1.2,presHz:3000,presQ:1,harshHz:5200,harshQ:2.2,airHz:10000,limThr:-1.0,outGain:0.96};
 let audioBuf=null, fileName='master';
 let curPreset='metal';
+// Charge la recette calibrée du serveur (sinon garde le fallback)
+fetch('/api/master').then(r=>r.json()).then(d=>{if(d&&d.presets){PRESETS=d.presets;if(d.chain)CHAIN=d.chain;applyPresetUI(curPreset);}}).catch(()=>{});
 
+function applyPresetUI(name){
+  const p=PRESETS[name];if(!p)return;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;const lbl=document.getElementById(id+'Lbl');if(lbl)lbl.textContent=v;};
+  set('low',p.low);set('pres',p.pres);set('loud',p.loud);set('mud',p.mud);set('harsh',p.harsh);set('sat',p.sat);
+}
 document.querySelectorAll('.pst').forEach(el=>el.addEventListener('click',()=>{
   document.querySelectorAll('.pst').forEach(x=>x.classList.remove('on'));
-  el.classList.add('on');curPreset=el.dataset.p;
-  const p=PRESETS[curPreset];
-  document.getElementById('low').value=p.low;document.getElementById('lowLbl').textContent=p.low;
-  document.getElementById('pres').value=p.pres;document.getElementById('presLbl').textContent=p.pres;
-  document.getElementById('loud').value=p.loud;document.getElementById('loudLbl').textContent=p.loud;
+  el.classList.add('on');curPreset=el.dataset.p;applyPresetUI(curPreset);
 }));
 
 document.getElementById('file').addEventListener('change',async(e)=>{
@@ -130,6 +146,9 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   const low=parseFloat(document.getElementById('low').value);
   const pres=parseFloat(document.getElementById('pres').value);
   const loud=parseFloat(document.getElementById('loud').value);
+  const mudV=parseFloat(document.getElementById('mud').value);
+  const harshV=parseFloat(document.getElementById('harsh').value);
+  const satV=parseFloat(document.getElementById('sat').value);
   const p=PRESETS[curPreset];
 
   const ch=audioBuf.numberOfChannels, sr=audioBuf.sampleRate, len=audioBuf.length;
@@ -137,19 +156,19 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   const src=off.createBufferSource();src.buffer=audioBuf;
 
   // High-pass (enlève le boue sub)
-  const hp=off.createBiquadFilter();hp.type='highpass';hp.frequency.value=30;
+  const hp=off.createBiquadFilter();hp.type='highpass';hp.frequency.value=CHAIN.hpHz;
   // Cut de boue 200-400Hz (effet "boîte" typique de l'IA)
-  const mud=off.createBiquadFilter();mud.type='peaking';mud.frequency.value=280;mud.Q.value=1.2;mud.gain.value=-p.mud;
+  const mud=off.createBiquadFilter();mud.type='peaking';mud.frequency.value=CHAIN.mudHz;mud.Q.value=CHAIN.mudQ;mud.gain.value=-mudV;
   // Low shelf (grave)
   const ls=off.createBiquadFilter();ls.type='lowshelf';ls.frequency.value=90;ls.gain.value=low;
   // Presence (mordant guitare/voix)
-  const pk=off.createBiquadFilter();pk.type='peaking';pk.frequency.value=3000;pk.Q.value=1;pk.gain.value=pres;
+  const pk=off.createBiquadFilter();pk.type='peaking';pk.frequency.value=CHAIN.presHz;pk.Q.value=CHAIN.presQ;pk.gain.value=pres;
   // Tamer de dureté/sibilance 5-7kHz (artefacts numériques de l'IA)
-  const harsh=off.createBiquadFilter();harsh.type='peaking';harsh.frequency.value=5200;harsh.Q.value=2.2;harsh.gain.value=-p.harsh;
+  const harsh=off.createBiquadFilter();harsh.type='peaking';harsh.frequency.value=CHAIN.harshHz;harsh.Q.value=CHAIN.harshQ;harsh.gain.value=-harshV;
   // Air
-  const hs=off.createBiquadFilter();hs.type='highshelf';hs.frequency.value=10000;hs.gain.value=p.air;
+  const hs=off.createBiquadFilter();hs.type='highshelf';hs.frequency.value=CHAIN.airHz;hs.gain.value=p.air;
   // Saturation analogique (chaleur + harmoniques, masque le froid numérique)
-  const sat=off.createWaveShaper();sat.curve=makeCurve(1+p.sat);sat.oversample='4x';
+  const sat=off.createWaveShaper();sat.curve=makeCurve(1+satV);sat.oversample='4x';
   // Glue compression
   const comp=off.createDynamicsCompressor();
   comp.threshold.value=p.comp.thr;comp.knee.value=6;comp.ratio.value=p.comp.ratio;comp.attack.value=p.comp.att;comp.release.value=p.comp.rel;
@@ -157,8 +176,8 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   const makeup=off.createGain();makeup.gain.value=Math.pow(10,((loud+14)/20)); // approx
   // Limiteur brickwall
   const lim=off.createDynamicsCompressor();
-  lim.threshold.value=-1.0;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
-  const out=off.createGain();out.gain.value=0.96;
+  lim.threshold.value=CHAIN.limThr;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
+  const out=off.createGain();out.gain.value=CHAIN.outGain;
 
   src.connect(hp);hp.connect(mud);mud.connect(ls);ls.connect(pk);pk.connect(harsh);harsh.connect(hs);hs.connect(sat);sat.connect(comp);comp.connect(makeup);makeup.connect(lim);lim.connect(out);out.connect(off.destination);
   src.start(0);

@@ -85,25 +85,25 @@ const GENRE_FAMILIES = [
   {name:"Années 80", icon:"🎸", genres:[
     {g:"traditional heavy metal",req:"forge"},{g:"nwobhm",req:"forge"},{g:"speed metal",req:"forge"},{g:"power metal",req:"forge"},{g:"glam metal",req:"forge"},
     {g:"thrash metal",req:"forge"},{g:"hardcore punk",req:"forge"},{g:"crossover thrash",req:"forge"},{g:"d-beat",req:"forge"},
-    {g:"death metal",req:"free"},{g:"black metal",req:"elite"},{g:"doom metal",req:"elite"},{g:"grindcore",req:"elite"},
+    {g:"death metal",req:"free"},{g:"black metal",req:"forge"},{g:"doom metal",req:"forge"},{g:"grindcore",req:"forge"},
   ]},
   {name:"Années 90", icon:"⛓️", genres:[
-    {g:"groove metal",req:"free"},{g:"metalcore",req:"free"},{g:"nu-metal",req:"forge"},{g:"alternative metal",req:"forge"},{g:"powerviolence",req:"elite"},
-    {g:"melodic death metal",req:"pro"},{g:"technical death metal",req:"pro"},{g:"mathcore",req:"pro"},{g:"beatdown hardcore",req:"pro"},{g:"industrial metal",req:"pro"},{g:"symphonic metal",req:"pro"},
-    {g:"blackened death metal",req:"elite"},{g:"atmospheric black metal",req:"elite"},{g:"funeral doom",req:"elite"},{g:"sludge metal",req:"elite"},{g:"post-metal",req:"elite"},{g:"progressive metal",req:"elite"},
+    {g:"groove metal",req:"free"},{g:"metalcore",req:"free"},{g:"nu-metal",req:"forge"},{g:"alternative metal",req:"forge"},{g:"powerviolence",req:"forge"},
+    {g:"melodic death metal",req:"forge"},{g:"technical death metal",req:"forge"},{g:"mathcore",req:"forge"},{g:"beatdown hardcore",req:"forge"},{g:"industrial metal",req:"forge"},{g:"symphonic metal",req:"forge"},
+    {g:"blackened death metal",req:"forge"},{g:"atmospheric black metal",req:"forge"},{g:"funeral doom",req:"forge"},{g:"sludge metal",req:"forge"},{g:"post-metal",req:"forge"},{g:"progressive metal",req:"forge"},
   ]},
   {name:"Années 2000", icon:"🔥", genres:[
     {g:"deathcore",req:"free"},{g:"melodic deathcore",req:"forge"},{g:"melodic metalcore",req:"forge"},{g:"post-hardcore",req:"forge"},
-    {g:"blackened deathcore",req:"pro"},
-    {g:"slam metal",req:"elite"},{g:"dissonant death metal",req:"elite"},{g:"avant-garde metal",req:"elite"},
+    {g:"blackened deathcore",req:"forge"},
+    {g:"slam metal",req:"forge"},{g:"dissonant death metal",req:"forge"},{g:"avant-garde metal",req:"forge"},
   ]},
   {name:"Années 2010", icon:"⚙️", genres:[
     {g:"djent",req:"forge"},{g:"modern metalcore",req:"forge"},
-    {g:"progressive metalcore",req:"pro"},{g:"electronicore",req:"pro"},{g:"arena metalcore",req:"pro"},{g:"atmospheric metalcore",req:"pro"},
+    {g:"progressive metalcore",req:"forge"},{g:"electronicore",req:"forge"},{g:"arena metalcore",req:"forge"},{g:"atmospheric metalcore",req:"forge"},
   ]},
   {name:"Années 2020", icon:"🌌", genres:[
-    {g:"synth metalcore",req:"pro"},
-    {g:"ambient metalcore",req:"elite"},{g:"pop metalcore",req:"elite"},{g:"progressive post-hardcore",req:"elite"},{g:"modern alternative metal",req:"elite"},
+    {g:"synth metalcore",req:"forge"},
+    {g:"ambient metalcore",req:"forge"},{g:"pop metalcore",req:"forge"},{g:"progressive post-hardcore",req:"forge"},{g:"modern alternative metal",req:"forge"},
   ]},
 ];
 
@@ -1142,7 +1142,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
         <div style={S.sub}>{t.sub}</div>
         <div style={{fontSize:"0.55rem",color:"#555",marginTop:"4px",display:"flex",justifyContent:"center",gap:"12px",alignItems:"center",flexWrap:"wrap"}}>
-          <span>{limit.prompts===Infinity?(uiLang==="fr"?"♾️ Illimité":"♾️ Unlimited"):<><b style={{color:Math.max(0,limit.prompts-promptCount)>0?"#4caf50":RED}}>{Math.max(0,limit.prompts-promptCount)}</b> {uiLang==="fr"?"essais gratuits":"free trials left"}</>} · <a href={payUrl(TIERS.pro.stripe,user?.email)} target="_blank" rel="noreferrer" style={{color:RED,textDecoration:"none",fontWeight:700}}>{t.plans}</a></span>
+          <span>{limit.prompts===Infinity?(uiLang==="fr"?"♾️ Illimité":"♾️ Unlimited"):<><b style={{color:Math.max(0,limit.prompts-promptCount)>0?"#4caf50":RED}}>{Math.max(0,limit.prompts-promptCount)}</b> {uiLang==="fr"?"essais gratuits":"free trials left"}</>} · <span onClick={()=>setShowPaywall(true)} style={{color:RED,textDecoration:"none",fontWeight:700,cursor:"pointer"}}>{t.plans}</span></span>
           <div style={{display:"flex",gap:"6px",alignItems:"center"}}>
             {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#1a0000":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"3px",color:uiLang===l?RED:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{l.toUpperCase()}</button>)}
             <UserChip user={user} uiLang={uiLang} tierBadge={tierBadge} tierColor={tierColor} isElite={isElite} onLogout={onLogout} onRequestAuth={onRequestAuth}/>

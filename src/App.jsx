@@ -1410,7 +1410,9 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <div style={{...S.outLbl,color:"#4caf50",marginBottom:0}}>{t.step2t}</div>
             </div>
             <div style={{fontSize:"0.63rem",color:"#688",marginBottom:"10px",lineHeight:1.6}}>{t.step2d}</div>
-            {lyricsTxt&&<div style={{fontSize:"0.62rem",color:"#4caf50",marginBottom:"8px",fontWeight:700}}>{L("✓ Tes paroles sont déjà placées sous chaque section — colle ce bloc tel quel.","✓ Your lyrics are already placed under each section — paste this block as is.")}</div>}
+            {lyricsTxt
+              ? <div style={{fontSize:"0.62rem",color:"#4caf50",marginBottom:"8px",fontWeight:700}}>{L("✓ Tes paroles sont déjà placées sous chaque section — colle ce bloc tel quel.","✓ Your lyrics are already placed under each section — paste this block as is.")}</div>
+              : <div style={{fontSize:"0.6rem",color:"#777",marginBottom:"8px",lineHeight:1.5}}>{L("💡 Écris tes paroles sous chaque tag de section, ou laisse Suno improviser. (Paroles par IA : onglet Lyrics, plan Pro)","💡 Write your lyrics under each section tag, or let Suno improvise. (AI lyrics: Lyrics tab, Pro plan)")}</div>}
             <div style={{background:"#0a0a0a",border:"1px solid #1a4a1a",borderRadius:"6px",padding:"10px",position:"relative"}}>
               <CopyBtn getText={()=>step2Shown}/>
               <pre style={{whiteSpace:"pre-wrap",fontFamily:"monospace",fontSize:"0.82rem",lineHeight:2,color:"#aaffaa",paddingRight:"50px"}}>{step2Shown}</pre>

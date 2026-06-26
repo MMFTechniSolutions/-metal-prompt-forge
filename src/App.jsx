@@ -73,10 +73,10 @@ const css = `
 
 // ── DATA ──
 const GENRES_FREE  = ["deathcore","metalcore","death metal","groove metal"];
-const GENRES_FORGE = ["djent","melodic deathcore","thrash metal","nu-metal"];
-const GENRES_PRO   = ["mathcore","beatdown hardcore","technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal"];
-const GENRES_ELITE = ["slam metal","black metal","sludge metal","post-metal","doom metal","progressive metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal"];
-const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal"];
+const GENRES_FORGE = ["djent","melodic deathcore","thrash metal","nu-metal","melodic metalcore","post-hardcore","modern metalcore","alternative metal"];
+const GENRES_PRO   = ["mathcore","beatdown hardcore","technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","electronicore","arena metalcore","synth metalcore","atmospheric metalcore"];
+const GENRES_ELITE = ["slam metal","black metal","sludge metal","post-metal","doom metal","progressive metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","ambient metalcore","pop metalcore","progressive post-hardcore","modern alternative metal"];
+const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal"];
 
 const MOOD     = ["crushing and heavy","sinister and dark","chaotic and frantic","groovy and headbang-worthy","melodic and atmospheric","dissonant","intense and aggressive","dark and menacing","epic","raw and abrasive"];
 const DRUMS    = ["blast beats","double bass drumming","half-time groove","polyrhythmic drums","breakbeat percussion","d-beat","syncopated rhythms","machine-gun double bass","gravity blast beats","hyperblast beats","skank beat","tom-heavy fills","china cymbal accents","groovy mid-tempo drums","tribal toms","stomp breakdown drums"];
@@ -1050,7 +1050,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={S.ctitle}>🤘 Genres</div>
           <Tags list={GENRES_FREE} sel={genres} toggle={tGenre}/>
           <div style={{marginTop:"8px",fontSize:"0.55rem",color:"#cc6600",letterSpacing:"1px",marginBottom:"5px"}}>⚒️ FORGE</div>
-          <Tags list={GENRES_FORGE} sel={genres} toggle={tGenre} lockedItems={isForge?[]:GENRES_FORGE}/>
+          <Tags list={GENRES_FORGE} sel={genres} toggle={tGenre} lockedItems={isForge?[]:GENRES_FORGE} newItems={GENRES_NEW}/>
           <div style={{marginTop:"8px",fontSize:"0.55rem",color:RED,letterSpacing:"1px",marginBottom:"5px"}}>🔥 PRO</div>
           <Tags list={GENRES_PRO} sel={genres} toggle={tGenre} lockedItems={isPro?[]:GENRES_PRO} newItems={GENRES_NEW}/>
           <div style={{marginTop:"8px",fontSize:"0.55rem",color:"#aa00ff",letterSpacing:"1px",marginBottom:"5px"}}>💀 ELITE</div>

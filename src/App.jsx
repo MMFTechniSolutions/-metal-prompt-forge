@@ -77,6 +77,31 @@ const GENRES_FORGE = ["djent","melodic deathcore","thrash metal","nu-metal","mel
 const GENRES_PRO   = ["mathcore","beatdown hardcore","technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","electronicore","arena metalcore","synth metalcore","atmospheric metalcore"];
 const GENRES_ELITE = ["slam metal","black metal","sludge metal","post-metal","doom metal","progressive metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","ambient metalcore","pop metalcore","progressive post-hardcore","modern alternative metal"];
 const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal"];
+// Genres groupés par FAMILLE (le tier de chaque genre est conservé pour le verrouillage)
+const GENRE_FAMILIES = [
+  {name:"Extreme", icon:"💀", genres:[
+    {g:"death metal",req:"free"},{g:"deathcore",req:"free"},{g:"melodic deathcore",req:"forge"},
+    {g:"technical death metal",req:"pro"},{g:"blackened deathcore",req:"pro"},{g:"melodic death metal",req:"pro"},
+    {g:"black metal",req:"elite"},{g:"blackened death metal",req:"elite"},{g:"atmospheric black metal",req:"elite"},
+    {g:"grindcore",req:"elite"},{g:"slam metal",req:"elite"},{g:"funeral doom",req:"elite"},{g:"dissonant death metal",req:"elite"},
+  ]},
+  {name:"Core", icon:"🔩", genres:[
+    {g:"metalcore",req:"free"},
+    {g:"melodic metalcore",req:"forge"},{g:"post-hardcore",req:"forge"},{g:"modern metalcore",req:"forge"},
+    {g:"mathcore",req:"pro"},{g:"beatdown hardcore",req:"pro"},{g:"progressive metalcore",req:"pro"},{g:"electronicore",req:"pro"},{g:"arena metalcore",req:"pro"},{g:"synth metalcore",req:"pro"},{g:"atmospheric metalcore",req:"pro"},
+    {g:"ambient metalcore",req:"elite"},{g:"pop metalcore",req:"elite"},{g:"progressive post-hardcore",req:"elite"},
+  ]},
+  {name:"Trad / Groove", icon:"🤘", genres:[
+    {g:"groove metal",req:"free"},
+    {g:"thrash metal",req:"forge"},{g:"nu-metal",req:"forge"},
+    {g:"sludge metal",req:"elite"},{g:"doom metal",req:"elite"},
+  ]},
+  {name:"Moderne / Prog", icon:"🌌", genres:[
+    {g:"djent",req:"forge"},{g:"alternative metal",req:"forge"},
+    {g:"symphonic metal",req:"pro"},{g:"industrial metal",req:"pro"},
+    {g:"progressive metal",req:"elite"},{g:"post-metal",req:"elite"},{g:"avant-garde metal",req:"elite"},{g:"modern alternative metal",req:"elite"},
+  ]},
+];
 
 const MOOD     = ["crushing and heavy","sinister and dark","chaotic and frantic","groovy and headbang-worthy","melodic and atmospheric","dissonant","intense and aggressive","dark and menacing","epic","raw and abrasive"];
 const DRUMS    = ["blast beats","double bass drumming","half-time groove","polyrhythmic drums","breakbeat percussion","d-beat","syncopated rhythms","machine-gun double bass","gravity blast beats","hyperblast beats","skank beat","tom-heavy fills","china cymbal accents","groovy mid-tempo drums","tribal toms","stomp breakdown drums"];
@@ -250,12 +275,14 @@ const S = {
 };
 
 // ── COMPONENTS ──
-function Tags({list,sel,toggle,lockedItems=[],newItems=[],tr=null}) {
+function Tags({list,sel,toggle,lockedItems=[],newItems=[],tr=null,filter=""}) {
+  const f=(filter||"").trim().toLowerCase();
   return (
     <div style={S.tags}>
       {list.map(v=>{
         const label=typeof v==="object"?v.l:v, val=typeof v==="object"?v.v:v;
         const disp=tr&&tr[label]?tr[label]:label;
+        if(f && !String(label).toLowerCase().includes(f) && !String(val).toLowerCase().includes(f)) return null;
         const locked=lockedItems.includes(val);
         const isNew=newItems.includes(val);
         return <span key={val} style={S.tag(sel.has(val),locked)} onClick={()=>!locked&&toggle(val)}>{locked?"🔒 ":""}{disp}{isNew&&<span style={{marginLeft:"5px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 4px",letterSpacing:"0.5px",verticalAlign:"middle"}}>NEW</span>}</span>;
@@ -793,6 +820,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   };
 
   const [genres,tGenre,setGenres]=useSet(["deathcore","metalcore"]);
+  const [genreFilter,setGenreFilter]=useState("");
   const [mood,tMood,setMood]=useSet(["crushing and heavy","groovy and headbang-worthy"]);
   const [drums,tDrums,setDrums]=useSet(["blast beats","double bass drumming"]);
   const [drumP,tDrumP,setDrumP]=useSet(["triggered drums"]);
@@ -1058,14 +1086,19 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           ))}
         </div>
         <div style={S.card}>
-          <div style={S.ctitle}>🤘 Genres</div>
-          <Tags list={GENRES_FREE} sel={genres} toggle={tGenre}/>
-          <div style={{marginTop:"8px",fontSize:"0.55rem",color:"#cc6600",letterSpacing:"1px",marginBottom:"5px"}}>⚒️ FORGE</div>
-          <Tags list={GENRES_FORGE} sel={genres} toggle={tGenre} lockedItems={isForge?[]:GENRES_FORGE} newItems={GENRES_NEW}/>
-          <div style={{marginTop:"8px",fontSize:"0.55rem",color:RED,letterSpacing:"1px",marginBottom:"5px"}}>🔥 PRO</div>
-          <Tags list={GENRES_PRO} sel={genres} toggle={tGenre} lockedItems={isPro?[]:GENRES_PRO} newItems={GENRES_NEW}/>
-          <div style={{marginTop:"8px",fontSize:"0.55rem",color:"#aa00ff",letterSpacing:"1px",marginBottom:"5px"}}>💀 ELITE</div>
-          <Tags list={GENRES_ELITE} sel={genres} toggle={tGenre} lockedItems={isElite?[]:GENRES_ELITE} newItems={GENRES_NEW}/>
+          <div style={{...S.ctitle,marginBottom:"8px"}}>🤘 Genres</div>
+          <input value={genreFilter} onChange={e=>setGenreFilter(e.target.value)} placeholder={L("🔍 Chercher un genre…","🔍 Search a genre…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
+          {GENRE_FAMILIES.map(fam=>{
+            const list=fam.genres.map(x=>x.g);
+            const f=genreFilter.trim().toLowerCase();
+            if(f && !list.some(g=>g.toLowerCase().includes(f))) return null;
+            const locked=fam.genres.filter(x=>!canAccess(x.req)).map(x=>x.g);
+            return (<div key={fam.name}>
+              <div style={{marginTop:"10px",fontSize:"0.55rem",color:"#888",letterSpacing:"1.5px",marginBottom:"6px",fontWeight:700}}>{fam.icon} {fam.name.toUpperCase()}</div>
+              <Tags list={list} sel={genres} toggle={tGenre} lockedItems={locked} newItems={GENRES_NEW} filter={genreFilter}/>
+            </div>);
+          })}
+          {genreFilter.trim() && !GENRE_FAMILIES.some(fam=>fam.genres.some(x=>x.g.toLowerCase().includes(genreFilter.trim().toLowerCase()))) && <div style={{fontSize:"0.7rem",color:"#666",padding:"10px 0"}}>{L("Aucun genre trouvé.","No genre found.")}</div>}
         </div>
         <div style={S.card}><div style={S.ctitle}>{L("🌡️ Intensité globale","🌡️ Overall intensity")}</div>
           <Slider label="Heaviness" val={heavy} setVal={setHeavy}/>

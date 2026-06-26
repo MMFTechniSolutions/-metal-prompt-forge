@@ -111,6 +111,9 @@ const MOOD     = ["crushing and heavy","sinister and dark","chaotic and frantic"
 const DRUMS    = ["blast beats","double bass drumming","half-time groove","polyrhythmic drums","breakbeat percussion","d-beat","syncopated rhythms","machine-gun double bass","gravity blast beats","hyperblast beats","skank beat","tom-heavy fills","china cymbal accents","groovy mid-tempo drums","tribal toms","stomp breakdown drums"];
 const DRUM_PROD= ["triggered drums","live drum sound","massive snare","clicky kick drum","trashy cymbals","programmed drums","natural room drums","reverb-heavy drums","punchy compressed drums","organic acoustic kit","raw garage drums","tight modern production","huge ambient drums","lo-fi drum sound"];
 const DRUM_ERAS = [
+  {name:"Années 60-70 (Racines)", icon:"🩸", d:[
+    {v:"straight rock beat",req:"free"},{v:"four-on-the-floor",req:"free"},{v:"bluesy shuffle",req:"free"},{v:"swing groove",req:"forge"},{v:"big room toms",req:"forge"},
+  ]},
   {name:"Années 80", icon:"🎸", d:[
     {v:"double bass drumming",req:"free"},{v:"d-beat",req:"free"},{v:"thrash beat",req:"free"},{v:"skank beat",req:"forge"},{v:"galloping drums",req:"forge"},
   ]},
@@ -124,7 +127,7 @@ const DRUM_ERAS = [
     {v:"polyrhythmic drums",req:"forge"},{v:"syncopated rhythms",req:"forge"},{v:"djent groove",req:"pro"},{v:"math metal drums",req:"pro"},{v:"modern hybrid blast",req:"elite"},
   ]},
 ];
-const DRUM_NEW = ["thrash beat","galloping drums","two-step beat","deathcore groove","bounce groove","djent groove","math metal drums","modern hybrid blast"];
+const DRUM_NEW = ["thrash beat","galloping drums","two-step beat","deathcore groove","bounce groove","djent groove","math metal drums","modern hybrid blast","straight rock beat","four-on-the-floor","bluesy shuffle","swing groove","big room toms"];
 
 const VOCALS_FREE  = ["guttural death growls","pig squeals","high-pitched screams","metalcore screams","raspy harsh vocals"];
 const VOCALS_FORGE = ["mid-range harsh vocals","clean melodic chorus vocals","gang shouts","tortured screams","raspy mid screams","layered harsh vocals"];
@@ -132,6 +135,9 @@ const VOCALS_PRO   = ["whispered spoken word","demonic inhale vocals","falsetto 
 const VOCALS_ELITE = ["throat singing","black metal shrieks","operatic vocals","goblin vocals","spoken word narration","choir vocals","tunnel-throat gutturals"];
 // Voix par ÉPOQUE (bibliothèque enrichie · tier conservé) — mélange les ères pour des hybrides uniques
 const VOCAL_ERAS = [
+  {name:"Années 60-70 (Racines)", icon:"🩸", vox:[
+    {v:"bluesy clean vocals",req:"free"},{v:"raw rock vocals",req:"free"},{v:"soulful clean singing",req:"free"},{v:"high wailing vocals",req:"forge"},{v:"psychedelic vocals",req:"forge"},
+  ]},
   {name:"Classique (80s)", icon:"🎙️", vox:[
     {v:"clean powerful vocals",req:"free"},{v:"melodic clean singing",req:"free"},{v:"high-pitched screams",req:"free"},
     {v:"clean melodic chorus vocals",req:"forge"},{v:"heavy metal wails",req:"forge"},{v:"anthemic clean vocals",req:"forge"},
@@ -153,12 +159,15 @@ const VOCAL_ERAS = [
     {v:"tunnel-throat gutturals",req:"elite"},{v:"goblin vocals",req:"elite"},{v:"throat singing",req:"elite"},{v:"spoken word narration",req:"elite"},{v:"choir vocals",req:"elite"},{v:"pitched-up shrieks",req:"elite"},
   ]},
 ];
-const VOCAL_NEW = ["clean powerful vocals","melodic clean singing","heavy metal wails","anthemic clean vocals","low death growls","doom clean chants","deathcore lows","screamo screams","clean and scream combo","hardcore beatdown vocals","modern clean and harsh mix","pitched-up shrieks"];
+const VOCAL_NEW = ["clean powerful vocals","melodic clean singing","heavy metal wails","anthemic clean vocals","low death growls","doom clean chants","deathcore lows","screamo screams","clean and scream combo","hardcore beatdown vocals","modern clean and harsh mix","pitched-up shrieks","bluesy clean vocals","raw rock vocals","soulful clean singing","high wailing vocals","psychedelic vocals"];
 
 const VFX    = ["vocal reverb","vocal distortion","pitch-shifted vocals","dual vocal tracking","megaphone effect","layered vocal harmonies","telephone EQ vocals","reverb tail vocals","doubled screams","gated vocal fx"];
 const VOCAL_RANGE = ["piccolo highs","tenor","baritone","bass vocals","falsetto","soprano","alto","mezzo-soprano","countertenor","false chord highs","fry screams","mid-range screams","low gutturals","subharmonic lows","tunnel-throat lows"];
 const GUITAR = ["chugging riffs","palm muting","pinch harmonics","tremolo picking","sweep picking solos","djent-style syncopated riffs","open string riffs","legato runs","tapping","whammy bar dives"];
 const GUITAR_ERAS = [
+  {name:"Années 60-70 (Racines)", icon:"🩸", d:[
+    {v:"bluesy bends",req:"free"},{v:"pentatonic riffs",req:"free"},{v:"fuzz riffs",req:"free"},{v:"wah-wah leads",req:"forge"},{v:"vintage overdrive licks",req:"forge"},
+  ]},
   {name:"Années 80", icon:"🎸", d:[
     {v:"palm muting",req:"free"},{v:"tremolo picking",req:"free"},{v:"galloping riffs",req:"free"},{v:"sweep picking solos",req:"forge"},{v:"tapping",req:"forge"},{v:"whammy bar dives",req:"forge"},{v:"melodic shred solos",req:"pro"},
   ]},
@@ -172,7 +181,7 @@ const GUITAR_ERAS = [
     {v:"djent-style syncopated riffs",req:"forge"},{v:"polymetric riffs",req:"pro"},{v:"tapped arpeggios",req:"pro"},{v:"djent chug-stutter",req:"pro"},{v:"ambient lead textures",req:"elite"},
   ]},
 ];
-const GUITAR_NEW = ["galloping riffs","melodic shred solos","groove riffs","drop-tuned riffs","breakdown chugs","dual guitar harmonies","melodic lead harmonies","polymetric riffs","tapped arpeggios","djent chug-stutter","ambient lead textures"];
+const GUITAR_NEW = ["galloping riffs","melodic shred solos","groove riffs","drop-tuned riffs","breakdown chugs","dual guitar harmonies","melodic lead harmonies","polymetric riffs","tapped arpeggios","djent chug-stutter","ambient lead textures","bluesy bends","pentatonic riffs","fuzz riffs","wah-wah leads","vintage overdrive licks"];
 const TUNING = ["standard E tuning","drop D tuning","drop C tuning","drop B tuning","drop A tuning","drop G tuning","7-string guitar","8-string guitar","9-string guitar","baritone guitar"];
 const GPROD  = ["heavy distortion","high gain amplifier","layered guitar tracks","quad-tracked guitars","tight low-end guitar tone","scooped mids tone","djent-style clean tone contrast","808 sub bass guitar","wall of sound guitar","reamped tone","doom fuzz wall","fizzy high-gain"];
 const BASS_STYLE = ["fingerstyle bass","picked bass","slap bass","fretless bass","muted bass","palm mute bass","aggressive bass","grinding bass","tapped bass","lead bass","chord bass"];
@@ -359,6 +368,20 @@ function Collapse({title,n,selCount=0,defaultOpen=false,children}) {
         <span style={{color:"#777",fontSize:"0.75rem"}}>{open?"▾":"▸"}</span>
       </div>
       {open&&<div style={{marginTop:"12px"}}>{children}</div>}
+    </div>
+  );
+}
+
+// Ligne repliable légère (pour le feel par section)
+function FeelRow({name,cur,children}) {
+  const [open,setOpen]=useState(false);
+  return (
+    <div style={{borderTop:"1px solid #161616"}}>
+      <div onClick={()=>setOpen(o=>!o)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",userSelect:"none",padding:"8px 2px"}}>
+        <span style={{fontSize:"0.66rem",color:"#bbb",fontWeight:600}}>{name}{cur&&<span style={{marginLeft:"8px",fontSize:"0.55rem",color:"#4caf50",fontWeight:700}}>· {cur}</span>}</span>
+        <span style={{color:"#777",fontSize:"0.7rem"}}>{open?"▾":"▸"}</span>
+      </div>
+      {open&&<div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap",padding:"2px 2px 10px"}}>{children}</div>}
     </div>
   );
 }
@@ -1338,9 +1361,9 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <div style={{fontSize:"0.55rem",color:"#666",letterSpacing:"1.5px",marginBottom:"9px",fontWeight:700}}>{L("🎚️ FEEL PAR SECTION (optionnel)","🎚️ FEEL PER SECTION (optional)")}</div>
               {STRUCT_BLOCKS.filter(b=>structs.has(b.k)).map(b=>{
                 const hasR=!!blockRhythm[b.k];
+                const cur=BLOCK_RHYTHMS.find(r=>r.v===blockRhythm[b.k]);
                 return (
-                  <div key={b.k} style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap",marginBottom:"8px"}}>
-                    <span style={{fontSize:"0.64rem",color:"#bbb",minWidth:"96px",fontWeight:600}}>{b.icon} {b.name}</span>
+                  <FeelRow key={b.k} name={b.icon+" "+b.name} cur={cur?cur.l:""}>
                     {BLOCK_RHYTHMS.map(r=>(
                       <span key={r.v} onClick={()=>blockRhythm[b.k]===r.v?clearBlockR(b.k):setBlockR(b.k,r.v)}
                         style={{background:blockRhythm[b.k]===r.v?"#002a00":"#111",border:`1px solid ${blockRhythm[b.k]===r.v?"#4caf50":"#222"}`,borderRadius:"4px",padding:"3px 7px",fontSize:"0.6rem",cursor:"pointer",color:blockRhythm[b.k]===r.v?"#4caf50":"#555",fontWeight:blockRhythm[b.k]===r.v?700:400}}>
@@ -1348,7 +1371,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                       </span>
                     ))}
                     {hasR&&<span onClick={()=>clearBlockR(b.k)} style={{fontSize:"0.55rem",color:"#ff5555",cursor:"pointer",padding:"3px 6px",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"4px"}}>✕</span>}
-                  </div>
+                  </FeelRow>
                 );
               })}
             </div>

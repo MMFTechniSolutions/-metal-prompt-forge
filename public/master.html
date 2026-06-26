@@ -57,6 +57,7 @@
       <div class="pst" data-p="balanced">ÉQUILIBRÉ</div>
       <div class="pst" data-p="warm">WARM / VINTAGE</div>
       <div class="pst" data-p="brutal">BRUTAL (slam)</div>
+      <div class="pst" data-p="ia">🤖 NETTOYAGE IA</div>
     </div>
     <div class="cg">
       <label>Volume final (loudness) — <span id="loudLbl" class="rv">-9</span> LUFS approx.</label>
@@ -77,16 +78,18 @@
     <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
     <div class="btn-row"><button class="bp" id="btnMaster" disabled>⚒ Masteriser + Download</button></div>
     <div class="sb" id="status">Charge une toune d'abord.</div>
-    <p class="dl-info">Chaîne : passe-haut → EQ (grave + présence + air) → compression « glue » → limiteur brickwall → loudness. Sort un <strong>.wav</strong> plus fort, plus serré, prêt à publier.</p>
+    <p class="dl-info">Chaîne anti-IA : passe-haut → <strong>cut de boue 200-400Hz</strong> → grave → présence → <strong>tamer de dureté 5-7kHz</strong> → air → <strong>saturation analogique</strong> → compression « glue » → limiteur brickwall → loudness. Élimine le « flou » et le froid numérique de l'IA, sort un <strong>.wav</strong> chaud, serré et prêt à publier.</p>
   </div>
 
 </main>
 <script>
+// mud = atténuation boue 200-400Hz · harsh = tamer dureté 2.5-7kHz · sat = chaleur analogique (anti-froid IA)
 const PRESETS={
-  metal:    {low:3, pres:4,  air:3, comp:{thr:-20,ratio:3,att:.005,rel:.15}, loud:-9},
-  balanced: {low:1.5,pres:2.5,air:2, comp:{thr:-18,ratio:2.5,att:.01,rel:.2}, loud:-11},
-  warm:     {low:4, pres:1,  air:0.5,comp:{thr:-22,ratio:3.5,att:.02,rel:.25},loud:-12},
-  brutal:   {low:5, pres:6,  air:4, comp:{thr:-24,ratio:4,att:.003,rel:.1}, loud:-7},
+  metal:    {low:3, pres:4,  air:3,  mud:2,  harsh:1.5, sat:2,   comp:{thr:-20,ratio:3,att:.005,rel:.15}, loud:-9},
+  balanced: {low:1.5,pres:2.5,air:2,  mud:1.5,harsh:1,   sat:1.2, comp:{thr:-18,ratio:2.5,att:.01,rel:.2}, loud:-11},
+  warm:     {low:4, pres:1,  air:0.5,mud:2.5,harsh:1,   sat:3,   comp:{thr:-22,ratio:3.5,att:.02,rel:.25},loud:-12},
+  brutal:   {low:5, pres:6,  air:4,  mud:1.5,harsh:2,   sat:2.5, comp:{thr:-24,ratio:4,att:.003,rel:.1}, loud:-7},
+  ia:       {low:2, pres:3,  air:2.5,mud:3,  harsh:3,   sat:2.5, comp:{thr:-20,ratio:3,att:.005,rel:.18},loud:-10},
 };
 let audioBuf=null, fileName='master';
 let curPreset='metal';
@@ -135,12 +138,18 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
 
   // High-pass (enlève le boue sub)
   const hp=off.createBiquadFilter();hp.type='highpass';hp.frequency.value=30;
+  // Cut de boue 200-400Hz (effet "boîte" typique de l'IA)
+  const mud=off.createBiquadFilter();mud.type='peaking';mud.frequency.value=280;mud.Q.value=1.2;mud.gain.value=-p.mud;
   // Low shelf (grave)
   const ls=off.createBiquadFilter();ls.type='lowshelf';ls.frequency.value=90;ls.gain.value=low;
   // Presence (mordant guitare/voix)
-  const pk=off.createBiquadFilter();pk.type='peaking';pk.frequency.value=3200;pk.Q.value=1;pk.gain.value=pres;
+  const pk=off.createBiquadFilter();pk.type='peaking';pk.frequency.value=3000;pk.Q.value=1;pk.gain.value=pres;
+  // Tamer de dureté/sibilance 5-7kHz (artefacts numériques de l'IA)
+  const harsh=off.createBiquadFilter();harsh.type='peaking';harsh.frequency.value=5200;harsh.Q.value=2.2;harsh.gain.value=-p.harsh;
   // Air
-  const hs=off.createBiquadFilter();hs.type='highshelf';hs.frequency.value=9000;hs.gain.value=p.air;
+  const hs=off.createBiquadFilter();hs.type='highshelf';hs.frequency.value=10000;hs.gain.value=p.air;
+  // Saturation analogique (chaleur + harmoniques, masque le froid numérique)
+  const sat=off.createWaveShaper();sat.curve=makeCurve(1+p.sat);sat.oversample='4x';
   // Glue compression
   const comp=off.createDynamicsCompressor();
   comp.threshold.value=p.comp.thr;comp.knee.value=6;comp.ratio.value=p.comp.ratio;comp.attack.value=p.comp.att;comp.release.value=p.comp.rel;
@@ -151,7 +160,7 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   lim.threshold.value=-1.0;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
   const out=off.createGain();out.gain.value=0.96;
 
-  src.connect(hp);hp.connect(ls);ls.connect(pk);pk.connect(hs);hs.connect(comp);comp.connect(makeup);makeup.connect(lim);lim.connect(out);out.connect(off.destination);
+  src.connect(hp);hp.connect(mud);mud.connect(ls);ls.connect(pk);pk.connect(harsh);harsh.connect(hs);hs.connect(sat);sat.connect(comp);comp.connect(makeup);makeup.connect(lim);lim.connect(out);out.connect(off.destination);
   src.start(0);
 
   let rendered;
@@ -166,6 +175,7 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   setTimeout(()=>{prog.style.width='0%';},2000);
 });
 
+function makeCurve(k){const n=8192,c=new Float32Array(n),d=Math.tanh(k)||1;for(let i=0;i<n;i++){const x=i*2/n-1;c[i]=Math.tanh(k*x)/d;}return c;}
 function encodeWAV(buf){
   const nCh=buf.numberOfChannels,sr=buf.sampleRate,len=buf.length;
   const ab=new ArrayBuffer(44+len*nCh*2);const v=new DataView(ab);

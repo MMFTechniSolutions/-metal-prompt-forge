@@ -866,9 +866,9 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [conflicts,setConflicts]=useState([]);
   const styleShown=compact?(styleTxtC||styleTxt):styleTxt;
   const structShown=compact?(structTxtC||structTxt):structTxt;
-  const step2Shown=lyricsTxt?mergeStructLyrics(structShown,lyricsTxt):structShown;
   const [keywords,setKeywords]=useState("");
   const [lyricsTxt,setLyricsTxt]=useState("");
+  const step2Shown=lyricsTxt?mergeStructLyrics(structShown,lyricsTxt):structShown;
   const [lyricsLoading,setLyricsLoading]=useState(false);
   const [lyricsErr,setLyricsErr]=useState("");
   const [history,setHistory]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_history")||"[]")}catch{return[]}});

@@ -110,6 +110,21 @@ const GENRE_FAMILIES = [
 const MOOD     = ["crushing and heavy","sinister and dark","chaotic and frantic","groovy and headbang-worthy","melodic and atmospheric","dissonant","intense and aggressive","dark and menacing","epic","raw and abrasive"];
 const DRUMS    = ["blast beats","double bass drumming","half-time groove","polyrhythmic drums","breakbeat percussion","d-beat","syncopated rhythms","machine-gun double bass","gravity blast beats","hyperblast beats","skank beat","tom-heavy fills","china cymbal accents","groovy mid-tempo drums","tribal toms","stomp breakdown drums"];
 const DRUM_PROD= ["triggered drums","live drum sound","massive snare","clicky kick drum","trashy cymbals","programmed drums","natural room drums","reverb-heavy drums","punchy compressed drums","organic acoustic kit","raw garage drums","tight modern production","huge ambient drums","lo-fi drum sound"];
+const DRUM_ERAS = [
+  {name:"Années 80", icon:"🎸", d:[
+    {v:"double bass drumming",req:"free"},{v:"d-beat",req:"free"},{v:"thrash beat",req:"free"},{v:"skank beat",req:"forge"},{v:"galloping drums",req:"forge"},
+  ]},
+  {name:"90s", icon:"⛓️", d:[
+    {v:"blast beats",req:"free"},{v:"groovy mid-tempo drums",req:"free"},{v:"half-time groove",req:"free"},{v:"two-step beat",req:"forge"},{v:"tom-heavy fills",req:"forge"},{v:"tribal toms",req:"forge"},{v:"hyperblast beats",req:"pro"},
+  ]},
+  {name:"2000s", icon:"🔥", d:[
+    {v:"machine-gun double bass",req:"free"},{v:"stomp breakdown drums",req:"free"},{v:"deathcore groove",req:"free"},{v:"breakbeat percussion",req:"forge"},{v:"china cymbal accents",req:"forge"},{v:"bounce groove",req:"forge"},{v:"gravity blast beats",req:"pro"},
+  ]},
+  {name:"Moderne (10-20s)", icon:"🌌", d:[
+    {v:"polyrhythmic drums",req:"forge"},{v:"syncopated rhythms",req:"forge"},{v:"djent groove",req:"pro"},{v:"math metal drums",req:"pro"},{v:"modern hybrid blast",req:"elite"},
+  ]},
+];
+const DRUM_NEW = ["thrash beat","galloping drums","two-step beat","deathcore groove","bounce groove","djent groove","math metal drums","modern hybrid blast"];
 
 const VOCALS_FREE  = ["guttural death growls","pig squeals","high-pitched screams","metalcore screams","raspy harsh vocals"];
 const VOCALS_FORGE = ["mid-range harsh vocals","clean melodic chorus vocals","gang shouts","tortured screams","raspy mid screams","layered harsh vocals"];
@@ -143,6 +158,21 @@ const VOCAL_NEW = ["clean powerful vocals","melodic clean singing","heavy metal 
 const VFX    = ["vocal reverb","vocal distortion","pitch-shifted vocals","dual vocal tracking","megaphone effect","layered vocal harmonies","telephone EQ vocals","reverb tail vocals","doubled screams","gated vocal fx"];
 const VOCAL_RANGE = ["piccolo highs","tenor","baritone","bass vocals","falsetto","soprano","alto","mezzo-soprano","countertenor","false chord highs","fry screams","mid-range screams","low gutturals","subharmonic lows","tunnel-throat lows"];
 const GUITAR = ["chugging riffs","palm muting","pinch harmonics","tremolo picking","sweep picking solos","djent-style syncopated riffs","open string riffs","legato runs","tapping","whammy bar dives"];
+const GUITAR_ERAS = [
+  {name:"Années 80", icon:"🎸", d:[
+    {v:"palm muting",req:"free"},{v:"tremolo picking",req:"free"},{v:"galloping riffs",req:"free"},{v:"sweep picking solos",req:"forge"},{v:"tapping",req:"forge"},{v:"whammy bar dives",req:"forge"},{v:"melodic shred solos",req:"pro"},
+  ]},
+  {name:"90s", icon:"⛓️", d:[
+    {v:"chugging riffs",req:"free"},{v:"pinch harmonics",req:"free"},{v:"groove riffs",req:"free"},{v:"open string riffs",req:"forge"},{v:"drop-tuned riffs",req:"forge"},
+  ]},
+  {name:"2000s", icon:"🔥", d:[
+    {v:"breakdown chugs",req:"free"},{v:"legato runs",req:"forge"},{v:"dual guitar harmonies",req:"forge"},{v:"melodic lead harmonies",req:"pro"},
+  ]},
+  {name:"Moderne (10-20s)", icon:"🌌", d:[
+    {v:"djent-style syncopated riffs",req:"forge"},{v:"polymetric riffs",req:"pro"},{v:"tapped arpeggios",req:"pro"},{v:"djent chug-stutter",req:"pro"},{v:"ambient lead textures",req:"elite"},
+  ]},
+];
+const GUITAR_NEW = ["galloping riffs","melodic shred solos","groove riffs","drop-tuned riffs","breakdown chugs","dual guitar harmonies","melodic lead harmonies","polymetric riffs","tapped arpeggios","djent chug-stutter","ambient lead textures"];
 const TUNING = ["standard E tuning","drop D tuning","drop C tuning","drop B tuning","drop A tuning","7-string guitar","8-string guitar"];
 const GPROD  = ["heavy distortion","high gain amplifier","layered guitar tracks","tight low-end guitar tone","djent-style clean tone contrast","808 sub bass guitar","wall of sound guitar"];
 const BASS_STYLE = ["fingerstyle bass","picked bass","slap bass","fretless bass","muted bass","palm mute bass","aggressive bass","grinding bass"];
@@ -852,6 +882,10 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [openFam,setOpenFam]=useState({});
   const [vocFilter,setVocFilter]=useState("");
   const [openVocEra,setOpenVocEra]=useState({});
+  const [drumFilter,setDrumFilter]=useState("");
+  const [openDrumEra,setOpenDrumEra]=useState({});
+  const [gtrFilter,setGtrFilter]=useState("");
+  const [openGtrEra,setOpenGtrEra]=useState({});
   const [mood,tMood,setMood]=useSet(["crushing and heavy","groovy and headbang-worthy"]);
   const [drums,tDrums,setDrums]=useSet(["blast beats","double bass drumming"]);
   const [drumP,tDrumP,setDrumP]=useSet(["triggered drums"]);
@@ -1149,7 +1183,26 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* DRUMS */}
       {tab==="drums"&&<div style={S.page}>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🥁 Style de batterie","🥁 Drum style")}</div><SelAll all={DRUMS} set={setDrums} L={L}/></div><Tags list={DRUMS} sel={drums} toggle={tDrums}/></div>
+        <div style={S.card}>
+          <div style={{...S.ctitle,marginBottom:"8px"}}>{L("🥁 Style de batterie — par époque","🥁 Drum style — by era")}</div>
+          <input value={drumFilter} onChange={e=>setDrumFilter(e.target.value)} placeholder={L("🔍 Chercher une batterie…","🔍 Search a drum style…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
+          {DRUM_ERAS.map(era=>{
+            const list=era.d.map(x=>x.v);
+            const f=drumFilter.trim().toLowerCase();
+            const hasMatch=!f||list.some(v=>v.toLowerCase().includes(f));
+            if(f&&!hasMatch) return null;
+            const locked=era.d.filter(x=>!canAccess(x.req)).map(x=>x.v);
+            const selCount=list.filter(v=>drums.has(v)).length;
+            const open=f?true:!!openDrumEra[era.name];
+            return (<div key={era.name} style={{borderTop:"1px solid #1a1a1a"}}>
+              <div onClick={()=>!f&&setOpenDrumEra(p=>({...p,[era.name]:!open}))} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:f?"default":"pointer",userSelect:"none",padding:"10px 2px"}}>
+                <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{era.icon} {era.name.toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
+                <span style={{color:"#777",fontSize:"0.75rem"}}>{open?"▾":"▸"}</span>
+              </div>
+              {open&&<div style={{marginBottom:"8px"}}><Tags list={list} sel={drums} toggle={tDrums} lockedItems={locked} newItems={DRUM_NEW} filter={drumFilter}/></div>}
+            </div>);
+          })}
+        </div>
         <div style={S.card}>
           <div style={S.ctitle}>⚡ Tempo (BPM)</div>
           <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
@@ -1204,7 +1257,26 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {tab==="instrums"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         {/* --- GUITARE --- */}
         <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("🎸 GUITARE","🎸 GUITAR")}</div></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎸 Techniques guitare","🎸 Guitar techniques")}</div><Tags list={GUITAR} sel={guitar} toggle={tGuitar}/></div>
+        <div style={S.card}>
+          <div style={{...S.ctitle,marginBottom:"8px"}}>{L("🎸 Techniques guitare — par époque","🎸 Guitar techniques — by era")}</div>
+          <input value={gtrFilter} onChange={e=>setGtrFilter(e.target.value)} placeholder={L("🔍 Chercher une technique…","🔍 Search a technique…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
+          {GUITAR_ERAS.map(era=>{
+            const list=era.d.map(x=>x.v);
+            const f=gtrFilter.trim().toLowerCase();
+            const hasMatch=!f||list.some(v=>v.toLowerCase().includes(f));
+            if(f&&!hasMatch) return null;
+            const locked=era.d.filter(x=>!canAccess(x.req)).map(x=>x.v);
+            const selCount=list.filter(v=>guitar.has(v)).length;
+            const open=f?true:!!openGtrEra[era.name];
+            return (<div key={era.name} style={{borderTop:"1px solid #1a1a1a"}}>
+              <div onClick={()=>!f&&setOpenGtrEra(p=>({...p,[era.name]:!open}))} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:f?"default":"pointer",userSelect:"none",padding:"10px 2px"}}>
+                <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{era.icon} {era.name.toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
+                <span style={{color:"#777",fontSize:"0.75rem"}}>{open?"▾":"▸"}</span>
+              </div>
+              {open&&<div style={{marginBottom:"8px"}}><Tags list={list} sel={guitar} toggle={tGuitar} lockedItems={locked} newItems={GUITAR_NEW} filter={gtrFilter}/></div>}
+            </div>);
+          })}
+        </div>
         <div style={S.card}><div style={S.ctitle}>{L("🎛️ Accordage","🎛️ Tuning")}</div><Tags list={TUNING} sel={tuning} toggle={tTuning}/></div>
         <div style={S.card}><div style={S.ctitle}>{L("🔊 Production guitare","🔊 Guitar production")}</div><Tags list={GPROD} sel={gprod} toggle={tGprod}/></div>
 

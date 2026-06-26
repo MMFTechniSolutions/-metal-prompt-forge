@@ -1236,7 +1236,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             ))}
           </div>
         </div>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🔧 Production batterie","🔧 Drum production")}</div><SelAll all={DRUM_PROD} set={setDrumP} L={L}/></div><Tags list={DRUM_PROD} sel={drumP} toggle={tDrumP}/></div>
+        <Collapse title={L("🔧 Production batterie","🔧 Drum production")} n={DRUM_PROD.length} selCount={drumP.size}><div style={{marginBottom:"10px"}}><SelAll all={DRUM_PROD} set={setDrumP} L={L}/></div><Tags list={DRUM_PROD} sel={drumP} toggle={tDrumP}/></Collapse>
         <div style={{height:80}}/>
       </div>}
 
@@ -1262,8 +1262,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>);
           })}
         </div>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎚️ Registre / Tessiture","🎚️ Range / Register")}</div><SelAll all={VOCAL_RANGE} set={setVrange} L={L}/></div><Tags list={VOCAL_RANGE} sel={vrange} toggle={tVrange}/></div>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎛️ Effets vocaux","🎛️ Vocal effects")}</div><SelAll all={VFX} set={setVfx} L={L}/></div><Tags list={VFX} sel={vfx} toggle={tVfx}/></div>
+        <Collapse title={L("🎚️ Registre / Tessiture","🎚️ Range / Register")} n={VOCAL_RANGE.length} selCount={vrange.size}><div style={{marginBottom:"10px"}}><SelAll all={VOCAL_RANGE} set={setVrange} L={L}/></div><Tags list={VOCAL_RANGE} sel={vrange} toggle={tVrange}/></Collapse>
+        <Collapse title={L("🎛️ Effets vocaux","🎛️ Vocal effects")} n={VFX.length} selCount={vfx.size}><div style={{marginBottom:"10px"}}><SelAll all={VFX} set={setVfx} L={L}/></div><Tags list={VFX} sel={vfx} toggle={tVfx}/></Collapse>
         <div style={{height:80}}/>
       </div>}
 
@@ -1313,13 +1313,12 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* STRUCTURE */}
       {tab==="structure"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
-        <div style={S.card}>
-          <div style={S.ctitle}>{L("🎼 Feeling rythmique global — Style Tags","🎼 Global rhythmic feel — Style Tags")}</div>
+        <Collapse title={L("🎼 Feeling rythmique global","🎼 Global rhythmic feel")} n={GLOBAL_RHYTHMS.length} selCount={globalRhythm.size}>
           <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginBottom:"8px"}}>
             {GLOBAL_RHYTHMS.map(r=><span key={r} onClick={()=>tGlobalRhythm(r)} style={S.tag(globalRhythm.has(r),false)}>{r}</span>)}
           </div>
           <div style={{fontSize:"0.58rem",color:"#333",marginTop:"4px",lineHeight:1.6}}>{L("→ Ces tags vont dans Style of Music · Suno les comprend vraiment","→ These tags go in Style of Music · Suno really understands them")}</div>
-        </div>
+        </Collapse>
         <div style={S.card}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"8px",flexWrap:"wrap",marginBottom:"6px"}}>
             <div style={{...S.ctitle,marginBottom:0}}>{L("📐 Blocs & Feeling par section","📐 Blocks & per-section feel")}</div>
@@ -1413,10 +1412,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* ORGANIC */}
       {tab==="organic"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,borderColor:"#1a3a00",background:"#0a120a"}}><div style={{...S.ctitle,color:"#4caf50"}}>💡 Anti-AI</div><div style={{fontSize:"0.72rem",color:"#688",lineHeight:1.9}}>{L("Ces tags poussent Suno vers un rendu plus ","These tags push Suno toward a more ")}<strong style={{color:"#8f8"}}>{L("organique et humain","organic and human")}</strong>.</div></div>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎙️ Recording & Ambiance","🎙️ Recording & Ambience")}</div><SelAll all={ORG_RECORD} set={setOrgRec} L={L}/></div><Tags list={ORG_RECORD} sel={orgRec} toggle={tOrgRec}/></div>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🥁 Batterie organique","🥁 Organic drums")}</div><SelAll all={ORG_DRUMS} set={setOrgDrm} L={L}/></div><Tags list={ORG_DRUMS} sel={orgDrm} toggle={tOrgDrm}/></div>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎙️ Voix organique","🎙️ Organic vocals")}</div><SelAll all={ORG_VOCALS} set={setOrgVoc} L={L}/></div><Tags list={ORG_VOCALS} sel={orgVoc} toggle={tOrgVoc}/></div>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎸 Guitares organiques","🎸 Organic guitars")}</div><SelAll all={ORG_GUITAR} set={setOrgGtr} L={L}/></div><Tags list={ORG_GUITAR} sel={orgGtr} toggle={tOrgGtr}/></div>
+        <Collapse title={L("🎙️ Recording & Ambiance","🎙️ Recording & Ambience")} n={ORG_RECORD.length} selCount={orgRec.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_RECORD} set={setOrgRec} L={L}/></div><Tags list={ORG_RECORD} sel={orgRec} toggle={tOrgRec}/></Collapse>
+        <Collapse title={L("🥁 Batterie organique","🥁 Organic drums")} n={ORG_DRUMS.length} selCount={orgDrm.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_DRUMS} set={setOrgDrm} L={L}/></div><Tags list={ORG_DRUMS} sel={orgDrm} toggle={tOrgDrm}/></Collapse>
+        <Collapse title={L("🎙️ Voix organique","🎙️ Organic vocals")} n={ORG_VOCALS.length} selCount={orgVoc.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_VOCALS} set={setOrgVoc} L={L}/></div><Tags list={ORG_VOCALS} sel={orgVoc} toggle={tOrgVoc}/></Collapse>
+        <Collapse title={L("🎸 Guitares organiques","🎸 Organic guitars")} n={ORG_GUITAR.length} selCount={orgGtr.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_GUITAR} set={setOrgGtr} L={L}/></div><Tags list={ORG_GUITAR} sel={orgGtr} toggle={tOrgGtr}/></Collapse>
         <div style={{...S.card,borderColor:"#3a0000",background:"#0f0000"}}><div style={{...S.ctitle,color:"#ff5555"}}>{L("🚫 Tags à ÉVITER (sonnent AI)","🚫 Tags to AVOID (sound AI)")}</div><div style={S.tags}>{ORG_AVOID.map(v=><span key={v} style={{background:"#1a0000",border:"1.5px solid #5a0000",borderRadius:"20px",padding:"5px 12px",fontSize:"0.72rem",color:"#ff5555",textDecoration:"line-through",opacity:0.6}}>{v}</span>)}</div></div>
         <div style={{height:80}}/>
       </div>)}
@@ -1424,10 +1423,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* EXCLUDE */}
       {tab==="exclude"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,borderColor:"#3a0a00",background:"#0f0800"}}><div style={{...S.ctitle,color:"#ff6633"}}>{L("🚫 Comment ça fonctionne","🚫 How it works")}</div><div style={{fontSize:"0.72rem",color:"#a86",lineHeight:1.9}}>{L('Tags dans "Style of Music" précédés de ','Tags in "Style of Music" prefixed with ')}<strong style={{color:"#ff5555"}}>"-"</strong>{L(" pour dire à Suno ce qu'il doit éviter."," to tell Suno what to avoid.")}</div></div>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎵 Genres à exclure","🎵 Genres to exclude")}</div><SelAll all={EXCL_GENRES} set={setExclGenre} L={L}/></div><Tags list={EXCL_GENRES} sel={exclGenre} toggle={tExclGenre}/></div>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎙️ Voix à exclure","🎙️ Vocals to exclude")}</div><SelAll all={EXCL_VOCALS} set={setExclVocal} L={L}/></div><Tags list={EXCL_VOCALS} sel={exclVocal} toggle={tExclVocal}/></div>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🔊 Production à exclure","🔊 Production to exclude")}</div><SelAll all={EXCL_PROD} set={setExclProd} L={L}/></div><Tags list={EXCL_PROD} sel={exclProd} toggle={tExclProd}/></div>
-        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎸 Instruments à exclure","🎸 Instruments to exclude")}</div><SelAll all={EXCL_INSTRU} set={setExclInst} L={L}/></div><Tags list={EXCL_INSTRU} sel={exclInst} toggle={tExclInst}/></div>
+        <Collapse title={L("🎵 Genres à exclure","🎵 Genres to exclude")} n={EXCL_GENRES.length} selCount={exclGenre.size}><div style={{marginBottom:"10px"}}><SelAll all={EXCL_GENRES} set={setExclGenre} L={L}/></div><Tags list={EXCL_GENRES} sel={exclGenre} toggle={tExclGenre}/></Collapse>
+        <Collapse title={L("🎙️ Voix à exclure","🎙️ Vocals to exclude")} n={EXCL_VOCALS.length} selCount={exclVocal.size}><div style={{marginBottom:"10px"}}><SelAll all={EXCL_VOCALS} set={setExclVocal} L={L}/></div><Tags list={EXCL_VOCALS} sel={exclVocal} toggle={tExclVocal}/></Collapse>
+        <Collapse title={L("🔊 Production à exclure","🔊 Production to exclude")} n={EXCL_PROD.length} selCount={exclProd.size}><div style={{marginBottom:"10px"}}><SelAll all={EXCL_PROD} set={setExclProd} L={L}/></div><Tags list={EXCL_PROD} sel={exclProd} toggle={tExclProd}/></Collapse>
+        <Collapse title={L("🎸 Instruments à exclure","🎸 Instruments to exclude")} n={EXCL_INSTRU.length} selCount={exclInst.size}><div style={{marginBottom:"10px"}}><SelAll all={EXCL_INSTRU} set={setExclInst} L={L}/></div><Tags list={EXCL_INSTRU} sel={exclInst} toggle={tExclInst}/></Collapse>
         <div style={S.card}><div style={S.ctitle}>{L("✏️ Exclusions personnalisées","✏️ Custom exclusions")}</div>
           <input value={exclCustom} onChange={e=>setExclCustom(e.target.value)} placeholder={L("ex: piano, jazz, acoustic, soft...","e.g. piano, jazz, acoustic, soft...")}
             style={{width:"100%",background:"#111",border:"1px solid #5a2200",borderRadius:"6px",padding:"10px",color:"#e0e0e0",fontSize:"0.8rem"}}/>

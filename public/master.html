@@ -184,7 +184,7 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   const comp=off.createDynamicsCompressor();
   comp.threshold.value=p.comp.thr;comp.knee.value=6;comp.ratio.value=p.comp.ratio;comp.attack.value=p.comp.att;comp.release.value=p.comp.rel;
   // Makeup gain (vers la cible loudness : plus la cible est haute, plus on pousse)
-  const makeup=off.createGain();makeup.gain.value=Math.pow(10,((loud+13)/28)); // drive modéré (évite la distorsion)
+  const makeup=off.createGain();makeup.gain.value=Math.pow(10,((loud+9)/40)); // drive doux — la normalisation finale gère le niveau (anti-clip)
   // Limiteur brickwall
   const lim=off.createDynamicsCompressor();
   lim.threshold.value=CHAIN.limThr;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
@@ -201,7 +201,7 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   // True-peak normalize : ramène la crête sous 0 dBFS → AUCUN clipping (fini le "peak")
   let peak=0;
   for(let c=0;c<rendered.numberOfChannels;c++){const d=rendered.getChannelData(c);for(let i=0;i<d.length;i++){const a=Math.abs(d[i]);if(a>peak)peak=a;}}
-  if(peak>0.97){const scN=0.97/peak;for(let c=0;c<rendered.numberOfChannels;c++){const d=rendered.getChannelData(c);for(let i=0;i<d.length;i++)d[i]*=scN;}}
+  if(peak>0){const scN=0.97/peak;for(let c=0;c<rendered.numberOfChannels;c++){const d=rendered.getChannelData(c);for(let i=0;i<d.length;i++)d[i]*=scN;}}
 
   masteredBuf=rendered;
   document.getElementById('transport').style.display='flex';

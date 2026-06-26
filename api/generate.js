@@ -42,10 +42,11 @@ export default async function handler(req, res) {
   const sb = createClient(SB_URL, SB_SERVICE);
   const { data: ud, error: authErr } = await sb.auth.getUser(token);
   if (authErr || !ud?.user) return res.status(401).json({ error: 'Session invalide.' });
-  const userId = ud.user.id;
+  const email = ud.user.email;
+  if (!email) return res.status(401).json({ error: 'Email introuvable.' });
 
-  // 2) CRÉDITS — lire le solde côté serveur (anti-triche)
-  const { data: row, error: rErr } = await sb.from('users').select('credits, tier').eq('id', userId).single();
+  // 2) CRÉDITS — lire le solde côté serveur (anti-triche). La table public.users est clé par email.
+  const { data: row, error: rErr } = await sb.from('users').select('credits, tier').eq('email', email).single();
   if (rErr || !row) return res.status(403).json({ error: 'Profil introuvable.' });
   const cost = versions * COST_PER_VERSION;
   const have = row.credits || 0;
@@ -72,7 +73,7 @@ export default async function handler(req, res) {
 
   // 4) DÉDUIRE les crédits APRÈS succès (on facture pas un échec)
   const left = have - cost;
-  await sb.from('users').update({ credits: left }).eq('id', userId);
+  await sb.from('users').update({ credits: left }).eq('email', email);
 
   return res.status(200).json({
     audio: 'data:audio/mpeg;base64,' + audioB64,

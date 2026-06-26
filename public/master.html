@@ -29,6 +29,8 @@
   .bp{background:var(--ember);color:var(--white);}
   .bp:hover{background:var(--ember-hot);}
   .bp:disabled{background:var(--iron);color:var(--ash);cursor:not-allowed;}
+  .bs{background:var(--steel);color:var(--bone);border:1px solid var(--iron);}
+  .bs:hover{border-color:var(--ember);color:var(--ember-hot);}
   .prog-wrap{background:var(--steel);border:1px solid var(--iron);height:3px;width:100%;}
   .prog-bar{height:100%;background:var(--ember);width:0%;transition:width .3s linear;}
   .sb{font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--ash);}
@@ -86,14 +88,22 @@
   </div>
 
   <div class="panel">
-    <h2>3 · Masteriser</h2>
+    <h2>3 · Console — masteriser & écouter</h2>
     <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
-    <div class="btn-row"><button class="bp" id="btnMaster" disabled>⚒ Masteriser + Download</button></div>
+    <div class="btn-row"><button class="bp" id="btnMaster" disabled>⚒ MASTERISER</button></div>
+    <div class="btn-row" id="transport" style="display:none;">
+      <button class="bs" id="btnBefore">▶ AVANT</button>
+      <button class="bp" id="btnAfter">▶ APRÈS</button>
+      <button class="bs" id="btnStop">⏹ STOP</button>
+      <button class="bs" id="btnWav">⬇ WAV</button>
+      <button class="bs" id="btnMp3">⬇ MP3</button>
+    </div>
     <div class="sb" id="status">Charge une toune d'abord.</div>
     <p class="dl-info">Chaîne anti-IA : passe-haut → <strong>cut de boue 200-400Hz</strong> → grave → présence → <strong>tamer de dureté 5-7kHz</strong> → air → <strong>saturation analogique</strong> → compression « glue » → limiteur brickwall → loudness. Élimine le « flou » et le froid numérique de l'IA, sort un <strong>.wav</strong> chaud, serré et prêt à publier.</p>
   </div>
 
 </main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
 <script>
 // Fallback générique ; la vraie calibration vient de /api/master (secret serveur).
 let PRESETS={
@@ -106,6 +116,7 @@ let PRESETS={
 let CHAIN={hpHz:30,mudHz:280,mudQ:1.2,presHz:3000,presQ:1,harshHz:5200,harshQ:2.2,airHz:10000,limThr:-1.0,outGain:0.96};
 let audioBuf=null, fileName='master';
 let curPreset='metal';
+let masteredBuf=null, playCtx=null, playSrc=null;
 // Charge la recette calibrée du serveur (sinon garde le fallback)
 fetch('/api/master').then(r=>r.json()).then(d=>{if(d&&d.presets){PRESETS=d.presets;if(d.chain)CHAIN=d.chain;applyPresetUI(curPreset);}}).catch(()=>{});
 
@@ -173,7 +184,7 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   const comp=off.createDynamicsCompressor();
   comp.threshold.value=p.comp.thr;comp.knee.value=6;comp.ratio.value=p.comp.ratio;comp.attack.value=p.comp.att;comp.release.value=p.comp.rel;
   // Makeup gain (vers la cible loudness : plus la cible est haute, plus on pousse)
-  const makeup=off.createGain();makeup.gain.value=Math.pow(10,((loud+14)/20)); // approx
+  const makeup=off.createGain();makeup.gain.value=Math.pow(10,((loud+13)/28)); // drive modéré (évite la distorsion)
   // Limiteur brickwall
   const lim=off.createDynamicsCompressor();
   lim.threshold.value=CHAIN.limThr;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
@@ -187,13 +198,49 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   catch(err){clearInterval(ticker);document.getElementById('status').textContent='⚠ Erreur : '+err.message;btn.disabled=false;return;}
   clearInterval(ticker);prog.style.width='100%';
 
-  const wav=encodeWAV(rendered);
-  triggerDownload(wav, fileName+'_master_'+curPreset+'.wav');
-  document.getElementById('status').textContent='✓ Mastered ('+curPreset+') — téléchargement lancé 🤘';
+  // True-peak normalize : ramène la crête sous 0 dBFS → AUCUN clipping (fini le "peak")
+  let peak=0;
+  for(let c=0;c<rendered.numberOfChannels;c++){const d=rendered.getChannelData(c);for(let i=0;i<d.length;i++){const a=Math.abs(d[i]);if(a>peak)peak=a;}}
+  if(peak>0.97){const scN=0.97/peak;for(let c=0;c<rendered.numberOfChannels;c++){const d=rendered.getChannelData(c);for(let i=0;i<d.length;i++)d[i]*=scN;}}
+
+  masteredBuf=rendered;
+  document.getElementById('transport').style.display='flex';
+  document.getElementById('status').textContent='✓ Masterisé ('+curPreset+') — écoute AVANT/APRÈS, pis télécharge (WAV ou MP3) 🤘';
   btn.disabled=false;
   setTimeout(()=>{prog.style.width='0%';},2000);
 });
 
+function stopPlay(){if(playSrc){try{playSrc.stop();}catch(e){}playSrc=null;}}
+function playBuf(buf,label){
+  if(!buf)return;stopPlay();
+  try{
+    if(!playCtx||playCtx.sampleRate!==buf.sampleRate){if(playCtx){try{playCtx.close();}catch(e){}}playCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:buf.sampleRate});}
+    playCtx.resume();
+    playSrc=playCtx.createBufferSource();playSrc.buffer=buf;playSrc.connect(playCtx.destination);playSrc.start();
+    document.getElementById('status').textContent='▶ '+label;
+    playSrc.onended=()=>{document.getElementById('status').textContent='⏹ Fin de lecture.';};
+  }catch(e){document.getElementById('status').textContent='⚠ Lecture : '+e.message;}
+}
+function encodeMP3(buf){
+  if(typeof lamejs==='undefined')return null;
+  const ch=Math.min(2,buf.numberOfChannels),sr=buf.sampleRate;
+  const enc=new lamejs.Mp3Encoder(ch,sr,320);
+  const L=buf.getChannelData(0),R=ch>1?buf.getChannelData(1):L,len=buf.length,block=1152,data=[];
+  const l16=new Int16Array(block),r16=new Int16Array(block);
+  for(let i=0;i<len;i+=block){
+    const n=Math.min(block,len-i);
+    for(let j=0;j<n;j++){l16[j]=Math.max(-1,Math.min(1,L[i+j]))*32767;r16[j]=Math.max(-1,Math.min(1,R[i+j]))*32767;}
+    const mp3=ch>1?enc.encodeBuffer(l16.subarray(0,n),r16.subarray(0,n)):enc.encodeBuffer(l16.subarray(0,n));
+    if(mp3.length)data.push(new Uint8Array(mp3));
+  }
+  const end=enc.flush();if(end.length)data.push(new Uint8Array(end));
+  return new Blob(data,{type:'audio/mpeg'});
+}
+document.getElementById('btnBefore').addEventListener('click',()=>playBuf(audioBuf,'AVANT (original)'));
+document.getElementById('btnAfter').addEventListener('click',()=>playBuf(masteredBuf,'APRÈS (masterisé)'));
+document.getElementById('btnStop').addEventListener('click',()=>{stopPlay();document.getElementById('status').textContent='⏹ Stop.';});
+document.getElementById('btnWav').addEventListener('click',()=>{if(!masteredBuf)return;triggerDownload(encodeWAV(masteredBuf),fileName+'_master_'+curPreset+'.wav');});
+document.getElementById('btnMp3').addEventListener('click',()=>{if(!masteredBuf)return;const mp3=encodeMP3(masteredBuf);if(!mp3){document.getElementById('status').textContent='⚠ Encodeur MP3 pas chargé — utilise WAV.';return;}triggerDownload(mp3,fileName+'_master_'+curPreset+'.mp3');});
 function makeCurve(k){const n=8192,c=new Float32Array(n),d=Math.tanh(k)||1;for(let i=0;i<n;i++){const x=i*2/n-1;c[i]=Math.tanh(k*x)/d;}return c;}
 function encodeWAV(buf){
   const nCh=buf.numberOfChannels,sr=buf.sampleRate,len=buf.length;

@@ -188,6 +188,32 @@ const TIER_RANK = {free:0,forge:1,pro:2,elite:3,eliteplus:4};
 const LIMITS = {free:{prompts:3,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity},eliteplus:{prompts:Infinity,lyrics:Infinity}};
 const TAB_REQ = {genre:"free",drums:"free",vocals:"free",guitar:"forge",bass:"forge",instru:"forge",structure:"forge",paroles:"pro",organic:"pro",exclude:"elite",output:"free",history:"pro"};
 
+// Fusionne la structure enrichie + les paroles générées : chaque section reçoit ses paroles SOUS son tag (prêt à coller dans Suno)
+function mergeStructLyrics(struct, lyrics){
+  if(!lyrics||!lyrics.trim()) return struct;
+  if(!struct||!struct.trim()) return lyrics;
+  const isTag=l=>/^\s*\[[^\]]+\]\s*$/.test(l);
+  const lsecs=[]; let cur=null;
+  for(const l of lyrics.split(/\r?\n/)){
+    if(isTag(l)){ cur={name:l.replace(/^\s*\[/,'').replace(/\].*$/,'').split(',')[0].split(/[0-9]/)[0].trim().toLowerCase(), body:[]}; lsecs.push(cur); }
+    else if(cur){ cur.body.push(l); }
+  }
+  const used=new Array(lsecs.length).fill(false);
+  const out=[];
+  for(const sl of struct.split(/\r?\n/)){
+    if(isTag(sl) && out.length) out.push('');
+    out.push(sl);
+    if(isTag(sl)){
+      const name=sl.replace(/^\s*\[/,'').split(',')[0].split(/[0-9]/)[0].trim().toLowerCase();
+      if(!name||/bpm/.test(name)) continue;
+      const idx=lsecs.findIndex((s,i)=>!used[i]&&s.name===name);
+      if(idx>=0){ used[idx]=true; const body=lsecs[idx].body.join('\n').replace(/^\n+|\n+$/g,''); if(body) out.push(body); }
+    }
+  }
+  lsecs.forEach((s,i)=>{ if(!used[i]){ const body=s.body.join('\n').trim(); if(body){out.push('');out.push('['+s.name+']');out.push(body);} }});
+  return out.join('\n');
+}
+
 // ── STYLES ──
 const S = {
   wrap:    {background:DARK,color:"#e0e0e0",minHeight:"100vh"},
@@ -840,6 +866,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [conflicts,setConflicts]=useState([]);
   const styleShown=compact?(styleTxtC||styleTxt):styleTxt;
   const structShown=compact?(structTxtC||structTxt):structTxt;
+  const step2Shown=lyricsTxt?mergeStructLyrics(structShown,lyricsTxt):structShown;
   const [keywords,setKeywords]=useState("");
   const [lyricsTxt,setLyricsTxt]=useState("");
   const [lyricsLoading,setLyricsLoading]=useState(false);
@@ -1383,9 +1410,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <div style={{...S.outLbl,color:"#4caf50",marginBottom:0}}>{t.step2t}</div>
             </div>
             <div style={{fontSize:"0.63rem",color:"#688",marginBottom:"10px",lineHeight:1.6}}>{t.step2d}</div>
+            {lyricsTxt&&<div style={{fontSize:"0.62rem",color:"#4caf50",marginBottom:"8px",fontWeight:700}}>{L("✓ Tes paroles sont déjà placées sous chaque section — colle ce bloc tel quel.","✓ Your lyrics are already placed under each section — paste this block as is.")}</div>}
             <div style={{background:"#0a0a0a",border:"1px solid #1a4a1a",borderRadius:"6px",padding:"10px",position:"relative"}}>
-              <CopyBtn getText={()=>structShown}/>
-              <pre style={{whiteSpace:"pre-wrap",fontFamily:"monospace",fontSize:"0.82rem",lineHeight:2,color:"#aaffaa",paddingRight:"50px"}}>{structShown}</pre>
+              <CopyBtn getText={()=>step2Shown}/>
+              <pre style={{whiteSpace:"pre-wrap",fontFamily:"monospace",fontSize:"0.82rem",lineHeight:2,color:"#aaffaa",paddingRight:"50px"}}>{step2Shown}</pre>
             </div>
           </div>}
           {/* STEP 3 */}

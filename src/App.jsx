@@ -76,18 +76,19 @@ const GENRES_FREE  = ["deathcore","metalcore","death metal","groove metal"];
 const GENRES_FORGE = ["djent","melodic deathcore","thrash metal","nu-metal","melodic metalcore","post-hardcore","modern metalcore","alternative metal"];
 const GENRES_PRO   = ["mathcore","beatdown hardcore","technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","electronicore","arena metalcore","synth metalcore","atmospheric metalcore"];
 const GENRES_ELITE = ["slam metal","black metal","sludge metal","post-metal","doom metal","progressive metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","ambient metalcore","pop metalcore","progressive post-hardcore","modern alternative metal"];
-const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal","hard rock","heavy metal","proto-metal","blues rock","traditional heavy metal","nwobhm","speed metal","power metal","glam metal"];
+const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal","hard rock","heavy metal","proto-metal","blues rock","traditional heavy metal","nwobhm","speed metal","power metal","glam metal","punk rock","hardcore punk","crossover thrash","d-beat","powerviolence"];
 // Genres groupés par ÉPOQUE (arbre généalogique du metal) — styles seulement, tier conservé
 const GENRE_FAMILIES = [
   {name:"Années 60-70 (Racines)", icon:"🩸", genres:[
-    {g:"hard rock",req:"free"},{g:"heavy metal",req:"free"},{g:"proto-metal",req:"forge"},{g:"blues rock",req:"forge"},
+    {g:"hard rock",req:"free"},{g:"heavy metal",req:"free"},{g:"punk rock",req:"free"},{g:"proto-metal",req:"forge"},{g:"blues rock",req:"forge"},
   ]},
   {name:"Années 80", icon:"🎸", genres:[
     {g:"traditional heavy metal",req:"forge"},{g:"nwobhm",req:"forge"},{g:"speed metal",req:"forge"},{g:"power metal",req:"forge"},{g:"glam metal",req:"forge"},
-    {g:"thrash metal",req:"forge"},{g:"death metal",req:"free"},{g:"black metal",req:"elite"},{g:"doom metal",req:"elite"},{g:"grindcore",req:"elite"},
+    {g:"thrash metal",req:"forge"},{g:"hardcore punk",req:"forge"},{g:"crossover thrash",req:"forge"},{g:"d-beat",req:"forge"},
+    {g:"death metal",req:"free"},{g:"black metal",req:"elite"},{g:"doom metal",req:"elite"},{g:"grindcore",req:"elite"},
   ]},
   {name:"Années 90", icon:"⛓️", genres:[
-    {g:"groove metal",req:"free"},{g:"metalcore",req:"free"},{g:"nu-metal",req:"forge"},{g:"alternative metal",req:"forge"},
+    {g:"groove metal",req:"free"},{g:"metalcore",req:"free"},{g:"nu-metal",req:"forge"},{g:"alternative metal",req:"forge"},{g:"powerviolence",req:"elite"},
     {g:"melodic death metal",req:"pro"},{g:"technical death metal",req:"pro"},{g:"mathcore",req:"pro"},{g:"beatdown hardcore",req:"pro"},{g:"industrial metal",req:"pro"},{g:"symphonic metal",req:"pro"},
     {g:"blackened death metal",req:"elite"},{g:"atmospheric black metal",req:"elite"},{g:"funeral doom",req:"elite"},{g:"sludge metal",req:"elite"},{g:"post-metal",req:"elite"},{g:"progressive metal",req:"elite"},
   ]},
@@ -114,6 +115,30 @@ const VOCALS_FREE  = ["guttural death growls","pig squeals","high-pitched scream
 const VOCALS_FORGE = ["mid-range harsh vocals","clean melodic chorus vocals","gang shouts","tortured screams","raspy mid screams","layered harsh vocals"];
 const VOCALS_PRO   = ["whispered spoken word","demonic inhale vocals","falsetto screams","whisper-to-scream dynamics","guttural gurgles","fry screams"];
 const VOCALS_ELITE = ["throat singing","black metal shrieks","operatic vocals","goblin vocals","spoken word narration","choir vocals","tunnel-throat gutturals"];
+// Voix par ÉPOQUE (bibliothèque enrichie · tier conservé) — mélange les ères pour des hybrides uniques
+const VOCAL_ERAS = [
+  {name:"Classique (80s)", icon:"🎙️", vox:[
+    {v:"clean powerful vocals",req:"free"},{v:"melodic clean singing",req:"free"},{v:"high-pitched screams",req:"free"},
+    {v:"clean melodic chorus vocals",req:"forge"},{v:"heavy metal wails",req:"forge"},{v:"anthemic clean vocals",req:"forge"},
+    {v:"falsetto screams",req:"pro"},{v:"operatic vocals",req:"elite"},
+  ]},
+  {name:"90s", icon:"⛓️", vox:[
+    {v:"guttural death growls",req:"free"},{v:"raspy harsh vocals",req:"free"},{v:"low death growls",req:"free"},
+    {v:"mid-range harsh vocals",req:"forge"},{v:"raspy mid screams",req:"forge"},{v:"tortured screams",req:"forge"},
+    {v:"black metal shrieks",req:"elite"},{v:"doom clean chants",req:"elite"},
+  ]},
+  {name:"2000s", icon:"🔥", vox:[
+    {v:"metalcore screams",req:"free"},{v:"pig squeals",req:"free"},{v:"deathcore lows",req:"free"},
+    {v:"gang shouts",req:"forge"},{v:"layered harsh vocals",req:"forge"},{v:"screamo screams",req:"forge"},
+    {v:"guttural gurgles",req:"pro"},{v:"clean and scream combo",req:"pro"},
+  ]},
+  {name:"Moderne (10-20s)", icon:"🌌", vox:[
+    {v:"hardcore beatdown vocals",req:"forge"},
+    {v:"whispered spoken word",req:"pro"},{v:"demonic inhale vocals",req:"pro"},{v:"whisper-to-scream dynamics",req:"pro"},{v:"fry screams",req:"pro"},{v:"modern clean and harsh mix",req:"pro"},
+    {v:"tunnel-throat gutturals",req:"elite"},{v:"goblin vocals",req:"elite"},{v:"throat singing",req:"elite"},{v:"spoken word narration",req:"elite"},{v:"choir vocals",req:"elite"},{v:"pitched-up shrieks",req:"elite"},
+  ]},
+];
+const VOCAL_NEW = ["clean powerful vocals","melodic clean singing","heavy metal wails","anthemic clean vocals","low death growls","doom clean chants","deathcore lows","screamo screams","clean and scream combo","hardcore beatdown vocals","modern clean and harsh mix","pitched-up shrieks"];
 
 const VFX    = ["vocal reverb","vocal distortion","pitch-shifted vocals","dual vocal tracking","megaphone effect","layered vocal harmonies","telephone EQ vocals","reverb tail vocals","doubled screams","gated vocal fx"];
 const VOCAL_RANGE = ["piccolo highs","tenor","baritone","bass vocals","falsetto","soprano","alto","mezzo-soprano","countertenor","false chord highs","fry screams","mid-range screams","low gutturals","subharmonic lows","tunnel-throat lows"];
@@ -825,6 +850,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [genres,tGenre,setGenres]=useSet(["deathcore","metalcore"]);
   const [genreFilter,setGenreFilter]=useState("");
   const [openFam,setOpenFam]=useState({});
+  const [vocFilter,setVocFilter]=useState("");
+  const [openVocEra,setOpenVocEra]=useState({});
   const [mood,tMood,setMood]=useSet(["crushing and heavy","groovy and headbang-worthy"]);
   const [drums,tDrums,setDrums]=useSet(["blast beats","double bass drumming"]);
   const [drumP,tDrumP,setDrumP]=useSet(["triggered drums"]);
@@ -1149,14 +1176,24 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* VOCALS */}
       {tab==="vocals"&&<div style={S.page}>
         <div style={S.card}>
-          <div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎙️ Types de voix","🎙️ Vocal types")}</div><SelAll all={[...VOCALS_FREE,...(isForge?VOCALS_FORGE:[]),...(isPro?VOCALS_PRO:[]),...(isElite?VOCALS_ELITE:[])]} set={setVocals} L={L}/></div>
-          <Tags list={VOCALS_FREE} sel={vocals} toggle={tVocal}/>
-          <div style={{marginTop:"8px",fontSize:"0.55rem",color:"#cc6600",letterSpacing:"1px",marginBottom:"5px"}}>⚒️ FORGE</div>
-          <Tags list={VOCALS_FORGE} sel={vocals} toggle={tVocal} lockedItems={isForge?[]:VOCALS_FORGE}/>
-          <div style={{marginTop:"8px",fontSize:"0.55rem",color:RED,letterSpacing:"1px",marginBottom:"5px"}}>🔥 PRO</div>
-          <Tags list={VOCALS_PRO} sel={vocals} toggle={tVocal} lockedItems={isPro?[]:VOCALS_PRO}/>
-          <div style={{marginTop:"8px",fontSize:"0.55rem",color:"#aa00ff",letterSpacing:"1px",marginBottom:"5px"}}>💀 ELITE</div>
-          <Tags list={VOCALS_ELITE} sel={vocals} toggle={tVocal} lockedItems={isElite?[]:VOCALS_ELITE}/>
+          <div style={{...S.ctitle,marginBottom:"8px"}}>{L("🎙️ Types de voix — par époque","🎙️ Vocal types — by era")}</div>
+          <input value={vocFilter} onChange={e=>setVocFilter(e.target.value)} placeholder={L("🔍 Chercher une voix…","🔍 Search a vocal…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
+          {VOCAL_ERAS.map(era=>{
+            const list=era.vox.map(x=>x.v);
+            const f=vocFilter.trim().toLowerCase();
+            const hasMatch=!f||list.some(v=>v.toLowerCase().includes(f));
+            if(f&&!hasMatch) return null;
+            const locked=era.vox.filter(x=>!canAccess(x.req)).map(x=>x.v);
+            const selCount=list.filter(v=>vocals.has(v)).length;
+            const open=f?true:!!openVocEra[era.name];
+            return (<div key={era.name} style={{borderTop:"1px solid #1a1a1a"}}>
+              <div onClick={()=>!f&&setOpenVocEra(p=>({...p,[era.name]:!open}))} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:f?"default":"pointer",userSelect:"none",padding:"10px 2px"}}>
+                <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{era.icon} {era.name.toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
+                <span style={{color:"#777",fontSize:"0.75rem"}}>{open?"▾":"▸"}</span>
+              </div>
+              {open&&<div style={{marginBottom:"8px"}}><Tags list={list} sel={vocals} toggle={tVocal} lockedItems={locked} newItems={VOCAL_NEW} filter={vocFilter}/></div>}
+            </div>);
+          })}
         </div>
         <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎚️ Registre / Tessiture","🎚️ Range / Register")}</div><SelAll all={VOCAL_RANGE} set={setVrange} L={L}/></div><Tags list={VOCAL_RANGE} sel={vrange} toggle={tVrange}/></div>
         <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎛️ Effets vocaux","🎛️ Vocal effects")}</div><SelAll all={VFX} set={setVfx} L={L}/></div><Tags list={VFX} sel={vfx} toggle={tVfx}/></div>

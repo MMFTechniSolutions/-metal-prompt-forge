@@ -77,6 +77,15 @@ const STRUCTURES = {
   drop:   {bars:[{drum:'half_time'},{drum:'double_kick',transpose:3},{drum:'blast_beat',transpose:5},{drum:'breakdown',fill:true}]},
   djent7: {bars:[{},{steps:14,transpose:3},{},{steps:14,drum:'breakdown',fill:true}]},
   prog:   {bars:[{steps:14},{steps:12,transpose:5},{transpose:7},{steps:20,fill:true}]},
+  // structures longues / multi-sections
+  buildup:    {bars:[{drum:'half_time'},{drum:'standard'},{drum:'double_kick',transpose:3},{drum:'blast_beat',transpose:5,fill:true}]},
+  versechorus:{bars:[{drum:'groove'},{drum:'groove'},{drum:'standard',transpose:5},{drum:'standard',transpose:5,fill:true}]},
+  fullsong:   {bars:[{drum:'half_time'},{drum:'groove'},{drum:'groove'},{drum:'standard',transpose:5},{drum:'standard',transpose:5},{drum:'breakdown'},{drum:'double_kick',transpose:7},{drum:'breakdown',fill:true}]},
+  breakdownfest:{bars:[{drum:'breakdown'},{drum:'slam',transpose:-2},{drum:'breakdown',transpose:3},{drum:'breakdown',fill:true}]},
+  blastassault:{bars:[{drum:'blast_beat'},{drum:'blast_beat',transpose:3},{drum:'gravity',transpose:5},{drum:'blast_beat',fill:true}]},
+  doomcrawl:  {bars:[{drum:'doom'},{drum:'doom'},{drum:'half_time',transpose:5},{drum:'doom',fill:true}]},
+  gallop:     {bars:[{drum:'thrash'},{drum:'thrash'},{drum:'thrash',transpose:5},{drum:'double_kick',transpose:7,fill:true}]},
+  odyssey:    {bars:[{steps:14,drum:'mathcore'},{steps:12,drum:'mathcore',transpose:3},{steps:16,transpose:5},{steps:18,drum:'breakdown',fill:true}]},
 };
 const LEAD_RHY=[1,0,0,0,1,0,1,0,0,1,0,0,1,0,1,0];
 const LEAD_VOICE={

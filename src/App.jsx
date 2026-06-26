@@ -214,6 +214,16 @@ function mergeStructLyrics(struct, lyrics){
   return out.join('\n');
 }
 
+// Boutons "Tout / Vider" pour une carte de tags (limite les clics)
+function SelAll({all,set,L}){
+  return (
+    <div style={{display:"flex",gap:"6px",flexShrink:0}}>
+      <button onClick={()=>set(all)} style={{background:"#0a1f00",border:"1px solid #2a5a2a",borderRadius:"5px",padding:"3px 10px",fontSize:"0.58rem",fontWeight:700,color:"#7fdd7f",cursor:"pointer"}}>{L("✓ Tout","✓ All")}</button>
+      <button onClick={()=>set([])} style={{background:"#1a0000",border:"1px solid #4a1010",borderRadius:"5px",padding:"3px 10px",fontSize:"0.58rem",fontWeight:700,color:"#cc6666",cursor:"pointer"}}>{L("✕ Vider","✕ Clear")}</button>
+    </div>
+  );
+}
+
 // ── STYLES ──
 const S = {
   wrap:    {background:DARK,color:"#e0e0e0",minHeight:"100vh"},
@@ -224,6 +234,7 @@ const S = {
   page:    {padding:"14px",maxWidth:"600px",margin:"0 auto"},
   card:    {background:CARD,border:"1px solid #1e1e1e",borderRadius:"10px",padding:"13px",marginBottom:"11px"},
   ctitle:  {fontSize:"0.58rem",textTransform:"uppercase",letterSpacing:"2px",color:RED,fontWeight:800,marginBottom:"10px"},
+  rowTitle:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"8px",flexWrap:"wrap",marginBottom:"10px"},
   tags:    {display:"flex",flexWrap:"wrap",gap:"7px"},
   tag:     (on,locked)=>({background:on?"#2a0000":locked?"#0f0f0f":"#181818",border:on?`1.5px solid ${RED}`:locked?"1.5px solid #1a1a1a":"1.5px solid #222",borderRadius:"20px",padding:"5px 12px",fontSize:"0.72rem",cursor:locked?"default":"pointer",color:on?"#ff7070":locked?"#2a2a2a":"#888",fontWeight:on?700:400,boxShadow:on?"0 0 10px #ff000033":"none",transition:"all 0.15s",userSelect:"none"}),
   outBox:  {background:"#0d0d0d",border:"1px solid #222",borderRadius:"8px",padding:"12px",fontSize:"0.77rem",lineHeight:1.75,color:"#ccc",wordBreak:"break-word",position:"relative",marginBottom:"12px"},
@@ -784,10 +795,10 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [genres,tGenre,setGenres]=useSet(["deathcore","metalcore"]);
   const [mood,tMood,setMood]=useSet(["crushing and heavy","groovy and headbang-worthy"]);
   const [drums,tDrums,setDrums]=useSet(["blast beats","double bass drumming"]);
-  const [drumP,tDrumP]=useSet(["triggered drums"]);
+  const [drumP,tDrumP,setDrumP]=useSet(["triggered drums"]);
   const [vocals,tVocal,setVocals]=useSet(["guttural death growls","pig squeals"]);
-  const [vrange,tVrange]=useSet([]);
-  const [vfx,tVfx]=useSet([]);
+  const [vrange,tVrange,setVrange]=useSet([]);
+  const [vfx,tVfx,setVfx]=useSet([]);
   const [guitar,tGuitar,setGuitar]=useSet(["chugging riffs","palm muting"]);
   const [tuning,tTuning,setTuning]=useSet(["drop B tuning"]);
   const [gprod,tGprod]=useSet(["heavy distortion","layered guitar tracks"]);
@@ -801,14 +812,14 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [keys,tKeys]=useSet([]);
   const [strings,tStr]=useSet([]);
   const [prod,tProd]=useSet(["heavy production","modern metal production"]);
-  const [orgRec,tOrgRec]=useSet([]);
-  const [orgDrm,tOrgDrm]=useSet([]);
-  const [orgVoc,tOrgVoc]=useSet([]);
-  const [orgGtr,tOrgGtr]=useSet([]);
+  const [orgRec,tOrgRec,setOrgRec]=useSet([]);
+  const [orgDrm,tOrgDrm,setOrgDrm]=useSet([]);
+  const [orgVoc,tOrgVoc,setOrgVoc]=useSet([]);
+  const [orgGtr,tOrgGtr,setOrgGtr]=useSet([]);
   const [structs,tStruct,setStructs]=useSet(["intro","verse","chorus","breakdown","outro"]);
   const [themes,tTheme]=useSet(["mort et décomposition"]);
   const [latmo,tLatmo]=useSet(["sombre et menaçant"]);
-  const [lblocks,tLblock]=useSet(["verse","chorus","breakdown"]);
+  const [lblocks,tLblock,setLblocks]=useSet(["verse","chorus","breakdown"]);
   const [lang,tLang]=useSet(["en"]);
   const [lyricsHistory,setLyricsHistory]=useState([]);
   const [lyricsAngle,setLyricsAngle]=useState("");
@@ -819,10 +830,10 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [globalRhythm,tGlobalRhythm]=useSet([]);
   const setBlockR=(k,v)=>setBlockRhythm(p=>({...p,[k]:v}));
   const clearBlockR=k=>setBlockRhythm(p=>{const n={...p};delete n[k];return n;});
-  const [exclGenre,tExclGenre]=useSet([]);
-  const [exclVocal,tExclVocal]=useSet([]);
-  const [exclProd,tExclProd]=useSet([]);
-  const [exclInst,tExclInst]=useSet([]);
+  const [exclGenre,tExclGenre,setExclGenre]=useSet([]);
+  const [exclVocal,tExclVocal,setExclVocal]=useSet([]);
+  const [exclProd,tExclProd,setExclProd]=useSet([]);
+  const [exclInst,tExclInst,setExclInst]=useSet([]);
   const [exclCustom,setExclCustom]=useState("");
   const [heavy,setHeavy]=useState(9);
   const [groove,setGroove]=useState(6);
@@ -1068,7 +1079,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* DRUMS */}
       {tab==="drums"&&<div style={S.page}>
-        <div style={S.card}><div style={S.ctitle}>{L("🥁 Style de batterie","🥁 Drum style")}</div><Tags list={DRUMS} sel={drums} toggle={tDrums}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🥁 Style de batterie","🥁 Drum style")}</div><SelAll all={DRUMS} set={setDrums} L={L}/></div><Tags list={DRUMS} sel={drums} toggle={tDrums}/></div>
         <div style={S.card}>
           <div style={S.ctitle}>⚡ Tempo (BPM)</div>
           <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
@@ -1088,14 +1099,14 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             ))}
           </div>
         </div>
-        <div style={S.card}><div style={S.ctitle}>{L("🔧 Production batterie","🔧 Drum production")}</div><Tags list={DRUM_PROD} sel={drumP} toggle={tDrumP}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🔧 Production batterie","🔧 Drum production")}</div><SelAll all={DRUM_PROD} set={setDrumP} L={L}/></div><Tags list={DRUM_PROD} sel={drumP} toggle={tDrumP}/></div>
         <div style={{height:80}}/>
       </div>}
 
       {/* VOCALS */}
       {tab==="vocals"&&<div style={S.page}>
         <div style={S.card}>
-          <div style={S.ctitle}>{L("🎙️ Types de voix","🎙️ Vocal types")}</div>
+          <div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎙️ Types de voix","🎙️ Vocal types")}</div><SelAll all={[...VOCALS_FREE,...(isForge?VOCALS_FORGE:[]),...(isPro?VOCALS_PRO:[]),...(isElite?VOCALS_ELITE:[])]} set={setVocals} L={L}/></div>
           <Tags list={VOCALS_FREE} sel={vocals} toggle={tVocal}/>
           <div style={{marginTop:"8px",fontSize:"0.55rem",color:"#cc6600",letterSpacing:"1px",marginBottom:"5px"}}>⚒️ FORGE</div>
           <Tags list={VOCALS_FORGE} sel={vocals} toggle={tVocal} lockedItems={isForge?[]:VOCALS_FORGE}/>
@@ -1104,8 +1115,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{marginTop:"8px",fontSize:"0.55rem",color:"#aa00ff",letterSpacing:"1px",marginBottom:"5px"}}>💀 ELITE</div>
           <Tags list={VOCALS_ELITE} sel={vocals} toggle={tVocal} lockedItems={isElite?[]:VOCALS_ELITE}/>
         </div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎚️ Registre / Tessiture","🎚️ Range / Register")}</div><Tags list={VOCAL_RANGE} sel={vrange} toggle={tVrange}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎛️ Effets vocaux","🎛️ Vocal effects")}</div><Tags list={VFX} sel={vfx} toggle={tVfx}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎚️ Registre / Tessiture","🎚️ Range / Register")}</div><SelAll all={VOCAL_RANGE} set={setVrange} L={L}/></div><Tags list={VOCAL_RANGE} sel={vrange} toggle={tVrange}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎛️ Effets vocaux","🎛️ Vocal effects")}</div><SelAll all={VFX} set={setVfx} L={L}/></div><Tags list={VFX} sel={vfx} toggle={tVfx}/></div>
         <div style={{height:80}}/>
       </div>}
 
@@ -1218,7 +1229,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {lyricsHistory.length>0&&<button onClick={()=>setLyricsHistory([])} style={{marginTop:"7px",padding:"5px 12px",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"5px",color:"#ff5555",fontSize:"0.65rem",cursor:"pointer"}}>{L("🗑️ Effacer mémoire","🗑️ Clear memory")} ({lyricsHistory.length})</button>}
         </div>
         <div style={S.card}><div style={S.ctitle}>{L("🌐 Langue des paroles","🌐 Lyrics language")}</div><Tags list={LYRIC_LANGS} sel={lang} toggle={tLang}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("📐 Blocs à générer","📐 Blocks to generate")}</div><Tags list={LYRIC_BLOCKS} sel={lblocks} toggle={tLblock}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("📐 Blocs à générer","📐 Blocks to generate")}</div><SelAll all={LYRIC_BLOCKS.map(b=>b.v)} set={setLblocks} L={L}/></div><Tags list={LYRIC_BLOCKS} sel={lblocks} toggle={tLblock}/></div>
         <button style={S.genBtn} onClick={generateLyrics} disabled={lyricsLoading}>{lyricsLoading?"⚒️ "+t.generating:L("⚒️ GÉNÉRER LES PAROLES","⚒️ GENERATE LYRICS")}</button>
         {lyricsLoading&&<div style={{textAlign:"center",padding:"20px"}}><div style={{fontSize:"1.8rem",animation:"spin 1s linear infinite",display:"inline-block"}}>⚒️</div><div style={{color:"#444",fontSize:"0.7rem",letterSpacing:"2px",marginTop:"8px"}}>{L("CLAUDE COMPOSE...","CLAUDE IS COMPOSING...")}</div></div>}
         {lyricsErr&&<div style={{color:"#ff5555",fontSize:"0.8rem",padding:"10px",background:"#1a0000",borderRadius:"8px",marginBottom:"10px"}}>{lyricsErr}</div>}
@@ -1236,10 +1247,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* ORGANIC */}
       {tab==="organic"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,borderColor:"#1a3a00",background:"#0a120a"}}><div style={{...S.ctitle,color:"#4caf50"}}>💡 Anti-AI</div><div style={{fontSize:"0.72rem",color:"#688",lineHeight:1.9}}>{L("Ces tags poussent Suno vers un rendu plus ","These tags push Suno toward a more ")}<strong style={{color:"#8f8"}}>{L("organique et humain","organic and human")}</strong>.</div></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎙️ Recording & Ambiance","🎙️ Recording & Ambience")}</div><Tags list={ORG_RECORD} sel={orgRec} toggle={tOrgRec}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🥁 Batterie organique","🥁 Organic drums")}</div><Tags list={ORG_DRUMS} sel={orgDrm} toggle={tOrgDrm}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎙️ Voix organique","🎙️ Organic vocals")}</div><Tags list={ORG_VOCALS} sel={orgVoc} toggle={tOrgVoc}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎸 Guitares organiques","🎸 Organic guitars")}</div><Tags list={ORG_GUITAR} sel={orgGtr} toggle={tOrgGtr}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎙️ Recording & Ambiance","🎙️ Recording & Ambience")}</div><SelAll all={ORG_RECORD} set={setOrgRec} L={L}/></div><Tags list={ORG_RECORD} sel={orgRec} toggle={tOrgRec}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🥁 Batterie organique","🥁 Organic drums")}</div><SelAll all={ORG_DRUMS} set={setOrgDrm} L={L}/></div><Tags list={ORG_DRUMS} sel={orgDrm} toggle={tOrgDrm}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎙️ Voix organique","🎙️ Organic vocals")}</div><SelAll all={ORG_VOCALS} set={setOrgVoc} L={L}/></div><Tags list={ORG_VOCALS} sel={orgVoc} toggle={tOrgVoc}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎸 Guitares organiques","🎸 Organic guitars")}</div><SelAll all={ORG_GUITAR} set={setOrgGtr} L={L}/></div><Tags list={ORG_GUITAR} sel={orgGtr} toggle={tOrgGtr}/></div>
         <div style={{...S.card,borderColor:"#3a0000",background:"#0f0000"}}><div style={{...S.ctitle,color:"#ff5555"}}>{L("🚫 Tags à ÉVITER (sonnent AI)","🚫 Tags to AVOID (sound AI)")}</div><div style={S.tags}>{ORG_AVOID.map(v=><span key={v} style={{background:"#1a0000",border:"1.5px solid #5a0000",borderRadius:"20px",padding:"5px 12px",fontSize:"0.72rem",color:"#ff5555",textDecoration:"line-through",opacity:0.6}}>{v}</span>)}</div></div>
         <div style={{height:80}}/>
       </div>)}
@@ -1247,10 +1258,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* EXCLUDE */}
       {tab==="exclude"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,borderColor:"#3a0a00",background:"#0f0800"}}><div style={{...S.ctitle,color:"#ff6633"}}>{L("🚫 Comment ça fonctionne","🚫 How it works")}</div><div style={{fontSize:"0.72rem",color:"#a86",lineHeight:1.9}}>{L('Tags dans "Style of Music" précédés de ','Tags in "Style of Music" prefixed with ')}<strong style={{color:"#ff5555"}}>"-"</strong>{L(" pour dire à Suno ce qu'il doit éviter."," to tell Suno what to avoid.")}</div></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎵 Genres à exclure","🎵 Genres to exclude")}</div><Tags list={EXCL_GENRES} sel={exclGenre} toggle={tExclGenre}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎙️ Voix à exclure","🎙️ Vocals to exclude")}</div><Tags list={EXCL_VOCALS} sel={exclVocal} toggle={tExclVocal}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🔊 Production à exclure","🔊 Production to exclude")}</div><Tags list={EXCL_PROD} sel={exclProd} toggle={tExclProd}/></div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎸 Instruments à exclure","🎸 Instruments to exclude")}</div><Tags list={EXCL_INSTRU} sel={exclInst} toggle={tExclInst}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎵 Genres à exclure","🎵 Genres to exclude")}</div><SelAll all={EXCL_GENRES} set={setExclGenre} L={L}/></div><Tags list={EXCL_GENRES} sel={exclGenre} toggle={tExclGenre}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎙️ Voix à exclure","🎙️ Vocals to exclude")}</div><SelAll all={EXCL_VOCALS} set={setExclVocal} L={L}/></div><Tags list={EXCL_VOCALS} sel={exclVocal} toggle={tExclVocal}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🔊 Production à exclure","🔊 Production to exclude")}</div><SelAll all={EXCL_PROD} set={setExclProd} L={L}/></div><Tags list={EXCL_PROD} sel={exclProd} toggle={tExclProd}/></div>
+        <div style={S.card}><div style={S.rowTitle}><div style={{...S.ctitle,marginBottom:0}}>{L("🎸 Instruments à exclure","🎸 Instruments to exclude")}</div><SelAll all={EXCL_INSTRU} set={setExclInst} L={L}/></div><Tags list={EXCL_INSTRU} sel={exclInst} toggle={tExclInst}/></div>
         <div style={S.card}><div style={S.ctitle}>{L("✏️ Exclusions personnalisées","✏️ Custom exclusions")}</div>
           <input value={exclCustom} onChange={e=>setExclCustom(e.target.value)} placeholder={L("ex: piano, jazz, acoustic, soft...","e.g. piano, jazz, acoustic, soft...")}
             style={{width:"100%",background:"#111",border:"1px solid #5a2200",borderRadius:"6px",padding:"10px",color:"#e0e0e0",fontSize:"0.8rem"}}/>

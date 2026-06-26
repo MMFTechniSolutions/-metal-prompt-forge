@@ -160,7 +160,7 @@ export default function handler(req, res){
   const style = STYLE_PAT[b.style] ? b.style : 'thrash';
 
   // Gating serveur : styles Elite réservés aux comptes Elite
-  if (ELITE_STYLES.includes(style) && tier !== 'elite') {
+  if (ELITE_STYLES.includes(style) && tier !== 'elite' && tier !== 'eliteplus') {
     return res.status(403).json({ error: 'Style Elite — abonnement Elite requis' });
   }
 

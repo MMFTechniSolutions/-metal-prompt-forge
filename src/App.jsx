@@ -263,7 +263,7 @@ const TIERS = {
     features:["✅ Tout de FORGE +","✅ 🎸 Riff Generator (riff + tab + export WAV + import MIDI)","✅ Paroles par IA illimitées","✅ Mode Organic / Anti-AI","✅ Historique + Mon Sound"],featuresEn:["✅ Everything in FORGE +","✅ 🎸 Riff Generator (riff + tab + WAV export + MIDI import)","✅ Unlimited AI lyrics","✅ Organic / Anti-AI Mode","✅ History + My Sound"]},
   elite: {id:"elite", label:"💀 FORGE ELITE",price:"$14.99/mois",priceYear:"$99/an",color:"#aa00ff",badge:"ELITE",stripe:"https://buy.stripe.com/00w3cx5AYaL5cYW9MzfQI02",stripeYear:"https://buy.stripe.com/YOUR_ELITE_ANNUAL",
     features:["✅ Tout de FORGE PRO +","✅ 🎚️ Module MASTERING (EQ + compression + limiteur)","✅ Exclude Tags avancés","✅ Presets illimités + Export PDF","✅ Badge ELITE + support prioritaire"],featuresEn:["✅ Everything in FORGE PRO +","✅ 🎚️ MASTERING module (EQ + compression + limiter)","✅ Advanced Exclude Tags","✅ Unlimited presets + PDF export","✅ ELITE badge + priority support"]},
-  eliteplus: {id:"eliteplus", label:"🔱 ELITE PLUS",price:"$34.99/mois",color:"#ffcc00",badge:"ELITE+",stripe:"https://buy.stripe.com/YOUR_ELITEPLUS_MONTHLY",stripeYear:"https://buy.stripe.com/YOUR_ELITEPLUS_ANNUAL",
+  eliteplus: {id:"eliteplus", label:"🩸 ELITE PLUS",price:"$59.99/mois",color:"#b00710",badge:"ELITE+",stripe:"https://buy.stripe.com/YOUR_ELITEPLUS_MONTHLY",stripeYear:"https://buy.stripe.com/YOUR_ELITEPLUS_ANNUAL",
     features:["✅ Tout de ELITE +","✅ 🎬 Idée express (bientôt)","✅ 🎓 Accès Académie / masterclass (bientôt)","✅ Support VIP + accès anticipé"],featuresEn:["✅ Everything in ELITE +","✅ 🎬 Quick Idea (soon)","✅ 🎓 Academy / masterclass access (soon)","✅ VIP support + early access"]},
 };
 const payUrl = (base, email) =>

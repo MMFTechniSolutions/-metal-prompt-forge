@@ -36,6 +36,12 @@
   .sb{font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--ash);}
   .dl-info{font-size:.76rem;color:var(--ash);line-height:1.6;}
   .dl-info strong{color:var(--bone);}
+  /* Console de mixing — faders verticaux */
+  .console{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;background:linear-gradient(180deg,#16161c,#0c0c10);border:1px solid var(--iron);border-radius:8px;padding:18px 12px;box-shadow:inset 0 2px 12px #000;}
+  .chan{display:flex;flex-direction:column;align-items:center;gap:9px;width:62px;}
+  .chan .clabel{font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--ash);letter-spacing:.04em;text-transform:uppercase;text-align:center;height:26px;line-height:1.2;}
+  .chan .cval{font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--ember-hot);background:#0a0a0b;border:1px solid var(--iron);border-radius:3px;padding:1px 5px;min-width:34px;text-align:center;}
+  .fader{writing-mode:vertical-lr;direction:rtl;width:12px;height:140px;accent-color:var(--ember);cursor:pointer;}
 </style>
 </head>
 <body>
@@ -61,29 +67,16 @@
       <div class="pst" data-p="brutal">BRUTAL (slam)</div>
       <div class="pst" data-p="ia">🤖 NETTOYAGE IA</div>
     </div>
-    <div class="cg">
-      <label>Volume final (loudness) — <span id="loudLbl" class="rv">-9</span> LUFS approx.</label>
-      <input type="range" id="loud" min="-16" max="-5" value="-9" oninput="document.getElementById('loudLbl').textContent=this.value">
-    </div>
-    <div class="cg">
-      <label>Présence / mordant — <span id="presLbl" class="rv">4</span> dB</label>
-      <input type="range" id="pres" min="0" max="8" value="4" step="0.5" oninput="document.getElementById('presLbl').textContent=this.value">
-    </div>
-    <div class="cg">
-      <label>Grave (low end) — <span id="lowLbl" class="rv">3</span> dB</label>
-      <input type="range" id="low" min="-3" max="8" value="3" step="0.5" oninput="document.getElementById('lowLbl').textContent=this.value">
-    </div>
-    <div class="cg">
-      <label>🤖 Cut de boue (anti-flou IA) — <span id="mudLbl" class="rv">2</span> dB</label>
-      <input type="range" id="mud" min="0" max="6" value="2" step="0.5" oninput="document.getElementById('mudLbl').textContent=this.value">
-    </div>
-    <div class="cg">
-      <label>🤖 Dureté / sibilance (tamer) — <span id="harshLbl" class="rv">1.5</span> dB</label>
-      <input type="range" id="harsh" min="0" max="6" value="1.5" step="0.5" oninput="document.getElementById('harshLbl').textContent=this.value">
-    </div>
-    <div class="cg">
-      <label>🔥 Chaleur / saturation analogique — <span id="satLbl" class="rv">2</span></label>
-      <input type="range" id="sat" min="0" max="5" value="2" step="0.5" oninput="document.getElementById('satLbl').textContent=this.value">
+    <div class="console">
+      <div class="chan"><div class="clabel">Loudness</div><input type="range" class="fader" id="loud" min="-16" max="-5" value="-9" oninput="document.getElementById('loudLbl').textContent=this.value"><div class="cval" id="loudLbl">-9</div></div>
+      <div class="chan"><div class="clabel">Présence</div><input type="range" class="fader" id="pres" min="0" max="8" value="4" step="0.5" oninput="document.getElementById('presLbl').textContent=this.value"><div class="cval" id="presLbl">4</div></div>
+      <div class="chan"><div class="clabel">Grave</div><input type="range" class="fader" id="low" min="-3" max="8" value="3" step="0.5" oninput="document.getElementById('lowLbl').textContent=this.value"><div class="cval" id="lowLbl">3</div></div>
+      <div class="chan"><div class="clabel">🤖 Boue</div><input type="range" class="fader" id="mud" min="0" max="6" value="2" step="0.5" oninput="document.getElementById('mudLbl').textContent=this.value"><div class="cval" id="mudLbl">2</div></div>
+      <div class="chan"><div class="clabel">🤖 Dureté</div><input type="range" class="fader" id="harsh" min="0" max="6" value="1.5" step="0.5" oninput="document.getElementById('harshLbl').textContent=this.value"><div class="cval" id="harshLbl">1.5</div></div>
+      <div class="chan"><div class="clabel">🔥 Chaleur</div><input type="range" class="fader" id="sat" min="0" max="5" value="2" step="0.5" oninput="document.getElementById('satLbl').textContent=this.value"><div class="cval" id="satLbl">2</div></div>
+      <div class="chan"><div class="clabel">Reverb %</div><input type="range" class="fader" id="rev" min="0" max="60" value="0" step="5" oninput="document.getElementById('revLbl').textContent=this.value"><div class="cval" id="revLbl">0</div></div>
+      <div class="chan"><div class="clabel">Pitch ½t</div><input type="range" class="fader" id="pitch" min="-4" max="4" value="0" step="1" oninput="document.getElementById('pitchLbl').textContent=this.value"><div class="cval" id="pitchLbl">0</div></div>
+      <div class="chan"><div class="clabel">Balance L·R</div><input type="range" class="fader" id="pan" min="-100" max="100" value="0" step="5" oninput="document.getElementById('panLbl').textContent=this.value"><div class="cval" id="panLbl">0</div></div>
     </div>
   </div>
 
@@ -160,11 +153,15 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   const mudV=parseFloat(document.getElementById('mud').value);
   const harshV=parseFloat(document.getElementById('harsh').value);
   const satV=parseFloat(document.getElementById('sat').value);
+  const revV=parseFloat(document.getElementById('rev').value);
+  const pitchV=parseFloat(document.getElementById('pitch').value);
+  const panV=parseFloat(document.getElementById('pan').value);
+  const rate=Math.pow(2, pitchV/12);
   const p=PRESETS[curPreset];
 
-  const ch=audioBuf.numberOfChannels, sr=audioBuf.sampleRate, len=audioBuf.length;
-  const off=new OfflineAudioContext(ch, len, sr);
-  const src=off.createBufferSource();src.buffer=audioBuf;
+  const sr=audioBuf.sampleRate, len=audioBuf.length;
+  const off=new OfflineAudioContext(2, Math.ceil(len/rate), sr);
+  const src=off.createBufferSource();src.buffer=audioBuf;src.playbackRate.value=rate;
 
   // High-pass (enlève le boue sub)
   const hp=off.createBiquadFilter();hp.type='highpass';hp.frequency.value=CHAIN.hpHz;
@@ -190,7 +187,16 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   lim.threshold.value=CHAIN.limThr;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
   const out=off.createGain();out.gain.value=CHAIN.outGain;
 
-  src.connect(hp);hp.connect(mud);mud.connect(ls);ls.connect(pk);pk.connect(harsh);harsh.connect(hs);hs.connect(sat);sat.connect(comp);comp.connect(makeup);makeup.connect(lim);lim.connect(out);out.connect(off.destination);
+  // Reverb (send parallèle) + Balance L/R
+  const conv=off.createConvolver();conv.buffer=makeIR(off,sr,0.5);
+  const wet=off.createGain();wet.gain.value=revV/100;
+  const dry=off.createGain();dry.gain.value=1;
+  const mix=off.createGain();
+  const panner=off.createStereoPanner();panner.pan.value=Math.max(-1,Math.min(1,panV/100));
+  src.connect(hp);hp.connect(mud);mud.connect(ls);ls.connect(pk);pk.connect(harsh);harsh.connect(hs);hs.connect(sat);sat.connect(comp);comp.connect(makeup);
+  makeup.connect(dry);dry.connect(mix);
+  makeup.connect(conv);conv.connect(wet);wet.connect(mix);
+  mix.connect(lim);lim.connect(panner);panner.connect(out);out.connect(off.destination);
   src.start(0);
 
   let rendered;
@@ -241,6 +247,7 @@ document.getElementById('btnAfter').addEventListener('click',()=>playBuf(mastere
 document.getElementById('btnStop').addEventListener('click',()=>{stopPlay();document.getElementById('status').textContent='⏹ Stop.';});
 document.getElementById('btnWav').addEventListener('click',()=>{if(!masteredBuf)return;triggerDownload(encodeWAV(masteredBuf),fileName+'_master_'+curPreset+'.wav');});
 document.getElementById('btnMp3').addEventListener('click',()=>{if(!masteredBuf)return;const mp3=encodeMP3(masteredBuf);if(!mp3){document.getElementById('status').textContent='⚠ Encodeur MP3 pas chargé — utilise WAV.';return;}triggerDownload(mp3,fileName+'_master_'+curPreset+'.mp3');});
+function makeIR(ctx,sr,dur){const n=Math.floor(sr*dur),b=ctx.createBuffer(2,n,sr);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.5);}return b;}
 function makeCurve(k){const n=8192,c=new Float32Array(n),d=Math.tanh(k)||1;for(let i=0;i<n;i++){const x=i*2/n-1;c[i]=Math.tanh(k*x)/d;}return c;}
 function encodeWAV(buf){
   const nCh=buf.numberOfChannels,sr=buf.sampleRate,len=buf.length;

@@ -36,12 +36,21 @@
   .sb{font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--ash);}
   .dl-info{font-size:.76rem;color:var(--ash);line-height:1.6;}
   .dl-info strong{color:var(--bone);}
-  /* Console de mixing — faders verticaux */
-  .console{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;background:linear-gradient(180deg,#16161c,#0c0c10);border:1px solid var(--iron);border-radius:8px;padding:18px 12px;box-shadow:inset 0 2px 12px #000;}
-  .chan{display:flex;flex-direction:column;align-items:center;gap:9px;width:62px;}
-  .chan .clabel{font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--ash);letter-spacing:.04em;text-transform:uppercase;text-align:center;height:26px;line-height:1.2;}
-  .chan .cval{font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--ember-hot);background:#0a0a0b;border:1px solid var(--iron);border-radius:3px;padding:1px 5px;min-width:34px;text-align:center;}
-  .fader{writing-mode:vertical-lr;direction:rtl;width:12px;height:140px;accent-color:var(--ember);cursor:pointer;}
+  /* Console de mixing — chassis + faders colorés par canal */
+  .console{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;background:linear-gradient(180deg,#202026 0%,#15151a 42%,#0e0e12 100%);border:1px solid #34343e;border-radius:10px;padding:20px 14px;box-shadow:inset 0 2px 14px #000,0 4px 18px #0008;}
+  .chan{display:flex;flex-direction:column;align-items:center;gap:8px;width:58px;background:linear-gradient(180deg,#1b1b22,#101014);border:1px solid #2c2c36;border-top:2px solid #444;border-radius:5px;padding:9px 4px;box-shadow:inset 0 1px 0 #ffffff12;}
+  .chan .clabel{font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--ash);letter-spacing:.03em;text-transform:uppercase;text-align:center;height:26px;line-height:1.2;}
+  .chan .cval{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:#fff;background:#050505;border:1px solid #333;border-radius:3px;padding:1px 5px;min-width:34px;text-align:center;box-shadow:inset 0 0 5px #000;}
+  .fader{writing-mode:vertical-lr;direction:rtl;width:14px;height:150px;cursor:pointer;accent-color:var(--ember);}
+  .chan:nth-child(1) .fader{accent-color:#ff3b3b}.chan:nth-child(1){border-top-color:#ff3b3b}
+  .chan:nth-child(2) .fader{accent-color:#ff7a00}.chan:nth-child(2){border-top-color:#ff7a00}
+  .chan:nth-child(3) .fader{accent-color:#ffcc00}.chan:nth-child(3){border-top-color:#ffcc00}
+  .chan:nth-child(4) .fader{accent-color:#4caf50}.chan:nth-child(4){border-top-color:#4caf50}
+  .chan:nth-child(5) .fader{accent-color:#00d9ff}.chan:nth-child(5){border-top-color:#00d9ff}
+  .chan:nth-child(6) .fader{accent-color:#3b7dff}.chan:nth-child(6){border-top-color:#3b7dff}
+  .chan:nth-child(7) .fader{accent-color:#9b59b6}.chan:nth-child(7){border-top-color:#9b59b6}
+  .chan:nth-child(8) .fader{accent-color:#e91e8c}.chan:nth-child(8){border-top-color:#e91e8c}
+  .chan:nth-child(9) .fader{accent-color:#e8e8ee}.chan:nth-child(9){border-top-color:#e8e8ee}
 </style>
 </head>
 <body>
@@ -81,9 +90,14 @@
   </div>
 
   <div class="panel">
-    <h2>3 · Console — masteriser & écouter</h2>
+    <h2>3 · Console — monitor live & export</h2>
+    <div class="btn-row">
+      <button class="bp" id="btnMon" disabled>▶ MONITOR LIVE</button>
+      <button class="bs" id="btnStopMon">⏹ STOP</button>
+      <button class="bs" id="btnAB">🅰 / 🅱 (avant/après)</button>
+    </div>
     <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
-    <div class="btn-row"><button class="bp" id="btnMaster" disabled>⚒ MASTERISER</button></div>
+    <div class="btn-row"><button class="bp" id="btnMaster" disabled>⚒ MASTERISER (export)</button></div>
     <div class="btn-row" id="transport" style="display:none;">
       <button class="bs" id="btnBefore">▶ AVANT</button>
       <button class="bp" id="btnAfter">▶ APRÈS</button>
@@ -110,6 +124,7 @@ let CHAIN={hpHz:30,mudHz:280,mudQ:1.2,presHz:3000,presQ:1,harshHz:5200,harshQ:2.
 let audioBuf=null, fileName='master';
 let curPreset='metal';
 let masteredBuf=null, playCtx=null, playSrc=null;
+let actx=null, liveNodes=null, monitoring=false, bypassed=false, stemMode=false, stems=[];
 // Charge la recette calibrée du serveur (sinon garde le fallback)
 fetch('/api/master').then(r=>r.json()).then(d=>{if(d&&d.presets){PRESETS=d.presets;if(d.chain)CHAIN=d.chain;applyPresetUI(curPreset);}}).catch(()=>{});
 
@@ -120,7 +135,7 @@ function applyPresetUI(name){
 }
 document.querySelectorAll('.pst').forEach(el=>el.addEventListener('click',()=>{
   document.querySelectorAll('.pst').forEach(x=>x.classList.remove('on'));
-  el.classList.add('on');curPreset=el.dataset.p;applyPresetUI(curPreset);
+  el.classList.add('on');curPreset=el.dataset.p;applyPresetUI(curPreset);if(monitoring)buildLive();
 }));
 
 document.getElementById('file').addEventListener('change',async(e)=>{
@@ -134,7 +149,7 @@ document.getElementById('file').addEventListener('change',async(e)=>{
     ctx.close();
     const dur=audioBuf.duration.toFixed(1);
     document.getElementById('fileInfo').textContent='✓ '+f.name+' · '+dur+'s · '+audioBuf.numberOfChannels+'ch · '+audioBuf.sampleRate+'Hz';
-    document.getElementById('btnMaster').disabled=false;
+    document.getElementById('btnMaster').disabled=false;document.getElementById('btnMon').disabled=false;
     document.getElementById('status').textContent='Prêt à masteriser.';
   }catch(err){document.getElementById('fileInfo').textContent='⚠ Fichier illisible : '+err.message;}
 });
@@ -247,6 +262,53 @@ document.getElementById('btnAfter').addEventListener('click',()=>playBuf(mastere
 document.getElementById('btnStop').addEventListener('click',()=>{stopPlay();document.getElementById('status').textContent='⏹ Stop.';});
 document.getElementById('btnWav').addEventListener('click',()=>{if(!masteredBuf)return;triggerDownload(encodeWAV(masteredBuf),fileName+'_master_'+curPreset+'.wav');});
 document.getElementById('btnMp3').addEventListener('click',()=>{if(!masteredBuf)return;const mp3=encodeMP3(masteredBuf);if(!mp3){document.getElementById('status').textContent='⚠ Encodeur MP3 pas chargé — utilise WAV.';return;}triggerDownload(mp3,fileName+'_master_'+curPreset+'.mp3');});
+// ===== CONSOLE LIVE — monitoring temps réel (bouge un fader → t'entends direct) =====
+const gv=id=>parseFloat(document.getElementById(id).value);
+function getC(){return {low:gv('low'),pres:gv('pres'),loud:gv('loud'),mud:gv('mud'),harsh:gv('harsh'),sat:gv('sat'),rev:gv('rev'),pitch:gv('pitch'),pan:gv('pan')};}
+function stopLive(){if(liveNodes&&liveNodes.srcs){liveNodes.srcs.forEach(s=>{try{s.stop();}catch(e){}});}if(actx){try{actx.close();}catch(e){}}actx=null;liveNodes=null;monitoring=false;}
+function buildLive(){
+  stopLive();
+  if(!audioBuf && !(stemMode&&stems.length))return;
+  const c=getC();const rate=Math.pow(2,c.pitch/12);const p=PRESETS[curPreset]||{};
+  actx=new (window.AudioContext||window.webkitAudioContext)();
+  const srcs=[];const input=actx.createGain();
+  const addSrc=(buf,g0)=>{const s=actx.createBufferSource();s.buffer=buf;s.loop=true;s.playbackRate.value=rate;const g=actx.createGain();g.gain.value=g0;s.connect(g);g.connect(input);srcs.push(s);};
+  if(stemMode&&stems.length){stems.forEach(st=>addSrc(st.buffer,(st.gain||100)/100));}else{addSrc(audioBuf,1);}
+  const hp=actx.createBiquadFilter();hp.type='highpass';hp.frequency.value=CHAIN.hpHz;
+  const mudN=actx.createBiquadFilter();mudN.type='peaking';mudN.frequency.value=CHAIN.mudHz;mudN.Q.value=CHAIN.mudQ;mudN.gain.value=-c.mud;
+  const ls=actx.createBiquadFilter();ls.type='lowshelf';ls.frequency.value=90;ls.gain.value=c.low;
+  const pk=actx.createBiquadFilter();pk.type='peaking';pk.frequency.value=CHAIN.presHz;pk.Q.value=CHAIN.presQ;pk.gain.value=c.pres;
+  const harshN=actx.createBiquadFilter();harshN.type='peaking';harshN.frequency.value=CHAIN.harshHz;harshN.Q.value=CHAIN.harshQ;harshN.gain.value=-c.harsh;
+  const hs=actx.createBiquadFilter();hs.type='highshelf';hs.frequency.value=CHAIN.airHz;hs.gain.value=p.air||2;
+  const satN=actx.createWaveShaper();satN.curve=makeCurve(1+c.sat);satN.oversample='4x';
+  const comp=actx.createDynamicsCompressor();const pc=p.comp||{thr:-20,ratio:3,att:.005,rel:.15};comp.threshold.value=pc.thr;comp.knee.value=6;comp.ratio.value=pc.ratio;comp.attack.value=pc.att;comp.release.value=pc.rel;
+  const makeupN=actx.createGain();makeupN.gain.value=Math.pow(10,((c.loud+9)/40));
+  const conv=actx.createConvolver();conv.buffer=makeIR(actx,actx.sampleRate,0.5);
+  const wetN=actx.createGain();wetN.gain.value=c.rev/100;const dryN=actx.createGain();dryN.gain.value=1;const mixN=actx.createGain();
+  const lim=actx.createDynamicsCompressor();lim.threshold.value=CHAIN.limThr;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
+  const panN=actx.createStereoPanner();panN.pan.value=Math.max(-1,Math.min(1,c.pan/100));
+  const chainGain=actx.createGain();chainGain.gain.value=bypassed?0:1;
+  const bypassGain=actx.createGain();bypassGain.gain.value=bypassed?1:0;
+  input.connect(hp);hp.connect(mudN);mudN.connect(ls);ls.connect(pk);pk.connect(harshN);harshN.connect(hs);hs.connect(satN);satN.connect(comp);comp.connect(makeupN);
+  makeupN.connect(dryN);dryN.connect(mixN);makeupN.connect(conv);conv.connect(wetN);wetN.connect(mixN);
+  mixN.connect(lim);lim.connect(panN);panN.connect(chainGain);chainGain.connect(actx.destination);
+  input.connect(bypassGain);bypassGain.connect(actx.destination);
+  liveNodes={mudN,ls,pk,harshN,hs,satN,makeupN,wetN,panN,chainGain,bypassGain,srcs};
+  actx.resume();srcs.forEach(s=>s.start(0));monitoring=true;
+}
+function applyLive(){
+  if(!actx||!liveNodes)return;const c=getC();
+  liveNodes.mudN.gain.value=-c.mud;liveNodes.ls.gain.value=c.low;liveNodes.pk.gain.value=c.pres;
+  liveNodes.harshN.gain.value=-c.harsh;liveNodes.satN.curve=makeCurve(1+c.sat);
+  liveNodes.makeupN.gain.value=Math.pow(10,((c.loud+9)/40));liveNodes.wetN.gain.value=c.rev/100;
+  liveNodes.panN.pan.value=Math.max(-1,Math.min(1,c.pan/100));
+  const rate=Math.pow(2,c.pitch/12);liveNodes.srcs.forEach(s=>{try{s.playbackRate.value=rate;}catch(e){}});
+}
+function toggleBypass(){bypassed=!bypassed;if(liveNodes){liveNodes.chainGain.gain.value=bypassed?0:1;liveNodes.bypassGain.gain.value=bypassed?1:0;}document.getElementById('status').textContent=bypassed?'🅰 AVANT (bypass — son original)':'🅱 APRÈS (masterisé)';}
+document.getElementById('btnMon').addEventListener('click',()=>{buildLive();if(monitoring)document.getElementById('status').textContent="▶ Monitor LIVE — bouge les faders, t'entends en direct 🎛️";});
+document.getElementById('btnStopMon').addEventListener('click',()=>{stopLive();document.getElementById('status').textContent='⏹ Monitor arrêté.';});
+document.getElementById('btnAB').addEventListener('click',toggleBypass);
+document.querySelector('.console').addEventListener('input',applyLive);
 function makeIR(ctx,sr,dur){const n=Math.floor(sr*dur),b=ctx.createBuffer(2,n,sr);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.5);}return b;}
 function makeCurve(k){const n=8192,c=new Float32Array(n),d=Math.tanh(k)||1;for(let i=0;i<n;i++){const x=i*2/n-1;c[i]=Math.tanh(k*x)/d;}return c;}
 function encodeWAV(buf){

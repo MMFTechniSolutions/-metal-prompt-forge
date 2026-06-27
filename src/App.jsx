@@ -261,7 +261,7 @@ const BLOCK_RHYTHMS = [
 // ── TIERS ──
 const TIERS = {
   free:  {id:"free",  label:"FREE",         price:"$0",       color:"#444",    badge:null},
-  forge: {id:"forge", label:"⚒️ FORGE",      price:"$4.99/mois",priceYear:"$29/an",color:"#cc6600",badge:"FORGE",stripe:"https://buy.stripe.com/4gM28t9RecTdgb88IvfQI00",stripeYear:"https://buy.stripe.com/YOUR_FORGE_ANNUAL",
+  forge: {id:"forge", label:"⚒️ FORGE",      price:"$1.99/mois",priceYear:"$20/an",priceOld:"$4.99/mois",priceOldYear:"$29/an",launch:true,color:"#cc6600",badge:"FORGE",stripe:"https://buy.stripe.com/4gM28t9RecTdgb88IvfQI00",stripeYear:"https://buy.stripe.com/YOUR_FORGE_ANNUAL",
     features:["✅ Bibliothèque COMPLÈTE (genres, voix, drums, guitares, instruments — par époque)","✅ 🎚️ Sliders d'intensité (Heaviness · Groove · Chaos · Melodic)","✅ Structure & Feeling rythmique","✅ Exclude Tags","✅ BPM & Mood","✅ Prompts illimités","❌ Paroles IA + Organic (Pro)","❌ Riff + Mastering (Elite)"],featuresEn:["✅ FULL library (genres, vocals, drums, guitars, instruments — by era)","✅ 🎚️ Intensity sliders (Heaviness · Groove · Chaos · Melodic)","✅ Structure & rhythm feel","✅ Exclude Tags","✅ BPM & Mood","✅ Unlimited prompts","❌ AI lyrics + Organic (Pro)","❌ Riff + Mastering (Elite)"]},
   pro:   {id:"pro",   label:"🔥 FORGE PRO",  price:"$8.99/mois",priceYear:"$59/an",color:"#ff2e2e",badge:"PRO",  stripe:"https://buy.stripe.com/3cI14pfby4mH6Ay7ErfQI01",stripeYear:"https://buy.stripe.com/YOUR_PRO_ANNUAL",
     features:["✅ Tout de FORGE +","✅ ✍️ Paroles par IA illimitées","✅ 🌿 Mode Organic / Anti-AI","✅ Historique + Mon Sound","❌ Riff + Mastering (Elite)"],featuresEn:["✅ Everything in FORGE +","✅ ✍️ Unlimited AI lyrics","✅ 🌿 Organic / Anti-AI Mode","✅ History + My Sound","❌ Riff + Mastering (Elite)"]},
@@ -487,13 +487,15 @@ function PaywallModal({onClose,email,uiLang}) {
             <div key={t.id} onClick={()=>setSel(t.id)}
               style={{background:sel===t.id?"#1a0000":"#111",border:`1.5px solid ${sel===t.id?t.color:"#222"}`,borderRadius:"8px",padding:"10px 6px",textAlign:"center",cursor:"pointer"}}>
               <div style={{fontSize:"0.65rem",fontWeight:900,color:sel===t.id?t.color:"#555",letterSpacing:"1px",marginBottom:"4px"}}>{t.label}</div>
-              <div style={{fontSize:"0.9rem",fontWeight:900,color:"#fff"}}>{priceOf(t).split("/")[0]}</div>
+              {t.launch&&<div style={{fontSize:"0.55rem",color:"#777",textDecoration:"line-through"}}>{(year&&t.priceOldYear?t.priceOldYear:t.priceOld||"").split("/")[0]}</div>}
+              <div style={{fontSize:"0.9rem",fontWeight:900,color:t.launch?"#7fdd7f":"#fff"}}>{priceOf(t).split("/")[0]}</div>
               <div style={{fontSize:"0.5rem",color:"#444"}}>{year&&t.priceYear?L("/an","/yr"):L("/mois","/mo")}</div>
+              {t.launch&&<div style={{fontSize:"0.42rem",color:"#7fdd7f",fontWeight:900,letterSpacing:"0.5px",marginTop:"2px"}}>{L("LANCEMENT","LAUNCH")}</div>}
             </div>
           ))}
         </div>
         <div style={{background:"#0a0a0a",border:`1px solid ${tier.color}22`,borderRadius:"8px",padding:"14px",marginBottom:"16px",minHeight:"160px"}}>
-          <div style={{fontSize:"0.58rem",color:tier.color,letterSpacing:"2px",textTransform:"uppercase",fontWeight:800,marginBottom:"10px"}}>{tier.label} — {priceOf(tier)} — {L("INCLUS","INCLUDED")}</div>
+          <div style={{fontSize:"0.58rem",color:tier.color,letterSpacing:"2px",textTransform:"uppercase",fontWeight:800,marginBottom:"10px"}}>{tier.label} — {tier.launch&&<span style={{textDecoration:"line-through",color:"#666",marginRight:"5px"}}>{(year&&tier.priceOldYear?tier.priceOldYear:tier.priceOld||"").split("/")[0]}</span>}{priceOf(tier)} {tier.launch?L("· LANCEMENT","· LAUNCH"):""} — {L("INCLUS","INCLUDED")}</div>
           {(uiLang==="en"?tier.featuresEn:tier.features)?.map(f=><div key={f} style={{fontSize:"0.7rem",color:f.startsWith("✅")?"#ccc":"#333",padding:"3px 0"}}>{f}</div>)}
         </div>
         <a href={payUrl(checkoutUrl,email)} target="_blank" rel="noreferrer"

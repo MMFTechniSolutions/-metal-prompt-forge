@@ -73,7 +73,7 @@ const css = `
 
 // ── DATA ──
 // Genres : listes par tier remplacées par GENRE_FAMILIES (par époque). GENRES_NEW conservé pour les badges.
-const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal","hard rock","heavy metal","proto-metal","blues rock","traditional heavy metal","nwobhm","speed metal","power metal","glam metal","punk rock","hardcore punk","crossover thrash","d-beat","powerviolence"];
+const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal","hard rock","heavy metal","proto-metal","blues rock","traditional heavy metal","nwobhm","speed metal","power metal","glam metal","punk rock","hardcore punk","crossover thrash","d-beat","powerviolence","rapcore"];
 // Genres groupés par ÉPOQUE (arbre généalogique du metal) — styles seulement, tier conservé
 const GENRE_FAMILIES = [
   {name:"Années 60-70 (Racines)", icon:"🩸", genres:[
@@ -85,7 +85,7 @@ const GENRE_FAMILIES = [
     {g:"death metal",req:"free"},{g:"black metal",req:"forge"},{g:"doom metal",req:"forge"},{g:"grindcore",req:"forge"},
   ]},
   {name:"Années 90", icon:"⛓️", genres:[
-    {g:"groove metal",req:"free"},{g:"metalcore",req:"free"},{g:"nu-metal",req:"forge"},{g:"alternative metal",req:"forge"},{g:"powerviolence",req:"forge"},
+    {g:"groove metal",req:"free"},{g:"metalcore",req:"free"},{g:"nu-metal",req:"forge"},{g:"rapcore",req:"forge"},{g:"alternative metal",req:"forge"},{g:"powerviolence",req:"forge"},
     {g:"melodic death metal",req:"forge"},{g:"technical death metal",req:"forge"},{g:"mathcore",req:"forge"},{g:"beatdown hardcore",req:"forge"},{g:"industrial metal",req:"forge"},{g:"symphonic metal",req:"forge"},
     {g:"blackened death metal",req:"forge"},{g:"atmospheric black metal",req:"forge"},{g:"funeral doom",req:"forge"},{g:"sludge metal",req:"forge"},{g:"post-metal",req:"forge"},{g:"progressive metal",req:"forge"},
   ]},

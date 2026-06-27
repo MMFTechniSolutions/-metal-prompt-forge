@@ -186,7 +186,7 @@ export default function handler(req, res){
   const arr = buildArrangement(p);
   const leadVoice = (p.lead && p.lead !== 'none') ? (LEAD_VOICE[p.lead] || LEAD_VOICE.synth) : null;
   // Tablature/partition : réservée Elite
-  const tab = (tier === 'elite') ? buildTab(p) : '🔒 Tablature ASCII — reservee aux comptes Elite';
+  const tab = (tier === 'elite' || tier === 'eliteplus') ? buildTab(p) : '🔒 Tablature ASCII — reservee aux comptes Elite';
 
   return res.status(200).json({
     style: p.style, bpm: p.bpm, root: p.root, dist: p.dist,

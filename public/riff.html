@@ -588,7 +588,7 @@ function triggerDownload(blob,filename){
 }
 
 // ── ELITE GATING (soft, via ?tier=) ──
-const IS_ELITE=(new URLSearchParams(location.search).get('tier')||'free')==='elite';
+const IS_ELITE=['elite','eliteplus'].includes(new URLSearchParams(location.search).get('tier')||'free');
 (function(){
   if(!IS_ELITE){
     const g=document.getElementById('eliteGroup');

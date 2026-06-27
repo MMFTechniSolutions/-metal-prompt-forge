@@ -19,6 +19,7 @@
   .logo span{color:var(--ember);}
   .badge{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--ember);border:1px solid var(--ember);padding:2px 7px;letter-spacing:.1em;}
   main{width:100%;max-width:820px;padding:28px 18px 60px;display:flex;flex-direction:column;gap:20px;}
+  @media(min-width:900px){main{max-width:1200px;display:grid;grid-template-columns:1fr 1fr;align-items:start;}}
   h2{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.15em;color:var(--ash);text-transform:uppercase;margin-bottom:2px;}
   .panel{background:var(--forge);border:1px solid var(--iron);padding:20px;display:flex;flex-direction:column;gap:16px;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -217,6 +218,11 @@
       <button class="bs" id="btnStop" disabled>■ Stop</button>
     </div>
     <div class="sb"><div class="dot" id="dotPlay"></div><span id="txtPlay">Configure et génère un riff</span></div>
+    <div id="promptBox" style="display:none;margin-top:12px;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--ember);letter-spacing:.08em;margin-bottom:6px;">🤘 PROMPT OPTIMISÉ (qui fit le beat) — colle dans Suno + uploade le .wav</div>
+      <pre id="promptOut" style="white-space:pre-wrap;background:#0a0a0b;border:1px solid var(--iron);border-radius:6px;padding:10px;font-size:.72rem;color:var(--bone);margin:0;"></pre>
+      <button class="bs" id="btnCopyPrompt" style="margin-top:6px;">⧉ Copier le prompt</button>
+    </div>
   </div>
 
   <div class="panel">
@@ -227,11 +233,6 @@
       <button class="bp" id="btnRender" disabled>⏺ Render + Download</button>
     </div>
     <div class="sb"><div class="dot" id="dotRec"></div><span id="txtRec">Génère un riff d'abord</span></div>
-    <div id="promptBox" style="display:none;margin-top:14px;">
-      <div style="font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--ember);letter-spacing:.08em;margin-bottom:6px;">🤘 PROMPT OPTIMISÉ — colle-le dans Suno + uploade le .wav comme Style Reference</div>
-      <pre id="promptOut" style="white-space:pre-wrap;background:#0a0a0b;border:1px solid var(--iron);border-radius:6px;padding:10px;font-size:.72rem;color:var(--bone);margin:0;"></pre>
-      <button class="bs" id="btnCopyPrompt" style="margin-top:6px;">⧉ Copier le prompt</button>
-    </div>
   </div>
 
 </main>
@@ -570,11 +571,6 @@ async function renderAndDownload(p){
   // Download — méthode robuste
   const fname=`metalprompt_${p.style}_${bpm}bpm_${p.root}_${dur}s.wav`;
   triggerDownload(wav,fname);
-  if(p.prompt){
-    document.getElementById('promptOut').textContent=p.prompt;
-    document.getElementById('promptBox').style.display='block';
-    triggerDownload(new Blob([p.prompt],{type:'text/plain'}), fname.replace('.wav','_prompt.txt'));
-  }
 
   document.getElementById('dotRec').className='dot';
   document.getElementById('txtRec').textContent=`✓ ${dur}s · ${bpm} BPM · ${p.root} — téléchargement lancé`;
@@ -683,6 +679,7 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
   document.getElementById('btnRender').disabled=false;
   document.getElementById('txtRec').textContent='Prêt à render';
   document.getElementById('txtPlay').textContent='Riff généré — '+currentPat.style+' · '+currentPat.bpm+' BPM';
+  if(currentPat.prompt){document.getElementById('promptOut').textContent=currentPat.prompt;document.getElementById('promptBox').style.display='block';}
 });
 document.getElementById('btnPlay').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat);}});
 document.getElementById('btnStop').addEventListener('click',stopPlay);

@@ -184,7 +184,8 @@ function buildPrompt(p){
     funeraldoom:['funeral atmosphere','monolithic slow riffs'],
     dissonant:['dissonant chords','unsettling tension'],
   };
-  const tags=[G[p.style]||'metal', bpm+' BPM', tempo, D[p.drumKey]||'heavy drums', T[p.root]||'', ...(FLAVOR[p.style]||['chugging riffs']), 'heavy distortion', 'tight low end', 'wall of sound', 'aggressive and crushing'];
+  // Pépite Suno : 4-7 descripteurs FOCUS battent 15 éparpillés. Genre en premier (ancrage fort).
+  const tags=[G[p.style]||'metal', bpm+' BPM', tempo, D[p.drumKey]||'heavy drums', T[p.root]||'', ...(FLAVOR[p.style]||['chugging riffs','downtuned']).slice(0,2)];
   return tags.filter(Boolean).join(', ');
 }
 

@@ -8,6 +8,7 @@ const STYLE_PAT = {
   doom:     [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
   blackened:[1,1,1,0,1,1,0,1,1,1,0,1,0,1,1,0],
   groove:   [1,0,0,1,0,1,0,0,1,0,0,1,0,0,1,0],
+  rapcore:  [1,0,0,1,0,1,0,0,1,0,0,1,0,1,0,0],
   djent:    [1,0,1,1,0,0,1,0,1,0,1,0,0,1,0,1],
   speed:    [1,0,1,0,1,1,0,1,1,0,1,0,1,1,0,1],
   slam:       [1,0,0,0,1,1,0,0,1,0,0,0,1,1,0,0],
@@ -23,6 +24,7 @@ const BASS_PAT = {
   doom:     [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
   blackened:[1,0,0,1,0,0,1,0,1,0,0,1,0,0,0,1],
   groove:   [1,0,1,0,0,1,0,0,1,0,1,0,0,1,0,0],
+  rapcore:  [1,0,1,0,0,1,0,0,1,0,1,0,0,1,0,0],
   djent:    [1,0,0,1,0,1,0,0,1,0,0,0,1,0,1,0],
   speed:    [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],
   slam:       [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],
@@ -70,6 +72,7 @@ const NOTE_SEQ = {
   doom:[0,7,5,3,0,5,3,2,0,7,8,7,5,3,2,0],
   blackened:[0,0,1,5,0,1,6,5,0,1,5,7,6,5,1,0],
   groove:[0,5,7,0,3,5,7,3,0,7,5,3,5,7,3,0],
+  rapcore:[0,0,5,0,3,0,5,3,0,0,5,0,3,5,0,0],
   djent:[0,0,7,0,5,7,3,0,0,5,0,7,3,5,0,0],
   speed:[0,3,5,7,8,7,5,3,0,5,7,10,8,7,5,0],
   slam:[0,0,1,0,2,1,0,3,0,0,1,2,1,0,2,0],
@@ -163,7 +166,7 @@ function buildTab(p){
 
 // Prompt Suno optimisé qui FIT le beat généré (recette secrète, côté serveur)
 function buildPrompt(p){
-  const G={thrash:'thrash metal',death:'death metal',doom:'doom metal',blackened:'black metal',groove:'groove metal',djent:'djent',speed:'speed metal',slam:'slam metal',sludge:'sludge metal',postmetal:'post-metal',grindcore:'grindcore',funeraldoom:'funeral doom',dissonant:'dissonant death metal'};
+  const G={thrash:'thrash metal',death:'death metal',doom:'doom metal',blackened:'black metal',groove:'groove metal',djent:'djent',speed:'speed metal',slam:'slam metal',sludge:'sludge metal',postmetal:'post-metal',grindcore:'grindcore',funeraldoom:'funeral doom',dissonant:'dissonant death metal',rapcore:'rap metal'};
   const D={standard:'steady drums',double_kick:'double bass drumming',blast_beat:'blast beats',half_time:'half-time groove',breakdown:'breakdown',gravity:'gravity blast beats',thrash:'thrash beat',deathcore:'deathcore groove',dbeat:'d-beat',groove:'groovy drums',two_step:'two-step beat',bounce:'bounce groove',slam:'slam beat',mathcore:'mathcore drums',doom:'doom drums',skank:'skank beat',bombblast:'bomb blast beats',halfgroove:'half-time groove',tribal:'tribal toms',driving:'driving double bass',straight_dk:'straight double kick',bouncy:'bouncy groove',marching:'marching snare',jungle:'tribal toms',stomp:'stomp breakdown',blast_china:'blast beats with china cymbals',halftime2:'heavy half-time',pocket:'pocket groove',gallop:'galloping drums'};
   const T={E2:'standard E tuning',Eb2:'Eb tuning',D2:'D standard tuning',Db2:'drop C# tuning',C2:'C standard tuning',B1:'B standard tuning'};
   const bpm=p.bpm;
@@ -183,9 +186,10 @@ function buildPrompt(p){
     grindcore:['chaotic blast beats','raw intensity'],
     funeraldoom:['funeral atmosphere','monolithic slow riffs'],
     dissonant:['dissonant chords','unsettling tension'],
+    rapcore:['bouncy syncopated groove','nu-metal energy'],
   };
   // Pépite Suno : 4-7 descripteurs FOCUS battent 15 éparpillés. Genre en premier (ancrage fort).
-  const SCENE={norwegian:'norwegian',finnish:'finnish',swedish:'swedish',german:'german',american:'american'};
+  const SCENE={norwegian:'norwegian',finnish:'finnish',swedish:'swedish',german:'german',american:'american',canadian:'canadian',quebecois:'quebecois'};
   const genre=(SCENE[p.scene]?SCENE[p.scene]+' ':'')+(G[p.style]||'metal');
   const tags=[genre, bpm+' BPM', tempo, D[p.drumKey]||'heavy drums', T[p.root]||'', ...(FLAVOR[p.style]||['chugging riffs','downtuned']).slice(0,2)];
   return tags.filter(Boolean).join(', ');

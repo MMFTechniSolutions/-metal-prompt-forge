@@ -73,7 +73,7 @@ const css = `
 
 // ── DATA ──
 // Genres : listes par tier remplacées par GENRE_FAMILIES (par époque). GENRES_NEW conservé pour les badges.
-const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal","hard rock","heavy metal","proto-metal","blues rock","traditional heavy metal","nwobhm","speed metal","power metal","glam metal","punk rock","hardcore punk","crossover thrash","d-beat","powerviolence","rapcore"];
+const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal","hard rock","heavy metal","proto-metal","blues rock","traditional heavy metal","nwobhm","speed metal","power metal","glam metal","punk rock","hardcore punk","crossover thrash","d-beat","powerviolence","rapcore","post-black metal","blackgaze","technical deathcore","deathgrind","brutal death metal","drone metal","atmospheric sludge metal","depressive black metal"];
 // Genres groupés par ÉPOQUE (arbre généalogique du metal) — styles seulement, tier conservé
 const GENRE_FAMILIES = [
   {name:"Années 60-70 (Racines)", icon:"🩸", genres:[
@@ -88,15 +88,18 @@ const GENRE_FAMILIES = [
     {g:"groove metal",req:"free"},{g:"metalcore",req:"free"},{g:"nu-metal",req:"forge"},{g:"rapcore",req:"forge"},{g:"alternative metal",req:"forge"},{g:"powerviolence",req:"forge"},
     {g:"melodic death metal",req:"forge"},{g:"technical death metal",req:"forge"},{g:"mathcore",req:"forge"},{g:"beatdown hardcore",req:"forge"},{g:"industrial metal",req:"forge"},{g:"symphonic metal",req:"forge"},
     {g:"blackened death metal",req:"forge"},{g:"atmospheric black metal",req:"forge"},{g:"funeral doom",req:"forge"},{g:"sludge metal",req:"forge"},{g:"post-metal",req:"forge"},{g:"progressive metal",req:"forge"},
+    {g:"deathgrind",req:"forge"},{g:"brutal death metal",req:"forge"},{g:"drone metal",req:"elite"},
   ]},
   {name:"Années 2000", icon:"🔥", genres:[
     {g:"deathcore",req:"free"},{g:"melodic deathcore",req:"forge"},{g:"melodic metalcore",req:"forge"},{g:"post-hardcore",req:"forge"},
     {g:"blackened deathcore",req:"forge"},
     {g:"slam metal",req:"forge"},{g:"dissonant death metal",req:"forge"},{g:"avant-garde metal",req:"forge"},
+    {g:"atmospheric sludge metal",req:"forge"},{g:"depressive black metal",req:"elite"},
   ]},
   {name:"Années 2010", icon:"⚙️", genres:[
     {g:"djent",req:"forge"},{g:"modern metalcore",req:"forge"},
     {g:"progressive metalcore",req:"forge"},{g:"electronicore",req:"forge"},{g:"arena metalcore",req:"forge"},{g:"atmospheric metalcore",req:"forge"},
+    {g:"post-black metal",req:"forge"},{g:"blackgaze",req:"forge"},{g:"technical deathcore",req:"forge"},
   ]},
   {name:"Années 2020", icon:"🌌", genres:[
     {g:"synth metalcore",req:"forge"},
@@ -146,6 +149,7 @@ const VOCAL_ERAS = [
     {v:"metalcore screams",req:"free"},{v:"pig squeals",req:"free"},{v:"deathcore lows",req:"forge"},
     {v:"gang shouts",req:"forge"},{v:"layered harsh vocals",req:"forge"},{v:"screamo screams",req:"forge"},
     {v:"guttural gurgles",req:"forge"},{v:"clean and scream combo",req:"forge"},
+    {v:"rapped vocals",req:"forge"},{v:"aggressive rap vocals",req:"forge"},
   ]},
   {name:"Moderne (10-20s)", icon:"🌌", vox:[
     {v:"hardcore beatdown vocals",req:"forge"},
@@ -153,7 +157,7 @@ const VOCAL_ERAS = [
     {v:"tunnel-throat gutturals",req:"forge"},{v:"goblin vocals",req:"forge"},{v:"throat singing",req:"forge"},{v:"spoken word narration",req:"forge"},{v:"choir vocals",req:"forge"},{v:"pitched-up shrieks",req:"forge"},
   ]},
 ];
-const VOCAL_NEW = ["clean powerful vocals","melodic clean singing","heavy metal wails","anthemic clean vocals","low death growls","doom clean chants","deathcore lows","screamo screams","clean and scream combo","hardcore beatdown vocals","modern clean and harsh mix","pitched-up shrieks","bluesy clean vocals","raw rock vocals","soulful clean singing","high wailing vocals","psychedelic vocals"];
+const VOCAL_NEW = ["clean powerful vocals","melodic clean singing","heavy metal wails","anthemic clean vocals","low death growls","doom clean chants","deathcore lows","screamo screams","clean and scream combo","hardcore beatdown vocals","modern clean and harsh mix","pitched-up shrieks","bluesy clean vocals","raw rock vocals","soulful clean singing","high wailing vocals","psychedelic vocals","rapped vocals","aggressive rap vocals"];
 
 const VFX    = ["vocal reverb","vocal distortion","pitch-shifted vocals","dual vocal tracking","megaphone effect","layered vocal harmonies","telephone EQ vocals","reverb tail vocals","doubled screams","gated vocal fx"];
 const VOCAL_RANGE = ["piccolo highs","tenor","baritone","bass vocals","falsetto","soprano","alto","mezzo-soprano","countertenor","false chord highs","fry screams","mid-range screams","low gutturals","subharmonic lows","tunnel-throat lows"];
@@ -270,6 +274,30 @@ const payUrl = (base, email) =>
   base && !base.includes("YOUR_") && email
     ? `${base}?prefilled_email=${encodeURIComponent(email)}`
     : base;
+// ── Auto-config semi-aléatoire par genre (agencement probable + variété anti-redondance) ──
+const _ri=n=>Math.floor(Math.random()*n);
+const _rand=(a,b)=>a+_ri(b-a+1);
+const _pick=(arr,n)=>{const c=[...arr];const o=[];for(let i=0;i<n&&c.length;i++)o.push(c.splice(_ri(c.length),1)[0]);return o;};
+function genreProfile(g){
+  const s=(g||'').toLowerCase(), has=k=>s.includes(k);
+  if(has('black')) return {bpm:[180,230],drums:['blast beats','hyperblast beats','gravity blast beats','tremolo picking'],vocals:['black metal shrieks','high-pitched screams','raspy harsh vocals'],mood:['sinister and dark','dark and menacing','epic'],heavy:[6,9],groove:[2,5],chaos:[6,9],melody:[3,7]};
+  if(has('death')||has('brutal')||has('slam')||has('grind')) return {bpm:[180,240],drums:['blast beats','double bass drumming','machine-gun double bass','gravity blast beats'],vocals:['guttural death growls','pig squeals','deathcore lows'],mood:['crushing and heavy','sinister and dark','chaotic and frantic'],heavy:[8,10],groove:[3,6],chaos:[6,9],melody:[1,4]};
+  if(has('doom')||has('sludge')||has('funeral')) return {bpm:[60,100],drums:['half-time groove','tom-heavy fills','big room toms'],vocals:['tortured screams','clean melodic chorus vocals','guttural death growls'],mood:['crushing and heavy','dark and menacing','epic'],heavy:[7,10],groove:[5,8],chaos:[2,5],melody:[3,7]};
+  if(has('thrash')||has('speed')||has('crossover')) return {bpm:[170,210],drums:['thrash beat','d-beat','double bass drumming'],vocals:['raspy harsh vocals','high-pitched screams','gang shouts'],mood:['intense and aggressive','raw and abrasive'],heavy:[6,9],groove:[4,7],chaos:[5,8],melody:[2,5]};
+  if(has('djent')||has('progressive')||has('math')) return {bpm:[120,160],drums:['polyrhythmic drums','syncopated rhythms','djent groove','double bass drumming'],vocals:['mid-range harsh vocals','clean melodic chorus vocals'],mood:['groovy and headbang-worthy','intense and aggressive','dissonant'],heavy:[6,9],groove:[6,9],chaos:[5,8],melody:[4,8]};
+  if(has('groove')||has('nu-metal')||has('rap')||has('alternative')) return {bpm:[110,150],drums:['groovy mid-tempo drums','half-time groove','bounce groove','two-step beat'],vocals:['mid-range harsh vocals','gang shouts','clean melodic chorus vocals'],mood:['groovy and headbang-worthy','intense and aggressive'],heavy:[5,8],groove:[7,10],chaos:[3,6],melody:[4,7]};
+  if(has('core')||has('hardcore')||has('beatdown')) return {bpm:[140,185],drums:['stomp breakdown drums','two-step beat','double bass drumming','bounce groove','deathcore groove'],vocals:['metalcore screams','clean melodic chorus vocals','gang shouts','guttural death growls'],mood:['intense and aggressive','melodic and atmospheric'],heavy:[6,9],groove:[6,9],chaos:[4,7],melody:[4,8]};
+  return {bpm:[150,185],drums:['double bass drumming','blast beats','groovy mid-tempo drums','d-beat'],vocals:['mid-range harsh vocals','raspy harsh vocals','metalcore screams'],mood:['intense and aggressive','dark and menacing'],heavy:[6,9],groove:[4,7],chaos:[4,7],melody:[2,6]};
+}
+function randStructure(){
+  const out=['intro','verse','chorus'];
+  if(Math.random()>0.25) out.push('breakdown');
+  if(Math.random()>0.5) out.push('prechorus');
+  const extra=['buildup','halftime','blastsection','drop','solo','bridge','gangchant','riffbreak','interlude','atmosphericbreak'];
+  const n=_rand(1,3);for(let i=0;i<n;i++){const e=extra[_ri(extra.length)];if(!out.includes(e))out.push(e);}
+  out.push('outro');
+  return out;
+}
 const TIER_RANK = {free:0,forge:1,pro:2,elite:3,eliteplus:4};
 const LIMITS = {free:{prompts:3,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity},eliteplus:{prompts:Infinity,lyrics:Infinity}};
 const TAB_REQ = {genre:"free",drums:"free",vocals:"free",guitar:"forge",bass:"forge",instru:"forge",structure:"forge",paroles:"pro",organic:"pro",exclude:"elite",output:"free",history:"pro"};
@@ -924,7 +952,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
     return [s,toggle,setAll];
   };
 
-  const [genres,tGenre,setGenres]=useSet(["deathcore","metalcore"]);
+  const [genres,tGenre,setGenres]=useSet([]);
   const [genreFilter,setGenreFilter]=useState("");
   const [openFam,setOpenFam]=useState({});
   const [vocFilter,setVocFilter]=useState("");
@@ -933,10 +961,10 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [openDrumEra,setOpenDrumEra]=useState({});
   const [gtrFilter,setGtrFilter]=useState("");
   const [openGtrEra,setOpenGtrEra]=useState({});
-  const [mood,tMood,setMood]=useSet(["crushing and heavy","groovy and headbang-worthy"]);
-  const [drums,tDrums,setDrums]=useSet(["blast beats","double bass drumming"]);
+  const [mood,tMood,setMood]=useSet([]);
+  const [drums,tDrums,setDrums]=useSet([]);
   const [drumP,tDrumP,setDrumP]=useSet(["triggered drums"]);
-  const [vocals,tVocal,setVocals]=useSet(["guttural death growls","pig squeals"]);
+  const [vocals,tVocal,setVocals]=useSet([]);
   const [vrange,tVrange,setVrange]=useSet([]);
   const [vfx,tVfx,setVfx]=useSet([]);
   const [guitar,tGuitar,setGuitar]=useSet(["chugging riffs","palm muting"]);
@@ -956,7 +984,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [orgDrm,tOrgDrm,setOrgDrm]=useSet([]);
   const [orgVoc,tOrgVoc,setOrgVoc]=useSet([]);
   const [orgGtr,tOrgGtr,setOrgGtr]=useSet([]);
-  const [structs,tStruct,setStructs]=useSet(["intro","verse","chorus","breakdown","outro"]);
+  const [structs,tStruct,setStructs]=useSet([]);
   const [themes,tTheme]=useSet(["mort et décomposition"]);
   const [latmo,tLatmo]=useSet(["sombre et menaçant"]);
   const [lblocks,tLblock,setLblocks]=useSet(["verse","chorus","breakdown"]);
@@ -991,6 +1019,20 @@ export default function App({ user, onLogout, onRequestAuth }) {
     if(p.guitar)setGuitar(p.guitar);
     if(p.tuning)setTuning(p.tuning);
   };
+  // Clic sur un genre → agencement probable + variété semi-aléatoire (anti-redondance)
+  const autoFillGenre=(g)=>{
+    const pr=genreProfile(g);
+    setBPM(_rand(pr.bpm[0],pr.bpm[1]));
+    setDrums(_pick(pr.drums,1+_ri(2)));
+    setVocals(_pick(pr.vocals,1+_ri(2)));
+    setMood(_pick(pr.mood,1+_ri(2)));
+    setStructs(randStructure());
+    setHeavy(_rand(pr.heavy[0],pr.heavy[1]));
+    setGroove(_rand(pr.groove[0],pr.groove[1]));
+    setChaos(_rand(pr.chaos[0],pr.chaos[1]));
+    setMelody(_rand(pr.melody[0],pr.melody[1]));
+  };
+  const onGenrePick=(g)=>{const adding=!genres.has(g);tGenre(g);if(adding)autoFillGenre(g);};
   // ── MON SOUND (custom model perso, localStorage) ──
   const [sounds,setSounds]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_sounds")||"[]")}catch{return[]}});
   const persistSounds=arr=>{setSounds(arr);try{localStorage.setItem("mpf_sounds",JSON.stringify(arr))}catch{}};
@@ -1213,7 +1255,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                 <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{fam.icon} {fam.name.toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
                 <span style={{color:"#777",fontSize:"0.75rem"}}>{open?"▾":"▸"}</span>
               </div>
-              {open&&<div style={{marginBottom:"8px"}}><Tags list={list} sel={genres} toggle={tGenre} lockedItems={locked} newItems={GENRES_NEW} filter={genreFilter}/></div>}
+              {open&&<div style={{marginBottom:"8px"}}><Tags list={list} sel={genres} toggle={onGenrePick} lockedItems={locked} newItems={GENRES_NEW} filter={genreFilter}/></div>}
             </div>);
           })}
           {genreFilter.trim() && !GENRE_FAMILIES.some(fam=>fam.genres.some(x=>x.g.toLowerCase().includes(genreFilter.trim().toLowerCase()))) && <div style={{fontSize:"0.7rem",color:"#666",padding:"10px 0"}}>{L("Aucun genre trouvé.","No genre found.")}</div>}

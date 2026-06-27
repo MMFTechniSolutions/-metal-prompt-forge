@@ -92,6 +92,17 @@
         </select>
       </div>
       <div class="cg">
+        <label>Scène (saveur régionale)</label>
+        <select id="scene">
+          <option value="">— Aucune —</option>
+          <option value="norwegian">🇳🇴 Norvégienne</option>
+          <option value="finnish">🇫🇮 Finlandaise</option>
+          <option value="swedish">🇸🇪 Suédoise</option>
+          <option value="german">🇩🇪 Allemande</option>
+          <option value="american">🇺🇸 Américaine</option>
+        </select>
+      </div>
+      <div class="cg">
         <label>Tuning</label>
         <select id="tuning">
           <option value="E2">Standard E</option>
@@ -656,6 +667,7 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
   const tier=new URLSearchParams(location.search).get('tier')||'free';
   const body={
     style:document.getElementById('style').value,
+    scene:document.getElementById('scene').value,
     tuning:document.getElementById('tuning').value,
     bpm:document.getElementById('bpm').value,
     dist:document.getElementById('dist').value,

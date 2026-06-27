@@ -185,7 +185,9 @@ function buildPrompt(p){
     dissonant:['dissonant chords','unsettling tension'],
   };
   // Pépite Suno : 4-7 descripteurs FOCUS battent 15 éparpillés. Genre en premier (ancrage fort).
-  const tags=[G[p.style]||'metal', bpm+' BPM', tempo, D[p.drumKey]||'heavy drums', T[p.root]||'', ...(FLAVOR[p.style]||['chugging riffs','downtuned']).slice(0,2)];
+  const SCENE={norwegian:'norwegian',finnish:'finnish',swedish:'swedish',german:'german',american:'american'};
+  const genre=(SCENE[p.scene]?SCENE[p.scene]+' ':'')+(G[p.style]||'metal');
+  const tags=[genre, bpm+' BPM', tempo, D[p.drumKey]||'heavy drums', T[p.root]||'', ...(FLAVOR[p.style]||['chugging riffs','downtuned']).slice(0,2)];
   return tags.filter(Boolean).join(', ');
 }
 
@@ -214,6 +216,7 @@ export default function handler(req, res){
     drumKey,
     structure: STRUCTURES[b.structure] ? b.structure : 'loop',
     lead: b.lead || 'none',
+    scene: (b.scene || '').toLowerCase(),
     guit: TREMOLO.includes(style) ? [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] : STYLE_PAT[style],
     bass: BASS_PAT[style],
     drum: customDrum || DRUM_PAT[drumKey],

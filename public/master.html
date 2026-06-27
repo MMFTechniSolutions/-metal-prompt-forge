@@ -71,6 +71,19 @@
   .stem .eqr .eqk{font-family:'Share Tech Mono',monospace;font-size:.42rem;color:var(--ash);width:18px;text-align:left;letter-spacing:.02em;}
   .stem .eqr input{flex:1;height:9px;accent-color:#9b59b6;}
   .stem .eqr .eqv{font-family:'Share Tech Mono',monospace;font-size:.42rem;color:#cdd;width:18px;text-align:right;}
+  /* Sidechain kick→basse */
+  .scpanel{background:#120c0c;border:1px solid #3a2020;border-radius:8px;padding:12px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;}
+  .scpanel .sctitle{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--ember-hot);letter-spacing:.1em;display:flex;align-items:center;gap:7px;}
+  .scpanel .scf{display:flex;flex-direction:column;gap:3px;}
+  .scpanel .scf label{font-size:.5rem;}
+  .scpanel select{background:#1a1216;border:1px solid #3a2020;color:var(--bone);font-family:'Share Tech Mono',monospace;font-size:.62rem;padding:4px 6px;border-radius:4px;}
+  .scpanel .scf.sl{min-width:120px;}
+  .scpanel .scf.sl input{width:120px;accent-color:var(--ember);}
+  .scpanel .scv{font-family:'Share Tech Mono',monospace;font-size:.55rem;color:#cdd;}
+  .scpanel .sw{position:relative;width:34px;height:18px;background:#2a1818;border-radius:10px;cursor:pointer;border:1px solid #3a2020;}
+  .scpanel .sw.on{background:var(--ember);}
+  .scpanel .sw::after{content:'';position:absolute;top:1px;left:1px;width:14px;height:14px;border-radius:50%;background:#ccc;transition:.15s;}
+  .scpanel .sw.on::after{left:17px;background:#fff;}
 </style>
 </head>
 <body>
@@ -88,6 +101,7 @@
     <div class="stemwrap" id="stemWrap" style="display:none;">
       <div class="stemhint">🎚️ PISTES — fais ton mix avant de masteriser (M = mute · S = solo)</div>
       <div class="mixchassis" id="stemConsole"></div>
+      <div class="scpanel" id="scPanel" style="display:none;"></div>
     </div>
   </div>
 
@@ -184,9 +198,41 @@ function buildStemChain(ctx,st,rate,loop){
   const mid=ctx.createBiquadFilter();mid.type='peaking';mid.frequency.value=SE.midHz;mid.Q.value=SE.midQ;mid.gain.value=st.mid||0;
   const hi=ctx.createBiquadFilter();hi.type='highshelf';hi.frequency.value=SE.hiHz;hi.gain.value=st.hi||0;
   const g=ctx.createGain();g.gain.value=effGain(st);
+  const duck=ctx.createGain();duck.gain.value=1; // node de ducking (sidechain) — base 1 = passthrough
   const pn=ctx.createStereoPanner();pn.pan.value=Math.max(-1,Math.min(1,st.pan/100));
-  s.connect(lo);lo.connect(mid);mid.connect(hi);hi.connect(g);g.connect(pn);
-  return {s,lo,mid,hi,g,pn};
+  s.connect(lo);lo.connect(mid);mid.connect(hi);hi.connect(g);g.connect(duck);duck.connect(pn);
+  return {s,lo,mid,hi,g,duck,pn};
+}
+// ===== SIDECHAIN kick→basse (envelope-follower : pas de sidechain natif en Web Audio) =====
+let SC={on:false,trigId:null,targId:null,depth:0.6,rel:0.12};
+function buildDuckBuffer(ctx,trigBuf,depth,rel,durSec){
+  const ctrlRate=3000;
+  const n=Math.max(1,Math.ceil(durSec*ctrlRate));
+  const trigLen=trigBuf.length, sr=trigBuf.sampleRate;
+  const block=Math.max(1,Math.floor(sr/ctrlRate));
+  const att=Math.exp(-1/(ctrlRate*0.002));            // attaque ~2ms (ducking rapide)
+  const relC=Math.exp(-1/(ctrlRate*Math.max(0.02,rel)));// release réglable
+  const ch0=trigBuf.getChannelData(0), ch1=trigBuf.numberOfChannels>1?trigBuf.getChannelData(1):null;
+  const env=new Float32Array(n); let e=0,mx=1e-6;
+  for(let i=0;i<n;i++){
+    const start=i*block; let peak=0;
+    if(start<trigLen){const end=Math.min(trigLen,start+block);for(let j=start;j<end;j++){let a=Math.abs(ch0[j]);if(ch1){const b=Math.abs(ch1[j]);if(b>a)a=b;}if(a>peak)peak=a;}}
+    e=(peak>e)?(att*e+(1-att)*peak):(relC*e+(1-relC)*peak);
+    env[i]=e; if(e>mx)mx=e;
+  }
+  const buf=ctx.createBuffer(1,n,ctrlRate);const d=buf.getChannelData(0);
+  for(let i=0;i<n;i++){d[i]=1-depth*Math.min(1,env[i]/mx);} // multiplicateur de gain (1 = ouvert, dip au kick)
+  return buf;
+}
+function setupSidechain(ctx,chMap,loop,durSec){
+  if(!SC.on||SC.trigId==null||SC.targId==null)return null;
+  const trig=stems.find(s=>s.id===SC.trigId), targ=chMap[SC.targId];
+  if(!trig||!targ)return null;
+  const buf=buildDuckBuffer(ctx,trig.buffer,SC.depth,SC.rel,durSec);
+  const src=ctx.createBufferSource();src.buffer=buf;src.loop=loop;
+  targ.duck.gain.value=0;            // base 0 → le signal de contrôle pilote entièrement le gain
+  src.connect(targ.duck.gain);src.start(0);
+  return src;
 }
 
 function applyPresetUI(name){
@@ -254,7 +300,35 @@ function renderStems(){
       </div>
       <button class="xbtn" data-act="del">✕ retirer</button>
     </div>`;}).join('');
+  renderSidechain();
 }
+function scAutoPick(){
+  const find=re=>stems.find(s=>re.test(s.name));
+  if(SC.trigId==null||!stems.some(s=>s.id===SC.trigId)){const t=find(/kick|drum|kik|batt/i)||stems[0];SC.trigId=t?t.id:null;}
+  if(SC.targId==null||!stems.some(s=>s.id===SC.targId)){let b=find(/bass|basse/i);if(!b)b=stems.find(s=>s.id!==SC.trigId);SC.targId=b?b.id:null;}
+}
+function renderSidechain(){
+  const panel=document.getElementById('scPanel');
+  if(stems.length<2){panel.style.display='none';return;}
+  scAutoPick();panel.style.display='flex';
+  const opt=sel=>stems.map(s=>'<option value="'+s.id+'"'+(s.id===sel?' selected':'')+'>'+esc(s.name)+'</option>').join('');
+  panel.innerHTML='<div class="sctitle"><span class="sw'+(SC.on?' on':'')+'" data-sc="toggle"></span>⛓ SIDECHAIN — kick→basse</div>'
+    +'<div class="scf"><label>Déclencheur (kick)</label><select data-sc="trig">'+opt(SC.trigId)+'</select></div>'
+    +'<div class="scf"><label>Cible (basse)</label><select data-sc="targ">'+opt(SC.targId)+'</select></div>'
+    +'<div class="scf sl"><label>Profondeur <span class="scv">'+Math.round(SC.depth*100)+'%</span></label><input type="range" data-sc="depth" min="0" max="90" value="'+Math.round(SC.depth*100)+'" step="5"></div>'
+    +'<div class="scf sl"><label>Release <span class="scv">'+Math.round(SC.rel*1000)+'ms</span></label><input type="range" data-sc="rel" min="40" max="400" value="'+Math.round(SC.rel*1000)+'" step="10"></div>';
+}
+document.getElementById('scPanel').addEventListener('click',e=>{
+  if(e.target.dataset.sc==='toggle'){SC.on=!SC.on;e.target.classList.toggle('on',SC.on);if(monitoring)buildLive();}
+});
+document.getElementById('scPanel').addEventListener('input',e=>{
+  const k=e.target.dataset.sc;if(!k)return;
+  if(k==='trig')SC.trigId=+e.target.value;
+  else if(k==='targ')SC.targId=+e.target.value;
+  else if(k==='depth'){SC.depth=+e.target.value/100;const v=e.target.parentElement.querySelector('.scv');if(v)v.textContent=Math.round(SC.depth*100)+'%';}
+  else if(k==='rel'){SC.rel=+e.target.value/1000;const v=e.target.parentElement.querySelector('.scv');if(v)v.textContent=Math.round(SC.rel*1000)+'ms';}
+});
+document.getElementById('scPanel').addEventListener('change',()=>{if(monitoring)buildLive();});
 
 document.getElementById('stemConsole').addEventListener('input',e=>{
   const strip=e.target.closest('.stem');if(!strip)return;
@@ -302,7 +376,9 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   const off=new OfflineAudioContext(2, Math.ceil(len/rate), sr);
   // Somme des stems (EQ 3 bandes + volume + pan + mute/solo) → input du master bus
   const input=off.createGain();
-  stems.forEach(st=>{const ch=buildStemChain(off,st,rate,false);ch.pn.connect(input);ch.s.start(0);});
+  const chMapOff={};
+  stems.forEach(st=>{const ch=buildStemChain(off,st,rate,false);chMapOff[st.id]=ch;ch.pn.connect(input);ch.s.start(0);});
+  setupSidechain(off,chMapOff,false,len/sr);
 
   const hp=off.createBiquadFilter();hp.type='highpass';hp.frequency.value=CHAIN.hpHz;
   const mud=off.createBiquadFilter();mud.type='peaking';mud.frequency.value=CHAIN.mudHz;mud.Q.value=CHAIN.mudQ;mud.gain.value=-mudV;
@@ -352,7 +428,9 @@ async function renderDryMix(){
   const sr=mixSR(),len=maxLen();
   const off=new OfflineAudioContext(2,len,sr);
   const sum=off.createGain();sum.gain.value=0.9;
-  stems.forEach(st=>{const ch=buildStemChain(off,st,1,false);ch.pn.connect(sum);ch.s.start(0);});
+  const chMapDry={};
+  stems.forEach(st=>{const ch=buildStemChain(off,st,1,false);chMapDry[st.id]=ch;ch.pn.connect(sum);ch.s.start(0);});
+  setupSidechain(off,chMapDry,false,len/sr);
   sum.connect(off.destination);
   return await off.startRendering();
 }
@@ -398,11 +476,13 @@ function buildLive(){
   if(!stems.length)return;
   const c=getC();const rate=Math.pow(2,c.pitch/12);const p=PRESETS[curPreset]||{};
   actx=new (window.AudioContext||window.webkitAudioContext)();
-  const srcs=[],stemGains={},stemPanners={},stemEq={};const input=actx.createGain();
+  const srcs=[],stemGains={},stemPanners={},stemEq={},chMap={};const input=actx.createGain();
   stems.forEach(st=>{
-    const ch=buildStemChain(actx,st,rate,true);ch.pn.connect(input);
+    const ch=buildStemChain(actx,st,rate,true);ch.pn.connect(input);chMap[st.id]=ch;
     srcs.push(ch.s);stemGains[st.id]=ch.g;stemPanners[st.id]=ch.pn;stemEq[st.id]={lo:ch.lo,mid:ch.mid,hi:ch.hi};
   });
+  // Sidechain live (kick→basse) — la basse "respire" avec la grosse caisse
+  const scSrc=setupSidechain(actx,chMap,true,trigDur);if(scSrc)srcs.push(scSrc);
   const hp=actx.createBiquadFilter();hp.type='highpass';hp.frequency.value=CHAIN.hpHz;
   const mudN=actx.createBiquadFilter();mudN.type='peaking';mudN.frequency.value=CHAIN.mudHz;mudN.Q.value=CHAIN.mudQ;mudN.gain.value=-c.mud;
   const ls=actx.createBiquadFilter();ls.type='lowshelf';ls.frequency.value=RC('lowHz',90);ls.gain.value=c.low;
@@ -436,7 +516,7 @@ function applyLive(){
   const rate=Math.pow(2,c.pitch/12);liveNodes.srcs.forEach(s=>{try{s.playbackRate.value=rate;}catch(e){}});
 }
 function toggleBypass(){bypassed=!bypassed;if(liveNodes){liveNodes.chainGain.gain.value=bypassed?0:1;liveNodes.bypassGain.gain.value=bypassed?1:0;}document.getElementById('status').textContent=bypassed?'🅰 AVANT (bypass)':'🅱 APRES (masterise)';}
-document.getElementById('btnMon').addEventListener('click',()=>{buildLive();if(monitoring)document.getElementById('status').textContent='▶ Monitor LIVE — bouge les faders + Mute/Solo, t’entends en direct';});
+document.getElementById('btnMon').addEventListener('click',()=>{buildLive();if(monitoring)document.getElementById('status').textContent='▶ Monitor LIVE — bouge les faders + Mute/Solo + sidechain, t’entends en direct';});
 document.getElementById('btnStopMon').addEventListener('click',()=>{stopLive();document.getElementById('status').textContent='⏹ Monitor arrete.';});
 document.getElementById('btnAB').addEventListener('click',toggleBypass);
 document.getElementById('masterConsole').addEventListener('input',applyLive);

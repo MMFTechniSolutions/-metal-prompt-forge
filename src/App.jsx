@@ -1326,7 +1326,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             <div style={{...S.ctitle,marginBottom:0}}>🎭 {L("Émotions","Emotions")}</div>
             <span style={{fontSize:"0.55rem",color:"#666"}}>{Math.min(10,EMO_LIMIT[userTier]||2)}/10 {L("débloquées","unlocked")}</span>
           </div>
-          <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"10px",lineHeight:1.5}}>{L("Dose les émotions — MetalPrompt injecte les bons tags (recette secrète). La plus forte domine le morceau.","Dial emotions — MetalPrompt injects the matching tags (secret recipe). The strongest one dominates.")}</div>
+          <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"10px",lineHeight:1.5}}>{L("Dose les émotions — MetalPrompt injecte les bons tags. La plus forte domine le morceau.","Dial emotions — MetalPrompt injects the matching tags. The strongest one dominates.")}</div>
           {EMOTIONS.map((e,i)=>{
             const lim=Math.min(10,EMO_LIMIT[userTier]||2);const locked=i>=lim;const v=emotions[e.id]||0;
             if(locked) return (<div key={e.id} onClick={()=>setShowPaywall(true)} style={{display:"flex",alignItems:"center",gap:"8px",padding:"5px 0",opacity:0.4,cursor:"pointer"}}>
@@ -1340,7 +1340,6 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>);
           })}
         </div>
-        <div style={S.card}><div style={S.ctitle}>🎨 Mood / Vibe</div><Tags list={MOOD} sel={mood} toggle={tMood}/></div>
         <div style={{height:80}}/>
       </div>}
 

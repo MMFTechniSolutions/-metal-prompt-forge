@@ -90,12 +90,15 @@
     </div>
     <div style="margin-top:14px;margin-bottom:8px;font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--ember);letter-spacing:.12em;text-align:center;">🎚️ ÉGALISEUR — 6 BANDES</div>
     <div class="console" id="eqConsole">
-      <div class="chan"><div class="clabel">80 Hz</div><input type="range" class="fader" id="eq0" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq0Lbl').textContent=this.value"><div class="cval" id="eq0Lbl">0</div></div>
-      <div class="chan"><div class="clabel">250 Hz</div><input type="range" class="fader" id="eq1" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq1Lbl').textContent=this.value"><div class="cval" id="eq1Lbl">0</div></div>
-      <div class="chan"><div class="clabel">800 Hz</div><input type="range" class="fader" id="eq2" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq2Lbl').textContent=this.value"><div class="cval" id="eq2Lbl">0</div></div>
-      <div class="chan"><div class="clabel">2.5 kHz</div><input type="range" class="fader" id="eq3" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq3Lbl').textContent=this.value"><div class="cval" id="eq3Lbl">0</div></div>
-      <div class="chan"><div class="clabel">6 kHz</div><input type="range" class="fader" id="eq4" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq4Lbl').textContent=this.value"><div class="cval" id="eq4Lbl">0</div></div>
-      <div class="chan"><div class="clabel">12 kHz</div><input type="range" class="fader" id="eq5" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq5Lbl').textContent=this.value"><div class="cval" id="eq5Lbl">0</div></div>
+      <div class="chan"><div class="clabel">50 Hz</div><input type="range" class="fader" id="eq0" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq0Lbl').textContent=this.value"><div class="cval" id="eq0Lbl">0</div></div>
+      <div class="chan"><div class="clabel">120 Hz</div><input type="range" class="fader" id="eq1" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq1Lbl').textContent=this.value"><div class="cval" id="eq1Lbl">0</div></div>
+      <div class="chan"><div class="clabel">250 Hz</div><input type="range" class="fader" id="eq2" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq2Lbl').textContent=this.value"><div class="cval" id="eq2Lbl">0</div></div>
+      <div class="chan"><div class="clabel">500 Hz</div><input type="range" class="fader" id="eq3" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq3Lbl').textContent=this.value"><div class="cval" id="eq3Lbl">0</div></div>
+      <div class="chan"><div class="clabel">900 Hz</div><input type="range" class="fader" id="eq4" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq4Lbl').textContent=this.value"><div class="cval" id="eq4Lbl">0</div></div>
+      <div class="chan"><div class="clabel">1.8 kHz</div><input type="range" class="fader" id="eq5" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq5Lbl').textContent=this.value"><div class="cval" id="eq5Lbl">0</div></div>
+      <div class="chan"><div class="clabel">3.5 kHz</div><input type="range" class="fader" id="eq6" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq6Lbl').textContent=this.value"><div class="cval" id="eq6Lbl">0</div></div>
+      <div class="chan"><div class="clabel">6.5 kHz</div><input type="range" class="fader" id="eq7" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq7Lbl').textContent=this.value"><div class="cval" id="eq7Lbl">0</div></div>
+      <div class="chan"><div class="clabel">12 kHz</div><input type="range" class="fader" id="eq8" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq8Lbl').textContent=this.value"><div class="cval" id="eq8Lbl">0</div></div>
     </div>
   </div>
 
@@ -136,7 +139,7 @@ let audioBuf=null, fileName='master';
 let curPreset='flat';
 let masteredBuf=null, playCtx=null, playSrc=null;
 let actx=null, liveNodes=null, monitoring=false, bypassed=false, stemMode=false, stems=[];
-const EQ_FREQS=[80,250,800,2500,6000,12000];
+const EQ_FREQS=[50,120,250,500,900,1800,3500,6500,12000];
 // Charge la recette calibrée du serveur (sinon garde le fallback)
 fetch('/api/master').then(r=>r.json()).then(d=>{if(d&&d.presets){PRESETS=d.presets;if(d.chain)CHAIN=d.chain;applyPresetUI(curPreset);}}).catch(()=>{});
 

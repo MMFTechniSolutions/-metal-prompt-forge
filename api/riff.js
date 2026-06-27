@@ -168,7 +168,23 @@ function buildPrompt(p){
   const T={E2:'standard E tuning',Eb2:'Eb tuning',D2:'D standard tuning',Db2:'drop C# tuning',C2:'C standard tuning',B1:'B standard tuning'};
   const bpm=p.bpm;
   const tempo=bpm>=210?'blistering fast tempo':bpm>=170?'fast tempo':bpm>=120?'mid-tempo':bpm>=90?'slow groovy tempo':'slow doom tempo';
-  const tags=[G[p.style]||'metal', bpm+' BPM', tempo, D[p.drumKey]||'heavy drums', T[p.root]||'', 'chugging riffs', 'heavy distortion', 'tight low end', 'aggressive and crushing'];
+  // Saveur par style — vocabulaire pointu qui pousse Suno dans le bon stock (incl. termes de scène)
+  const FLAVOR={
+    thrash:['fast tremolo picking','relentless aggression'],
+    death:['guttural growls','brutal tremolo riffs'],
+    doom:['crushing slow riffs','heavy doom atmosphere'],
+    blackened:['tremolo picking','raw kvlt production','icy atmosphere'],
+    groove:['syncopated headbang groove','thick mid-range'],
+    djent:['polyrhythmic chugs','8-string guitar','tight staccato'],
+    speed:['galloping riffs','high-octane energy'],
+    slam:['slamming breakdowns','sub-heavy brutality'],
+    sludge:['feedback-drenched','sludgy fuzz'],
+    postmetal:['atmospheric build-up','cinematic dynamics'],
+    grindcore:['chaotic blast beats','raw intensity'],
+    funeraldoom:['funeral atmosphere','monolithic slow riffs'],
+    dissonant:['dissonant chords','unsettling tension'],
+  };
+  const tags=[G[p.style]||'metal', bpm+' BPM', tempo, D[p.drumKey]||'heavy drums', T[p.root]||'', ...(FLAVOR[p.style]||['chugging riffs']), 'heavy distortion', 'tight low end', 'wall of sound', 'aggressive and crushing'];
   return tags.filter(Boolean).join(', ');
 }
 

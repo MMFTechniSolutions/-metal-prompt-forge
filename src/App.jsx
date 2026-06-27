@@ -124,7 +124,7 @@ const DRUM_ERAS = [
     {v:"machine-gun double bass",req:"free"},{v:"stomp breakdown drums",req:"free"},{v:"deathcore groove",req:"free"},{v:"breakbeat percussion",req:"forge"},{v:"china cymbal accents",req:"forge"},{v:"bounce groove",req:"forge"},{v:"gravity blast beats",req:"pro"},
   ]},
   {name:"Moderne (10-20s)", icon:"🌌", d:[
-    {v:"polyrhythmic drums",req:"forge"},{v:"syncopated rhythms",req:"forge"},{v:"djent groove",req:"pro"},{v:"math metal drums",req:"pro"},{v:"modern hybrid blast",req:"elite"},
+    {v:"polyrhythmic drums",req:"forge"},{v:"syncopated rhythms",req:"forge"},{v:"djent groove",req:"pro"},{v:"math metal drums",req:"pro"},{v:"ghost-note drumming",req:"forge"},{v:"tribal drumming",req:"forge"},{v:"modern hybrid blast",req:"elite"},
   ]},
 ];
 const DRUM_NEW = ["thrash beat","galloping drums","two-step beat","deathcore groove","bounce groove","djent groove","math metal drums","modern hybrid blast","straight rock beat","four-on-the-floor","bluesy shuffle","swing groove","big room toms"];
@@ -143,7 +143,7 @@ const VOCAL_ERAS = [
   {name:"90s", icon:"⛓️", vox:[
     {v:"guttural death growls",req:"free"},{v:"raspy harsh vocals",req:"free"},{v:"low death growls",req:"forge"},
     {v:"mid-range harsh vocals",req:"forge"},{v:"raspy mid screams",req:"forge"},{v:"tortured screams",req:"forge"},
-    {v:"black metal shrieks",req:"forge"},{v:"doom clean chants",req:"forge"},
+    {v:"black metal shrieks",req:"forge"},{v:"low false-chord growls",req:"forge"},{v:"doom clean chants",req:"forge"},
   ]},
   {name:"2000s", icon:"🔥", vox:[
     {v:"metalcore screams",req:"free"},{v:"pig squeals",req:"free"},{v:"deathcore lows",req:"forge"},
@@ -154,7 +154,7 @@ const VOCAL_ERAS = [
   {name:"Moderne (10-20s)", icon:"🌌", vox:[
     {v:"hardcore beatdown vocals",req:"forge"},
     {v:"whispered spoken word",req:"forge"},{v:"demonic inhale vocals",req:"forge"},{v:"whisper-to-scream dynamics",req:"forge"},{v:"fry screams",req:"forge"},{v:"modern clean and harsh mix",req:"forge"},
-    {v:"tunnel-throat gutturals",req:"forge"},{v:"goblin vocals",req:"forge"},{v:"throat singing",req:"forge"},{v:"spoken word narration",req:"forge"},{v:"choir vocals",req:"forge"},{v:"pitched-up shrieks",req:"forge"},
+    {v:"tunnel-throat gutturals",req:"forge"},{v:"goblin vocals",req:"forge"},{v:"throat singing",req:"forge"},{v:"spoken word narration",req:"forge"},{v:"choir vocals",req:"forge"},{v:"heavy breathing",req:"forge"},{v:"powerful belt",req:"forge"},{v:"ritual chant",req:"forge"},{v:"pitched-up shrieks",req:"forge"},
   ]},
 ];
 const VOCAL_NEW = ["clean powerful vocals","melodic clean singing","heavy metal wails","anthemic clean vocals","low death growls","doom clean chants","deathcore lows","screamo screams","clean and scream combo","hardcore beatdown vocals","modern clean and harsh mix","pitched-up shrieks","bluesy clean vocals","raw rock vocals","soulful clean singing","high wailing vocals","psychedelic vocals","rapped vocals","aggressive rap vocals"];
@@ -176,7 +176,7 @@ const GUITAR_ERAS = [
     {v:"breakdown chugs",req:"free"},{v:"legato runs",req:"forge"},{v:"dual guitar harmonies",req:"forge"},{v:"melodic lead harmonies",req:"pro"},
   ]},
   {name:"Moderne (10-20s)", icon:"🌌", d:[
-    {v:"djent-style syncopated riffs",req:"forge"},{v:"polymetric riffs",req:"pro"},{v:"tapped arpeggios",req:"pro"},{v:"djent chug-stutter",req:"pro"},{v:"ambient lead textures",req:"elite"},
+    {v:"djent-style syncopated riffs",req:"forge"},{v:"polymetric riffs",req:"pro"},{v:"tapped arpeggios",req:"pro"},{v:"djent chug-stutter",req:"pro"},{v:"dissonant riffs",req:"forge"},{v:"8-string staccato chugs",req:"pro"},{v:"ambient lead textures",req:"elite"},
   ]},
 ];
 const GUITAR_NEW = ["galloping riffs","melodic shred solos","groove riffs","drop-tuned riffs","breakdown chugs","dual guitar harmonies","melodic lead harmonies","polymetric riffs","tapped arpeggios","djent chug-stutter","ambient lead textures","bluesy bends","pentatonic riffs","fuzz riffs","wah-wah leads","vintage overdrive licks"];
@@ -191,12 +191,26 @@ const SAX    = ["aggressive saxophone","baritone saxophone","alto saxophone","te
 const BRASS  = ["brass section","trumpet","trombone","french horn","epic horn section","fanfare brass","dissonant brass stabs"];
 const KEYS   = ["keyboards","synthesizer","organ","piano","theremin","church organ","harpsichord","ambient synth pads","horror synth","mellotron","choir synth"];
 const STRINGS= ["violin","cello","string orchestra","staccato strings","epic film strings","cello section","dissonant string clusters","tremolo strings"];
-const PROD   = ["heavy production","lo-fi raw recording","modern metal production","wall of sound mixing","crisp high-end mix","analog warm tone"];
+const PROD   = ["heavy production","lo-fi raw recording","modern metal production","wall of sound mixing","crisp high-end mix","analog warm tone","modern polished mix","scooped mids","tight bass","forward kick and snare","very loud drums and guitars","aggressive mix","clean digital production","atmospheric reverb-heavy mix"];
 const ORG_RECORD = ["live recording","analog tape","rehearsal recording","room ambience","studio bleed","natural room sound","lo-fi raw recording","imperfect takes"];
 const ORG_DRUMS  = ["live drums","natural drum room","overhead mics","snare bleed","kick bleed","human feel drumming","slightly loose tempo","natural drum dynamics","imperfect timing"];
 const ORG_VOCALS = ["raw vocal take","no autotune","natural vocal imperfections","throat vocals","physical vocal strain","analog vocal chain","close mic'd vocals","wet room reverb","vocal breathiness"];
 const ORG_GUITAR = ["tube amp recording","cabinet mic'd","natural pick attack","slight string buzz","analog distortion","tube saturation","live room guitar","natural feedback","amp hum"];
 const ORG_AVOID  = ["perfect production","polished mix","crisp","digital","quantized","pitch corrected","over-produced","clean mix"];
+// Émotions — méta d'affichage seulement (la recette émotion->tags vit dans /api/forge, secrète)
+const EMOTIONS=[
+  {id:'rage',label:'Rage',icon:'🔥',c:'#ff2e2e'},
+  {id:'melancholy',label:'Mélancolie',icon:'🌧️',c:'#5a8fd0'},
+  {id:'despair',label:'Désespoir',icon:'🕳️',c:'#888'},
+  {id:'triumph',label:'Triomphe',icon:'⚡',c:'#ffcc00'},
+  {id:'coldness',label:'Froideur',icon:'❄️',c:'#7fd0ff'},
+  {id:'defiance',label:'Défiance',icon:'✊',c:'#ff7a00'},
+  {id:'dread',label:'Effroi',icon:'👁️',c:'#9b59b6'},
+  {id:'transcendence',label:'Transcendance',icon:'🌌',c:'#b06bff'},
+  {id:'madness',label:'Démence',icon:'🌀',c:'#e91e8c'},
+  {id:'profanation',label:'Profanation',icon:'⛧',c:'#b00710'},
+];
+const EMO_LIMIT={free:2,forge:4,pro:6,elite:10,eliteplus:10};
 const EXCL_GENRES = ["pop","jazz","classical","country","r&b","hip hop","electronic","edm","ambient","folk","reggae","latin","disco","funk","soul","gospel","blues","indie pop","synthpop","new age"];
 const EXCL_VOCALS = ["clean vocals","autotune","pitch correction","electronic vocals","vocoder","falsetto","soft vocals","whisper vocals","pop vocals","processed vocals","digital vocal fx"];
 const EXCL_PROD   = ["polished production","crisp mix","over-produced","digital production","perfect timing","quantized drums","sterile mix","radio mix"];
@@ -280,13 +294,17 @@ const _rand=(a,b)=>a+_ri(b-a+1);
 const _pick=(arr,n)=>{const c=[...arr];const o=[];for(let i=0;i<n&&c.length;i++)o.push(c.splice(_ri(c.length),1)[0]);return o;};
 function genreProfile(g){
   const s=(g||'').toLowerCase(), has=k=>s.includes(k);
-  if(has('black')) return {bpm:[180,230],drums:['blast beats','hyperblast beats','gravity blast beats','tremolo picking'],vocals:['black metal shrieks','high-pitched screams','raspy harsh vocals'],mood:['sinister and dark','dark and menacing','epic'],heavy:[6,9],groove:[2,5],chaos:[6,9],melody:[3,7]};
-  if(has('death')||has('brutal')||has('slam')||has('grind')) return {bpm:[180,240],drums:['blast beats','double bass drumming','machine-gun double bass','gravity blast beats'],vocals:['guttural death growls','pig squeals','deathcore lows'],mood:['crushing and heavy','sinister and dark','chaotic and frantic'],heavy:[8,10],groove:[3,6],chaos:[6,9],melody:[1,4]};
-  if(has('doom')||has('sludge')||has('funeral')) return {bpm:[60,100],drums:['half-time groove','tom-heavy fills','big room toms'],vocals:['tortured screams','clean melodic chorus vocals','guttural death growls'],mood:['crushing and heavy','dark and menacing','epic'],heavy:[7,10],groove:[5,8],chaos:[2,5],melody:[3,7]};
-  if(has('thrash')||has('speed')||has('crossover')) return {bpm:[170,210],drums:['thrash beat','d-beat','double bass drumming'],vocals:['raspy harsh vocals','high-pitched screams','gang shouts'],mood:['intense and aggressive','raw and abrasive'],heavy:[6,9],groove:[4,7],chaos:[5,8],melody:[2,5]};
+  if(has('grind')) return {bpm:[200,280],drums:['gravity blast beats','blast beats','machine-gun double bass'],vocals:['guttural death growls','high-pitched screams','pig squeals'],mood:['chaotic and frantic','crushing and heavy','raw and abrasive'],heavy:[8,10],groove:[2,5],chaos:[8,10],melody:[1,3]};
+  if(has('slam')) return {bpm:[80,120],drums:['stomp breakdown drums','half-time groove','machine-gun double bass'],vocals:['deathcore lows','guttural death growls','pig squeals'],mood:['crushing and heavy','groovy and headbang-worthy','sinister and dark'],heavy:[9,10],groove:[6,9],chaos:[3,6],melody:[1,3]};
+  if(has('deathcore')) return {bpm:[110,180],drums:['blast beats','double bass drumming','stomp breakdown drums','deathcore groove'],vocals:['guttural death growls','pig squeals','high-pitched screams','deathcore lows'],mood:['crushing and heavy','sinister and dark','intense and aggressive'],heavy:[8,10],groove:[5,8],chaos:[5,8],melody:[2,5]};
+  if(has('black')) return {bpm:[150,210],drums:['blast beats','hyperblast beats','gravity blast beats','tremolo picking'],vocals:['black metal shrieks','high-pitched screams','raspy harsh vocals'],mood:['sinister and dark','dark and menacing','epic'],heavy:[6,9],groove:[2,5],chaos:[6,9],melody:[3,7]};
+  if(has('death')||has('brutal')||has('tech')) return {bpm:[150,220],drums:['blast beats','double bass drumming','machine-gun double bass','gravity blast beats'],vocals:['guttural death growls','pig squeals','deathcore lows'],mood:['crushing and heavy','sinister and dark','chaotic and frantic'],heavy:[8,10],groove:[3,6],chaos:[6,9],melody:[1,4]};
+  if(has('doom')||has('sludge')||has('funeral')||has('drone')) return {bpm:[55,90],drums:['half-time groove','tom-heavy fills','big room toms'],vocals:['tortured screams','clean melodic chorus vocals','guttural death growls'],mood:['crushing and heavy','dark and menacing','epic'],heavy:[7,10],groove:[5,8],chaos:[2,5],melody:[3,7]};
+  if(has('thrash')||has('speed')||has('crossover')) return {bpm:[150,200],drums:['thrash beat','d-beat','double bass drumming'],vocals:['raspy harsh vocals','high-pitched screams','gang shouts'],mood:['intense and aggressive','raw and abrasive'],heavy:[6,9],groove:[4,7],chaos:[5,8],melody:[2,5]};
   if(has('djent')||has('progressive')||has('math')) return {bpm:[120,160],drums:['polyrhythmic drums','syncopated rhythms','djent groove','double bass drumming'],vocals:['mid-range harsh vocals','clean melodic chorus vocals'],mood:['groovy and headbang-worthy','intense and aggressive','dissonant'],heavy:[6,9],groove:[6,9],chaos:[5,8],melody:[4,8]};
-  if(has('groove')||has('nu-metal')||has('rap')||has('alternative')) return {bpm:[110,150],drums:['groovy mid-tempo drums','half-time groove','bounce groove','two-step beat'],vocals:['mid-range harsh vocals','gang shouts','clean melodic chorus vocals'],mood:['groovy and headbang-worthy','intense and aggressive'],heavy:[5,8],groove:[7,10],chaos:[3,6],melody:[4,7]};
-  if(has('core')||has('hardcore')||has('beatdown')) return {bpm:[140,185],drums:['stomp breakdown drums','two-step beat','double bass drumming','bounce groove','deathcore groove'],vocals:['metalcore screams','clean melodic chorus vocals','gang shouts','guttural death growls'],mood:['intense and aggressive','melodic and atmospheric'],heavy:[6,9],groove:[6,9],chaos:[4,7],melody:[4,8]};
+  if(has('power')||has('symphonic')) return {bpm:[140,185],drums:['double bass drumming','thrash beat','groovy mid-tempo drums'],vocals:['clean melodic chorus vocals','high-pitched screams'],mood:['epic','melodic and atmospheric','intense and aggressive'],heavy:[5,8],groove:[4,7],chaos:[3,6],melody:[6,9]};
+  if(has('groove')||has('nu-metal')||has('nu metal')||has('rap')||has('alternative')||has('industrial')) return {bpm:[90,130],drums:['groovy mid-tempo drums','half-time groove','bounce groove','two-step beat'],vocals:['mid-range harsh vocals','gang shouts','clean melodic chorus vocals'],mood:['groovy and headbang-worthy','intense and aggressive'],heavy:[5,8],groove:[7,10],chaos:[3,6],melody:[4,7]};
+  if(has('core')||has('hardcore')||has('beatdown')) return {bpm:[125,170],drums:['stomp breakdown drums','two-step beat','double bass drumming','bounce groove','deathcore groove'],vocals:['metalcore screams','clean melodic chorus vocals','gang shouts','guttural death growls'],mood:['intense and aggressive','melodic and atmospheric'],heavy:[6,9],groove:[6,9],chaos:[4,7],melody:[4,8]};
   return {bpm:[150,185],drums:['double bass drumming','blast beats','groovy mid-tempo drums','d-beat'],vocals:['mid-range harsh vocals','raspy harsh vocals','metalcore screams'],mood:['intense and aggressive','dark and menacing'],heavy:[6,9],groove:[4,7],chaos:[4,7],melody:[2,6]};
 }
 function randStructure(){
@@ -1038,6 +1056,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [exclInst,tExclInst,setExclInst]=useSet([]);
   const [exclCustom,setExclCustom]=useState("");
   const [heavy,setHeavy]=useState(9);
+  const [emotions,setEmotions]=useState({});
   const [groove,setGroove]=useState(6);
   const [chaos,setChaos]=useState(7);
   const [melody,setMelody]=useState(3);
@@ -1114,7 +1133,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       bassStyle:[...bassStyle],bassTech:[...bassTech],bassTone:[...bassTone],bassTuning:[...bassTuning],bassProd:[...bassProd],sax:[...sax],brass:[...brass],keys:[...keys],strings:[...strings],
       org:isPro?[...orgRec,...orgDrm,...orgVoc,...orgGtr]:[],
       excl:isElite?{g:[...exclGenre],v:[...exclVocal],p:[...exclProd],i:[...exclInst],c:exclCustom}:null,
-      structs:[...structs],blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,
+      structs:[...structs],blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions,tier:userTier,
     };
     let data;
     try{
@@ -1301,6 +1320,25 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <Slider label="Groove Factor" val={groove} setVal={setGroove}/>
           <Slider label="Chaos Level" val={chaos} setVal={setChaos}/>
           <Slider label="Melodic Touch" val={melody} setVal={setMelody}/>
+        </div>
+        <div style={S.card}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
+            <div style={{...S.ctitle,marginBottom:0}}>🎭 {L("Émotions","Emotions")}</div>
+            <span style={{fontSize:"0.55rem",color:"#666"}}>{Math.min(10,EMO_LIMIT[userTier]||2)}/10 {L("débloquées","unlocked")}</span>
+          </div>
+          <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"10px",lineHeight:1.5}}>{L("Dose les émotions — MetalPrompt injecte les bons tags (recette secrète). La plus forte domine le morceau.","Dial emotions — MetalPrompt injects the matching tags (secret recipe). The strongest one dominates.")}</div>
+          {EMOTIONS.map((e,i)=>{
+            const lim=Math.min(10,EMO_LIMIT[userTier]||2);const locked=i>=lim;const v=emotions[e.id]||0;
+            if(locked) return (<div key={e.id} onClick={()=>setShowPaywall(true)} style={{display:"flex",alignItems:"center",gap:"8px",padding:"5px 0",opacity:0.4,cursor:"pointer"}}>
+              <span style={{fontSize:"0.72rem",width:"120px"}}>🔒 {e.icon} {e.label}</span>
+              <span style={{fontSize:"0.55rem",color:RED,fontWeight:700}}>{L("Tier supérieur","Upgrade")}</span>
+            </div>);
+            return (<div key={e.id} style={{display:"flex",alignItems:"center",gap:"8px",padding:"4px 0"}}>
+              <span style={{fontSize:"0.72rem",width:"120px",color:v>0?e.c:"#aaa"}}>{e.icon} {e.label}</span>
+              <input type="range" min="0" max="100" step="5" value={v} onChange={ev=>setEmotions(p=>({...p,[e.id]:+ev.target.value}))} style={{flex:1,accentColor:e.c}}/>
+              <span style={{fontSize:"0.62rem",fontFamily:"monospace",color:v>0?e.c:"#555",width:"30px",textAlign:"right"}}>{v}</span>
+            </div>);
+          })}
         </div>
         <div style={S.card}><div style={S.ctitle}>🎨 Mood / Vibe</div><Tags list={MOOD} sel={mood} toggle={tMood}/></div>
         <div style={{height:80}}/>

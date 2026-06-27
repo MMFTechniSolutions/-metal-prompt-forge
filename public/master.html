@@ -22,7 +22,7 @@
   .rv{font-family:'Share Tech Mono',monospace;font-size:.76rem;color:var(--ember-hot);}
   .cg{display:flex;flex-direction:column;gap:6px;}
   .presets{display:flex;gap:8px;flex-wrap:wrap;}
-  .pst{font-family:'Share Tech Mono',monospace;font-size:.7rem;background:var(--steel);border:1px solid var(--iron);color:var(--bone);padding:8px 14px;cursor:pointer;}
+  .pst{font-family:'Share Tech Mono',monospace;font-size:.78rem;background:var(--steel);border:1px solid var(--iron);color:var(--bone);padding:8px 14px;cursor:pointer;}
   .pst.on{border-color:var(--ember);color:var(--ember-hot);background:#1a0000;}
   .btn-row{display:flex;gap:8px;flex-wrap:wrap;}
   button{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.1em;padding:9px 20px;border:none;cursor:pointer;transition:.12s;}
@@ -33,14 +33,14 @@
   .bs:hover{border-color:var(--ember);color:var(--ember-hot);}
   .prog-wrap{background:var(--steel);border:1px solid var(--iron);height:3px;width:100%;}
   .prog-bar{height:100%;background:var(--ember);width:0%;transition:width .3s linear;}
-  .sb{font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--ash);}
-  .dl-info{font-size:.76rem;color:var(--ash);line-height:1.6;}
+  .sb{font-family:'Share Tech Mono',monospace;font-size:.78rem;color:var(--ash);}
+  .dl-info{font-size:.84rem;color:var(--ash);line-height:1.6;}
   .dl-info strong{color:var(--bone);}
   /* Console de mixing — chassis + faders colorés par canal */
   .console,.mixchassis{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;background:linear-gradient(180deg,#202026 0%,#15151a 42%,#0e0e12 100%);border:1px solid #34343e;border-radius:10px;padding:20px 14px;box-shadow:inset 0 2px 14px #000,0 4px 18px #0008;}
   .chan{display:flex;flex-direction:column;align-items:center;gap:8px;width:58px;background:linear-gradient(180deg,#1b1b22,#101014);border:1px solid #2c2c36;border-top:2px solid #444;border-radius:5px;padding:9px 4px;box-shadow:inset 0 1px 0 #ffffff12;}
-  .chan .clabel{font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--ash);letter-spacing:.03em;text-transform:uppercase;text-align:center;height:26px;line-height:1.2;}
-  .chan .cval,.stem .cval{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:#fff;background:#050505;border:1px solid #333;border-radius:3px;padding:1px 5px;min-width:34px;text-align:center;box-shadow:inset 0 0 5px #000;}
+  .chan .clabel{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--ash);letter-spacing:.03em;text-transform:uppercase;text-align:center;height:26px;line-height:1.2;}
+  .chan .cval,.stem .cval{font-family:'Share Tech Mono',monospace;font-size:.78rem;color:#fff;background:#050505;border:1px solid #333;border-radius:3px;padding:1px 5px;min-width:34px;text-align:center;box-shadow:inset 0 0 5px #000;}
   .fader{writing-mode:vertical-lr;direction:rtl;width:14px;height:150px;cursor:pointer;accent-color:var(--ember);}
   .chan:nth-child(1) .fader{accent-color:#ff3b3b}.chan:nth-child(1){border-top-color:#ff3b3b}
   .chan:nth-child(2) .fader{accent-color:#ff7a00}.chan:nth-child(2){border-top-color:#ff7a00}
@@ -53,10 +53,10 @@
   .chan:nth-child(9) .fader{accent-color:#e8e8ee}.chan:nth-child(9){border-top-color:#e8e8ee}
   /* Stems (pistes) — channel strips avec EQ 3 bandes + Mute / Solo / Pan */
   .stemwrap{display:flex;flex-direction:column;gap:10px;}
-  .stemhint{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--ember);letter-spacing:.1em;text-align:center;}
+  .stemhint{font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--ember);letter-spacing:.1em;text-align:center;}
   .stem{display:flex;flex-direction:column;align-items:center;gap:7px;width:92px;background:linear-gradient(180deg,#1b1b22,#101014);border:1px solid #2c2c36;border-top:2px solid #00d9ff;border-radius:5px;padding:9px 5px;box-shadow:inset 0 1px 0 #ffffff12;transition:opacity .15s;}
   .stem.dim{opacity:.4;}
-  .stem .sname{font-family:'Share Tech Mono',monospace;font-size:.5rem;color:#cdd;letter-spacing:.02em;text-align:center;height:24px;line-height:1.2;width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+  .stem .sname{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:#cdd;letter-spacing:.02em;text-align:center;height:24px;line-height:1.2;width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
   .stem .pan{width:74px;height:11px;accent-color:#00d9ff;}
   .stem .panlbl{font-family:'Share Tech Mono',monospace;font-size:.42rem;color:var(--ash);letter-spacing:.04em;}
   .stem .ms{display:flex;gap:5px;}
@@ -68,14 +68,14 @@
   .stem .fader{accent-color:#00d9ff;height:128px;}
   .stem .eq3{display:flex;flex-direction:column;gap:3px;width:100%;padding-top:3px;border-top:1px solid #2c2c36;}
   .stem .eqr{display:flex;align-items:center;gap:4px;}
-  .stem .eqr .eqk{font-family:'Share Tech Mono',monospace;font-size:.42rem;color:var(--ash);width:18px;text-align:left;letter-spacing:.02em;}
+  .stem .eqr .eqk{font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--ash);width:18px;text-align:left;letter-spacing:.02em;}
   .stem .eqr input{flex:1;height:9px;accent-color:#9b59b6;}
-  .stem .eqr .eqv{font-family:'Share Tech Mono',monospace;font-size:.42rem;color:#cdd;width:18px;text-align:right;}
+  .stem .eqr .eqv{font-family:'Share Tech Mono',monospace;font-size:.5rem;color:#cdd;width:18px;text-align:right;}
   /* Sidechain kick→basse */
   .scpanel{background:#120c0c;border:1px solid #3a2020;border-radius:8px;padding:12px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;}
-  .scpanel .sctitle{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--ember-hot);letter-spacing:.1em;display:flex;align-items:center;gap:7px;}
+  .scpanel .sctitle{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--ember-hot);letter-spacing:.1em;display:flex;align-items:center;gap:7px;}
   .scpanel .scf{display:flex;flex-direction:column;gap:3px;}
-  .scpanel .scf label{font-size:.5rem;}
+  .scpanel .scf label{font-size:.6rem;}
   .scpanel select{background:#1a1216;border:1px solid #3a2020;color:var(--bone);font-family:'Share Tech Mono',monospace;font-size:.62rem;padding:4px 6px;border-radius:4px;}
   .scpanel .scf.sl{min-width:120px;}
   .scpanel .scf.sl input{width:120px;accent-color:var(--ember);}
@@ -125,6 +125,7 @@
       <div class="chan"><div class="clabel">Reverb %</div><input type="range" class="fader" id="rev" min="0" max="60" value="0" step="5" oninput="document.getElementById('revLbl').textContent=this.value"><div class="cval" id="revLbl">0</div></div>
       <div class="chan"><div class="clabel">Pitch ½t</div><input type="range" class="fader" id="pitch" min="-4" max="4" value="0" step="1" oninput="document.getElementById('pitchLbl').textContent=this.value"><div class="cval" id="pitchLbl">0</div></div>
       <div class="chan"><div class="clabel">Balance L·R</div><input type="range" class="fader" id="pan" min="-100" max="100" value="0" step="5" oninput="document.getElementById('panLbl').textContent=this.value"><div class="cval" id="panLbl">0</div></div>
+      <div class="chan"><div class="clabel">🤖 Débruit.</div><input type="range" class="fader" id="deno" min="0" max="100" value="0" step="5" oninput="document.getElementById('denoLbl').textContent=this.value"><div class="cval" id="denoLbl">0</div></div>
     </div>
     <div style="margin-top:14px;margin-bottom:8px;font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--ember);letter-spacing:.12em;text-align:center;">🎚️ ÉGALISEUR — 9 BANDES</div>
     <div class="console" id="eqConsole">
@@ -238,7 +239,7 @@ function setupSidechain(ctx,chMap,loop,durSec){
 function applyPresetUI(name){
   const p=PRESETS[name];if(!p)return;
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;const lbl=document.getElementById(id+'Lbl');if(lbl)lbl.textContent=v;};
-  set('low',p.low);set('pres',p.pres);set('loud',p.loud);set('mud',p.mud);set('harsh',p.harsh);set('sat',p.sat);
+  set('low',p.low);set('pres',p.pres);set('loud',p.loud);set('mud',p.mud);set('harsh',p.harsh);set('sat',p.sat);set('deno',name==='ia'?60:0);
   if(name==='flat'){set('rev',0);set('pitch',0);set('pan',0);for(let i=0;i<EQ_FREQS.length;i++)set('eq'+i,0);}
 }
 document.querySelectorAll('.pst').forEach(el=>el.addEventListener('click',()=>{
@@ -399,7 +400,7 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   const dry=off.createGain();dry.gain.value=1;
   const mix=off.createGain();
   const panner=off.createStereoPanner();panner.pan.value=Math.max(-1,Math.min(1,panV/100));
-  input.connect(hp);hp.connect(mud);mud.connect(ls);ls.connect(pk);pk.connect(harsh);harsh.connect(hs);hs.connect(eqOff[0]);for(let i=0;i<eqOff.length-1;i++)eqOff[i].connect(eqOff[i+1]);eqOff[eqOff.length-1].connect(sat);sat.connect(comp);comp.connect(makeup);
+  const dnMud=dynCut(off,300,1.2,denoAmt(gv('deno')),0.10);const dnHarsh=dynCut(off,5500,1.6,denoAmt(gv('deno')),0.05);input.connect(hp);hp.connect(dnMud.in);dnMud.out.connect(dnHarsh.in);dnHarsh.out.connect(mud);mud.connect(ls);ls.connect(pk);pk.connect(harsh);harsh.connect(hs);hs.connect(eqOff[0]);for(let i=0;i<eqOff.length-1;i++)eqOff[i].connect(eqOff[i+1]);eqOff[eqOff.length-1].connect(sat);sat.connect(comp);comp.connect(makeup);
   makeup.connect(dry);dry.connect(mix);
   makeup.connect(conv);conv.connect(wet);wet.connect(mix);
   mix.connect(lim);lim.connect(panner);panner.connect(out);out.connect(off.destination);
@@ -469,8 +470,24 @@ document.getElementById('btnMp3').addEventListener('click',()=>{if(!masteredBuf)
 
 // ===== CONSOLE LIVE — monitoring temps reel =====
 const gv=id=>parseFloat(document.getElementById(id).value);
-function getC(){return {low:gv('low'),pres:gv('pres'),loud:gv('loud'),mud:gv('mud'),harsh:gv('harsh'),sat:gv('sat'),rev:gv('rev'),pitch:gv('pitch'),pan:gv('pan'),eq:EQ_FREQS.map((f,i)=>gv('eq'+i))};}
+function getC(){return {low:gv('low'),pres:gv('pres'),loud:gv('loud'),mud:gv('mud'),harsh:gv('harsh'),sat:gv('sat'),rev:gv('rev'),pitch:gv('pitch'),pan:gv('pan'),deno:gv('deno'),eq:EQ_FREQS.map((f,i)=>gv('eq'+i))};}
 function stopLive(){if(liveNodes&&liveNodes.srcs){liveNodes.srcs.forEach(s=>{try{s.stop();}catch(e){}});}if(actx){try{actx.close();}catch(e){}}actx=null;liveNodes=null;monitoring=false;}
+// ===== DÉBRUITAGE IA — Dynamic EQ : atténue une bande seulement quand elle dépasse =====
+const ABS_CURVE=(()=>{const n=2048,c=new Float32Array(n);for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.abs(x);}return c;})();
+function thrCurve(t){const n=1024,c=new Float32Array(n);for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.max(0,Math.abs(x)-t);}return c;}
+function dynCut(ctx,freq,Q,amount,thresh){
+  thresh=(thresh==null?0.1:thresh);
+  const inp=ctx.createGain();
+  const peak=ctx.createBiquadFilter();peak.type='peaking';peak.frequency.value=freq;peak.Q.value=Q;peak.gain.value=0;
+  inp.connect(peak);
+  const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=freq;bp.Q.value=Q;
+  const rect=ctx.createWaveShaper();rect.curve=thrCurve(thresh);rect.oversample='2x';
+  const env=ctx.createBiquadFilter();env.type='lowpass';env.frequency.value=5;
+  const scl=ctx.createGain();scl.gain.value=-(amount||0);
+  inp.connect(bp);bp.connect(rect);rect.connect(env);env.connect(scl);scl.connect(peak.gain);
+  return {in:inp,out:peak,scl:scl};
+}
+function denoAmt(v){return (v||0)/100*8;}
 function buildLive(){
   stopLive();
   if(!stems.length)return;
@@ -482,6 +499,7 @@ function buildLive(){
     srcs.push(ch.s);stemGains[st.id]=ch.g;stemPanners[st.id]=ch.pn;stemEq[st.id]={lo:ch.lo,mid:ch.mid,hi:ch.hi};
   });
   // Sidechain live (kick→basse) — la basse "respire" avec la grosse caisse
+  const trigDur=(SC.trigId!=null&&stems.find(s=>s.id===SC.trigId))?(stems.find(s=>s.id===SC.trigId).buffer.duration):(maxLen()/mixSR());
   const scSrc=setupSidechain(actx,chMap,true,trigDur);if(scSrc)srcs.push(scSrc);
   const hp=actx.createBiquadFilter();hp.type='highpass';hp.frequency.value=CHAIN.hpHz;
   const mudN=actx.createBiquadFilter();mudN.type='peaking';mudN.frequency.value=CHAIN.mudHz;mudN.Q.value=CHAIN.mudQ;mudN.gain.value=-c.mud;
@@ -497,26 +515,26 @@ function buildLive(){
   const wetN=actx.createGain();wetN.gain.value=c.rev/100;const dryN=actx.createGain();dryN.gain.value=1;const mixN=actx.createGain();
   const lim=actx.createDynamicsCompressor();lim.threshold.value=CHAIN.limThr;lim.knee.value=RC('limKnee',0);lim.ratio.value=RC('limRatio',20);lim.attack.value=RC('limAtt',0.001);lim.release.value=RC('limRel',0.05);
   const panN=actx.createStereoPanner();panN.pan.value=Math.max(-1,Math.min(1,c.pan/100));
-  const chainGain=actx.createGain();chainGain.gain.value=bypassed?0:1;
+  const chainGain=actx.createGain();chainGain.gain.value=bypassed?0:0.9;
   const bypassGain=actx.createGain();bypassGain.gain.value=bypassed?1:0;
-  input.connect(hp);hp.connect(mudN);mudN.connect(ls);ls.connect(pk);pk.connect(harshN);harshN.connect(hs);hs.connect(eqNodes[0]);for(let i=0;i<eqNodes.length-1;i++)eqNodes[i].connect(eqNodes[i+1]);eqNodes[eqNodes.length-1].connect(satN);satN.connect(comp);comp.connect(makeupN);
+  const dnMud=dynCut(actx,300,1.2,denoAmt(c.deno),0.10);const dnHarsh=dynCut(actx,5500,1.6,denoAmt(c.deno),0.05);input.connect(hp);hp.connect(dnMud.in);dnMud.out.connect(dnHarsh.in);dnHarsh.out.connect(mudN);mudN.connect(ls);ls.connect(pk);pk.connect(harshN);harshN.connect(hs);hs.connect(eqNodes[0]);for(let i=0;i<eqNodes.length-1;i++)eqNodes[i].connect(eqNodes[i+1]);eqNodes[eqNodes.length-1].connect(satN);satN.connect(comp);comp.connect(makeupN);
   makeupN.connect(dryN);dryN.connect(mixN);makeupN.connect(conv);conv.connect(wetN);wetN.connect(mixN);
   mixN.connect(lim);lim.connect(panN);panN.connect(chainGain);chainGain.connect(actx.destination);
   input.connect(bypassGain);bypassGain.connect(actx.destination);
-  liveNodes={mudN,ls,pk,harshN,hs,satN,makeupN,wetN,panN,chainGain,bypassGain,srcs,eqNodes,stemGains,stemPanners,stemEq};
+  liveNodes={mudN,ls,pk,harshN,hs,satN,makeupN,wetN,panN,chainGain,bypassGain,srcs,eqNodes,stemGains,stemPanners,stemEq,dnMud,dnHarsh};
   actx.resume();srcs.forEach(s=>s.start(0));monitoring=true;
 }
 function applyLive(){
   if(!actx||!liveNodes)return;const c=getC();
   liveNodes.mudN.gain.value=-c.mud;liveNodes.ls.gain.value=c.low;liveNodes.pk.gain.value=c.pres;
   liveNodes.harshN.gain.value=-c.harsh;liveNodes.satN.curve=makeCurve(1+c.sat);
-  liveNodes.makeupN.gain.value=makeupGain(c.loud);liveNodes.wetN.gain.value=c.rev/100;
+  liveNodes.makeupN.gain.value=makeupGain(c.loud);liveNodes.wetN.gain.value=c.rev/100;if(liveNodes.dnMud){liveNodes.dnMud.scl.gain.value=-denoAmt(c.deno);liveNodes.dnHarsh.scl.gain.value=-denoAmt(c.deno);}
   liveNodes.panN.pan.value=Math.max(-1,Math.min(1,c.pan/100));
   if(liveNodes.eqNodes)liveNodes.eqNodes.forEach((n,i)=>n.gain.value=c.eq[i]);
   const rate=Math.pow(2,c.pitch/12);liveNodes.srcs.forEach(s=>{try{s.playbackRate.value=rate;}catch(e){}});
 }
-function toggleBypass(){bypassed=!bypassed;if(liveNodes){liveNodes.chainGain.gain.value=bypassed?0:1;liveNodes.bypassGain.gain.value=bypassed?1:0;}document.getElementById('status').textContent=bypassed?'🅰 AVANT (bypass)':'🅱 APRES (masterise)';}
-document.getElementById('btnMon').addEventListener('click',()=>{buildLive();if(monitoring)document.getElementById('status').textContent='▶ Monitor LIVE — bouge les faders + Mute/Solo + sidechain, t’entends en direct';});
+function toggleBypass(){bypassed=!bypassed;if(liveNodes){liveNodes.chainGain.gain.value=bypassed?0:0.9;liveNodes.bypassGain.gain.value=bypassed?1:0;}document.getElementById('status').textContent=bypassed?'🅰 AVANT (bypass)':'🅱 APRES (masterise)';}
+document.getElementById('btnMon').addEventListener('click',async()=>{try{buildLive();if(actx){try{await actx.resume();}catch(_){}}if(monitoring){document.getElementById('status').textContent='▶ Monitor LIVE ['+(actx?actx.state:'?')+'] · '+stems.length+' piste(s) — bouge les faders';}else{document.getElementById('status').textContent='⚠ Monitor PAS demarre (stems='+stems.length+')';}}catch(e){document.getElementById('status').textContent='⚠ ERREUR MONITOR: '+(e&&e.message?e.message:e);console.error('MONITOR ERR',e);}});
 document.getElementById('btnStopMon').addEventListener('click',()=>{stopLive();document.getElementById('status').textContent='⏹ Monitor arrete.';});
 document.getElementById('btnAB').addEventListener('click',toggleBypass);
 document.getElementById('masterConsole').addEventListener('input',applyLive);

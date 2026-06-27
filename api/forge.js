@@ -32,9 +32,44 @@ export default function handler(req, res) {
   if (melody >= 7) sliderTags.push('soaring melodic lead'); else if (melody <= 2) sliderTags.push('no-frills brutality');
   const secret = sliderTags;
 
+  // ── MOTEUR D'ÉMOTIONS (recette secrète) — 10 émotions, gated 2/4/6/10, dominance + conflits ──
+  const tier = b.tier || 'free';
+  const emotions = (b.emotions && typeof b.emotions === 'object') ? b.emotions : {};
+  const EMO_ORDER = ['rage','melancholy','despair','triumph','coldness','defiance','dread','transcendence','madness','profanation'];
+  const EMO_LIMIT = { free:2, forge:4, pro:6, elite:10, eliteplus:10 };
+  const EMO = {
+    rage:         { light:['aggressive energy'],            mid:['furious aggression','relentless attack'],   strong:['blind savage fury','berserk intensity','venomous rage'] },
+    melancholy:   { light:['melancholic undertone'],        mid:['melancholic sorrowful melody'],              strong:['crushing sorrow','weeping melodic leads','mournful atmosphere'] },
+    despair:      { light:['bleak undertone'],              mid:['hopeless and bleak'],                        strong:['suffocating despair','hopeless void','crushing emptiness'] },
+    triumph:      { light:['uplifting edge'],               mid:['triumphant victorious'],                     strong:['epic triumphant glory','soaring heroic anthems','victorious grandeur'] },
+    coldness:     { light:['cold atmosphere'],              mid:['icy cold frostbitten'],                      strong:['glacial frostbitten cold','kalt and lifeless','frozen desolation'] },
+    defiance:     { light:['defiant tone'],                 mid:['rebellious anthemic defiance'],              strong:['fist-raising revolt anthem','uncompromising defiance','militant fury'] },
+    dread:        { light:['ominous undertone'],            mid:['ominous looming horror'],                    strong:['paralyzing dread','unheimlich creeping terror','suffocating menace'] },
+    transcendence:{ light:['atmospheric expanse'],          mid:['transcendent cosmic atmosphere'],            strong:['cosmic transcendence','astral vastness','ego-death euphoria'] },
+    madness:      { light:['unstable edge'],                mid:['deranged unhinged'],                         strong:['psychotic madness','schizophrenic chaos','deranged frenzy'] },
+    profanation:  { light:['blasphemous undertone'],        mid:['blasphemous sacrilegious'],                  strong:['blasphemous desecration','sacrilegious ritual','profane blackened ritual'] },
+  };
+  const EMO_LABEL = { rage:'Rage', melancholy:'Mélancolie', despair:'Désespoir', triumph:'Triomphe', coldness:'Froideur', defiance:'Défiance', dread:'Effroi', transcendence:'Transcendance', madness:'Démence', profanation:'Profanation' };
+  const emoLimit = EMO_LIMIT[tier] != null ? EMO_LIMIT[tier] : 2;
+  const emoActive = EMO_ORDER
+    .map((id, i) => ({ id, i, val: Math.max(0, Math.min(100, +emotions[id] || 0)) }))
+    .filter(e => e.i < emoLimit && e.val > 0)
+    .sort((a, c) => c.val - a.val);
+  const emoTags = [], emoLabels = [];
+  emoActive.forEach((e, rank) => {
+    const lvl = e.val > 70 ? 'strong' : e.val >= 40 ? 'mid' : 'light';
+    const pool = (EMO[e.id] || {})[lvl] || [];
+    (rank === 0 ? pool.slice(0, 2) : pool.slice(0, 1)).forEach(t => emoTags.push(t));
+    emoLabels.push(EMO_LABEL[e.id] + ' ' + e.val + '%');
+  });
+  const emotionTags = dedup(emoTags).slice(0, 4);
+  const OPP = [['triumph','despair'],['triumph','melancholy'],['transcendence','profanation'],['coldness','rage']];
+  const emoConf = [];
+  OPP.forEach(([a, c]) => { if ((+emotions[a]||0) >= 60 && (+emotions[c]||0) >= 60) emoConf.push(L(EMO_LABEL[a]+' + '+EMO_LABEL[c]+' à fond se contredisent — baisse-en une.', EMO_LABEL[a]+' + '+EMO_LABEL[c]+' both high — they fight, lower one.')); });
+
   const bpmTag = bpm + ' BPM';
-  const fullTags = dedup([...genres, bpmTag, tempoWord, ...drums, ...guitar.slice(0, 3), ...tuning.slice(0, 1), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...secret, ...prod.slice(0, 2), ...allOrganic.slice(0, 4), ...globalRhythm]);
-  const compactCore = dedup([...genres.slice(0, 2), bpmTag, tempoWord, ...secret, ...drums.slice(0, 2), ...guitar.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1)]);
+  const fullTags = dedup([...genres, bpmTag, tempoWord, ...drums, ...guitar.slice(0, 3), ...tuning.slice(0, 1), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...secret, ...emotionTags, ...prod.slice(0, 2), ...allOrganic.slice(0, 4), ...globalRhythm]);
+  const compactCore = dedup([...genres.slice(0, 2), bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1)]);
   const overflow = fullTags.filter(x => !compactCore.includes(x));
   const styleStr = fullTags.join(', ');
   const styleStrC = compactCore.join(', ');
@@ -49,6 +84,7 @@ export default function handler(req, res) {
   if (genres.length > 2) conf.push(L(genres.length + ' genres sélectionnés — garde 1-2 max, sinon Suno se mélange.', genres.length + ' genres selected — keep 1-2 max or Suno gets confused.'));
   if ((guitar.length + extraInst.length) > 4) conf.push(L('Beaucoup d\'instruments — Suno gère mieux 3-4 max.', 'Many instruments — Suno handles 3-4 best.'));
 
+  conf.push(...emoConf);
   const excStr = allExclude.join(', ');
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)
@@ -91,5 +127,5 @@ export default function handler(req, res) {
     '\n\n=== STRUCTURE (-> top of Lyrics) ===\n' + structStr +
     '\n\n=== PRODUCTION NOTES (keep for yourself) ===\n' + heavyD + '. ' + grooveD + '. ' + chaosD + '. ' + melodyD + '. ' + bpmTag + '.' + organicBlock;
 
-  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, full, conflicts: conf });
+  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, full, conflicts: conf, emotionsActive: emoLabels });
 }

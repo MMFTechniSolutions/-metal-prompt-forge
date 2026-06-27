@@ -191,7 +191,14 @@ function buildPrompt(p){
   // Pépite Suno : 4-7 descripteurs FOCUS battent 15 éparpillés. Genre en premier (ancrage fort).
   const SCENE={norwegian:'norwegian',finnish:'finnish',swedish:'swedish',german:'german',american:'american',canadian:'canadian',quebecois:'quebecois'};
   const genre=(SCENE[p.scene]?SCENE[p.scene]+' ':'')+(G[p.style]||'metal');
-  const tags=[genre, bpm+' BPM', tempo, D[p.drumKey]||'heavy drums', T[p.root]||'', ...(FLAVOR[p.style]||['chugging riffs','downtuned']).slice(0,2)];
+  // Formule verifiee Suno : sous-genre + elements + VOIX + MIX + MOOD, genre ancre debut ET fin
+  const VOX={thrash:'raspy aggressive male vocals',death:'guttural death growls',doom:'deep doom vocals',blackened:'black metal shrieks',groove:'powerful mid-range growls',djent:'mid-range harsh vocals',speed:'high-pitched aggressive vocals',slam:'ultra-low guttural vocals',sludge:'raw screaming vocals',postmetal:'distant atmospheric vocals',grindcore:'high-low screaming vocals',funeraldoom:'agonized low growls',dissonant:'tortured growls',rapcore:'aggressive rapped vocals'};
+  const MIX={blackened:'raw kvlt production',grindcore:'raw punishing production',sludge:'thick abrasive production',funeraldoom:'cavernous production',doom:'vintage heavy production',dissonant:'dense aggressive production'};
+  const MOOD={thrash:'aggressive and relentless',death:'brutal and dark',doom:'crushing and bleak',blackened:'cold and sinister',groove:'groovy and headbang-worthy',djent:'technical and precise',speed:'high-octane',slam:'violent and pit-ready',sludge:'filthy and abrasive',postmetal:'epic and cinematic',grindcore:'chaotic and violent',funeraldoom:'funereal and monolithic',dissonant:'unsettling and dark',rapcore:'bouncy and aggressive'};
+  const vox=VOX[p.style]||'aggressive harsh male vocals';
+  const mix=MIX[p.style]||'modern polished mix, scooped mids, tight bass';
+  const mood=MOOD[p.style]||'dark and aggressive';
+  const tags=[genre, T[p.root]||'', bpm+' BPM '+tempo, D[p.drumKey]||'heavy drums', ...(FLAVOR[p.style]||['chugging riffs','downtuned']).slice(0,2), vox, mix, 'very loud guitars and drums', mood, genre];
   return tags.filter(Boolean).join(', ');
 }
 

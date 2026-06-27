@@ -51,7 +51,7 @@
   .chan:nth-child(7) .fader{accent-color:#9b59b6}.chan:nth-child(7){border-top-color:#9b59b6}
   .chan:nth-child(8) .fader{accent-color:#e91e8c}.chan:nth-child(8){border-top-color:#e91e8c}
   .chan:nth-child(9) .fader{accent-color:#e8e8ee}.chan:nth-child(9){border-top-color:#e8e8ee}
-  /* Stems (pistes) — channel strips avec Mute / Solo / Pan */
+  /* Stems (pistes) — channel strips avec EQ 3 bandes + Mute / Solo / Pan */
   .stemwrap{display:flex;flex-direction:column;gap:10px;}
   .stemhint{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--ember);letter-spacing:.1em;text-align:center;}
   .stem{display:flex;flex-direction:column;align-items:center;gap:7px;width:92px;background:linear-gradient(180deg,#1b1b22,#101014);border:1px solid #2c2c36;border-top:2px solid #00d9ff;border-radius:5px;padding:9px 5px;box-shadow:inset 0 1px 0 #ffffff12;transition:opacity .15s;}
@@ -82,11 +82,11 @@
 
   <div class="panel">
     <h2>1 · Charge ta toune ou tes stems</h2>
-    <p class="dl-info">Glisse <strong>1 fichier</strong> (ta toune complète) <strong>OU plusieurs stems</strong> (Suno Pro : drums, bass, vocals, autres). Chaque stem devient une piste avec volume, pan, <strong>Mute</strong> et <strong>Solo</strong>. Tout se fait dans ton navigateur — rien n'est envoyé sur un serveur.</p>
+    <p class="dl-info">Glisse <strong>1 fichier</strong> (ta toune complète) <strong>OU plusieurs stems</strong> (Suno Pro : drums, bass, vocals, autres). Chaque stem devient une piste avec volume, pan, EQ 3 bandes, <strong>Mute</strong> et <strong>Solo</strong>. Tout se fait dans ton navigateur — rien n'est envoyé sur un serveur.</p>
     <input type="file" id="file" accept="audio/*" multiple>
     <div class="sb" id="fileInfo">Aucun stem chargé.</div>
     <div class="stemwrap" id="stemWrap" style="display:none;">
-      <div class="stemhint">🎚️ PISTES — joue avec le mix avant de masteriser (M = mute · S = solo)</div>
+      <div class="stemhint">🎚️ PISTES — fais ton mix avant de masteriser (M = mute · S = solo)</div>
       <div class="mixchassis" id="stemConsole"></div>
     </div>
   </div>
@@ -143,13 +143,13 @@
       <button class="bs" id="btnMp3">⬇ MP3</button>
     </div>
     <div class="sb" id="status">Charge une toune ou des stems d'abord.</div>
-    <p class="dl-info">Chaîne anti-IA : passe-haut → <strong>cut de boue 200-400Hz</strong> → grave → présence → <strong>tamer de dureté 5-7kHz</strong> → air → <strong>saturation analogique</strong> → compression « glue » → limiteur brickwall → loudness. Élimine le « flou » et le froid numérique de l'IA, sort un <strong>.wav</strong> chaud, serré et prêt à publier.</p>
+    <p class="dl-info">Chaîne anti-IA : passe-haut → <strong>cut de boue 200-400Hz</strong> → grave → présence → <strong>tamer de dureté 5-7kHz</strong> → air → <strong>saturation analogique</strong> → compression « glue » → limiteur brickwall → loudness. La recette (fréquences, calibration) vit en back-end. Sort un <strong>.wav</strong> chaud, serré et prêt à publier.</p>
   </div>
 
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
 <script>
-// Fallback générique ; la vraie calibration vient de /api/master (secret serveur).
+// Fallback générique ; la VRAIE recette (calibration secrète) vient de /api/master côté serveur.
 let PRESETS={
   flat:     {low:0, pres:0,  air:0,  mud:0,  harsh:0,  sat:0,  comp:{thr:-12,ratio:1.5,att:.01,rel:.2}, loud:-11},
   metal:    {low:2, pres:3,  air:2,  mud:1.5,harsh:1,  sat:1.5,comp:{thr:-20,ratio:3,att:.005,rel:.15}, loud:-9},
@@ -158,27 +158,31 @@ let PRESETS={
   brutal:   {low:3, pres:4,  air:2,  mud:1.5,harsh:1.5,sat:2,  comp:{thr:-24,ratio:4,att:.003,rel:.1}, loud:-7},
   ia:       {low:2, pres:2,  air:2,  mud:2,  harsh:2,  sat:2,  comp:{thr:-20,ratio:3,att:.005,rel:.18},loud:-10},
 };
-let CHAIN={hpHz:30,mudHz:280,mudQ:1.2,presHz:3000,presQ:1,harshHz:5200,harshQ:2.2,airHz:10000,limThr:-1.0,outGain:0.96};
-let stems=[]; // {id,name,buffer,gain,pan,muted,solo}
+let CHAIN={hpHz:30,lowHz:90,mudHz:280,mudQ:1.2,presHz:3000,presQ:1,harshHz:5200,harshQ:2.2,airHz:10000,compKnee:6,makeupRef:9,makeupDiv:40,limThr:-1.0,limRatio:20,limKnee:0,limAtt:0.001,limRel:0.05,outGain:0.96,normPeak:0.97,eqFreqs:[50,120,250,500,900,1800,3500,6500,12000],stem:{loHz:120,midHz:1000,midQ:0.9,hiHz:7000},irSec:0.5,satOversample:'4x'};
+let stems=[]; // {id,name,buffer,gain,pan,lo,mid,hi,muted,solo}
 let stemSeq=0, fileName='master';
 let curPreset='flat';
 let masteredBuf=null, dryMixBuf=null, playCtx=null, playSrc=null;
 let actx=null, liveNodes=null, monitoring=false, bypassed=false;
-const EQ_FREQS=[50,120,250,500,900,1800,3500,6500,12000];
-// Charge la recette calibrée du serveur (sinon garde le fallback)
-fetch('/api/master').then(r=>r.json()).then(d=>{if(d&&d.presets){PRESETS=d.presets;if(d.chain)CHAIN=d.chain;applyPresetUI(curPreset);}}).catch(()=>{});
+let EQ_FREQS=[50,120,250,500,900,1800,3500,6500,12000];
+// Charge la recette calibrée du serveur (TOUTE la recette vit en back-end ; sinon garde le fallback)
+fetch('/api/master').then(r=>r.json()).then(d=>{if(d&&d.presets){PRESETS=d.presets;if(d.chain){CHAIN=d.chain;if(Array.isArray(d.chain.eqFreqs)&&d.chain.eqFreqs.length===EQ_FREQS.length)EQ_FREQS=d.chain.eqFreqs;}applyPresetUI(curPreset);}}).catch(()=>{});
+// Raccourcis recette (fallback si l'API n'a pas répondu)
+const RC=(k,def)=>(CHAIN&&CHAIN[k]!=null?CHAIN[k]:def);
+const makeupGain=loud=>Math.pow(10,((loud+RC('makeupRef',9))/RC('makeupDiv',40)));
 
 const esc=s=>(''+s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function anySolo(){return stems.some(s=>s.solo);}
 function effGain(s){if(s.muted)return 0;if(anySolo()&&!s.solo)return 0;return s.gain/100;}
 function maxLen(){return stems.reduce((m,s)=>Math.max(m,s.buffer.length),0);}
 function mixSR(){return stems.length?stems[0].buffer.sampleRate:44100;}
-// Chaîne de mix PAR PISTE : source → EQ 3 bandes (LO/MID/HI) → volume → pan
+// Chaîne de mix PAR PISTE : source → EQ 3 bandes (LO/MID/HI, freqs serveur) → volume → pan
 function buildStemChain(ctx,st,rate,loop){
   const s=ctx.createBufferSource();s.buffer=st.buffer;if(loop)s.loop=true;s.playbackRate.value=rate||1;
-  const lo=ctx.createBiquadFilter();lo.type='lowshelf';lo.frequency.value=120;lo.gain.value=st.lo||0;
-  const mid=ctx.createBiquadFilter();mid.type='peaking';mid.frequency.value=1000;mid.Q.value=0.9;mid.gain.value=st.mid||0;
-  const hi=ctx.createBiquadFilter();hi.type='highshelf';hi.frequency.value=7000;hi.gain.value=st.hi||0;
+  const SE=(CHAIN&&CHAIN.stem)||{loHz:120,midHz:1000,midQ:0.9,hiHz:7000};
+  const lo=ctx.createBiquadFilter();lo.type='lowshelf';lo.frequency.value=SE.loHz;lo.gain.value=st.lo||0;
+  const mid=ctx.createBiquadFilter();mid.type='peaking';mid.frequency.value=SE.midHz;mid.Q.value=SE.midQ;mid.gain.value=st.mid||0;
+  const hi=ctx.createBiquadFilter();hi.type='highshelf';hi.frequency.value=SE.hiHz;hi.gain.value=st.hi||0;
   const g=ctx.createGain();g.gain.value=effGain(st);
   const pn=ctx.createStereoPanner();pn.pan.value=Math.max(-1,Math.min(1,st.pan/100));
   s.connect(lo);lo.connect(mid);mid.connect(hi);hi.connect(g);g.connect(pn);
@@ -232,6 +236,7 @@ function renderStems(){
   const solo=anySolo();
   cons.innerHTML=stems.map(st=>{
     const pl=st.pan===0?'C':(st.pan<0?'L'+(-st.pan):'R'+st.pan);
+    const eqv=v=>(v>0?'+':'')+v;
     return `<div class="stem${(st.muted||(solo&&!st.solo))?' dim':''}" data-id="${st.id}">
       <div class="sname" title="${esc(st.name)}">${esc(st.name)}</div>
       <input type="range" class="fader" data-act="vol" min="0" max="150" value="${st.gain}" step="1">
@@ -239,9 +244,9 @@ function renderStems(){
       <input type="range" class="pan" data-act="pan" min="-100" max="100" value="${st.pan}" step="5">
       <div class="panlbl">PAN ${pl}</div>
       <div class="eq3">
-        <div class="eqr"><span class="eqk">LO</span><input type="range" data-act="lo" min="-12" max="12" value="${st.lo}" step="0.5"><span class="eqv">${st.lo>0?'+':''}${st.lo}</span></div>
-        <div class="eqr"><span class="eqk">MID</span><input type="range" data-act="mid" min="-12" max="12" value="${st.mid}" step="0.5"><span class="eqv">${st.mid>0?'+':''}${st.mid}</span></div>
-        <div class="eqr"><span class="eqk">HI</span><input type="range" data-act="hi" min="-12" max="12" value="${st.hi}" step="0.5"><span class="eqv">${st.hi>0?'+':''}${st.hi}</span></div>
+        <div class="eqr"><span class="eqk">LO</span><input type="range" data-act="lo" min="-12" max="12" value="${st.lo}" step="0.5"><span class="eqv">${eqv(st.lo)}</span></div>
+        <div class="eqr"><span class="eqk">MID</span><input type="range" data-act="mid" min="-12" max="12" value="${st.mid}" step="0.5"><span class="eqv">${eqv(st.mid)}</span></div>
+        <div class="eqr"><span class="eqk">HI</span><input type="range" data-act="hi" min="-12" max="12" value="${st.hi}" step="0.5"><span class="eqv">${eqv(st.hi)}</span></div>
       </div>
       <div class="ms">
         <button class="msbtn m${st.muted?' on':''}" data-act="mute">M</button>
@@ -301,19 +306,19 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
 
   const hp=off.createBiquadFilter();hp.type='highpass';hp.frequency.value=CHAIN.hpHz;
   const mud=off.createBiquadFilter();mud.type='peaking';mud.frequency.value=CHAIN.mudHz;mud.Q.value=CHAIN.mudQ;mud.gain.value=-mudV;
-  const ls=off.createBiquadFilter();ls.type='lowshelf';ls.frequency.value=90;ls.gain.value=low;
+  const ls=off.createBiquadFilter();ls.type='lowshelf';ls.frequency.value=RC('lowHz',90);ls.gain.value=low;
   const pk=off.createBiquadFilter();pk.type='peaking';pk.frequency.value=CHAIN.presHz;pk.Q.value=CHAIN.presQ;pk.gain.value=pres;
   const harsh=off.createBiquadFilter();harsh.type='peaking';harsh.frequency.value=CHAIN.harshHz;harsh.Q.value=CHAIN.harshQ;harsh.gain.value=-harshV;
   const hs=off.createBiquadFilter();hs.type='highshelf';hs.frequency.value=CHAIN.airHz;hs.gain.value=p.air;
-  const sat=off.createWaveShaper();sat.curve=makeCurve(1+satV);sat.oversample='4x';
+  const sat=off.createWaveShaper();sat.curve=makeCurve(1+satV);sat.oversample=RC('satOversample','4x');
   const eqOff=EQ_FREQS.map((f,i)=>{const n=off.createBiquadFilter();n.type='peaking';n.frequency.value=f;n.Q.value=1;n.gain.value=gv('eq'+i);return n;});
   const comp=off.createDynamicsCompressor();
-  comp.threshold.value=p.comp.thr;comp.knee.value=6;comp.ratio.value=p.comp.ratio;comp.attack.value=p.comp.att;comp.release.value=p.comp.rel;
-  const makeup=off.createGain();makeup.gain.value=Math.pow(10,((loud+9)/40));
+  comp.threshold.value=p.comp.thr;comp.knee.value=RC('compKnee',6);comp.ratio.value=p.comp.ratio;comp.attack.value=p.comp.att;comp.release.value=p.comp.rel;
+  const makeup=off.createGain();makeup.gain.value=makeupGain(loud);
   const lim=off.createDynamicsCompressor();
-  lim.threshold.value=CHAIN.limThr;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
+  lim.threshold.value=CHAIN.limThr;lim.knee.value=RC('limKnee',0);lim.ratio.value=RC('limRatio',20);lim.attack.value=RC('limAtt',0.001);lim.release.value=RC('limRel',0.05);
   const out=off.createGain();out.gain.value=CHAIN.outGain;
-  const conv=off.createConvolver();conv.buffer=makeIR(off,sr,0.5);
+  const conv=off.createConvolver();conv.buffer=makeIR(off,sr,RC('irSec',0.5));
   const wet=off.createGain();wet.gain.value=revV/100;
   const dry=off.createGain();dry.gain.value=1;
   const mix=off.createGain();
@@ -334,7 +339,7 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
   // True-peak normalize → aucun clipping
   let peak=0;
   for(let c=0;c<rendered.numberOfChannels;c++){const d=rendered.getChannelData(c);for(let i=0;i<d.length;i++){const a=Math.abs(d[i]);if(a>peak)peak=a;}}
-  if(peak>0){const scN=0.97/peak;for(let c=0;c<rendered.numberOfChannels;c++){const d=rendered.getChannelData(c);for(let i=0;i<d.length;i++)d[i]*=scN;}}
+  if(peak>0){const scN=RC('normPeak',0.97)/peak;for(let c=0;c<rendered.numberOfChannels;c++){const d=rendered.getChannelData(c);for(let i=0;i<d.length;i++)d[i]*=scN;}}
 
   masteredBuf=rendered;
   document.getElementById('transport').style.display='flex';
@@ -382,9 +387,9 @@ document.getElementById('btnBefore').addEventListener('click',()=>playBuf(dryMix
 document.getElementById('btnAfter').addEventListener('click',()=>playBuf(masteredBuf,'APRÈS (masterisé)'));
 document.getElementById('btnStop').addEventListener('click',()=>{stopPlay();document.getElementById('status').textContent='⏹ Stop.';});
 document.getElementById('btnWav').addEventListener('click',()=>{if(!masteredBuf)return;triggerDownload(encodeWAV(masteredBuf),fileName+'_master_'+curPreset+'.wav');});
-document.getElementById('btnMp3').addEventListener('click',()=>{if(!masteredBuf)return;const mp3=encodeMP3(masteredBuf);if(!mp3){document.getElementById('status').textContent='⚠ Encodeur MP3 pas chargé — utilise WAV.';return;}triggerDownload(mp3,fileName+'_master_'+curPreset+'.mp3');});
+document.getElementById('btnMp3').addEventListener('click',()=>{if(!masteredBuf)return;const mp3=encodeMP3(masteredBuf);if(!mp3){document.getElementById('status').textContent='⚠ Encodeur MP3 pas charge — utilise WAV.';return;}triggerDownload(mp3,fileName+'_master_'+curPreset+'.mp3');});
 
-// ===== CONSOLE LIVE — monitoring temps réel (bouge un fader → t'entends direct) =====
+// ===== CONSOLE LIVE — monitoring temps reel =====
 const gv=id=>parseFloat(document.getElementById(id).value);
 function getC(){return {low:gv('low'),pres:gv('pres'),loud:gv('loud'),mud:gv('mud'),harsh:gv('harsh'),sat:gv('sat'),rev:gv('rev'),pitch:gv('pitch'),pan:gv('pan'),eq:EQ_FREQS.map((f,i)=>gv('eq'+i))};}
 function stopLive(){if(liveNodes&&liveNodes.srcs){liveNodes.srcs.forEach(s=>{try{s.stop();}catch(e){}});}if(actx){try{actx.close();}catch(e){}}actx=null;liveNodes=null;monitoring=false;}
@@ -400,17 +405,17 @@ function buildLive(){
   });
   const hp=actx.createBiquadFilter();hp.type='highpass';hp.frequency.value=CHAIN.hpHz;
   const mudN=actx.createBiquadFilter();mudN.type='peaking';mudN.frequency.value=CHAIN.mudHz;mudN.Q.value=CHAIN.mudQ;mudN.gain.value=-c.mud;
-  const ls=actx.createBiquadFilter();ls.type='lowshelf';ls.frequency.value=90;ls.gain.value=c.low;
+  const ls=actx.createBiquadFilter();ls.type='lowshelf';ls.frequency.value=RC('lowHz',90);ls.gain.value=c.low;
   const pk=actx.createBiquadFilter();pk.type='peaking';pk.frequency.value=CHAIN.presHz;pk.Q.value=CHAIN.presQ;pk.gain.value=c.pres;
   const harshN=actx.createBiquadFilter();harshN.type='peaking';harshN.frequency.value=CHAIN.harshHz;harshN.Q.value=CHAIN.harshQ;harshN.gain.value=-c.harsh;
   const hs=actx.createBiquadFilter();hs.type='highshelf';hs.frequency.value=CHAIN.airHz;hs.gain.value=p.air||2;
-  const satN=actx.createWaveShaper();satN.curve=makeCurve(1+c.sat);satN.oversample='4x';
+  const satN=actx.createWaveShaper();satN.curve=makeCurve(1+c.sat);satN.oversample=RC('satOversample','4x');
   const eqNodes=EQ_FREQS.map((f,i)=>{const n=actx.createBiquadFilter();n.type='peaking';n.frequency.value=f;n.Q.value=1;n.gain.value=c.eq[i];return n;});
-  const comp=actx.createDynamicsCompressor();const pc=p.comp||{thr:-20,ratio:3,att:.005,rel:.15};comp.threshold.value=pc.thr;comp.knee.value=6;comp.ratio.value=pc.ratio;comp.attack.value=pc.att;comp.release.value=pc.rel;
-  const makeupN=actx.createGain();makeupN.gain.value=Math.pow(10,((c.loud+9)/40));
-  const conv=actx.createConvolver();conv.buffer=makeIR(actx,actx.sampleRate,0.5);
+  const comp=actx.createDynamicsCompressor();const pc=p.comp||{thr:-20,ratio:3,att:.005,rel:.15};comp.threshold.value=pc.thr;comp.knee.value=RC('compKnee',6);comp.ratio.value=pc.ratio;comp.attack.value=pc.att;comp.release.value=pc.rel;
+  const makeupN=actx.createGain();makeupN.gain.value=makeupGain(c.loud);
+  const conv=actx.createConvolver();conv.buffer=makeIR(actx,actx.sampleRate,RC('irSec',0.5));
   const wetN=actx.createGain();wetN.gain.value=c.rev/100;const dryN=actx.createGain();dryN.gain.value=1;const mixN=actx.createGain();
-  const lim=actx.createDynamicsCompressor();lim.threshold.value=CHAIN.limThr;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
+  const lim=actx.createDynamicsCompressor();lim.threshold.value=CHAIN.limThr;lim.knee.value=RC('limKnee',0);lim.ratio.value=RC('limRatio',20);lim.attack.value=RC('limAtt',0.001);lim.release.value=RC('limRel',0.05);
   const panN=actx.createStereoPanner();panN.pan.value=Math.max(-1,Math.min(1,c.pan/100));
   const chainGain=actx.createGain();chainGain.gain.value=bypassed?0:1;
   const bypassGain=actx.createGain();bypassGain.gain.value=bypassed?1:0;
@@ -425,14 +430,14 @@ function applyLive(){
   if(!actx||!liveNodes)return;const c=getC();
   liveNodes.mudN.gain.value=-c.mud;liveNodes.ls.gain.value=c.low;liveNodes.pk.gain.value=c.pres;
   liveNodes.harshN.gain.value=-c.harsh;liveNodes.satN.curve=makeCurve(1+c.sat);
-  liveNodes.makeupN.gain.value=Math.pow(10,((c.loud+9)/40));liveNodes.wetN.gain.value=c.rev/100;
+  liveNodes.makeupN.gain.value=makeupGain(c.loud);liveNodes.wetN.gain.value=c.rev/100;
   liveNodes.panN.pan.value=Math.max(-1,Math.min(1,c.pan/100));
   if(liveNodes.eqNodes)liveNodes.eqNodes.forEach((n,i)=>n.gain.value=c.eq[i]);
   const rate=Math.pow(2,c.pitch/12);liveNodes.srcs.forEach(s=>{try{s.playbackRate.value=rate;}catch(e){}});
 }
-function toggleBypass(){bypassed=!bypassed;if(liveNodes){liveNodes.chainGain.gain.value=bypassed?0:1;liveNodes.bypassGain.gain.value=bypassed?1:0;}document.getElementById('status').textContent=bypassed?'🅰 AVANT (bypass — son original)':'🅱 APRÈS (masterisé)';}
-document.getElementById('btnMon').addEventListener('click',()=>{buildLive();if(monitoring)document.getElementById('status').textContent="▶ Monitor LIVE — bouge les faders + Mute/Solo, t'entends en direct 🎛️";});
-document.getElementById('btnStopMon').addEventListener('click',()=>{stopLive();document.getElementById('status').textContent='⏹ Monitor arrêté.';});
+function toggleBypass(){bypassed=!bypassed;if(liveNodes){liveNodes.chainGain.gain.value=bypassed?0:1;liveNodes.bypassGain.gain.value=bypassed?1:0;}document.getElementById('status').textContent=bypassed?'🅰 AVANT (bypass)':'🅱 APRES (masterise)';}
+document.getElementById('btnMon').addEventListener('click',()=>{buildLive();if(monitoring)document.getElementById('status').textContent='▶ Monitor LIVE — bouge les faders + Mute/Solo, t’entends en direct';});
+document.getElementById('btnStopMon').addEventListener('click',()=>{stopLive();document.getElementById('status').textContent='⏹ Monitor arrete.';});
 document.getElementById('btnAB').addEventListener('click',toggleBypass);
 document.getElementById('masterConsole').addEventListener('input',applyLive);
 document.getElementById('eqConsole').addEventListener('input',applyLive);

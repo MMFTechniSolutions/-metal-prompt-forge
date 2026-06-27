@@ -1487,7 +1487,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Charge ta toune Suno → EQ + compression + limiteur → WAV plus fort et serré, prêt à publier. 🤘","Load your Suno track → EQ + compression + limiter → louder, tighter WAV, ready to publish. 🤘")}</div>
         </div>
         <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
-          <iframe src="/master.html" title="Mastering" style={{width:"100%",height:"78vh",minHeight:"560px",border:"none",display:"block",background:DARK}}/>
+          <iframe src="/master.html" title="Mastering" style={{width:"100%",height:"1150px",minHeight:"1150px",border:"none",display:"block",background:DARK}}/>
         </div>
         <div style={{...S.card,textAlign:"center"}}>
           <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>🔜 {L("Bientôt — Elite Plus","Soon — Elite Plus")}</div>

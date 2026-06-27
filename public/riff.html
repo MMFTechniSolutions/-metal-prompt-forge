@@ -19,7 +19,8 @@
   .logo span{color:var(--ember);}
   .badge{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--ember);border:1px solid var(--ember);padding:2px 7px;letter-spacing:.1em;}
   main{width:100%;max-width:820px;padding:28px 18px 60px;display:flex;flex-direction:column;gap:20px;}
-  @media(min-width:900px){main{max-width:1200px;display:grid;grid-template-columns:1fr 1fr;align-items:start;}}
+  .rcol{display:flex;flex-direction:column;gap:20px;}
+  @media(min-width:900px){main{flex-direction:row;align-items:flex-start;max-width:1240px;gap:22px;}.rcol-l{flex:0 0 460px;}.rcol-r{flex:1;min-width:0;}}
   h2{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.15em;color:var(--ash);text-transform:uppercase;margin-bottom:2px;}
   .panel{background:var(--forge);border:1px solid var(--iron);padding:20px;display:flex;flex-direction:column;gap:16px;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -66,7 +67,7 @@
   <div class="badge">RIFF GEN v3</div>
 </header>
 <main>
-
+  <div class="rcol rcol-l">
   <div class="panel">
     <h2>Paramètres</h2>
     <div class="grid2">
@@ -187,6 +188,8 @@
     </div>
   </div>
 
+  </div>
+  <div class="rcol rcol-r">
   <div class="panel">
     <h2>Séquenceur</h2>
     <div class="tracks" id="tracksViz"></div>
@@ -234,7 +237,7 @@
     </div>
     <div class="sb"><div class="dot" id="dotRec"></div><span id="txtRec">Génère un riff d'abord</span></div>
   </div>
-
+  </div>
 </main>
 <script>
 // ── Patterns + arrangement + tablature : logique secrète déplacée côté serveur (/api/riff) ──

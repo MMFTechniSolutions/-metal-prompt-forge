@@ -262,12 +262,12 @@ const BLOCK_RHYTHMS = [
 const TIERS = {
   free:  {id:"free",  label:"FREE",         price:"$0",       color:"#444",    badge:null},
   forge: {id:"forge", label:"⚒️ FORGE",      price:"$4.99/mois",priceYear:"$29/an",color:"#cc6600",badge:"FORGE",stripe:"https://buy.stripe.com/4gM28t9RecTdgb88IvfQI00",stripeYear:"https://buy.stripe.com/YOUR_FORGE_ANNUAL",
-    features:["✅ Bibliothèque COMPLÈTE (genres, voix, drums, guitares, instruments — par époque)","✅ 🎚️ Sliders d'intensité (Heaviness · Groove · Chaos · Melodic)","✅ Structure & Feeling rythmique","✅ BPM & Mood","✅ Prompts illimités","❌ Riff Generator (Pro)","❌ Mastering (Elite)"],featuresEn:["✅ FULL library (genres, vocals, drums, guitars, instruments — by era)","✅ 🎚️ Intensity sliders (Heaviness · Groove · Chaos · Melodic)","✅ Structure & rhythm feel","✅ BPM & Mood","✅ Unlimited prompts","❌ Riff Generator (Pro)","❌ Mastering (Elite)"]},
+    features:["✅ Bibliothèque COMPLÈTE (genres, voix, drums, guitares, instruments — par époque)","✅ 🎚️ Sliders d'intensité (Heaviness · Groove · Chaos · Melodic)","✅ Structure & Feeling rythmique","✅ Exclude Tags","✅ BPM & Mood","✅ Prompts illimités","❌ Paroles IA + Organic (Pro)","❌ Riff + Mastering (Elite)"],featuresEn:["✅ FULL library (genres, vocals, drums, guitars, instruments — by era)","✅ 🎚️ Intensity sliders (Heaviness · Groove · Chaos · Melodic)","✅ Structure & rhythm feel","✅ Exclude Tags","✅ BPM & Mood","✅ Unlimited prompts","❌ AI lyrics + Organic (Pro)","❌ Riff + Mastering (Elite)"]},
   pro:   {id:"pro",   label:"🔥 FORGE PRO",  price:"$8.99/mois",priceYear:"$59/an",color:"#ff2e2e",badge:"PRO",  stripe:"https://buy.stripe.com/3cI14pfby4mH6Ay7ErfQI01",stripeYear:"https://buy.stripe.com/YOUR_PRO_ANNUAL",
-    features:["✅ Tout de FORGE +","✅ 🎸 Riff Generator (riff + tab + export WAV + import MIDI)","✅ Paroles par IA illimitées","✅ Mode Organic / Anti-AI","✅ Historique + Mon Sound"],featuresEn:["✅ Everything in FORGE +","✅ 🎸 Riff Generator (riff + tab + WAV export + MIDI import)","✅ Unlimited AI lyrics","✅ Organic / Anti-AI Mode","✅ History + My Sound"]},
+    features:["✅ Tout de FORGE +","✅ ✍️ Paroles par IA illimitées","✅ 🌿 Mode Organic / Anti-AI","✅ Historique + Mon Sound","❌ Riff + Mastering (Elite)"],featuresEn:["✅ Everything in FORGE +","✅ ✍️ Unlimited AI lyrics","✅ 🌿 Organic / Anti-AI Mode","✅ History + My Sound","❌ Riff + Mastering (Elite)"]},
   elite: {id:"elite", label:"💀 FORGE ELITE",price:"$14.99/mois",priceYear:"$99/an",color:"#aa00ff",badge:"ELITE",stripe:"https://buy.stripe.com/00w3cx5AYaL5cYW9MzfQI02",stripeYear:"https://buy.stripe.com/YOUR_ELITE_ANNUAL",
-    features:["✅ Tout de FORGE PRO +","✅ 🎚️ Module MASTERING (EQ + compression + limiteur)","✅ Exclude Tags avancés","✅ Presets illimités + Export PDF","✅ Badge ELITE + support prioritaire"],featuresEn:["✅ Everything in FORGE PRO +","✅ 🎚️ MASTERING module (EQ + compression + limiter)","✅ Advanced Exclude Tags","✅ Unlimited presets + PDF export","✅ ELITE badge + priority support"]},
-  eliteplus: {id:"eliteplus", label:"🩸 ELITE PLUS",price:"$59.99/mois",color:"#b00710",badge:"ELITE+",stripe:"https://buy.stripe.com/YOUR_ELITEPLUS_MONTHLY",stripeYear:"https://buy.stripe.com/YOUR_ELITEPLUS_ANNUAL",
+    features:["✅ Tout de FORGE PRO +","✅ 🎸 Riff Generator COMPLET (riff + tab + export WAV + import MIDI)","✅ 🎚️ Module MASTERING (EQ 9 bandes + compression + limiteur)","✅ Presets illimités + Export PDF","✅ Badge ELITE + support prioritaire"],featuresEn:["✅ Everything in FORGE PRO +","✅ 🎸 FULL Riff Generator (riff + tab + WAV export + MIDI import)","✅ 🎚️ MASTERING module (9-band EQ + compression + limiter)","✅ Unlimited presets + PDF export","✅ ELITE badge + priority support"]},
+  eliteplus: {id:"eliteplus", label:"🩸 ELITE PRO",price:"$59.99/mois",color:"#b00710",badge:"ELITE PRO",stripe:"https://buy.stripe.com/YOUR_ELITEPLUS_MONTHLY",stripeYear:"https://buy.stripe.com/YOUR_ELITEPLUS_ANNUAL",
     features:["✅ Tout de ELITE +","✅ 🎬 Idée express (bientôt)","✅ 🎓 Accès Académie / masterclass (bientôt)","✅ Support VIP + accès anticipé"],featuresEn:["✅ Everything in ELITE +","✅ 🎬 Quick Idea (soon)","✅ 🎓 Academy / masterclass access (soon)","✅ VIP support + early access"]},
 };
 const payUrl = (base, email) =>
@@ -300,7 +300,7 @@ function randStructure(){
 }
 const TIER_RANK = {free:0,forge:1,pro:2,elite:3,eliteplus:4};
 const LIMITS = {free:{prompts:3,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity},eliteplus:{prompts:Infinity,lyrics:Infinity}};
-const TAB_REQ = {genre:"free",drums:"free",vocals:"free",guitar:"forge",bass:"forge",instru:"forge",structure:"forge",paroles:"pro",organic:"pro",exclude:"elite",output:"free",history:"pro"};
+const TAB_REQ = {genre:"free",drums:"free",vocals:"free",guitar:"forge",bass:"forge",instru:"forge",structure:"forge",paroles:"pro",organic:"pro",exclude:"forge",output:"free",history:"pro"};
 
 // Fusionne la structure enrichie + les paroles générées : chaque section reçoit ses paroles SOUS son tag (prêt à coller dans Suno)
 function mergeStructLyrics(struct, lyrics){
@@ -1170,7 +1170,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   const TABS=[
     {id:"genre",req:"free"},{id:"drums",req:"free"},{id:"vocals",req:"free"},
     {id:"instrums",req:"forge"},{id:"structure",req:"forge"},
-    {id:"paroles",req:"pro"},{id:"organic",req:"pro"},{id:"exclude",req:"elite"},{id:"output",req:"free"},{id:"tuto",req:"free"},{id:"riff",req:"pro"},{id:"master",req:"eliteplus"},
+    {id:"paroles",req:"pro"},{id:"organic",req:"pro"},{id:"exclude",req:"forge"},{id:"output",req:"free"},{id:"tuto",req:"free"},{id:"riff",req:"elite"},{id:"master",req:"elite"},
     ...(isPro?[{id:"history",req:"pro"}]:[]),
   ];
 
@@ -1508,7 +1508,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* OUTPUT */}
-      {tab==="riff"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
+      {tab==="riff"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ff2e2e44"}}>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>🎸 RIFF / BEAT GENERATOR</div>
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un riff + beat, écoute-le, et exporte un WAV prêt pour Suno (Style Reference / Custom Model). 🤘","Generate a riff + beat, listen, and export a WAV ready for Suno (Style Reference / Custom Model). 🤘")}</div>
@@ -1518,12 +1518,12 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
         <div style={{...S.card,textAlign:"center"}}>
           <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>🔜 {L("Bientôt aussi","Also coming soon")}</div>
-          <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>🎬 {L("Idée express","Quick Idea")} · 🎚️ Mastering (Elite Plus)</div>
+          <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>🎬 {L("Idée express","Quick Idea")} · 🎵 {L("Génération in-app (crédits)","In-app generation (credits)")}</div>
         </div>
         <div style={{height:80}}/>
       </div>)}
 
-      {tab==="master"&&(!canAccess("eliteplus")?<LockedOverlay req="eliteplus" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
+      {tab==="master"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ffcc0044"}}>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>🎚️ MASTERING</div>
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Charge ta toune Suno → EQ + compression + limiteur → WAV plus fort et serré, prêt à publier. 🤘","Load your Suno track → EQ + compression + limiter → louder, tighter WAV, ready to publish. 🤘")}</div>
@@ -1532,7 +1532,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <iframe src="/master.html" title="Mastering" style={{width:"100%",height:"1150px",minHeight:"1150px",border:"none",display:"block",background:DARK}}/>
         </div>
         <div style={{...S.card,textAlign:"center"}}>
-          <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>🔜 {L("Bientôt — Elite Plus","Soon — Elite Plus")}</div>
+          <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>🔜 {L("Bientôt — Elite Pro","Soon — Elite Pro")}</div>
           <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>🎬 {L("Idée express — aperçu vidéo + maquette (Lyra/Gemini)","Quick Idea — video preview + mockup (Lyra/Gemini)")}</div>
         </div>
         <div style={{height:80}}/>

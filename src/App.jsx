@@ -1057,6 +1057,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [exclCustom,setExclCustom]=useState("");
   const [heavy,setHeavy]=useState(9);
   const [emotions,setEmotions]=useState({});
+  const [advanced,setAdvanced]=useState(false);
   const [groove,setGroove]=useState(6);
   const [chaos,setChaos]=useState(7);
   const [melody,setMelody]=useState(3);
@@ -1128,12 +1129,15 @@ export default function App({ user, onLogout, onRequestAuth }) {
   // ── GENERATE ──
   const generate=async()=>{
     if(promptCount>=limit.prompts){if(!user){onRequestAuth&&onRequestAuth();return;}setView("landing");return;}
+    // #9 — structure auto si rien choisi (semi-aléatoire, cohérente Paroles+Style)
+    const autoStructs = structs.size ? [...structs] : randStructure();
+    if(!structs.size) setStructs(autoStructs);
     const body={
       genres:[...genres],drums:[...drums],vocals:[...vocals],guitar:[...guitar],tuning:[...tuning],mood:[...mood],prod:[...prod],globalRhythm:[...globalRhythm],vrange:[...vrange],
       bassStyle:[...bassStyle],bassTech:[...bassTech],bassTone:[...bassTone],bassTuning:[...bassTuning],bassProd:[...bassProd],sax:[...sax],brass:[...brass],keys:[...keys],strings:[...strings],
       org:isPro?[...orgRec,...orgDrm,...orgVoc,...orgGtr]:[],
       excl:isElite?{g:[...exclGenre],v:[...exclVocal],p:[...exclProd],i:[...exclInst],c:exclCustom}:null,
-      structs:[...structs],blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions,tier:userTier,
+      structs:autoStructs,blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions,tier:userTier,
     };
     let data;
     try{
@@ -1222,11 +1226,11 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   );
 
   const TABS=[
-    {id:"genre",req:"free"},{id:"drums",req:"free"},{id:"vocals",req:"free"},
-    {id:"instrums",req:"forge"},{id:"structure",req:"forge"},
-    {id:"paroles",req:"pro"},{id:"organic",req:"pro"},{id:"exclude",req:"forge"},{id:"output",req:"free"},{id:"tuto",req:"free"},{id:"riff",req:"elite"},{id:"master",req:"elite"},
+    {id:"genre",req:"free"},{id:"drums",req:"free",adv:true},{id:"vocals",req:"free",adv:true},
+    {id:"instrums",req:"forge",adv:true},{id:"structure",req:"forge",adv:true},
+    {id:"paroles",req:"pro"},{id:"organic",req:"pro",adv:true},{id:"exclude",req:"forge",adv:true},{id:"output",req:"free"},{id:"tuto",req:"free"},{id:"riff",req:"elite"},{id:"master",req:"elite"},
     ...(isPro?[{id:"history",req:"pro"}]:[]),
-  ];
+  ].filter(tb=>advanced||!tb.adv);
 
   return (
     <div style={S.wrap}>
@@ -1259,6 +1263,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* NAV */}
       <div className="nav-scroll" style={{background:"#0f0f0f",borderBottom:"1px solid #1a1a1a"}}>
+        <button onClick={()=>{const na=!advanced;setAdvanced(na);if(!na&&['drums','vocals','instrums','structure','organic','exclude'].includes(tab))setTab('genre');}} style={S.navBtn(advanced,false)} title={L("Affiche les onglets de réglage manuel","Show manual tuning tabs")}>⚙️ {advanced?L("Avancé ✓","Advanced ✓"):L("Avancé","Advanced")}</button>
         {TABS.map(tb=>{
           const locked=!canAccess(tb.req);
           return <button key={tb.id} style={S.navBtn(tab===tb.id,locked)} onClick={()=>setTab(tb.id)}>

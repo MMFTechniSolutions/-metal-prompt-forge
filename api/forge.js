@@ -85,7 +85,11 @@ export default function handler(req, res) {
   if ((guitar.length + extraInst.length) > 4) conf.push(L('Beaucoup d\'instruments — Suno gère mieux 3-4 max.', 'Many instruments — Suno handles 3-4 best.'));
 
   conf.push(...emoConf);
-  const excStr = allExclude.join(', ');
+  // #8 — Exclude AUTO du non-metal (empêche Suno de dériver). Ne touche pas au rap si rapcore/nu-metal.
+  const NON_METAL = ['pop','EDM','dance pop','synthpop','autotune','happy upbeat','country','reggaeton','disco','jazz','R&B','soul ballad','acoustic pop','lo-fi beats','easy listening','elevator music','kids music','cheerful'];
+  const isRapMetal = genres.some(g => /rap|nu.?metal/i.test(String(g)));
+  const autoExcl = isRapMetal ? NON_METAL : [...NON_METAL, 'hip hop beat', 'trap beat'];
+  const excStr = dedup([...allExclude, ...autoExcl]).join(', ');
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)
   const NAME = { intro: 'Intro', buildup: 'Build-up', verse: 'Verse', prechorus: 'Pre-Chorus', chorus: 'Chorus', breakdown: 'Breakdown', halftime: 'Half-Time', blastsection: 'Blast Section', drop: 'Drop', solo: 'Guitar Solo', interlude: 'Interlude', atmosphericbreak: 'Atmospheric Break', spokenword: 'Spoken Word', gangchant: 'Gang Chant', scream: 'Scream Section', riffbreak: 'Riff Break', bridge: 'Bridge', outro: 'Outro' };

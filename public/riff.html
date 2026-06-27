@@ -699,7 +699,7 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
   document.getElementById('txtPlay').textContent='Riff généré — '+currentPat.style+' · '+currentPat.bpm+' BPM';
   if(currentPat.prompt){document.getElementById('promptOut').textContent=currentPat.prompt;document.getElementById('promptBox').style.display='block';}
 });
-document.getElementById('btnPlay').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat);}});
+document.getElementById('btnPlay').addEventListener('click',async()=>{try{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat);}else{document.getElementById('txtPlay').textContent='⚠ Genere un riff d\'abord';}}catch(e){document.getElementById('txtPlay').textContent='⚠ ERREUR PLAY: '+(e&&e.message?e.message:e);console.error('PLAY ERROR',e);}});
 document.getElementById('btnStop').addEventListener('click',stopPlay);
 document.getElementById('btnRender').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await renderAndDownload(currentPat);}});
 document.getElementById('btnCopyTab').addEventListener('click',()=>{

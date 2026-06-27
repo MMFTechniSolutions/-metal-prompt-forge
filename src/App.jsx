@@ -601,7 +601,7 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
 // 🔧 Remplace les champs [ ] par tes vraies infos avant publication.
 const LEGAL = {
   privacy: `POLITIQUE DE CONFIDENTIALITÉ — MetalPrompt
-Dernière mise à jour : 26 juin 2026
+Dernière mise à jour : 27 juin 2026
 
 1. QUI SOMMES-NOUS
 Le site MetalPrompt (« le Service ») est édité par MMF Techni-Solutions, entreprise enregistrée au Québec (NEQ : 2279516308), située au 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1. Cette politique est conforme à la Loi sur la protection des renseignements personnels dans le secteur privé du Québec (Loi 25).
@@ -615,7 +615,7 @@ François Lajoie-Levesque — mmftechnisolutions@gmail.com
 • Utilisation : prompts générés, préférences, historique.
 • Crédits & génération : solde de crédits, métadonnées des morceaux générés (titre, prompt, durée).
 • Technique : adresse IP, type d'appareil, navigateur.
-Nous n'utilisons aucun outil de suivi publicitaire ni de mesure d'audience tiers (ex. Google Analytics).
+Mesure d'audience (AVEC votre consentement) : Google Analytics, déployé via Google Tag Manager, pour comprendre l'usage du site (pages vues, appareil, provenance). Ces témoins ne sont déposés qu'après votre consentement donné via le bandeau. Aucun suivi publicitaire. Retrait possible en tout temps via le lien « Témoins » au bas du site.
 
 4. FINALITÉS
 Créer et gérer votre compte ; fournir le Service ; traiter les paiements ; communiquer avec vous ; améliorer et sécuriser le Service ; respecter nos obligations légales. Nous ne vendons jamais vos renseignements.
@@ -624,7 +624,7 @@ Créer et gérer votre compte ; fournir le Service ; traiter les paiements ; com
 En utilisant le Service, vous consentez à la collecte décrite. Vous pouvez retirer votre consentement en tout temps.
 
 6. SOUS-TRAITANTS
-Supabase (auth / base de données), Stripe (paiements), Vercel (hébergement), ElevenLabs (génération musicale par IA), Google (connexion « Se connecter avec Google »). Certains traitent des données hors Québec ; nous procédons à une évaluation des facteurs relatifs à la vie privée avant toute communication hors Québec, conformément à la Loi 25.
+Supabase (auth / base de données), Stripe (paiements), Vercel (hébergement), ElevenLabs (génération musicale par IA), Google (connexion « Se connecter avec Google » ; Google Analytics / Google Tag Manager pour la mesure d'audience, activés uniquement avec votre consentement). Certains traitent des données hors Québec ; nous procédons à une évaluation des facteurs relatifs à la vie privée avant toute communication hors Québec, conformément à la Loi 25.
 
 7. CONSERVATION
 Données conservées tant que le compte est actif, puis pour la durée requise par nos obligations légales. Suppression du compte possible sur demande.
@@ -636,7 +636,8 @@ Mesures raisonnables : chiffrement des mots de passe, accès restreint, fourniss
 Accès, rectification, retrait du consentement / suppression, portabilité, et plainte auprès de la Commission d'accès à l'information du Québec (CAI). Pour exercer ces droits : mmftechnisolutions@gmail.com (réponse sous 30 jours).
 
 10. TÉMOINS (COOKIES)
-Le Service utilise uniquement des témoins strictement nécessaires à son fonctionnement (session, authentification). Aucun témoin de suivi ; aucun bandeau de consentement requis.
+Témoins essentiels : strictement nécessaires au fonctionnement (session, authentification) — toujours actifs.
+Témoins de mesure d'audience : Google Analytics (via Google Tag Manager). Ils ne sont déposés qu'APRÈS votre consentement explicite, recueilli via le bandeau affiché à la première visite (conforme à la Loi 25). Vous pouvez accepter, refuser ou retirer votre consentement en tout temps via le lien « Témoins » au bas de chaque page.
 
 11. INCIDENT DE CONFIDENTIALITÉ
 En cas d'incident à risque sérieux, nous aviserons les personnes concernées et la CAI.
@@ -842,6 +843,7 @@ function SiteFooter({onOpen,uiLang}){
       <button style={{...lk,color:RED,fontWeight:700}} onClick={()=>onOpen("about")}>{fr?"À propos":"About"}</button>
       <a href="/guide.html" target="_blank" rel="noreferrer" style={{...lk,display:"inline-block"}}>{fr?"Guide Suno":"Suno Guide"}</a>
       <button style={lk} onClick={()=>onOpen("privacy")}>{fr?"Confidentialité":"Privacy"}</button>
+      <button style={lk} onClick={()=>{try{localStorage.removeItem("mp_consent");}catch(e){}window.dispatchEvent(new Event("mp-open-consent"));}}>{fr?"Témoins":"Cookies"}</button>
       <button style={lk} onClick={()=>onOpen("terms")}>{fr?"Conditions d'utilisation":"Terms"}</button>
       <button style={lk} onClick={()=>onOpen("sales")}>{fr?"Conditions de vente":"Sales terms"}</button>
       <button style={lk} onClick={()=>onOpen("legal")}>{fr?"Mentions légales":"Legal notice"}</button>
@@ -899,6 +901,36 @@ function UserChip({user,uiLang,tierBadge,tierColor,isElite,onLogout,onRequestAut
   );
 }
 
+function loadGTM(){
+  if(typeof window==='undefined'||window.__gtmLoaded)return;window.__gtmLoaded=true;
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N8QF6Z96');
+}
+function CookieBanner({uiLang,onPrivacy}){
+  const fr=uiLang!=="en";
+  const [show,setShow]=useState(false);
+  useEffect(()=>{
+    let c=null;try{c=localStorage.getItem('mp_consent');}catch(e){}
+    if(c==='granted')loadGTM();
+    else if(c!=='denied')setShow(true);
+    const reopen=()=>setShow(true);
+    window.addEventListener('mp-open-consent',reopen);
+    return ()=>window.removeEventListener('mp-open-consent',reopen);
+  },[]);
+  const decide=(v)=>{try{localStorage.setItem('mp_consent',v);}catch(e){}if(v==='granted')loadGTM();setShow(false);};
+  if(!show)return null;
+  return (
+    <div style={{position:"fixed",left:0,right:0,bottom:0,zIndex:2000,background:"#0c0c0e",borderTop:"2px solid #c0392b",padding:"16px 18px",display:"flex",flexWrap:"wrap",gap:"12px",alignItems:"center",justifyContent:"center",boxShadow:"0 -6px 24px #000a"}}>
+      <div style={{flex:"1 1 360px",maxWidth:"640px",fontSize:"0.72rem",lineHeight:1.55,color:"#cfcfd4"}}>
+        🍪 {fr?"On utilise des témoins de mesure d'audience (Google Analytics via Tag Manager) pour améliorer le site. Ils ne se chargent qu'avec ton accord. Les témoins essentiels (connexion, session) restent toujours actifs.":"We use audience-measurement cookies (Google Analytics via Tag Manager) to improve the site. They load only with your consent. Essential cookies (login, session) stay active."}{" "}
+        <span onClick={onPrivacy} style={{color:"#e74c3c",textDecoration:"underline",cursor:"pointer"}}>{fr?"Politique de confidentialité":"Privacy policy"}</span>
+      </div>
+      <div style={{display:"flex",gap:"8px",flexShrink:0}}>
+        <button onClick={()=>decide('denied')} style={{background:"transparent",border:"1px solid #444",color:"#bbb",borderRadius:"6px",padding:"9px 16px",fontSize:"0.72rem",fontWeight:700,cursor:"pointer"}}>{fr?"Refuser":"Decline"}</button>
+        <button onClick={()=>decide('granted')} style={{background:"#c0392b",border:"none",color:"#fff",borderRadius:"6px",padding:"9px 18px",fontSize:"0.72rem",fontWeight:800,cursor:"pointer",letterSpacing:"0.5px"}}>{fr?"Accepter":"Accept"}</button>
+      </div>
+    </div>
+  );
+}
 export default function App({ user, onLogout, onRequestAuth }) {
   const [view,setView]=useState("app");
   const [tab,setTab]=useState("genre");
@@ -1164,6 +1196,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   if(view==="landing") return (
     <>
       <LandingPage onEnter={()=>setView("app")} uiLang={uiLang} setUiLang={setUiLang} email={user?.email}/>
+      <CookieBanner uiLang={uiLang} onPrivacy={()=>setLegalDoc("privacy")}/>
       <SiteFooter onOpen={setLegalDoc} uiLang={uiLang}/>
       <LegalModal doc={legalDoc} onClose={()=>setLegalDoc(null)} uiLang={uiLang}/>
     </>
@@ -1180,6 +1213,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
     <div style={S.wrap}>
       <style>{css}</style>
       {showPaywall&&<PaywallModal onClose={()=>setShowPaywall(false)} email={user?.email} uiLang={uiLang}/>}
+      <CookieBanner uiLang={uiLang} onPrivacy={()=>setLegalDoc("privacy")}/>
 
       {warnLogout&&(
         <div style={{position:"fixed",top:0,left:0,right:0,background:"#1a0000",borderBottom:`1px solid ${RED}`,padding:"8px",textAlign:"center",zIndex:500,fontSize:"0.65rem",color:"#ff9090"}}>

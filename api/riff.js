@@ -161,6 +161,17 @@ function buildTab(p){
     '// BATTERIE  (x=hihat · o=snare/kick)\n'+drums+leadStr;
 }
 
+// Prompt Suno optimisé qui FIT le beat généré (recette secrète, côté serveur)
+function buildPrompt(p){
+  const G={thrash:'thrash metal',death:'death metal',doom:'doom metal',blackened:'black metal',groove:'groove metal',djent:'djent',speed:'speed metal',slam:'slam metal',sludge:'sludge metal',postmetal:'post-metal',grindcore:'grindcore',funeraldoom:'funeral doom',dissonant:'dissonant death metal'};
+  const D={standard:'steady drums',double_kick:'double bass drumming',blast_beat:'blast beats',half_time:'half-time groove',breakdown:'breakdown',gravity:'gravity blast beats',thrash:'thrash beat',deathcore:'deathcore groove',dbeat:'d-beat',groove:'groovy drums',two_step:'two-step beat',bounce:'bounce groove',slam:'slam beat',mathcore:'mathcore drums',doom:'doom drums',skank:'skank beat',bombblast:'bomb blast beats',halfgroove:'half-time groove',tribal:'tribal toms',driving:'driving double bass',straight_dk:'straight double kick',bouncy:'bouncy groove',marching:'marching snare',jungle:'tribal toms',stomp:'stomp breakdown',blast_china:'blast beats with china cymbals',halftime2:'heavy half-time',pocket:'pocket groove',gallop:'galloping drums'};
+  const T={E2:'standard E tuning',Eb2:'Eb tuning',D2:'D standard tuning',Db2:'drop C# tuning',C2:'C standard tuning',B1:'B standard tuning'};
+  const bpm=p.bpm;
+  const tempo=bpm>=210?'blistering fast tempo':bpm>=170?'fast tempo':bpm>=120?'mid-tempo':bpm>=90?'slow groovy tempo':'slow doom tempo';
+  const tags=[G[p.style]||'metal', bpm+' BPM', tempo, D[p.drumKey]||'heavy drums', T[p.root]||'', 'chugging riffs', 'heavy distortion', 'tight low end', 'aggressive and crushing'];
+  return tags.filter(Boolean).join(', ');
+}
+
 export default function handler(req, res){
   let b = req.method === 'POST' ? req.body : (req.query || {});
   if (typeof b === 'string') { try { b = JSON.parse(b); } catch { b = {}; } }
@@ -203,5 +214,6 @@ export default function handler(req, res){
     drumKey: p.drumKey, structure: p.structure, lead: p.lead,
     noteSeq: p.noteSeq, guit: p.guit, bass: p.bass, drum: p.drum, atmos: ATMOS.includes(p.style),
     arr, leadVoice, leadRhy: leadVoice ? LEAD_RHY : null, tab,
+    prompt: buildPrompt(p),
   });
 }

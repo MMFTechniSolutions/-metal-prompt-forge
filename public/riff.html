@@ -199,6 +199,17 @@
 
   <div class="panel">
     <h2>Lecture</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+      <span style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--ash);align-self:center;letter-spacing:.08em;">⚡ PRESETS:</span>
+      <button class="bs" data-rp="death" style="font-size:.62rem;padding:6px 10px;">Death Brutal</button>
+      <button class="bs" data-rp="thrash" style="font-size:.62rem;padding:6px 10px;">Thrash Attack</button>
+      <button class="bs" data-rp="deathcore" style="font-size:.62rem;padding:6px 10px;">Deathcore Bounce</button>
+      <button class="bs" data-rp="black" style="font-size:.62rem;padding:6px 10px;">Black Symphonique</button>
+      <button class="bs" data-rp="djent" style="font-size:.62rem;padding:6px 10px;">Djent Groove</button>
+      <button class="bs" data-rp="doom" style="font-size:.62rem;padding:6px 10px;">Doom Crawl</button>
+      <button class="bs" data-rp="groove" style="font-size:.62rem;padding:6px 10px;">Groove Stomp</button>
+      <button class="bs" data-rp="speed" style="font-size:.62rem;padding:6px 10px;">Speed Gallop</button>
+    </div>
     <canvas id="waveCanvas"></canvas>
     <div class="btn-row">
       <button class="bp" id="btnGen">⚡ Générer</button>
@@ -216,6 +227,11 @@
       <button class="bp" id="btnRender" disabled>⏺ Render + Download</button>
     </div>
     <div class="sb"><div class="dot" id="dotRec"></div><span id="txtRec">Génère un riff d'abord</span></div>
+    <div id="promptBox" style="display:none;margin-top:14px;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--ember);letter-spacing:.08em;margin-bottom:6px;">🤘 PROMPT OPTIMISÉ — colle-le dans Suno + uploade le .wav comme Style Reference</div>
+      <pre id="promptOut" style="white-space:pre-wrap;background:#0a0a0b;border:1px solid var(--iron);border-radius:6px;padding:10px;font-size:.72rem;color:var(--bone);margin:0;"></pre>
+      <button class="bs" id="btnCopyPrompt" style="margin-top:6px;">⧉ Copier le prompt</button>
+    </div>
   </div>
 
 </main>
@@ -303,10 +319,11 @@ async function initTone(){
   const cheby=new Tone.Chebyshev(5);
   const cab=new Tone.Filter({type:'bandpass',frequency:1100,Q:.9});
   const lo=new Tone.Filter({type:'highpass',frequency:80});
-  const hi=new Tone.Filter({type:'lowpass',frequency:5500});
+  const hi=new Tone.Filter({type:'lowpass',frequency:7800});
+  const air=new Tone.Filter({type:'highshelf',frequency:9000,gain:4});
   const verb=new Tone.Reverb({decay:.35,wet:.12});
   synth=new Tone.PolySynth(Tone.Synth,{oscillator:{type:'sawtooth'},envelope:{attack:.003,decay:.1,sustain:.6,release:.1}});
-  synth.connect(dist);dist.connect(cheby);cheby.connect(cab);cab.connect(lo);lo.connect(hi);hi.connect(verb);verb.connect(lim);
+  synth.connect(dist);dist.connect(cheby);cheby.connect(cab);cab.connect(lo);lo.connect(hi);hi.connect(air);air.connect(verb);verb.connect(lim);
   // Bass
   const bf=new Tone.Filter({type:'lowpass',frequency:550});
   const bd=new Tone.Distortion({distortion:.25,oversample:'2x'});
@@ -470,7 +487,7 @@ async function renderAndDownload(p){
         const freq=semiHz(rootHz,semi+interval);
         const o1=off.createOscillator(),o2=off.createOscillator();
         const d=off.createWaveShaper();
-        const hp=off.createBiquadFilter(),body=off.createBiquadFilter(),scoop=off.createBiquadFilter(),pres=off.createBiquadFilter(),lp1=off.createBiquadFilter(),lp2=off.createBiquadFilter();
+        const hp=off.createBiquadFilter(),body=off.createBiquadFilter(),scoop=off.createBiquadFilter(),pres=off.createBiquadFilter(),lp1=off.createBiquadFilter(),lp2=off.createBiquadFilter(),air=off.createBiquadFilter();
         const g=off.createGain();
         o1.type='sawtooth';o1.frequency.value=freq;
         o2.type='sawtooth';o2.frequency.value=freq*0.996;
@@ -479,14 +496,15 @@ async function renderAndDownload(p){
         body.type='peaking';body.frequency.value=230;body.Q.value=1;body.gain.value=4;
         scoop.type='peaking';scoop.frequency.value=750;scoop.Q.value=1.1;scoop.gain.value=-5;
         pres.type='peaking';pres.frequency.value=3100;pres.Q.value=1.2;pres.gain.value=5;
-        lp1.type='lowpass';lp1.frequency.value=5000;lp1.Q.value=0.7;
-        lp2.type='lowpass';lp2.frequency.value=5200;lp2.Q.value=0.7;
+        lp1.type='lowpass';lp1.frequency.value=7800;lp1.Q.value=0.7;
+        lp2.type='lowpass';lp2.frequency.value=8200;lp2.Q.value=0.7;
+        air.type='highshelf';air.frequency.value=9000;air.gain.value=4;
         const amp=fi===0?.4:.24;
         g.gain.setValueAtTime(0,t);
         g.gain.linearRampToValueAtTime(amp,t+.003);
         g.gain.exponentialRampToValueAtTime(amp*0.55,t+stepDur*.35);
         g.gain.exponentialRampToValueAtTime(.001,t+stepDur*.82);
-        o1.connect(d);o2.connect(d);d.connect(hp);hp.connect(body);body.connect(scoop);scoop.connect(pres);pres.connect(lp1);lp1.connect(lp2);lp2.connect(g);g.connect(master);
+        o1.connect(d);o2.connect(d);d.connect(hp);hp.connect(body);body.connect(scoop);scoop.connect(pres);pres.connect(lp1);lp1.connect(lp2);lp2.connect(air);air.connect(g);g.connect(master);
         o1.start(t);o1.stop(t+stepDur+.05);
         o2.start(t);o2.stop(t+stepDur+.05);
       });
@@ -552,6 +570,11 @@ async function renderAndDownload(p){
   // Download — méthode robuste
   const fname=`metalprompt_${p.style}_${bpm}bpm_${p.root}_${dur}s.wav`;
   triggerDownload(wav,fname);
+  if(p.prompt){
+    document.getElementById('promptOut').textContent=p.prompt;
+    document.getElementById('promptBox').style.display='block';
+    triggerDownload(new Blob([p.prompt],{type:'text/plain'}), fname.replace('.wav','_prompt.txt'));
+  }
 
   document.getElementById('dotRec').className='dot';
   document.getElementById('txtRec').textContent=`✓ ${dur}s · ${bpm} BPM · ${p.root} — téléchargement lancé`;
@@ -668,6 +691,26 @@ document.getElementById('btnCopyTab').addEventListener('click',()=>{
   const txt=document.getElementById('tabOut').textContent;
   navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('btnCopyTab');b.textContent='✓ Copié';setTimeout(()=>b.textContent='⧉ Copier la tab',1500);});
 });
+document.getElementById('btnCopyPrompt').addEventListener('click',()=>{
+  const t=document.getElementById('promptOut').textContent;
+  navigator.clipboard.writeText(t).then(()=>{const b=document.getElementById('btnCopyPrompt');b.textContent='✓ Copié';setTimeout(()=>b.textContent='⧉ Copier le prompt',1500);});
+});
+const RIFF_PRESETS={
+  death:    {style:'death',bpm:200,tuning:'B1',drums:'blast_beat',structure:'blastassault',lead:'none'},
+  thrash:   {style:'thrash',bpm:180,tuning:'E2',drums:'thrash',structure:'gallop',lead:'none'},
+  deathcore:{style:'death',bpm:140,tuning:'Db2',drums:'bounce',structure:'breakdownfest',lead:'none'},
+  black:    {style:'blackened',bpm:200,tuning:'Eb2',drums:'blast_beat',structure:'fullsong',lead:'violon'},
+  djent:    {style:'djent',bpm:140,tuning:'Db2',drums:'double_kick',structure:'djent7',lead:'none'},
+  doom:     {style:'doom',bpm:70,tuning:'C2',drums:'doom',structure:'doomcrawl',lead:'none'},
+  groove:   {style:'groove',bpm:130,tuning:'D2',drums:'stomp',structure:'versechorus',lead:'none'},
+  speed:    {style:'speed',bpm:200,tuning:'E2',drums:'gallop',structure:'gallop',lead:'none'},
+};
+document.querySelectorAll('[data-rp]').forEach(b=>b.addEventListener('click',()=>{
+  const pr=RIFF_PRESETS[b.dataset.rp];if(!pr)return;
+  const set=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
+  set('style',pr.style);set('bpm',pr.bpm);set('tuning',pr.tuning);set('drums',pr.drums);set('structure',pr.structure);set('lead',pr.lead);
+  document.getElementById('btnGen').click();
+}));
 </script>
 </body>
 </html>

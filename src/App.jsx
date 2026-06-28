@@ -1129,7 +1129,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
 
   // ── GENERATE ──
   const generate=async()=>{
-    if(promptCount>=limit.prompts){if(!user){onRequestAuth&&onRequestAuth();return;}setView("landing");return;}
+    if(!user){onRequestAuth&&onRequestAuth();return;}          // compte requis pour générer (même gratuit)
+    if(promptCount>=limit.prompts){setView("landing");return;}
     // #9 — structure auto si rien choisi (semi-aléatoire, cohérente Paroles+Style)
     const autoStructs = structs.size ? [...structs] : ['intro','verse','chorus','breakdown','verse','chorus','outro'];
     if(!structs.size){setStructs(autoStructs);setLblocks(autoStructs);}

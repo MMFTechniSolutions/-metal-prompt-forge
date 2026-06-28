@@ -116,19 +116,19 @@
         <label>Scène (saveur régionale)</label>
         <select id="scene">
           <option value="">— Aucune —</option>
-          <option value="norwegian">🇳🇴 Norvégienne</option>
-          <option value="finnish">🇫🇮 Finlandaise</option>
-          <option value="swedish">🇸🇪 Suédoise</option>
-          <option value="german">🇩🇪 Allemande</option>
-          <option value="american">🇺🇸 Américaine</option>
-          <option value="canadian">🇨🇦 Canadienne</option>
-          <option value="quebecois">⚜️ Québécoise</option>
-          <option value="bayarea">🌉 Bay Area (thrash)</option>
-          <option value="florida">🐊 Floride (death)</option>
-          <option value="gothenburg">⚔️ Göteborg (melodeath)</option>
-          <option value="nola">🎷 NOLA (sludge)</option>
-          <option value="french">🥖 Française (blackgaze)</option>
-          <option value="brazilian">🇧🇷 Brésilienne</option>
+          <option value="norwegian">Norvégienne</option>
+          <option value="finnish">Finlandaise</option>
+          <option value="swedish">Suédoise</option>
+          <option value="german">Allemande</option>
+          <option value="american">Américaine</option>
+          <option value="canadian">Canadienne</option>
+          <option value="quebecois">Québécoise</option>
+          <option value="bayarea">Bay Area (thrash)</option>
+          <option value="florida">Floride (death)</option>
+          <option value="gothenburg">Göteborg (melodeath)</option>
+          <option value="nola">NOLA (sludge)</option>
+          <option value="french">Française (blackgaze)</option>
+          <option value="brazilian">Brésilienne</option>
         </select>
       </div>
       <div class="cg">
@@ -181,10 +181,10 @@
         </select>
       </div>
       <div class="cg">
-        <label>Ou importe TON groove MIDI 🎹</label>
+        <label>Ou importe TON groove MIDI </label>
         <input type="file" id="midiDrum" accept=".mid,.midi">
         <div class="sb" id="midiStatus" style="font-size:.58rem;color:var(--ash);">Menu actif. Charge un .mid pour utiliser TON groove (reste sur ton appareil).</div>
-        <button class="bs" id="midiClear" style="display:none;font-size:.6rem;padding:4px 10px;margin-top:5px;">✕ Retirer — revenir au menu</button>
+        <button class="bs" id="midiClear" style="display:none;font-size:.6rem;padding:4px 10px;margin-top:5px;">Retirer — revenir au menu</button>
       </div>
       <div class="cg">
         <label>Structure (mesures)</label>
@@ -244,7 +244,7 @@
   <div class="panel">
     <h2>Lecture</h2>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-      <span style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--ash);align-self:center;letter-spacing:.08em;">⚡ PRESETS:</span>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--ash);align-self:center;letter-spacing:.08em;">PRESETS:</span>
       <button class="bs" data-rp="death" style="font-size:.62rem;padding:6px 10px;">Death Brutal</button>
       <button class="bs" data-rp="thrash" style="font-size:.62rem;padding:6px 10px;">Thrash Attack</button>
       <button class="bs" data-rp="deathcore" style="font-size:.62rem;padding:6px 10px;">Deathcore Bounce</button>
@@ -256,13 +256,13 @@
     </div>
     <canvas id="waveCanvas"></canvas>
     <div class="btn-row">
-      <button class="bp" id="btnGen">⚡ Générer</button>
+      <button class="bp" id="btnGen">Générer</button>
       <button class="bs" id="btnPlay" disabled>▶ Play</button>
       <button class="bs" id="btnStop" disabled>■ Stop</button>
     </div>
     <div class="sb"><div class="dot" id="dotPlay"></div><span id="txtPlay">Configure et génère un riff</span></div>
     <div id="promptBox" style="display:none;margin-top:12px;">
-      <div style="font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--ember);letter-spacing:.08em;margin-bottom:6px;">🤘 PROMPT OPTIMISÉ (qui fit le beat) — colle dans Suno + uploade le .wav</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--ember);letter-spacing:.08em;margin-bottom:6px;">PROMPT OPTIMISÉ (qui fit le beat) — colle dans Suno + uploade le .wav</div>
       <pre id="promptOut" style="white-space:pre-wrap;background:#0a0a0b;border:1px solid var(--iron);border-radius:6px;padding:10px;font-size:.72rem;color:var(--bone);margin:0;"></pre>
       <button class="bs" id="btnCopyPrompt" style="margin-top:6px;">⧉ Copier le prompt</button>
     </div>
@@ -616,7 +616,7 @@ async function renderAndDownload(p){
   triggerDownload(wav,fname);
 
   document.getElementById('dotRec').className='dot';
-  document.getElementById('txtRec').textContent=`✓ ${dur}s · ${bpm} BPM · ${p.root} — téléchargement lancé`;
+  document.getElementById('txtRec').textContent=`${dur}s · ${bpm} BPM · ${p.root} — téléchargement lancé`;
   document.getElementById('btnRender').disabled=false;
   setTimeout(()=>{prog.style.width='0%';},2000);
 }
@@ -678,7 +678,7 @@ document.getElementById('midiDrum').addEventListener('change',async(e)=>{
     const r=parseMidiToDrum(await f.arrayBuffer());
     if(!r){importedDrum=null;st.textContent='⚠ MIDI illisible ou vide';return;}
     importedDrum=r;
-    st.innerHTML='🎹 <b style="color:var(--ember-hot)">'+f.name+'</b> ACTIF — remplace le menu. Clique ⚡ Générer.';
+    st.innerHTML='<b style="color:var(--ember-hot)">'+f.name+'</b> ACTIF — remplace le menu. Clique Générer.';
     document.getElementById('midiClear').style.display='inline-block';
   }catch(err){importedDrum=null;st.textContent='⚠ '+(err.message||'erreur');}
 });
@@ -730,11 +730,11 @@ document.getElementById('btnStop').addEventListener('click',stopPlay);
 document.getElementById('btnRender').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await renderAndDownload(currentPat);}});
 document.getElementById('btnCopyTab').addEventListener('click',()=>{
   const txt=document.getElementById('tabOut').textContent;
-  navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('btnCopyTab');b.textContent='✓ Copié';setTimeout(()=>b.textContent='⧉ Copier la tab',1500);});
+  navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('btnCopyTab');b.textContent='Copié';setTimeout(()=>b.textContent='⧉ Copier la tab',1500);});
 });
 document.getElementById('btnCopyPrompt').addEventListener('click',()=>{
   const t=document.getElementById('promptOut').textContent;
-  navigator.clipboard.writeText(t).then(()=>{const b=document.getElementById('btnCopyPrompt');b.textContent='✓ Copié';setTimeout(()=>b.textContent='⧉ Copier le prompt',1500);});
+  navigator.clipboard.writeText(t).then(()=>{const b=document.getElementById('btnCopyPrompt');b.textContent='Copié';setTimeout(()=>b.textContent='⧉ Copier le prompt',1500);});
 });
 const RIFF_PRESETS={
   death:    {style:'death',bpm:200,tuning:'B1',drums:'blast_beat',structure:'blastassault',lead:'none'},

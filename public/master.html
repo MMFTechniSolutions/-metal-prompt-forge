@@ -99,7 +99,7 @@
     <input type="file" id="file" accept="audio/*" multiple>
     <div class="sb" id="fileInfo">Aucun stem chargé.</div>
     <div class="stemwrap" id="stemWrap" style="display:none;">
-      <div class="stemhint">🎚️ PISTES — fais ton mix avant de masteriser (M = mute · S = solo)</div>
+      <div class="stemhint">PISTES — fais ton mix avant de masteriser (M = mute · S = solo)</div>
       <div class="mixchassis" id="stemConsole"></div>
       <div class="scpanel" id="scPanel" style="display:none;"></div>
     </div>
@@ -108,26 +108,26 @@
   <div class="panel">
     <h2>2 · Style de master</h2>
     <div class="presets" id="presets">
-      <div class="pst on" data-p="flat">⬜ FLAT</div>
+      <div class="pst on" data-p="flat">FLAT</div>
       <div class="pst" data-p="metal">METAL LOUD</div>
       <div class="pst" data-p="balanced">ÉQUILIBRÉ</div>
       <div class="pst" data-p="warm">WARM / VINTAGE</div>
       <div class="pst" data-p="brutal">BRUTAL (slam)</div>
-      <div class="pst" data-p="ia">🤖 NETTOYAGE IA</div>
+      <div class="pst" data-p="ia">NETTOYAGE IA</div>
     </div>
     <div class="console" id="masterConsole">
       <div class="chan"><div class="clabel">Loudness</div><input type="range" class="fader" id="loud" min="-16" max="-5" value="-9" oninput="document.getElementById('loudLbl').textContent=this.value"><div class="cval" id="loudLbl">-9</div></div>
       <div class="chan"><div class="clabel">Présence</div><input type="range" class="fader" id="pres" min="0" max="8" value="4" step="0.5" oninput="document.getElementById('presLbl').textContent=this.value"><div class="cval" id="presLbl">4</div></div>
       <div class="chan"><div class="clabel">Grave</div><input type="range" class="fader" id="low" min="-3" max="8" value="3" step="0.5" oninput="document.getElementById('lowLbl').textContent=this.value"><div class="cval" id="lowLbl">3</div></div>
-      <div class="chan"><div class="clabel">🤖 Boue</div><input type="range" class="fader" id="mud" min="0" max="6" value="2" step="0.5" oninput="document.getElementById('mudLbl').textContent=this.value"><div class="cval" id="mudLbl">2</div></div>
-      <div class="chan"><div class="clabel">🤖 Dureté</div><input type="range" class="fader" id="harsh" min="0" max="6" value="1.5" step="0.5" oninput="document.getElementById('harshLbl').textContent=this.value"><div class="cval" id="harshLbl">1.5</div></div>
-      <div class="chan"><div class="clabel">🔥 Chaleur</div><input type="range" class="fader" id="sat" min="0" max="5" value="2" step="0.5" oninput="document.getElementById('satLbl').textContent=this.value"><div class="cval" id="satLbl">2</div></div>
+      <div class="chan"><div class="clabel">Boue</div><input type="range" class="fader" id="mud" min="0" max="6" value="2" step="0.5" oninput="document.getElementById('mudLbl').textContent=this.value"><div class="cval" id="mudLbl">2</div></div>
+      <div class="chan"><div class="clabel">Dureté</div><input type="range" class="fader" id="harsh" min="0" max="6" value="1.5" step="0.5" oninput="document.getElementById('harshLbl').textContent=this.value"><div class="cval" id="harshLbl">1.5</div></div>
+      <div class="chan"><div class="clabel">Chaleur</div><input type="range" class="fader" id="sat" min="0" max="5" value="2" step="0.5" oninput="document.getElementById('satLbl').textContent=this.value"><div class="cval" id="satLbl">2</div></div>
       <div class="chan"><div class="clabel">Reverb %</div><input type="range" class="fader" id="rev" min="0" max="60" value="0" step="5" oninput="document.getElementById('revLbl').textContent=this.value"><div class="cval" id="revLbl">0</div></div>
       <div class="chan"><div class="clabel">Pitch ½t</div><input type="range" class="fader" id="pitch" min="-4" max="4" value="0" step="1" oninput="document.getElementById('pitchLbl').textContent=this.value"><div class="cval" id="pitchLbl">0</div></div>
       <div class="chan"><div class="clabel">Balance L·R</div><input type="range" class="fader" id="pan" min="-100" max="100" value="0" step="5" oninput="document.getElementById('panLbl').textContent=this.value"><div class="cval" id="panLbl">0</div></div>
-      <div class="chan"><div class="clabel">🤖 Débruit.</div><input type="range" class="fader" id="deno" min="0" max="100" value="0" step="5" oninput="document.getElementById('denoLbl').textContent=this.value"><div class="cval" id="denoLbl">0</div></div>
+      <div class="chan"><div class="clabel">Débruit.</div><input type="range" class="fader" id="deno" min="0" max="100" value="0" step="5" oninput="document.getElementById('denoLbl').textContent=this.value"><div class="cval" id="denoLbl">0</div></div>
     </div>
-    <div style="margin-top:14px;margin-bottom:8px;font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--ember);letter-spacing:.12em;text-align:center;">🎚️ ÉGALISEUR — 9 BANDES</div>
+    <div style="margin-top:14px;margin-bottom:8px;font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--ember);letter-spacing:.12em;text-align:center;">ÉGALISEUR — 9 BANDES</div>
     <div class="console" id="eqConsole">
       <div class="chan"><div class="clabel">50 Hz</div><input type="range" class="fader" id="eq0" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq0Lbl').textContent=this.value"><div class="cval" id="eq0Lbl">0</div></div>
       <div class="chan"><div class="clabel">120 Hz</div><input type="range" class="fader" id="eq1" min="-12" max="12" value="0" step="0.5" oninput="document.getElementById('eq1Lbl').textContent=this.value"><div class="cval" id="eq1Lbl">0</div></div>
@@ -149,13 +149,13 @@
       <button class="bs" id="btnAB">🅰 / 🅱 (avant/après)</button>
     </div>
     <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
-    <div class="btn-row"><button class="bp" id="btnMaster" disabled>⚒ MASTERISER (export)</button></div>
+    <div class="btn-row"><button class="bp" id="btnMaster" disabled>MASTERISER (export)</button></div>
     <div class="btn-row" id="transport" style="display:none;">
       <button class="bs" id="btnBefore">▶ AVANT</button>
       <button class="bp" id="btnAfter">▶ APRÈS</button>
       <button class="bs" id="btnStop">⏹ STOP</button>
-      <button class="bs" id="btnWav">⬇ WAV</button>
-      <button class="bs" id="btnMp3">⬇ MP3</button>
+      <button class="bs" id="btnWav">WAV</button>
+      <button class="bs" id="btnMp3">MP3</button>
     </div>
     <div class="sb" id="status">Charge une toune ou des stems d'abord.</div>
     <p class="dl-info">Chaîne anti-IA : passe-haut → <strong>cut de boue 200-400Hz</strong> → grave → présence → <strong>tamer de dureté 5-7kHz</strong> → air → <strong>saturation analogique</strong> → compression « glue » → limiteur brickwall → loudness. La recette (fréquences, calibration) vit en back-end. Sort un <strong>.wav</strong> chaud, serré et prêt à publier.</p>
@@ -273,7 +273,7 @@ function updateLoaded(){
   const info=document.getElementById('fileInfo');
   if(!has){info.textContent='Aucun stem chargé.';return;}
   const dur=(maxLen()/mixSR()).toFixed(1);
-  info.textContent='✓ '+stems.length+' '+(stems.length>1?'pistes':'piste')+' · '+dur+'s · '+mixSR()+'Hz · prêt à masteriser';
+  info.textContent=''+stems.length+' '+(stems.length>1?'pistes':'piste')+' · '+dur+'s · '+mixSR()+'Hz · prêt à masteriser';
 }
 
 function renderStems(){
@@ -299,7 +299,7 @@ function renderStems(){
         <button class="msbtn m${st.muted?' on':''}" data-act="mute">M</button>
         <button class="msbtn s${st.solo?' on':''}" data-act="solo">S</button>
       </div>
-      <button class="xbtn" data-act="del">✕ retirer</button>
+      <button class="xbtn" data-act="del">retirer</button>
     </div>`;}).join('');
   renderSidechain();
 }
@@ -313,7 +313,7 @@ function renderSidechain(){
   if(stems.length<2){panel.style.display='none';return;}
   scAutoPick();panel.style.display='flex';
   const opt=sel=>stems.map(s=>'<option value="'+s.id+'"'+(s.id===sel?' selected':'')+'>'+esc(s.name)+'</option>').join('');
-  panel.innerHTML='<div class="sctitle"><span class="sw'+(SC.on?' on':'')+'" data-sc="toggle"></span>⛓ SIDECHAIN — kick→basse</div>'
+  panel.innerHTML='<div class="sctitle"><span class="sw'+(SC.on?' on':'')+'" data-sc="toggle"></span>SIDECHAIN — kick→basse</div>'
     +'<div class="scf"><label>Déclencheur (kick)</label><select data-sc="trig">'+opt(SC.trigId)+'</select></div>'
     +'<div class="scf"><label>Cible (basse)</label><select data-sc="targ">'+opt(SC.targId)+'</select></div>'
     +'<div class="scf sl"><label>Profondeur <span class="scv">'+Math.round(SC.depth*100)+'%</span></label><input type="range" data-sc="depth" min="0" max="90" value="'+Math.round(SC.depth*100)+'" step="5"></div>'
@@ -420,7 +420,7 @@ document.getElementById('btnMaster').addEventListener('click',async()=>{
 
   masteredBuf=rendered;
   document.getElementById('transport').style.display='flex';
-  document.getElementById('status').textContent='✓ Masterisé ('+curPreset+', '+stems.length+(stems.length>1?' stems':' piste')+') — écoute AVANT/APRÈS, pis télécharge 🤘';
+  document.getElementById('status').textContent='Masterisé ('+curPreset+', '+stems.length+(stems.length>1?' stems':' piste')+') — écoute AVANT/APRÈS, pis télécharge ';
   btn.disabled=false;
   setTimeout(()=>{prog.style.width='0%';},2000);
 });

@@ -9,27 +9,27 @@ const CARD = "#141414";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",instrums:"🎸 Instruments",structure:"📐 Structure",paroles:"✍️ Lyrics",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Learn",riff:"🎸 Riff",master:"🎚️ Master",history:"🕒 History"},
+    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",riff:"Riff",master:"Master",history:"History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (max ~120 chars)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
     step3t:"STEP 3 — Production notes (DO NOT paste in Suno)",step3d:"Keep these for yourself — Suno would sing them as lyrics.",
     step4t:"STEP 4 — Exclude tags",step4d:"Add AFTER your style tags with minus sign: deathcore, -pop, -clean vocals",
-    lockedMsg:"Requires",upgrade:"Upgrade →",logout:"Logout",signup:"🤘 Create free account",
+    lockedMsg:"Requires",upgrade:"Upgrade →",logout:"Logout",signup:"Create free account",
     warn:"⚠️ Auto-logout in 5 min (inactivity)",plans:"See plans →",prompts:"prompts",
-    noPrompt:"Hit the anvil ⚒️ to forge your prompt!",
+    noPrompt:"Hit the anvil to forge your prompt!",
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"🎸 Genre",drums:"🥁 Drums",vocals:"🎙️ Vocals",instrums:"🎸 Instruments",structure:"📐 Structure",paroles:"✍️ Paroles",organic:"🌿 Organic",exclude:"🚫 Exclude",output:"📋 Output",tuto:"📚 Tuto",riff:"🎸 Riff",master:"🎚️ Master",history:"🕒 Historique"},
+    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",riff:"Riff",master:"Master",history:"Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (max ~120 car.)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
     step3t:"ÉTAPE 3 — Notes de prod (NE PAS coller dans Suno)",step3d:"Garde ces notes pour toi — Suno les chanterait comme des paroles.",
     step4t:"ÉTAPE 4 — Tags d'exclusion",step4d:"Ajoute APRÈS tes style tags avec un signe moins : deathcore, -pop, -voix claires",
-    lockedMsg:"Nécessite",upgrade:"Passer au plan →",logout:"Déconnexion",signup:"🤘 Créer un compte gratuit",
+    lockedMsg:"Nécessite",upgrade:"Passer au plan →",logout:"Déconnexion",signup:"Créer un compte gratuit",
     warn:"⚠️ Déconnexion auto dans 5 min (inactivité)",plans:"Voir les plans →",prompts:"prompts",
-    noPrompt:"Clique sur l'enclume ⚒️ pour forger ton prompt !",
+    noPrompt:"Clique sur l'enclume pour forger ton prompt !",
   },
 };
 
@@ -76,32 +76,32 @@ const css = `
 const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal","hard rock","heavy metal","proto-metal","blues rock","traditional heavy metal","nwobhm","speed metal","power metal","glam metal","punk rock","hardcore punk","crossover thrash","d-beat","powerviolence","rapcore","post-black metal","blackgaze","technical deathcore","deathgrind","brutal death metal","drone metal","atmospheric sludge metal","depressive black metal"];
 // Genres groupés par ÉPOQUE (arbre généalogique du metal) — styles seulement, tier conservé
 const GENRE_FAMILIES = [
-  {name:"Années 60-70 (Racines)", icon:"🩸", genres:[
+  {name:"Années 60-70 (Racines)", icon:"", genres:[
     {g:"hard rock",req:"free"},{g:"heavy metal",req:"free"},{g:"punk rock",req:"free"},{g:"proto-metal",req:"forge"},{g:"blues rock",req:"forge"},
   ]},
-  {name:"Années 80", icon:"🎸", genres:[
+  {name:"Années 80", icon:"", genres:[
     {g:"traditional heavy metal",req:"forge"},{g:"nwobhm",req:"forge"},{g:"speed metal",req:"forge"},{g:"power metal",req:"forge"},{g:"glam metal",req:"forge"},
     {g:"thrash metal",req:"forge"},{g:"hardcore punk",req:"forge"},{g:"crossover thrash",req:"forge"},{g:"d-beat",req:"forge"},
     {g:"death metal",req:"free"},{g:"black metal",req:"forge"},{g:"doom metal",req:"forge"},{g:"grindcore",req:"forge"},
   ]},
-  {name:"Années 90", icon:"⛓️", genres:[
+  {name:"Années 90", icon:"", genres:[
     {g:"groove metal",req:"free"},{g:"metalcore",req:"free"},{g:"nu-metal",req:"forge"},{g:"rapcore",req:"forge"},{g:"alternative metal",req:"forge"},{g:"powerviolence",req:"forge"},
     {g:"melodic death metal",req:"forge"},{g:"technical death metal",req:"forge"},{g:"mathcore",req:"forge"},{g:"beatdown hardcore",req:"forge"},{g:"industrial metal",req:"forge"},{g:"symphonic metal",req:"forge"},
     {g:"blackened death metal",req:"forge"},{g:"atmospheric black metal",req:"forge"},{g:"funeral doom",req:"forge"},{g:"sludge metal",req:"forge"},{g:"post-metal",req:"forge"},{g:"progressive metal",req:"forge"},
     {g:"deathgrind",req:"forge"},{g:"brutal death metal",req:"forge"},{g:"drone metal",req:"elite"},
   ]},
-  {name:"Années 2000", icon:"🔥", genres:[
+  {name:"Années 2000", icon:"", genres:[
     {g:"deathcore",req:"free"},{g:"melodic deathcore",req:"forge"},{g:"melodic metalcore",req:"forge"},{g:"post-hardcore",req:"forge"},
     {g:"blackened deathcore",req:"forge"},
     {g:"slam metal",req:"forge"},{g:"dissonant death metal",req:"forge"},{g:"avant-garde metal",req:"forge"},
     {g:"atmospheric sludge metal",req:"forge"},{g:"depressive black metal",req:"elite"},
   ]},
-  {name:"Années 2010", icon:"⚙️", genres:[
+  {name:"Années 2010", icon:"", genres:[
     {g:"djent",req:"forge"},{g:"modern metalcore",req:"forge"},
     {g:"progressive metalcore",req:"forge"},{g:"electronicore",req:"forge"},{g:"arena metalcore",req:"forge"},{g:"atmospheric metalcore",req:"forge"},
     {g:"post-black metal",req:"forge"},{g:"blackgaze",req:"forge"},{g:"technical deathcore",req:"forge"},
   ]},
-  {name:"Années 2020", icon:"🌌", genres:[
+  {name:"Années 2020", icon:"", genres:[
     {g:"synth metalcore",req:"forge"},
     {g:"ambient metalcore",req:"forge"},{g:"pop metalcore",req:"forge"},{g:"progressive post-hardcore",req:"forge"},{g:"modern alternative metal",req:"forge"},
   ]},
@@ -111,19 +111,19 @@ const MOOD     = ["crushing and heavy","sinister and dark","chaotic and frantic"
 // Drums (style) : remplacé par DRUM_ERAS (par époque).
 const DRUM_PROD= ["triggered drums","live drum sound","massive snare","clicky kick drum","trashy cymbals","programmed drums","natural room drums","reverb-heavy drums","punchy compressed drums","organic acoustic kit","raw garage drums","tight modern production","huge ambient drums","lo-fi drum sound"];
 const DRUM_ERAS = [
-  {name:"Années 60-70 (Racines)", icon:"🩸", d:[
+  {name:"Années 60-70 (Racines)", icon:"", d:[
     {v:"straight rock beat",req:"free"},{v:"four-on-the-floor",req:"free"},{v:"bluesy shuffle",req:"free"},{v:"swing groove",req:"forge"},{v:"big room toms",req:"forge"},
   ]},
-  {name:"Années 80", icon:"🎸", d:[
+  {name:"Années 80", icon:"", d:[
     {v:"double bass drumming",req:"free"},{v:"d-beat",req:"free"},{v:"thrash beat",req:"free"},{v:"skank beat",req:"forge"},{v:"galloping drums",req:"forge"},
   ]},
-  {name:"90s", icon:"⛓️", d:[
+  {name:"90s", icon:"", d:[
     {v:"blast beats",req:"free"},{v:"groovy mid-tempo drums",req:"free"},{v:"half-time groove",req:"free"},{v:"two-step beat",req:"forge"},{v:"tom-heavy fills",req:"forge"},{v:"tribal toms",req:"forge"},{v:"hyperblast beats",req:"pro"},
   ]},
-  {name:"2000s", icon:"🔥", d:[
+  {name:"2000s", icon:"", d:[
     {v:"machine-gun double bass",req:"free"},{v:"stomp breakdown drums",req:"free"},{v:"deathcore groove",req:"free"},{v:"breakbeat percussion",req:"forge"},{v:"china cymbal accents",req:"forge"},{v:"bounce groove",req:"forge"},{v:"gravity blast beats",req:"pro"},
   ]},
-  {name:"Moderne (10-20s)", icon:"🌌", d:[
+  {name:"Moderne (10-20s)", icon:"", d:[
     {v:"polyrhythmic drums",req:"forge"},{v:"syncopated rhythms",req:"forge"},{v:"djent groove",req:"pro"},{v:"math metal drums",req:"pro"},{v:"ghost-note drumming",req:"forge"},{v:"tribal drumming",req:"forge"},{v:"modern hybrid blast",req:"elite"},
   ]},
 ];
@@ -132,26 +132,26 @@ const DRUM_NEW = ["thrash beat","galloping drums","two-step beat","deathcore gro
 // Vocals : listes par tier remplacées par VOCAL_ERAS (par époque). VOCAL_NEW conservé pour les badges.
 // Voix par ÉPOQUE (bibliothèque enrichie · tier conservé) — mélange les ères pour des hybrides uniques
 const VOCAL_ERAS = [
-  {name:"Années 60-70 (Racines)", icon:"🩸", vox:[
+  {name:"Années 60-70 (Racines)", icon:"", vox:[
     {v:"bluesy clean vocals",req:"free"},{v:"raw rock vocals",req:"free"},{v:"soulful clean singing",req:"free"},{v:"high wailing vocals",req:"forge"},{v:"psychedelic vocals",req:"forge"},
   ]},
-  {name:"Classique (80s)", icon:"🎙️", vox:[
+  {name:"Classique (80s)", icon:"", vox:[
     {v:"clean powerful vocals",req:"free"},{v:"melodic clean singing",req:"free"},{v:"high-pitched screams",req:"free"},
     {v:"clean melodic chorus vocals",req:"forge"},{v:"heavy metal wails",req:"forge"},{v:"anthemic clean vocals",req:"forge"},
     {v:"falsetto screams",req:"forge"},{v:"operatic vocals",req:"forge"},
   ]},
-  {name:"90s", icon:"⛓️", vox:[
+  {name:"90s", icon:"", vox:[
     {v:"guttural death growls",req:"free"},{v:"raspy harsh vocals",req:"free"},{v:"low death growls",req:"forge"},
     {v:"mid-range harsh vocals",req:"forge"},{v:"raspy mid screams",req:"forge"},{v:"tortured screams",req:"forge"},
     {v:"black metal shrieks",req:"forge"},{v:"low false-chord growls",req:"forge"},{v:"doom clean chants",req:"forge"},
   ]},
-  {name:"2000s", icon:"🔥", vox:[
+  {name:"2000s", icon:"", vox:[
     {v:"metalcore screams",req:"free"},{v:"pig squeals",req:"free"},{v:"deathcore lows",req:"forge"},
     {v:"gang shouts",req:"forge"},{v:"layered harsh vocals",req:"forge"},{v:"screamo screams",req:"forge"},
     {v:"guttural gurgles",req:"forge"},{v:"clean and scream combo",req:"forge"},
     {v:"rapped vocals",req:"forge"},{v:"aggressive rap vocals",req:"forge"},
   ]},
-  {name:"Moderne (10-20s)", icon:"🌌", vox:[
+  {name:"Moderne (10-20s)", icon:"", vox:[
     {v:"hardcore beatdown vocals",req:"forge"},
     {v:"whispered spoken word",req:"forge"},{v:"demonic inhale vocals",req:"forge"},{v:"whisper-to-scream dynamics",req:"forge"},{v:"fry screams",req:"forge"},{v:"modern clean and harsh mix",req:"forge"},
     {v:"tunnel-throat gutturals",req:"forge"},{v:"goblin vocals",req:"forge"},{v:"throat singing",req:"forge"},{v:"spoken word narration",req:"forge"},{v:"choir vocals",req:"forge"},{v:"heavy breathing",req:"forge"},{v:"powerful belt",req:"forge"},{v:"ritual chant",req:"forge"},{v:"pitched-up shrieks",req:"forge"},
@@ -163,19 +163,19 @@ const VFX    = ["vocal reverb","vocal distortion","pitch-shifted vocals","dual v
 const VOCAL_RANGE = ["piccolo highs","tenor","baritone","bass vocals","falsetto","soprano","alto","mezzo-soprano","countertenor","false chord highs","fry screams","mid-range screams","low gutturals","subharmonic lows","tunnel-throat lows"];
 // Guitar (techniques) : remplacé par GUITAR_ERAS (par époque).
 const GUITAR_ERAS = [
-  {name:"Années 60-70 (Racines)", icon:"🩸", d:[
+  {name:"Années 60-70 (Racines)", icon:"", d:[
     {v:"bluesy bends",req:"free"},{v:"pentatonic riffs",req:"free"},{v:"fuzz riffs",req:"free"},{v:"wah-wah leads",req:"forge"},{v:"vintage overdrive licks",req:"forge"},
   ]},
-  {name:"Années 80", icon:"🎸", d:[
+  {name:"Années 80", icon:"", d:[
     {v:"palm muting",req:"free"},{v:"tremolo picking",req:"free"},{v:"galloping riffs",req:"free"},{v:"sweep picking solos",req:"forge"},{v:"tapping",req:"forge"},{v:"whammy bar dives",req:"forge"},{v:"melodic shred solos",req:"pro"},
   ]},
-  {name:"90s", icon:"⛓️", d:[
+  {name:"90s", icon:"", d:[
     {v:"chugging riffs",req:"free"},{v:"pinch harmonics",req:"free"},{v:"groove riffs",req:"free"},{v:"open string riffs",req:"forge"},{v:"drop-tuned riffs",req:"forge"},
   ]},
-  {name:"2000s", icon:"🔥", d:[
+  {name:"2000s", icon:"", d:[
     {v:"breakdown chugs",req:"free"},{v:"legato runs",req:"forge"},{v:"dual guitar harmonies",req:"forge"},{v:"melodic lead harmonies",req:"pro"},
   ]},
-  {name:"Moderne (10-20s)", icon:"🌌", d:[
+  {name:"Moderne (10-20s)", icon:"", d:[
     {v:"djent-style syncopated riffs",req:"forge"},{v:"polymetric riffs",req:"pro"},{v:"tapped arpeggios",req:"pro"},{v:"djent chug-stutter",req:"pro"},{v:"dissonant riffs",req:"forge"},{v:"8-string staccato chugs",req:"pro"},{v:"ambient lead textures",req:"elite"},
   ]},
 ];
@@ -199,16 +199,16 @@ const ORG_GUITAR = ["tube amp recording","cabinet mic'd","natural pick attack","
 const ORG_AVOID  = ["perfect production","polished mix","crisp","digital","quantized","pitch corrected","over-produced","clean mix"];
 // Émotions — méta d'affichage seulement (la recette émotion->tags vit dans /api/forge, secrète)
 const EMOTIONS=[
-  {id:'rage',label:'Rage',icon:'🔥',c:'#ff2e2e'},
-  {id:'melancholy',label:'Mélancolie',icon:'🌧️',c:'#5a8fd0'},
-  {id:'despair',label:'Désespoir',icon:'🕳️',c:'#888'},
-  {id:'triumph',label:'Triomphe',icon:'⚡',c:'#ffcc00'},
-  {id:'coldness',label:'Froideur',icon:'❄️',c:'#7fd0ff'},
-  {id:'defiance',label:'Défiance',icon:'✊',c:'#ff7a00'},
-  {id:'dread',label:'Effroi',icon:'👁️',c:'#9b59b6'},
-  {id:'transcendence',label:'Transcendance',icon:'🌌',c:'#b06bff'},
-  {id:'madness',label:'Démence',icon:'🌀',c:'#e91e8c'},
-  {id:'profanation',label:'Profanation',icon:'⛧',c:'#b00710'},
+  {id:'rage',label:'Rage',icon:'',c:'#ff2e2e'},
+  {id:'melancholy',label:'Mélancolie',icon:'',c:'#5a8fd0'},
+  {id:'despair',label:'Désespoir',icon:'',c:'#888'},
+  {id:'triumph',label:'Triomphe',icon:'',c:'#ffcc00'},
+  {id:'coldness',label:'Froideur',icon:'',c:'#7fd0ff'},
+  {id:'defiance',label:'Défiance',icon:'',c:'#ff7a00'},
+  {id:'dread',label:'Effroi',icon:'',c:'#9b59b6'},
+  {id:'transcendence',label:'Transcendance',icon:'',c:'#b06bff'},
+  {id:'madness',label:'Démence',icon:'',c:'#e91e8c'},
+  {id:'profanation',label:'Profanation',icon:'',c:'#b00710'},
 ];
 const EMO_LIMIT={free:2,forge:10,pro:10,elite:10,eliteplus:10};
 const EXCL_GENRES = ["pop","jazz","classical","country","r&b","hip hop","electronic","edm","ambient","folk","reggae","latin","disco","funk","soul","gospel","blues","indie pop","synthpop","new age"];
@@ -229,9 +229,9 @@ const LYRIC_ATMO = ["sombre et menaçant","poétique et métaphorique","direct e
 const THEME_TR = {"mort et décomposition":"death and decay","apocalypse":"apocalypse","chaos intérieur":"inner chaos","guerre et destruction":"war and destruction","trahison":"betrayal","démons et obscurité":"demons and darkness","résistance et rébellion":"resistance and rebellion","nihilisme":"nihilism","vengeance":"vengeance","aliénation et solitude":"alienation and solitude","horreur cosmique":"cosmic horror","violence et brutalité":"violence and brutality"};
 const ATMO_TR = {"sombre et menaçant":"dark and menacing","poétique et métaphorique":"poetic and metaphorical","direct et violent":"direct and violent","philosophique":"philosophical","narratif comme une histoire":"narrative like a story","cri de rage":"cry of rage"};
 const LYRIC_LANGS = [
-  {v:"en",l:"🇺🇸 English"},{v:"fr",l:"🇫🇷 Français"},{v:"de",l:"🇩🇪 Deutsch"},
-  {v:"es",l:"🇪🇸 Español"},{v:"sv",l:"🇸🇪 Svenska"},{v:"fi",l:"🇫🇮 Suomi"},
-  {v:"no",l:"🇳🇴 Norsk"},{v:"mix",l:"🔀 Mix EN/FR"},
+  {v:"en",l:"English"},{v:"fr",l:"Français"},{v:"de",l:"Deutsch"},
+  {v:"es",l:"Español"},{v:"sv",l:"Svenska"},{v:"fi",l:"Suomi"},
+  {v:"no",l:"Norsk"},{v:"mix",l:"Mix EN/FR"},
 ];
 const LYRIC_LANG_MAP = {en:"english",fr:"french",de:"german",es:"spanish",sv:"swedish",fi:"finnish",no:"norwegian",mix:"a mix of english and french"};
 const LYRIC_BLOCKS = [
@@ -243,24 +243,24 @@ const LYRIC_BLOCKS = [
   {v:"solo",l:"Guitar Solo"},{v:"bridge",l:"Bridge"},{v:"intro",l:"Intro"},{v:"outro",l:"Outro"},
 ];
 const STRUCT_BLOCKS = [
-  {k:"intro",icon:"🔥",name:"Intro",desc:"Riff d'ouverture brutal ou atmosphérique",descEn:"Brutal or atmospheric opening riff"},
-  {k:"buildup",icon:"📈",name:"Build-up",desc:"Montée progressive avant explosion",descEn:"Gradual build before the explosion"},
-  {k:"verse",icon:"⚡",name:"Verse",desc:"Couplet vocal haché sur riffs lourds",descEn:"Choppy vocal verse over heavy riffs"},
-  {k:"prechorus",icon:"🌀",name:"Pre-Chorus",desc:"Tension avant le chorus",descEn:"Tension before the chorus"},
-  {k:"chorus",icon:"💥",name:"Chorus",desc:"Hook principal, souvent plus groovy",descEn:"Main hook, often groovier"},
-  {k:"breakdown",icon:"💀",name:"Breakdown",desc:"Section lente et écrasante, riff mosh",descEn:"Slow, crushing section, mosh riff"},
-  {k:"halftime",icon:"🐢",name:"Half-Time",desc:"Section groove ralentie, lourd et hypnotique",descEn:"Slowed groove section, heavy and hypnotic"},
-  {k:"blastsection",icon:"💨",name:"Blast Section",desc:"Blast beats purs, sans mélodie, chaos total",descEn:"Pure blast beats, no melody, total chaos"},
-  {k:"drop",icon:"⬇️",name:"Drop",desc:"Chute brutale après une montée de tension",descEn:"Brutal drop after a tension build"},
-  {k:"solo",icon:"🎸",name:"Guitar Solo",desc:"Solo lead shredding ou mélodique",descEn:"Shredding or melodic lead solo"},
-  {k:"interlude",icon:"🎵",name:"Interlude",desc:"Section instrumentale entre les parties",descEn:"Instrumental section between parts"},
-  {k:"atmosphericbreak",icon:"🌫️",name:"Atmospheric Break",desc:"Ambiance calme/sinistre, tension suspendue",descEn:"Calm/sinister ambience, suspended tension"},
-  {k:"spokenword",icon:"🗣️",name:"Spoken Word",desc:"Section parlée/narrative, sans chant",descEn:"Spoken/narrative section, no singing"},
-  {k:"gangchant",icon:"👊",name:"Gang Chant",desc:"Chant collectif type mosh pit",descEn:"Collective mosh-pit style chant"},
-  {k:"scream",icon:"😱",name:"Scream Section",desc:"Cris purs, voix seule sans musique",descEn:"Pure screams, vocals alone, no music"},
-  {k:"riffbreak",icon:"🎶",name:"Riff Break",desc:"Riff seul sans voix, groove pur",descEn:"Riff alone, no vocals, pure groove"},
-  {k:"bridge",icon:"🌊",name:"Bridge",desc:"Section contrastée, tension dramatique",descEn:"Contrasting section, dramatic tension"},
-  {k:"outro",icon:"☠️",name:"Outro",desc:"Fin explosive ou fade chaotique",descEn:"Explosive ending or chaotic fade"},
+  {k:"intro",icon:"",name:"Intro",desc:"Riff d'ouverture brutal ou atmosphérique",descEn:"Brutal or atmospheric opening riff"},
+  {k:"buildup",icon:"",name:"Build-up",desc:"Montée progressive avant explosion",descEn:"Gradual build before the explosion"},
+  {k:"verse",icon:"",name:"Verse",desc:"Couplet vocal haché sur riffs lourds",descEn:"Choppy vocal verse over heavy riffs"},
+  {k:"prechorus",icon:"",name:"Pre-Chorus",desc:"Tension avant le chorus",descEn:"Tension before the chorus"},
+  {k:"chorus",icon:"",name:"Chorus",desc:"Hook principal, souvent plus groovy",descEn:"Main hook, often groovier"},
+  {k:"breakdown",icon:"",name:"Breakdown",desc:"Section lente et écrasante, riff mosh",descEn:"Slow, crushing section, mosh riff"},
+  {k:"halftime",icon:"",name:"Half-Time",desc:"Section groove ralentie, lourd et hypnotique",descEn:"Slowed groove section, heavy and hypnotic"},
+  {k:"blastsection",icon:"",name:"Blast Section",desc:"Blast beats purs, sans mélodie, chaos total",descEn:"Pure blast beats, no melody, total chaos"},
+  {k:"drop",icon:"",name:"Drop",desc:"Chute brutale après une montée de tension",descEn:"Brutal drop after a tension build"},
+  {k:"solo",icon:"",name:"Guitar Solo",desc:"Solo lead shredding ou mélodique",descEn:"Shredding or melodic lead solo"},
+  {k:"interlude",icon:"",name:"Interlude",desc:"Section instrumentale entre les parties",descEn:"Instrumental section between parts"},
+  {k:"atmosphericbreak",icon:"",name:"Atmospheric Break",desc:"Ambiance calme/sinistre, tension suspendue",descEn:"Calm/sinister ambience, suspended tension"},
+  {k:"spokenword",icon:"",name:"Spoken Word",desc:"Section parlée/narrative, sans chant",descEn:"Spoken/narrative section, no singing"},
+  {k:"gangchant",icon:"",name:"Gang Chant",desc:"Chant collectif type mosh pit",descEn:"Collective mosh-pit style chant"},
+  {k:"scream",icon:"",name:"Scream Section",desc:"Cris purs, voix seule sans musique",descEn:"Pure screams, vocals alone, no music"},
+  {k:"riffbreak",icon:"",name:"Riff Break",desc:"Riff seul sans voix, groove pur",descEn:"Riff alone, no vocals, pure groove"},
+  {k:"bridge",icon:"",name:"Bridge",desc:"Section contrastée, tension dramatique",descEn:"Contrasting section, dramatic tension"},
+  {k:"outro",icon:"",name:"Outro",desc:"Fin explosive ou fade chaotique",descEn:"Explosive ending or chaotic fade"},
 ];
 const GLOBAL_RHYTHMS = ["polyrhythmic","odd time signatures","progressive rhythms","syncopated rhythms","math metal feel","triplet feel","djent syncopation","shifting time signatures","asymmetric rhythms"];
 const BLOCK_RHYTHMS = [
@@ -278,7 +278,7 @@ const TIERS = {
     features:["✅ 3 prompts d'essai gratuits","✅ Aperçu de la bibliothèque","❌ Reste verrouillé — passe à MetalPrompt"],
     featuresEn:["✅ 3 free trial prompts","✅ Library preview","❌ Rest locked — go MetalPrompt"]},
   // ⚠️ STRIPE : crée un produit 4,99$/mois et remplace le lien 'stripe' ci-dessous (l'actuel = ancien 8,99$)
-  pro: {id:"pro", label:"🤘 METALPROMPT", price:"$4.99/mois", priceYear:"$49.99/an", color:"#ff2e2e", badge:"PRO",
+  pro: {id:"pro", label:"METALPROMPT", price:"$4.99/mois", priceYear:"$49.99/an", color:"#ff2e2e", badge:"PRO",
     stripe:"https://buy.stripe.com/00w3cx2oM6uPbUSbUHfQI04", stripeYear:"https://buy.stripe.com/dRm6oJ4wU06rcYW9MzfQI06",
     features:["✅ TOUT le site débloqué","✅ Bibliothèque complète + sliders + 10 émotions","✅ Générateur de Riff complet (28 styles)","✅ Module Mastering (débruitage + EQ)","✅ Paroles par IA illimitées","✅ Prompts Principal · Cover · Extend","✅ Reco de modèle Suno · prompts illimités"],
     featuresEn:["✅ FULL site unlocked","✅ Full library + sliders + 10 emotions","✅ Complete Riff Generator (28 styles)","✅ Mastering module (denoise + EQ)","✅ Unlimited AI lyrics","✅ Principal · Cover · Extend prompts","✅ Suno model rec · unlimited prompts"]},
@@ -326,8 +326,8 @@ function mergeStructLyrics(struct, lyrics){
 function SelAll({all,set,L}){
   return (
     <div style={{display:"flex",gap:"6px",flexShrink:0}}>
-      <button onClick={()=>set(all)} style={{background:"#0a1f00",border:"1px solid #2a5a2a",borderRadius:"5px",padding:"3px 10px",fontSize:"0.58rem",fontWeight:700,color:"#7fdd7f",cursor:"pointer"}}>{L("✓ Tout","✓ All")}</button>
-      <button onClick={()=>set([])} style={{background:"#1a0000",border:"1px solid #4a1010",borderRadius:"5px",padding:"3px 10px",fontSize:"0.58rem",fontWeight:700,color:"#cc6666",cursor:"pointer"}}>{L("✕ Vider","✕ Clear")}</button>
+      <button onClick={()=>set(all)} style={{background:"#0a1f00",border:"1px solid #2a5a2a",borderRadius:"5px",padding:"3px 10px",fontSize:"0.58rem",fontWeight:700,color:"#7fdd7f",cursor:"pointer"}}>{L("Tout","All")}</button>
+      <button onClick={()=>set([])} style={{background:"#1a0000",border:"1px solid #4a1010",borderRadius:"5px",padding:"3px 10px",fontSize:"0.58rem",fontWeight:700,color:"#cc6666",cursor:"pointer"}}>{L("Vider","Clear")}</button>
     </div>
   );
 }
@@ -435,9 +435,9 @@ function HammerFab({onClick}) {
   };
   return (
     <button style={S.fab} onClick={handle} title="FORGE">
-      <span style={{fontSize:"1.5rem",display:"inline-block",transformOrigin:"bottom center"}} className={hitting?"hammer-anim":""}>⚒️</span>
+      <span style={{fontSize:"1.5rem",display:"inline-block",transformOrigin:"bottom center"}} className={hitting?"hammer-anim":""}></span>
       {sparks.map(s=>(
-        <span key={s.id} style={{position:"absolute",left:"50%",top:"50%",fontSize:"0.65rem",pointerEvents:"none",animation:"spark 0.55s ease forwards","--sx":s.sx,"--sy":s.sy}}>✦</span>
+        <span key={s.id} style={{position:"absolute",left:"50%",top:"50%",fontSize:"0.65rem",pointerEvents:"none",animation:"spark 0.55s ease forwards","--sx":s.sx,"--sy":s.sy}}></span>
       ))}
     </button>
   );
@@ -494,7 +494,7 @@ function PaywallModal({onClose,email,uiLang}) {
         </div>
         <a href={payUrl(checkoutUrl,email)} target="_blank" rel="noreferrer"
           style={{display:"block",width:"100%",padding:"14px",background:tier.color,borderRadius:"8px",color:sel==="elite"?"#fff":"#000",fontWeight:900,fontSize:"0.85rem",letterSpacing:"2px",textTransform:"uppercase",textDecoration:"none",textAlign:"center",marginBottom:"10px"}}>
-          🤘 {L("COMMENCER","START")} {tier.label} {year?L("(annuel)","(annual)"):""}
+          {L("COMMENCER","START")} {tier.label} {year?L("(annuel)","(annual)"):""}
         </a>
         <button onClick={onClose} style={{width:"100%",background:"none",border:"none",color:"#333",fontSize:"0.65rem",cursor:"pointer",textDecoration:"underline"}}>{L("Continuer sans abonnement","Continue without a plan")}</button>
       </div>
@@ -519,14 +519,14 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
         <div style={{display:"flex",justifyContent:"flex-end",padding:"0 20px",marginBottom:"16px",gap:"8px"}}>
           {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#1a0000":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"4px",color:uiLang===l?RED:"#555",fontSize:"0.65rem",padding:"4px 10px",cursor:"pointer",fontWeight:uiLang===l?700:400}}>{l.toUpperCase()}</button>)}
         </div>
-        <div className="forge-title" style={{fontSize:"clamp(2.2rem,8vw,3.5rem)",color:RED,letterSpacing:"8px",textShadow:"0 0 40px #ff000088",marginBottom:"6px"}}>⚰️ METAL PROMPT FORGE</div>
+        <div className="forge-title" style={{fontSize:"clamp(2.2rem,8vw,3.5rem)",color:RED,letterSpacing:"8px",textShadow:"0 0 40px #ff000088",marginBottom:"6px"}}>METAL PROMPT FORGE</div>
         <div style={{fontSize:"0.65rem",color:"#555",letterSpacing:"5px",textTransform:"uppercase",marginBottom:"30px"}}>{uiLang==="fr"?"Le générateur de prompts Suno pour musiciens metal":"The Suno prompt generator for metal musicians"}</div>
         <div style={{maxWidth:"480px",margin:"0 auto 30px",background:"#0f0f0f",border:`1px solid ${examples[activeEx].color}33`,borderRadius:"10px",padding:"14px 16px",transition:"border-color 0.5s"}}>
           <div style={{fontSize:"0.55rem",color:examples[activeEx].color,letterSpacing:"3px",textTransform:"uppercase",fontWeight:800,marginBottom:"8px"}}>{L("EXEMPLE","EXAMPLE")} — {examples[activeEx].genre}</div>
           <div style={{fontSize:"0.75rem",color:"#aaa",lineHeight:1.8,fontFamily:"monospace"}}>{examples[activeEx].tags}</div>
         </div>
         <button onClick={onEnter} className="pulse" style={{padding:"16px 36px",background:RED,border:"none",borderRadius:"8px",color:"#000",fontSize:"1rem",fontWeight:900,letterSpacing:"3px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 6px 30px #ff000077"}}>
-          🤘 {uiLang==="fr"?"LANCER L'APP":"LAUNCH APP"}
+          {uiLang==="fr"?"LANCER L'APP":"LAUNCH APP"}
         </button>
         <div style={{fontSize:"0.6rem",color:"#444",marginTop:"10px"}}>{uiLang==="fr"?"Gratuit · 3 prompts offerts · Aucune carte requise":"Free · 3 prompts included · No card required"}</div>
       </div>
@@ -535,7 +535,7 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
       <div style={{padding:"34px 20px",textAlign:"center",borderBottom:"1px solid #1a1a1a",background:"linear-gradient(180deg,#0d0606,#0a0a0a)"}}>
         <div style={{maxWidth:"580px",margin:"0 auto"}}>
           <div style={{fontSize:"0.6rem",color:RED,letterSpacing:"3px",fontWeight:800,textTransform:"uppercase",marginBottom:"12px"}}>{uiLang==="fr"?"Notre mission":"Our mission"}</div>
-          <div style={{fontSize:"0.95rem",color:"#ddd",lineHeight:1.85}}>{uiLang==="fr"?"On était tannés d'entendre du metal IA qui sonne en plastique. Alors on a bâti l'outil qu'on voulait : un forgeron de prompts qui sort du VRAI metal — brutal, organique, humain. Notre mission : aider les musiciens à progresser, ET ouvrir la création musicale à ceux qui ne jouent pas du tout. Que l'idée brutale dans ta tête devienne une toune. 🤘":"We were sick of AI metal that sounds like plastic. So we built the tool we wanted: a prompt forge that delivers REAL metal — brutal, organic, human. Our mission: help musicians level up, AND open music creation to those who don't play at all. Turn the brutal idea in your head into a track. 🤘"}</div>
+          <div style={{fontSize:"0.95rem",color:"#ddd",lineHeight:1.85}}>{uiLang==="fr"?"On était tannés d'entendre du metal IA qui sonne en plastique. Alors on a bâti l'outil qu'on voulait : un forgeron de prompts qui sort du VRAI metal — brutal, organique, humain. Notre mission : aider les musiciens à progresser, ET ouvrir la création musicale à ceux qui ne jouent pas du tout. Que l'idée brutale dans ta tête devienne une toune. ":"We were sick of AI metal that sounds like plastic. So we built the tool we wanted: a prompt forge that delivers REAL metal — brutal, organic, human. Our mission: help musicians level up, AND open music creation to those who don't play at all. Turn the brutal idea in your head into a track. "}</div>
         </div>
       </div>
 
@@ -545,11 +545,11 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
           <div style={{fontSize:"0.72rem",color:"#555",lineHeight:1.8}}>{uiLang==="fr"?"Suno génère mieux quand les prompts sont précis.":"Suno generates better when prompts are precise."}</div>
         </div>
         {[
-          {icon:"🎸",title:uiLang==="fr"?"11 onglets de personnalisation":"11 customization tabs",desc:uiLang==="fr"?"Genre, drums, vocals, guitar, basse, structure, paroles, organic, exclude — tout est là.":"Genre, drums, vocals, guitar, bass, structure, lyrics, organic, exclude — all here."},
-          {icon:"✍️",title:uiLang==="fr"?"Paroles générées par IA":"AI-generated lyrics",desc:uiLang==="fr"?"Claude compose des paroles metal uniques avec thèmes, atmosphère et anti-répétition.":"Claude composes unique metal lyrics with themes, atmosphere and anti-repetition logic."},
-          {icon:"🌿",title:uiLang==="fr"?"Mode Organic / Anti-AI":"Organic / Anti-AI Mode",desc:uiLang==="fr"?"Des tags spéciaux pour rendre tes générations Suno plus humaines.":"Special tags to make your Suno generations sound more human."},
-          {icon:"📋",title:uiLang==="fr"?"Prompt prêt à coller":"Paste-ready prompt",desc:uiLang==="fr"?"Style tags, structure et notes de prod séparés — tu sais exactement où coller quoi.":"Style tags, structure and prod notes separated — you know exactly where to paste what."},
-          {icon:"🚫",title:uiLang==="fr"?"Tags d'exclusion (Elite)":"Exclusion tags (Elite)",desc:uiLang==="fr"?"Dis à Suno ce qu'il doit éviter. Fini le piano qui s'invite dans ton deathcore.":"Tell Suno what to avoid. No more piano crashing your deathcore."},
+          {icon:"",title:uiLang==="fr"?"11 onglets de personnalisation":"11 customization tabs",desc:uiLang==="fr"?"Genre, drums, vocals, guitar, basse, structure, paroles, organic, exclude — tout est là.":"Genre, drums, vocals, guitar, bass, structure, lyrics, organic, exclude — all here."},
+          {icon:"",title:uiLang==="fr"?"Paroles générées par IA":"AI-generated lyrics",desc:uiLang==="fr"?"Claude compose des paroles metal uniques avec thèmes, atmosphère et anti-répétition.":"Claude composes unique metal lyrics with themes, atmosphere and anti-repetition logic."},
+          {icon:"",title:uiLang==="fr"?"Mode Organic / Anti-AI":"Organic / Anti-AI Mode",desc:uiLang==="fr"?"Des tags spéciaux pour rendre tes générations Suno plus humaines.":"Special tags to make your Suno generations sound more human."},
+          {icon:"",title:uiLang==="fr"?"Prompt prêt à coller":"Paste-ready prompt",desc:uiLang==="fr"?"Style tags, structure et notes de prod séparés — tu sais exactement où coller quoi.":"Style tags, structure and prod notes separated — you know exactly where to paste what."},
+          {icon:"",title:uiLang==="fr"?"Tags d'exclusion (Elite)":"Exclusion tags (Elite)",desc:uiLang==="fr"?"Dis à Suno ce qu'il doit éviter. Fini le piano qui s'invite dans ton deathcore.":"Tell Suno what to avoid. No more piano crashing your deathcore."},
         ].map(f=>(
           <div key={f.title} style={{display:"flex",gap:"14px",padding:"14px 0",borderBottom:"1px solid #1a1a1a",alignItems:"flex-start"}}>
             <div style={{fontSize:"1.6rem",flexShrink:0}}>{f.icon}</div>
@@ -592,7 +592,7 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
 // ══════════════════════════════════════════
 // PAGES LÉGALES (Loi 25 / Québec)
 // ══════════════════════════════════════════
-// 🔧 Remplace les champs [ ] par tes vraies infos avant publication.
+// Remplace les champs [ ] par tes vraies infos avant publication.
 const LEGAL = {
   privacy: `POLITIQUE DE CONFIDENTIALITÉ — MetalPrompt
 Dernière mise à jour : 27 juin 2026
@@ -734,16 +734,14 @@ mmftechnisolutions@gmail.com`,
 
   about: `À PROPOS — MetalPrompt
 
-MetalPrompt, c'est plus qu'un prompteur. C'est LA plateforme du metalhead. 🤘
-
+MetalPrompt, c'est plus qu'un prompteur. C'est LA plateforme du metalhead. 
 « La qualité, pas la quantité. »
 
 NOTRE MISSION
 Aider les musiciens à progresser, ET ouvrir la création musicale à ceux qui ne jouent pas du tout.
 
 QUALITÉ > QUANTITÉ — ET ÉCO-RESPONSABLE
-On ne mise pas sur la génération à la chaîne. Chaque génération IA consomme de l'énergie ; on privilégie moins de pistes, mieux travaillées — des prompts béton, de vrais outils de pré-production — plutôt que de spammer des centaines de morceaux jetables. Créer mieux avec moins : meilleur pour ta musique ET pour la planète. 🌍
-
+On ne mise pas sur la génération à la chaîne. Chaque génération IA consomme de l'énergie ; on privilégie moins de pistes, mieux travaillées — des prompts béton, de vrais outils de pré-production — plutôt que de spammer des centaines de morceaux jetables. Créer mieux avec moins : meilleur pour ta musique ET pour la planète. 
 NOTRE MANIFESTE
 On était tannés du metal IA qui sonne en plastique. Ces tounes plates, sans âme, crachées à la chaîne pis oubliées aussi vite. De la musique jetable.
 
@@ -783,14 +781,12 @@ Bienvenue dans la forge.
 
 — L'équipe de MetalPrompt
 
-MetalPrompt — la plateforme du metalhead. 🤘
-
+MetalPrompt — la plateforme du metalhead. 
 Édité par MMF Techni-Solutions · mmftechnisolutions@gmail.com`,
 
   aboutEn: `ABOUT — MetalPrompt
 
-MetalPrompt is more than a prompter. It's THE metalhead platform. 🤘
-
+MetalPrompt is more than a prompter. It's THE metalhead platform. 
 OUR MISSION
 Help musicians progress, AND open music creation to those who don't play at all.
 
@@ -823,8 +819,7 @@ Welcome to the forge.
 
 — The MetalPrompt Team
 
-MetalPrompt — the metalhead platform. 🤘
-
+MetalPrompt — the metalhead platform. 
 Published by MMF Techni-Solutions · mmftechnisolutions@gmail.com`,
 };
 
@@ -854,7 +849,7 @@ function LegalModal({doc,onClose,uiLang}){
       <div onClick={e=>e.stopPropagation()} style={{background:"#0c0c0c",border:"1px solid #2a2a2a",borderRadius:"10px",maxWidth:"720px",width:"100%",padding:"24px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}}>
           <div style={{color:RED,fontSize:"0.95rem",fontWeight:900}}>{titles[doc]}</div>
-          <button onClick={onClose} style={{background:"none",border:"1px solid #333",borderRadius:"4px",color:"#888",fontSize:"0.8rem",padding:"4px 10px",cursor:"pointer"}}>✕</button>
+          <button onClick={onClose} style={{background:"none",border:"1px solid #333",borderRadius:"4px",color:"#888",fontSize:"0.8rem",padding:"4px 10px",cursor:"pointer"}}></button>
         </div>
         {!fr&&doc!=="about"&&<div style={{fontSize:"0.6rem",color:"#777",marginBottom:"10px",fontStyle:"italic"}}>Legal documents are provided in French (Québec law).</div>}
         <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.72rem",lineHeight:1.7,color:"#bbb"}}>{doc==="about"?(fr?LEGAL.about:LEGAL.aboutEn):LEGAL[doc]}</pre>
@@ -866,7 +861,7 @@ function LegalModal({doc,onClose,uiLang}){
 function UserChip({user,uiLang,tierBadge,tierColor,isElite,onLogout,onRequestAuth}){
   const [open,setOpen]=useState(false);
   const fr=uiLang==="fr";
-  if(!user) return <button onClick={onRequestAuth} style={{background:RED,border:"none",borderRadius:"6px",color:"#000",fontSize:"0.55rem",fontWeight:800,padding:"5px 11px",cursor:"pointer",letterSpacing:"0.5px"}}>🤘 {fr?"Se connecter":"Sign in"}</button>;
+  if(!user) return <button onClick={onRequestAuth} style={{background:RED,border:"none",borderRadius:"6px",color:"#000",fontSize:"0.55rem",fontWeight:800,padding:"5px 11px",cursor:"pointer",letterSpacing:"0.5px"}}>{fr?"Se connecter":"Sign in"}</button>;
   const email=user.email||"";
   const avIdx=(Array.from(email).reduce((a,c)=>a+c.charCodeAt(0),0)%6)+1;
   const avatar="/avatars/av"+avIdx+".png";
@@ -915,7 +910,7 @@ function CookieBanner({uiLang,onPrivacy}){
   return (
     <div style={{position:"fixed",left:0,right:0,bottom:0,zIndex:2000,background:"#0c0c0e",borderTop:"2px solid #c0392b",padding:"16px 18px",display:"flex",flexWrap:"wrap",gap:"12px",alignItems:"center",justifyContent:"center",boxShadow:"0 -6px 24px #000a"}}>
       <div style={{flex:"1 1 360px",maxWidth:"640px",fontSize:"0.72rem",lineHeight:1.55,color:"#cfcfd4"}}>
-        🍪 {fr?"On utilise des témoins de mesure d'audience (Google Analytics via Tag Manager) pour améliorer le site. Ils ne se chargent qu'avec ton accord. Les témoins essentiels (connexion, session) restent toujours actifs.":"We use audience-measurement cookies (Google Analytics via Tag Manager) to improve the site. They load only with your consent. Essential cookies (login, session) stay active."}{" "}
+        {fr?"On utilise des témoins de mesure d'audience (Google Analytics via Tag Manager) pour améliorer le site. Ils ne se chargent qu'avec ton accord. Les témoins essentiels (connexion, session) restent toujours actifs.":"We use audience-measurement cookies (Google Analytics via Tag Manager) to improve the site. They load only with your consent. Essential cookies (login, session) stay active."}{" "}
         <span onClick={onPrivacy} style={{color:"#e74c3c",textDecoration:"underline",cursor:"pointer"}}>{fr?"Politique de confidentialité":"Privacy policy"}</span>
       </div>
       <div style={{display:"flex",gap:"8px",flexShrink:0}}>
@@ -928,10 +923,10 @@ function CookieBanner({uiLang,onPrivacy}){
 function Manifesto({onClose,uiLang}){
   const fr=uiLang!=="en";
   const piliers=[
-    [fr?"🔨 Une forge, pas une usine":"🔨 A forge, not a factory", fr?"Pas des chansons jetables — les outils pour forger TON son.":"Not throwaway songs — tools to forge YOUR sound."],
-    [fr?"🤘 L'artiste au centre":"🤘 The artist at the center", fr?"L'IA t'assiste, elle te remplace pas. Ta vision reste à toi.":"AI assists you, never replaces you. Your vision stays yours."],
-    [fr?"⛓️ Libre des majors":"⛓️ Free from the majors", fr?"Les mêmes outils que les gros, sans permission à demander.":"Same tools as the big players, no permission needed."],
-    [fr?"🌲 Respect de l'héritage":"🌲 Respecting the lineage", fr?"Du NWOBHM au djent, on honore ceux qui ont bâti le metal.":"From NWOBHM to djent, we honor those who built metal."],
+    [fr?"Une forge, pas une usine":"A forge, not a factory", fr?"Pas des chansons jetables — les outils pour forger TON son.":"Not throwaway songs — tools to forge YOUR sound."],
+    [fr?"L'artiste au centre":"The artist at the center", fr?"L'IA t'assiste, elle te remplace pas. Ta vision reste à toi.":"AI assists you, never replaces you. Your vision stays yours."],
+    [fr?"Libre des majors":"Free from the majors", fr?"Les mêmes outils que les gros, sans permission à demander.":"Same tools as the big players, no permission needed."],
+    [fr?"Respect de l'héritage":"Respecting the lineage", fr?"Du NWOBHM au djent, on honore ceux qui ont bâti le metal.":"From NWOBHM to djent, we honor those who built metal."],
   ];
   return (
     <div style={{position:"fixed",inset:0,background:"#000000ee",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}}>
@@ -946,7 +941,7 @@ function Manifesto({onClose,uiLang}){
           </div>))}
         </div>
         <div style={{textAlign:"center",fontFamily:"'Bebas Neue',sans-serif",letterSpacing:"3px",color:RED,fontSize:"1.05rem",marginBottom:"18px"}}>{fr?"BRUTAL. ORGANIQUE. HUMAIN.":"BRUTAL. ORGANIC. HUMAN."}</div>
-        <button onClick={onClose} style={{width:"100%",padding:"14px",background:RED,border:"none",borderRadius:"8px",color:"#fff",fontWeight:900,fontSize:"0.9rem",letterSpacing:"2px",textTransform:"uppercase",cursor:"pointer"}}>🤘 {fr?"Entrer dans la forge":"Enter the forge"}</button>
+        <button onClick={onClose} style={{width:"100%",padding:"14px",background:RED,border:"none",borderRadius:"8px",color:"#fff",fontWeight:900,fontSize:"0.9rem",letterSpacing:"2px",textTransform:"uppercase",cursor:"pointer"}}>{fr?"Entrer dans la forge":"Enter the forge"}</button>
         <div style={{textAlign:"center",fontSize:"0.55rem",color:"#555",marginTop:"10px"}}>MMF Techni-Solutions</div>
       </div>
     </div>
@@ -1150,7 +1145,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       const r=await fetch('/api/forge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
       data=await r.json();
       if(!r.ok)throw new Error('forge');
-    }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie 🤘":"Generation error, try again 🤘"); return; }
+    }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie ":"Generation error, try again "); return; }
     setConflicts(data.conflicts||[]);
     setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");
     const nc=promptCount+1;setPromptCount(nc);
@@ -1256,12 +1251,12 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       <div style={{position:"sticky",top:0,zIndex:100}}>
       <div style={S.header}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"10px"}}>
-          <div className="forge-title" style={S.h1}>⚰️ Metal Prompt Forge</div>
+          <div className="forge-title" style={S.h1}>Metal Prompt Forge</div>
           {tierBadge&&<span style={{background:tierColor,color:isElite?"#fff":"#000",fontSize:"0.5rem",fontWeight:900,padding:"2px 7px",borderRadius:"8px",letterSpacing:"1px"}}>{tierBadge}</span>}
         </div>
         <div style={S.sub}>{t.sub}</div>
         <div style={{fontSize:"0.55rem",color:"#555",marginTop:"4px",display:"flex",justifyContent:"center",gap:"12px",alignItems:"center",flexWrap:"wrap"}}>
-          <span>{limit.prompts===Infinity?(uiLang==="fr"?"♾️ Illimité":"♾️ Unlimited"):<><b style={{color:Math.max(0,limit.prompts-promptCount)>0?"#4caf50":RED}}>{Math.max(0,limit.prompts-promptCount)}</b> {uiLang==="fr"?"essais gratuits":"free trials left"}</>} · <span onClick={()=>setShowPaywall(true)} style={{color:RED,textDecoration:"none",fontWeight:700,cursor:"pointer"}}>{t.plans}</span></span>
+          <span>{limit.prompts===Infinity?(uiLang==="fr"?"Illimité":"Unlimited"):<><b style={{color:Math.max(0,limit.prompts-promptCount)>0?"#4caf50":RED}}>{Math.max(0,limit.prompts-promptCount)}</b> {uiLang==="fr"?"essais gratuits":"free trials left"}</>} · <span onClick={()=>setShowPaywall(true)} style={{color:RED,textDecoration:"none",fontWeight:700,cursor:"pointer"}}>{t.plans}</span></span>
           <div style={{display:"flex",gap:"6px",alignItems:"center"}}>
             {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#1a0000":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"3px",color:uiLang===l?RED:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{l.toUpperCase()}</button>)}
             <UserChip user={user} uiLang={uiLang} tierBadge={tierBadge} tierColor={tierColor} isElite={isElite} onLogout={onLogout} onRequestAuth={onRequestAuth}/>
@@ -1271,7 +1266,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* NAV */}
       <div className="nav-scroll" style={{background:"#0f0f0f",borderBottom:"1px solid #1a1a1a"}}>
-        <button onClick={()=>{const na=!advanced;setAdvanced(na);if(!na&&['drums','vocals','instrums','structure','organic','exclude'].includes(tab))setTab('genre');}} style={S.navBtn(advanced,false)} title={L("Affiche les onglets de réglage manuel","Show manual tuning tabs")}>⚙️ {advanced?L("Avancé ✓","Advanced ✓"):L("Avancé","Advanced")}</button>
+        <button onClick={()=>{const na=!advanced;setAdvanced(na);if(!na&&['drums','vocals','instrums','structure','organic','exclude'].includes(tab))setTab('genre');}} style={S.navBtn(advanced,false)} title={L("Affiche les onglets de réglage manuel","Show manual tuning tabs")}>{advanced?L("Avancé ","Advanced "):L("Avancé","Advanced")}</button>
         {TABS.map(tb=>{
           const locked=!canAccess(tb.req);
           return <button key={tb.id} style={S.navBtn(tab===tb.id,locked)} onClick={()=>setTab(tb.id)}>
@@ -1284,32 +1279,32 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* GENRE */}
       {tab==="genre"&&<div style={S.page}>
         <div style={S.card}>
-          <div style={S.ctitle}>⚡ {L("Presets rapides","Quick presets")}</div>
+          <div style={S.ctitle}>{L("Presets rapides","Quick presets")}</div>
           <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"9px",lineHeight:1.5}}>{L("Un clic = config optimisée pour Suno (genre, BPM, drums, voix…)","One click = Suno-optimized setup (genre, BPM, drums, vocals…)")}</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>
             {Object.entries(PRESETS).map(([k,p])=>{const lk=!canAccess(p.req);return(
-              <button key={k} onClick={()=>applyPreset(k)} style={{background:lk?"#101010":"#1a0000",border:`1px solid ${lk?"#222":"#5a0000"}`,borderRadius:"8px",padding:"8px 13px",fontSize:"0.72rem",fontWeight:700,color:lk?"#444":"#ff9090",cursor:"pointer"}}>{lk?"🔒 ":"⚡ "}{p.label}</button>
+              <button key={k} onClick={()=>applyPreset(k)} style={{background:lk?"#101010":"#1a0000",border:`1px solid ${lk?"#222":"#5a0000"}`,borderRadius:"8px",padding:"8px 13px",fontSize:"0.72rem",fontWeight:700,color:lk?"#444":"#ff9090",cursor:"pointer"}}>{lk?"🔒 ":""}{p.label}</button>
             );})}
           </div>
         </div>
         <div style={S.card}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
-            <div style={{...S.ctitle,marginBottom:0}}>🧬 {L("Mon Sound","My Sound")}{!canAccess("pro")?" 🔒":""}</div>
+            <div style={{...S.ctitle,marginBottom:0}}>{L("Mon Sound","My Sound")}{!canAccess("pro")?" 🔒":""}</div>
             <button onClick={saveSound} style={{background:"#1a0000",border:`1px solid ${RED}`,borderRadius:"6px",color:RED,fontSize:"0.6rem",fontWeight:800,padding:"5px 11px",cursor:"pointer",letterSpacing:"0.5px"}}>＋ {L("Sauver","Save")}</button>
           </div>
           <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"9px",lineHeight:1.5}}>{L("Sauve ton ADN sonore et recharge-le en un clic — la base de ton custom model Suno.","Save your sonic DNA and reload it in one click — the base for your Suno custom model.")}</div>
           {sounds.length===0&&<div style={{fontSize:"0.62rem",color:"#444"}}>{L("Aucun sound sauvegardé.","No saved sound yet.")}</div>}
           {sounds.map(s=>(
             <div key={s.id} style={{display:"flex",alignItems:"center",gap:"8px",padding:"6px 0",borderBottom:"1px solid #1a1a1a"}}>
-              <button onClick={()=>loadSound(s)} style={{flex:1,textAlign:"left",background:"none",border:"none",color:"#ff9090",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",padding:0}}>⚡ {s.name}</button>
+              <button onClick={()=>loadSound(s)} style={{flex:1,textAlign:"left",background:"none",border:"none",color:"#ff9090",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",padding:0}}>{s.name}</button>
               <span style={{fontSize:"0.55rem",color:"#555"}}>{s.data?.bpm} BPM</span>
-              <button onClick={()=>delSound(s.id)} style={{background:"none",border:"none",color:"#5a0000",fontSize:"0.72rem",cursor:"pointer"}}>🗑️</button>
+              <button onClick={()=>delSound(s.id)} style={{background:"none",border:"none",color:"#5a0000",fontSize:"0.72rem",cursor:"pointer"}}></button>
             </div>
           ))}
         </div>
         <div style={S.card}>
-          <div style={{...S.ctitle,marginBottom:"8px"}}>🤘 Genres</div>
-          <input value={genreFilter} onChange={e=>setGenreFilter(e.target.value)} placeholder={L("🔍 Chercher un genre…","🔍 Search a genre…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
+          <div style={{...S.ctitle,marginBottom:"8px"}}>Genres</div>
+          <input value={genreFilter} onChange={e=>setGenreFilter(e.target.value)} placeholder={L("Chercher un genre…","Search a genre…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
           {GENRE_FAMILIES.map(fam=>{
             const list=fam.genres.map(x=>x.g);
             const f=genreFilter.trim().toLowerCase();
@@ -1328,7 +1323,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           })}
           {genreFilter.trim() && !GENRE_FAMILIES.some(fam=>fam.genres.some(x=>x.g.toLowerCase().includes(genreFilter.trim().toLowerCase()))) && <div style={{fontSize:"0.7rem",color:"#666",padding:"10px 0"}}>{L("Aucun genre trouvé.","No genre found.")}</div>}
         </div>
-        <div style={S.card}><div style={S.ctitle}>{L("🌡️ Intensité globale","🌡️ Overall intensity")}</div>
+        <div style={S.card}><div style={S.ctitle}>{L("Intensité globale","Overall intensity")}</div>
           <Slider label="Heaviness" val={heavy} setVal={setHeavy}/>
           <Slider label="Groove Factor" val={groove} setVal={setGroove}/>
           <Slider label="Chaos Level" val={chaos} setVal={setChaos}/>
@@ -1336,7 +1331,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
         <div style={S.card}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
-            <div style={{...S.ctitle,marginBottom:0}}>🎭 {L("Émotions","Emotions")}</div>
+            <div style={{...S.ctitle,marginBottom:0}}>{L("Émotions","Emotions")}</div>
             <span style={{fontSize:"0.55rem",color:"#666"}}>{Math.min(10,EMO_LIMIT[userTier]||2)}/10 {L("débloquées","unlocked")}</span>
           </div>
           <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"10px",lineHeight:1.5}}>{L("Dose les émotions — MetalPrompt injecte les bons tags. La plus forte domine le morceau.","Dial emotions — MetalPrompt injects the matching tags. The strongest one dominates.")}</div>
@@ -1359,8 +1354,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* DRUMS */}
       {tab==="drums"&&<div style={S.page}>
         <div style={S.card}>
-          <div style={{...S.ctitle,marginBottom:"8px"}}>{L("🥁 Style de batterie — par époque","🥁 Drum style — by era")}</div>
-          <input value={drumFilter} onChange={e=>setDrumFilter(e.target.value)} placeholder={L("🔍 Chercher une batterie…","🔍 Search a drum style…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
+          <div style={{...S.ctitle,marginBottom:"8px"}}>{L("Style de batterie — par époque","Drum style — by era")}</div>
+          <input value={drumFilter} onChange={e=>setDrumFilter(e.target.value)} placeholder={L("Chercher une batterie…","Search a drum style…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
           {DRUM_ERAS.map(era=>{
             const list=era.d.map(x=>x.v);
             const f=drumFilter.trim().toLowerCase();
@@ -1379,7 +1374,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           })}
         </div>
         <div style={S.card}>
-          <div style={S.ctitle}>⚡ Tempo (BPM)</div>
+          <div style={S.ctitle}>Tempo (BPM)</div>
           <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
             <div style={{background:"#0d0d0d",border:`2px solid ${RED}`,borderRadius:"8px",padding:"8px 14px",textAlign:"center",minWidth:"76px"}}>
               <div style={{fontSize:"1.5rem",fontWeight:900,color:RED}}>{bpm}</div>
@@ -1397,15 +1392,15 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             ))}
           </div>
         </div>
-        <Collapse title={L("🔧 Production batterie","🔧 Drum production")} n={DRUM_PROD.length} selCount={drumP.size}><div style={{marginBottom:"10px"}}><SelAll all={DRUM_PROD} set={setDrumP} L={L}/></div><Tags list={DRUM_PROD} sel={drumP} toggle={tDrumP}/></Collapse>
+        <Collapse title={L("Production batterie","Drum production")} n={DRUM_PROD.length} selCount={drumP.size}><div style={{marginBottom:"10px"}}><SelAll all={DRUM_PROD} set={setDrumP} L={L}/></div><Tags list={DRUM_PROD} sel={drumP} toggle={tDrumP}/></Collapse>
         <div style={{height:80}}/>
       </div>}
 
       {/* VOCALS */}
       {tab==="vocals"&&<div style={S.page}>
         <div style={S.card}>
-          <div style={{...S.ctitle,marginBottom:"8px"}}>{L("🎙️ Types de voix — par époque","🎙️ Vocal types — by era")}</div>
-          <input value={vocFilter} onChange={e=>setVocFilter(e.target.value)} placeholder={L("🔍 Chercher une voix…","🔍 Search a vocal…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
+          <div style={{...S.ctitle,marginBottom:"8px"}}>{L("Types de voix — par époque","Vocal types — by era")}</div>
+          <input value={vocFilter} onChange={e=>setVocFilter(e.target.value)} placeholder={L("Chercher une voix…","Search a vocal…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
           {VOCAL_ERAS.map(era=>{
             const list=era.vox.map(x=>x.v);
             const f=vocFilter.trim().toLowerCase();
@@ -1423,18 +1418,18 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>);
           })}
         </div>
-        <Collapse title={L("🎚️ Registre / Tessiture","🎚️ Range / Register")} n={VOCAL_RANGE.length} selCount={vrange.size}><div style={{marginBottom:"10px"}}><SelAll all={VOCAL_RANGE} set={setVrange} L={L}/></div><Tags list={VOCAL_RANGE} sel={vrange} toggle={tVrange}/></Collapse>
-        <Collapse title={L("🎛️ Effets vocaux","🎛️ Vocal effects")} n={VFX.length} selCount={vfx.size}><div style={{marginBottom:"10px"}}><SelAll all={VFX} set={setVfx} L={L}/></div><Tags list={VFX} sel={vfx} toggle={tVfx}/></Collapse>
+        <Collapse title={L("Registre / Tessiture","Range / Register")} n={VOCAL_RANGE.length} selCount={vrange.size}><div style={{marginBottom:"10px"}}><SelAll all={VOCAL_RANGE} set={setVrange} L={L}/></div><Tags list={VOCAL_RANGE} sel={vrange} toggle={tVrange}/></Collapse>
+        <Collapse title={L("Effets vocaux","Vocal effects")} n={VFX.length} selCount={vfx.size}><div style={{marginBottom:"10px"}}><SelAll all={VFX} set={setVfx} L={L}/></div><Tags list={VFX} sel={vfx} toggle={tVfx}/></Collapse>
         <div style={{height:80}}/>
       </div>}
 
       {/* GUITAR */}
       {tab==="instrums"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         {/* --- GUITARE --- */}
-        <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("🎸 GUITARE","🎸 GUITAR")}</div></div>
+        <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("GUITARE","GUITAR")}</div></div>
         <div style={S.card}>
-          <div style={{...S.ctitle,marginBottom:"8px"}}>{L("🎸 Techniques guitare — par époque","🎸 Guitar techniques — by era")}</div>
-          <input value={gtrFilter} onChange={e=>setGtrFilter(e.target.value)} placeholder={L("🔍 Chercher une technique…","🔍 Search a technique…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
+          <div style={{...S.ctitle,marginBottom:"8px"}}>{L("Techniques guitare — par époque","Guitar techniques — by era")}</div>
+          <input value={gtrFilter} onChange={e=>setGtrFilter(e.target.value)} placeholder={L("Chercher une technique…","Search a technique…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
           {GUITAR_ERAS.map(era=>{
             const list=era.d.map(x=>x.v);
             const f=gtrFilter.trim().toLowerCase();
@@ -1452,29 +1447,29 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>);
           })}
         </div>
-        <Collapse title={L("🎛️ Accordage","🎛️ Tuning")} n={TUNING.length} selCount={tuning.size}><Tags list={TUNING} sel={tuning} toggle={tTuning}/></Collapse>
-        <Collapse title={L("🔊 Production guitare","🔊 Guitar production")} n={GPROD.length} selCount={gprod.size}><Tags list={GPROD} sel={gprod} toggle={tGprod}/></Collapse>
+        <Collapse title={L("Accordage","Tuning")} n={TUNING.length} selCount={tuning.size}><Tags list={TUNING} sel={tuning} toggle={tTuning}/></Collapse>
+        <Collapse title={L("Production guitare","Guitar production")} n={GPROD.length} selCount={gprod.size}><Tags list={GPROD} sel={gprod} toggle={tGprod}/></Collapse>
 
         {/* --- BASSE --- */}
-        <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center",marginTop:"18px"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("🎸 BASSE","🎸 BASS")}</div></div>
-        <Collapse title={L("🎸 Style de jeu","🎸 Playing style")} n={BASS_STYLE.length} selCount={bassStyle.size}><Tags list={BASS_STYLE} sel={bassStyle} toggle={tBassStyle}/></Collapse>
-        <Collapse title={L("🤘 Techniques avancées","🤘 Advanced techniques")} n={BASS_TECH.length} selCount={bassTech.size}><Tags list={BASS_TECH} sel={bassTech} toggle={tBassTech}/></Collapse>
-        <Collapse title={L("🔊 Tone / Son","🔊 Tone")} n={BASS_TONE.length} selCount={bassTone.size}><Tags list={BASS_TONE} sel={bassTone} toggle={tBassTone}/></Collapse>
-        <Collapse title={L("🎛️ Accordage basse","🎛️ Bass tuning")} n={BASS_TUNING.length} selCount={bassTuning.size}><Tags list={BASS_TUNING} sel={bassTuning} toggle={tBassTuning}/></Collapse>
-        <Collapse title={L("⚡ Production basse","⚡ Bass production")} n={BASS_PROD.length} selCount={bassProd.size}><Tags list={BASS_PROD} sel={bassProd} toggle={tBassProd}/></Collapse>
+        <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center",marginTop:"18px"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("BASSE","BASS")}</div></div>
+        <Collapse title={L("Style de jeu","Playing style")} n={BASS_STYLE.length} selCount={bassStyle.size}><Tags list={BASS_STYLE} sel={bassStyle} toggle={tBassStyle}/></Collapse>
+        <Collapse title={L("Techniques avancées","Advanced techniques")} n={BASS_TECH.length} selCount={bassTech.size}><Tags list={BASS_TECH} sel={bassTech} toggle={tBassTech}/></Collapse>
+        <Collapse title={L("Tone / Son","Tone")} n={BASS_TONE.length} selCount={bassTone.size}><Tags list={BASS_TONE} sel={bassTone} toggle={tBassTone}/></Collapse>
+        <Collapse title={L("Accordage basse","Bass tuning")} n={BASS_TUNING.length} selCount={bassTuning.size}><Tags list={BASS_TUNING} sel={bassTuning} toggle={tBassTuning}/></Collapse>
+        <Collapse title={L("Production basse","Bass production")} n={BASS_PROD.length} selCount={bassProd.size}><Tags list={BASS_PROD} sel={bassProd} toggle={tBassProd}/></Collapse>
 
         {/* --- INSTRU --- */}
-        <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center",marginTop:"18px"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("🎷 AUTRES INSTRUMENTS","🎷 OTHER INSTRUMENTS")}</div></div>
-        <Collapse title="🎷 Saxophone" n={SAX.length} selCount={sax.size}><Tags list={SAX} sel={sax} toggle={tSax}/></Collapse>
-        <Collapse title={L("🎺 Cuivres","🎺 Brass")} n={BRASS.length} selCount={brass.size}><Tags list={BRASS} sel={brass} toggle={tBrass}/></Collapse>
-        <Collapse title={L("🎹 Claviers & Synth","🎹 Keys & Synth")} n={KEYS.length} selCount={keys.size}><Tags list={KEYS} sel={keys} toggle={tKeys}/></Collapse>
-        <Collapse title={L("🎻 Cordes","🎻 Strings")} n={STRINGS.length} selCount={strings.size}><Tags list={STRINGS} sel={strings} toggle={tStr}/></Collapse>
+        <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center",marginTop:"18px"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("AUTRES INSTRUMENTS","OTHER INSTRUMENTS")}</div></div>
+        <Collapse title="Saxophone" n={SAX.length} selCount={sax.size}><Tags list={SAX} sel={sax} toggle={tSax}/></Collapse>
+        <Collapse title={L("Cuivres","Brass")} n={BRASS.length} selCount={brass.size}><Tags list={BRASS} sel={brass} toggle={tBrass}/></Collapse>
+        <Collapse title={L("Claviers & Synth","Keys & Synth")} n={KEYS.length} selCount={keys.size}><Tags list={KEYS} sel={keys} toggle={tKeys}/></Collapse>
+        <Collapse title={L("Cordes","Strings")} n={STRINGS.length} selCount={strings.size}><Tags list={STRINGS} sel={strings} toggle={tStr}/></Collapse>
         <div style={{height:80}}/>
       </div>)}
 
       {/* STRUCTURE */}
       {tab==="structure"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
-        <Collapse title={L("🎼 Feeling rythmique global","🎼 Global rhythmic feel")} n={GLOBAL_RHYTHMS.length} selCount={globalRhythm.size}>
+        <Collapse title={L("Feeling rythmique global","Global rhythmic feel")} n={GLOBAL_RHYTHMS.length} selCount={globalRhythm.size}>
           <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginBottom:"8px"}}>
             {GLOBAL_RHYTHMS.map(r=><span key={r} onClick={()=>tGlobalRhythm(r)} style={S.tag(globalRhythm.has(r),false)}>{r}</span>)}
           </div>
@@ -1482,10 +1477,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </Collapse>
         <div style={S.card}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"8px",flexWrap:"wrap",marginBottom:"6px"}}>
-            <div style={{...S.ctitle,marginBottom:0}}>{L("📐 Blocs & Feeling par section","📐 Blocks & per-section feel")}</div>
+            <div style={{...S.ctitle,marginBottom:0}}>{L("Blocs & Feeling par section","Blocks & per-section feel")}</div>
             <div style={{display:"flex",gap:"6px"}}>
-              <button onClick={()=>setStructs(STRUCT_BLOCKS.map(b=>b.k))} style={{background:"#0a1f00",border:"1px solid #2a5a2a",borderRadius:"5px",padding:"4px 11px",fontSize:"0.62rem",fontWeight:700,color:"#7fdd7f",cursor:"pointer"}}>{L("✓ Tout","✓ All")}</button>
-              <button onClick={()=>setStructs([])} style={{background:"#1a0000",border:"1px solid #4a1010",borderRadius:"5px",padding:"4px 11px",fontSize:"0.62rem",fontWeight:700,color:"#cc6666",cursor:"pointer"}}>{L("✕ Vider","✕ Clear")}</button>
+              <button onClick={()=>setStructs(STRUCT_BLOCKS.map(b=>b.k))} style={{background:"#0a1f00",border:"1px solid #2a5a2a",borderRadius:"5px",padding:"4px 11px",fontSize:"0.62rem",fontWeight:700,color:"#7fdd7f",cursor:"pointer"}}>{L("Tout","All")}</button>
+              <button onClick={()=>setStructs([])} style={{background:"#1a0000",border:"1px solid #4a1010",borderRadius:"5px",padding:"4px 11px",fontSize:"0.62rem",fontWeight:700,color:"#cc6666",cursor:"pointer"}}>{L("Vider","Clear")}</button>
             </div>
           </div>
           <div style={{fontSize:"0.57rem",color:"#333",marginBottom:"10px"}}>{L("Feel → s'ajoute dans la balise : ","Feel → added inside the tag: ")}<span style={{color:"#aaffaa",fontFamily:"monospace"}}>[Breakdown, half-time feel]</span></div>
@@ -1496,7 +1491,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           </div>
           {STRUCT_BLOCKS.some(b=>structs.has(b.k))&&(
             <div style={{marginTop:"14px",borderTop:"1px solid #1a1a1a",paddingTop:"12px"}}>
-              <div style={{fontSize:"0.55rem",color:"#666",letterSpacing:"1.5px",marginBottom:"9px",fontWeight:700}}>{L("🎚️ FEEL PAR SECTION (optionnel)","🎚️ FEEL PER SECTION (optional)")}</div>
+              <div style={{fontSize:"0.55rem",color:"#666",letterSpacing:"1.5px",marginBottom:"9px",fontWeight:700}}>{L("FEEL PAR SECTION (optionnel)","FEEL PER SECTION (optional)")}</div>
               {STRUCT_BLOCKS.filter(b=>structs.has(b.k)).map(b=>{
                 const hasR=!!blockRhythm[b.k];
                 const cur=BLOCK_RHYTHMS.find(r=>r.v===blockRhythm[b.k]);
@@ -1508,30 +1503,30 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                         {r.l}
                       </span>
                     ))}
-                    {hasR&&<span onClick={()=>clearBlockR(b.k)} style={{fontSize:"0.55rem",color:"#ff5555",cursor:"pointer",padding:"3px 6px",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"4px"}}>✕</span>}
+                    {hasR&&<span onClick={()=>clearBlockR(b.k)} style={{fontSize:"0.55rem",color:"#ff5555",cursor:"pointer",padding:"3px 6px",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"4px"}}></span>}
                   </FeelRow>
                 );
               })}
             </div>
           )}
         </div>
-        <div style={S.card}><div style={S.ctitle}>{L("🎚️ Production globale","🎚️ Global production")}</div><Tags list={PROD} sel={prod} toggle={tProd}/></div>
+        <div style={S.card}><div style={S.ctitle}>{L("Production globale","Global production")}</div><Tags list={PROD} sel={prod} toggle={tProd}/></div>
         <div style={{height:80}}/>
       </div>)}
 
       {/* PAROLES */}
       {tab==="paroles"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
-        <Collapse title={L("☠️ Thème principal","☠️ Main theme")} n={THEMES.length} selCount={themes.size}><Tags list={THEMES} sel={themes} toggle={tTheme} tr={uiLang==="en"?THEME_TR:null}/></Collapse>
-        <Collapse title={L("🌑 Atmosphère","🌑 Atmosphere")} n={LYRIC_ATMO.length} selCount={latmo.size}><Tags list={LYRIC_ATMO} sel={latmo} toggle={tLatmo} tr={uiLang==="en"?ATMO_TR:null}/></Collapse>
+        <Collapse title={L("Thème principal","Main theme")} n={THEMES.length} selCount={themes.size}><Tags list={THEMES} sel={themes} toggle={tTheme} tr={uiLang==="en"?THEME_TR:null}/></Collapse>
+        <Collapse title={L("Atmosphère","Atmosphere")} n={LYRIC_ATMO.length} selCount={latmo.size}><Tags list={LYRIC_ATMO} sel={latmo} toggle={tLatmo} tr={uiLang==="en"?ATMO_TR:null}/></Collapse>
         <div style={S.card}>
-          <div style={S.ctitle}>{L("🎯 Angle créatif (optionnel)","🎯 Creative angle (optional)")}</div>
+          <div style={S.ctitle}>{L("Angle créatif (optionnel)","Creative angle (optional)")}</div>
           <input value={lyricsAngle} onChange={e=>setLyricsAngle(e.target.value)} placeholder={L("ex: vue d'une machine qui s'éveille, métaphores de noyade...","e.g. a machine waking up, drowning metaphors...")}
             style={{width:"100%",background:"#111",border:"1px solid #222",borderRadius:"6px",padding:"10px",color:"#e0e0e0",fontSize:"0.78rem"}}/>
           <div style={{fontSize:"0.57rem",color:"#333",marginTop:"4px"}}>{L("Si vide → angle aléatoire différent à chaque fois","If empty → a different random angle each time")}</div>
         </div>
         <div style={{display:"flex",gap:"10px"}}>
           <div style={{...S.card,flex:1}}>
-            <div style={S.ctitle}>{L("👁️ Narrateur","👁️ Narrator")}</div>
+            <div style={S.ctitle}>{L("Narrateur","Narrator")}</div>
             {[["first",L("1ère pers.","1st person")],["second",L("2ème pers.","2nd person")],["third",L("3ème pers.","3rd person")]].map(([v,l])=>(
               <div key={v} onClick={()=>setLyricsNarrator(v)} style={{padding:"7px 10px",borderRadius:"6px",marginBottom:"5px",cursor:"pointer",fontSize:"0.72rem",background:lyricsNarrator===v?"#2a0000":"#111",border:`1px solid ${lyricsNarrator===v?RED:"#222"}`,color:lyricsNarrator===v?"#ff7070":"#666"}}>{l}</div>
             ))}
@@ -1543,26 +1538,26 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             ))}
           </div>
         </div>
-        <div style={S.card}><div style={S.ctitle}>{L("🔑 Mots-clés","🔑 Keywords")}</div>
+        <div style={S.card}><div style={S.ctitle}>{L("Mots-clés","Keywords")}</div>
           <input value={keywords} onChange={e=>setKeywords(e.target.value)} placeholder={L("ex: acier, fracture, signal, abîme...","e.g. steel, fracture, signal, abyss...")}
             style={{width:"100%",background:"#111",border:"1px solid #222",borderRadius:"6px",padding:"10px",color:"#e0e0e0",fontSize:"0.8rem"}}/>
         </div>
-        <div style={S.card}><div style={S.ctitle}>{L("🚫 Mots bannis","🚫 Banned words")}</div>
+        <div style={S.card}><div style={S.ctitle}>{L("Mots bannis","Banned words")}</div>
           <input value={bannedWords} onChange={e=>setBannedWords(e.target.value)} placeholder={L("ex: darkness, blood, rise, ashes...","e.g. darkness, blood, rise, ashes...")}
             style={{width:"100%",background:"#111",border:"1px solid #5a1100",borderRadius:"6px",padding:"10px",color:"#ff7070",fontSize:"0.8rem"}}/>
-          {lyricsHistory.length>0&&<button onClick={()=>setLyricsHistory([])} style={{marginTop:"7px",padding:"5px 12px",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"5px",color:"#ff5555",fontSize:"0.65rem",cursor:"pointer"}}>{L("🗑️ Effacer mémoire","🗑️ Clear memory")} ({lyricsHistory.length})</button>}
+          {lyricsHistory.length>0&&<button onClick={()=>setLyricsHistory([])} style={{marginTop:"7px",padding:"5px 12px",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"5px",color:"#ff5555",fontSize:"0.65rem",cursor:"pointer"}}>{L("Effacer mémoire","Clear memory")} ({lyricsHistory.length})</button>}
         </div>
-        <Collapse title={L("🌐 Langue des paroles","🌐 Lyrics language")} n={LYRIC_LANGS.length} selCount={lang.size} defaultOpen={true}><Tags list={LYRIC_LANGS} sel={lang} toggle={tLang}/></Collapse>
-        <Collapse title={L("📐 Blocs à générer","📐 Blocks to generate")} n={LYRIC_BLOCKS.length} selCount={lblocks.size}><div style={{marginBottom:"10px"}}><SelAll all={LYRIC_BLOCKS.map(b=>b.v)} set={setLblocks} L={L}/></div><Tags list={LYRIC_BLOCKS} sel={lblocks} toggle={tLblock}/></Collapse>
-        <button style={S.genBtn} onClick={generateLyrics} disabled={lyricsLoading}>{lyricsLoading?"⚒️ "+t.generating:L("⚒️ GÉNÉRER LES PAROLES","⚒️ GENERATE LYRICS")}</button>
-        {lyricsLoading&&<div style={{textAlign:"center",padding:"20px"}}><div style={{fontSize:"1.8rem",animation:"spin 1s linear infinite",display:"inline-block"}}>⚒️</div><div style={{color:"#444",fontSize:"0.7rem",letterSpacing:"2px",marginTop:"8px"}}>{L("CLAUDE COMPOSE...","CLAUDE IS COMPOSING...")}</div></div>}
+        <Collapse title={L("Langue des paroles","Lyrics language")} n={LYRIC_LANGS.length} selCount={lang.size} defaultOpen={true}><Tags list={LYRIC_LANGS} sel={lang} toggle={tLang}/></Collapse>
+        <Collapse title={L("Blocs à générer","Blocks to generate")} n={LYRIC_BLOCKS.length} selCount={lblocks.size}><div style={{marginBottom:"10px"}}><SelAll all={LYRIC_BLOCKS.map(b=>b.v)} set={setLblocks} L={L}/></div><Tags list={LYRIC_BLOCKS} sel={lblocks} toggle={tLblock}/></Collapse>
+        <button style={S.genBtn} onClick={generateLyrics} disabled={lyricsLoading}>{lyricsLoading?""+t.generating:L("GÉNÉRER LES PAROLES","GENERATE LYRICS")}</button>
+        {lyricsLoading&&<div style={{textAlign:"center",padding:"20px"}}><div style={{fontSize:"1.8rem",animation:"spin 1s linear infinite",display:"inline-block"}}></div><div style={{color:"#444",fontSize:"0.7rem",letterSpacing:"2px",marginTop:"8px"}}>{L("CLAUDE COMPOSE...","CLAUDE IS COMPOSING...")}</div></div>}
         {lyricsErr&&<div style={{color:"#ff5555",fontSize:"0.8rem",padding:"10px",background:"#1a0000",borderRadius:"8px",marginBottom:"10px"}}>{lyricsErr}</div>}
         {lyricsTxt&&!lyricsLoading&&(<div>
-          <div style={S.outLbl}>{L("✍️ Paroles générées","✍️ Generated lyrics")}</div>
+          <div style={S.outLbl}>{L("Paroles générées","Generated lyrics")}</div>
           <div style={{...S.outBox,borderColor:"#ff2e2e33"}}><CopyBtn getText={()=>lyricsTxt}/><pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.8rem",lineHeight:1.9,color:"#ddd",paddingRight:"50px"}}>{lyricsTxt}</pre></div>
           <div style={{display:"flex",gap:"10px",marginBottom:"12px"}}>
-            <button onClick={generateLyrics} style={{flex:1,padding:"10px",background:"#1a1a1a",border:"1px solid #222",borderRadius:"6px",color:"#888",fontSize:"0.72rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>{L("🔄 Régénérer","🔄 Regenerate")}</button>
-            <button onClick={sendLyricsToOutput} style={{flex:1,padding:"10px",background:"#0a1f00",border:"1px solid #4caf50",borderRadius:"6px",color:"#4caf50",fontSize:"0.72rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>📋 → Output</button>
+            <button onClick={generateLyrics} style={{flex:1,padding:"10px",background:"#1a1a1a",border:"1px solid #222",borderRadius:"6px",color:"#888",fontSize:"0.72rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>{L("Régénérer","Regenerate")}</button>
+            <button onClick={sendLyricsToOutput} style={{flex:1,padding:"10px",background:"#0a1f00",border:"1px solid #4caf50",borderRadius:"6px",color:"#4caf50",fontSize:"0.72rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>→ Output</button>
           </div>
         </div>)}
         <div style={{height:80}}/>
@@ -1570,23 +1565,23 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* ORGANIC */}
       {tab==="organic"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
-        <div style={{...S.card,borderColor:"#1a3a00",background:"#0a120a"}}><div style={{...S.ctitle,color:"#4caf50"}}>💡 Anti-AI</div><div style={{fontSize:"0.72rem",color:"#688",lineHeight:1.9}}>{L("Ces tags poussent Suno vers un rendu plus ","These tags push Suno toward a more ")}<strong style={{color:"#8f8"}}>{L("organique et humain","organic and human")}</strong>.</div></div>
-        <Collapse title={L("🎙️ Recording & Ambiance","🎙️ Recording & Ambience")} n={ORG_RECORD.length} selCount={orgRec.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_RECORD} set={setOrgRec} L={L}/></div><Tags list={ORG_RECORD} sel={orgRec} toggle={tOrgRec}/></Collapse>
-        <Collapse title={L("🥁 Batterie organique","🥁 Organic drums")} n={ORG_DRUMS.length} selCount={orgDrm.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_DRUMS} set={setOrgDrm} L={L}/></div><Tags list={ORG_DRUMS} sel={orgDrm} toggle={tOrgDrm}/></Collapse>
-        <Collapse title={L("🎙️ Voix organique","🎙️ Organic vocals")} n={ORG_VOCALS.length} selCount={orgVoc.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_VOCALS} set={setOrgVoc} L={L}/></div><Tags list={ORG_VOCALS} sel={orgVoc} toggle={tOrgVoc}/></Collapse>
-        <Collapse title={L("🎸 Guitares organiques","🎸 Organic guitars")} n={ORG_GUITAR.length} selCount={orgGtr.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_GUITAR} set={setOrgGtr} L={L}/></div><Tags list={ORG_GUITAR} sel={orgGtr} toggle={tOrgGtr}/></Collapse>
-        <div style={{...S.card,borderColor:"#3a0000",background:"#0f0000"}}><div style={{...S.ctitle,color:"#ff5555"}}>{L("🚫 Tags à ÉVITER (sonnent AI)","🚫 Tags to AVOID (sound AI)")}</div><div style={S.tags}>{ORG_AVOID.map(v=><span key={v} style={{background:"#1a0000",border:"1.5px solid #5a0000",borderRadius:"20px",padding:"5px 12px",fontSize:"0.72rem",color:"#ff5555",textDecoration:"line-through",opacity:0.6}}>{v}</span>)}</div></div>
+        <div style={{...S.card,borderColor:"#1a3a00",background:"#0a120a"}}><div style={{...S.ctitle,color:"#4caf50"}}>Anti-AI</div><div style={{fontSize:"0.72rem",color:"#688",lineHeight:1.9}}>{L("Ces tags poussent Suno vers un rendu plus ","These tags push Suno toward a more ")}<strong style={{color:"#8f8"}}>{L("organique et humain","organic and human")}</strong>.</div></div>
+        <Collapse title={L("Recording & Ambiance","Recording & Ambience")} n={ORG_RECORD.length} selCount={orgRec.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_RECORD} set={setOrgRec} L={L}/></div><Tags list={ORG_RECORD} sel={orgRec} toggle={tOrgRec}/></Collapse>
+        <Collapse title={L("Batterie organique","Organic drums")} n={ORG_DRUMS.length} selCount={orgDrm.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_DRUMS} set={setOrgDrm} L={L}/></div><Tags list={ORG_DRUMS} sel={orgDrm} toggle={tOrgDrm}/></Collapse>
+        <Collapse title={L("Voix organique","Organic vocals")} n={ORG_VOCALS.length} selCount={orgVoc.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_VOCALS} set={setOrgVoc} L={L}/></div><Tags list={ORG_VOCALS} sel={orgVoc} toggle={tOrgVoc}/></Collapse>
+        <Collapse title={L("Guitares organiques","Organic guitars")} n={ORG_GUITAR.length} selCount={orgGtr.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_GUITAR} set={setOrgGtr} L={L}/></div><Tags list={ORG_GUITAR} sel={orgGtr} toggle={tOrgGtr}/></Collapse>
+        <div style={{...S.card,borderColor:"#3a0000",background:"#0f0000"}}><div style={{...S.ctitle,color:"#ff5555"}}>{L("Tags à ÉVITER (sonnent AI)","Tags to AVOID (sound AI)")}</div><div style={S.tags}>{ORG_AVOID.map(v=><span key={v} style={{background:"#1a0000",border:"1.5px solid #5a0000",borderRadius:"20px",padding:"5px 12px",fontSize:"0.72rem",color:"#ff5555",textDecoration:"line-through",opacity:0.6}}>{v}</span>)}</div></div>
         <div style={{height:80}}/>
       </div>)}
 
       {/* EXCLUDE */}
       {tab==="exclude"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
-        <div style={{...S.card,borderColor:"#3a0a00",background:"#0f0800"}}><div style={{...S.ctitle,color:"#ff6633"}}>{L("🚫 Comment ça fonctionne","🚫 How it works")}</div><div style={{fontSize:"0.72rem",color:"#a86",lineHeight:1.9}}>{L('Tags dans "Style of Music" précédés de ','Tags in "Style of Music" prefixed with ')}<strong style={{color:"#ff5555"}}>"-"</strong>{L(" pour dire à Suno ce qu'il doit éviter."," to tell Suno what to avoid.")}</div></div>
-        <Collapse title={L("🎵 Genres à exclure","🎵 Genres to exclude")} n={EXCL_GENRES.length} selCount={exclGenre.size}><div style={{marginBottom:"10px"}}><SelAll all={EXCL_GENRES} set={setExclGenre} L={L}/></div><Tags list={EXCL_GENRES} sel={exclGenre} toggle={tExclGenre}/></Collapse>
-        <Collapse title={L("🎙️ Voix à exclure","🎙️ Vocals to exclude")} n={EXCL_VOCALS.length} selCount={exclVocal.size}><div style={{marginBottom:"10px"}}><SelAll all={EXCL_VOCALS} set={setExclVocal} L={L}/></div><Tags list={EXCL_VOCALS} sel={exclVocal} toggle={tExclVocal}/></Collapse>
-        <Collapse title={L("🔊 Production à exclure","🔊 Production to exclude")} n={EXCL_PROD.length} selCount={exclProd.size}><div style={{marginBottom:"10px"}}><SelAll all={EXCL_PROD} set={setExclProd} L={L}/></div><Tags list={EXCL_PROD} sel={exclProd} toggle={tExclProd}/></Collapse>
-        <Collapse title={L("🎸 Instruments à exclure","🎸 Instruments to exclude")} n={EXCL_INSTRU.length} selCount={exclInst.size}><div style={{marginBottom:"10px"}}><SelAll all={EXCL_INSTRU} set={setExclInst} L={L}/></div><Tags list={EXCL_INSTRU} sel={exclInst} toggle={tExclInst}/></Collapse>
-        <div style={S.card}><div style={S.ctitle}>{L("✏️ Exclusions personnalisées","✏️ Custom exclusions")}</div>
+        <div style={{...S.card,borderColor:"#3a0a00",background:"#0f0800"}}><div style={{...S.ctitle,color:"#ff6633"}}>{L("Comment ça fonctionne","How it works")}</div><div style={{fontSize:"0.72rem",color:"#a86",lineHeight:1.9}}>{L('Tags dans "Style of Music" précédés de ','Tags in "Style of Music" prefixed with ')}<strong style={{color:"#ff5555"}}>"-"</strong>{L(" pour dire à Suno ce qu'il doit éviter."," to tell Suno what to avoid.")}</div></div>
+        <Collapse title={L("Genres à exclure","Genres to exclude")} n={EXCL_GENRES.length} selCount={exclGenre.size}><div style={{marginBottom:"10px"}}><SelAll all={EXCL_GENRES} set={setExclGenre} L={L}/></div><Tags list={EXCL_GENRES} sel={exclGenre} toggle={tExclGenre}/></Collapse>
+        <Collapse title={L("Voix à exclure","Vocals to exclude")} n={EXCL_VOCALS.length} selCount={exclVocal.size}><div style={{marginBottom:"10px"}}><SelAll all={EXCL_VOCALS} set={setExclVocal} L={L}/></div><Tags list={EXCL_VOCALS} sel={exclVocal} toggle={tExclVocal}/></Collapse>
+        <Collapse title={L("Production à exclure","Production to exclude")} n={EXCL_PROD.length} selCount={exclProd.size}><div style={{marginBottom:"10px"}}><SelAll all={EXCL_PROD} set={setExclProd} L={L}/></div><Tags list={EXCL_PROD} sel={exclProd} toggle={tExclProd}/></Collapse>
+        <Collapse title={L("Instruments à exclure","Instruments to exclude")} n={EXCL_INSTRU.length} selCount={exclInst.size}><div style={{marginBottom:"10px"}}><SelAll all={EXCL_INSTRU} set={setExclInst} L={L}/></div><Tags list={EXCL_INSTRU} sel={exclInst} toggle={tExclInst}/></Collapse>
+        <div style={S.card}><div style={S.ctitle}>{L("Exclusions personnalisées","Custom exclusions")}</div>
           <input value={exclCustom} onChange={e=>setExclCustom(e.target.value)} placeholder={L("ex: piano, jazz, acoustic, soft...","e.g. piano, jazz, acoustic, soft...")}
             style={{width:"100%",background:"#111",border:"1px solid #5a2200",borderRadius:"6px",padding:"10px",color:"#e0e0e0",fontSize:"0.8rem"}}/>
         </div>
@@ -1596,49 +1591,49 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* OUTPUT */}
       {tab==="riff"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ff2e2e44"}}>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>🎸 RIFF / BEAT GENERATOR</div>
-          <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un riff + beat, écoute-le, et exporte un WAV prêt pour Suno (Style Reference / Custom Model). 🤘","Generate a riff + beat, listen, and export a WAV ready for Suno (Style Reference / Custom Model). 🤘")}</div>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>RIFF / BEAT GENERATOR</div>
+          <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un riff + beat, écoute-le, et exporte un WAV prêt pour Suno (Style Reference / Custom Model). ","Generate a riff + beat, listen, and export a WAV ready for Suno (Style Reference / Custom Model). ")}</div>
         </div>
         <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
           <iframe src={`/riff.html?tier=${userTier}`} title="Riff Generator" allow="autoplay" style={{width:"100%",height:"78vh",minHeight:"560px",border:"none",display:"block",background:DARK}}/>
         </div>
         <div style={{...S.card,textAlign:"center"}}>
-          <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>🔜 {L("Bientôt aussi","Also coming soon")}</div>
-          <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>🎬 {L("Idée express","Quick Idea")} · 🎵 {L("Génération in-app (crédits)","In-app generation (credits)")}</div>
+          <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>{L("Bientôt aussi","Also coming soon")}</div>
+          <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>{L("Idée express","Quick Idea")} · {L("Génération in-app (crédits)","In-app generation (credits)")}</div>
         </div>
         <div style={{height:80}}/>
       </div>)}
 
       {tab==="master"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ffcc0044"}}>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>🎚️ MASTERING</div>
-          <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Charge ta toune Suno → EQ + compression + limiteur → WAV plus fort et serré, prêt à publier. 🤘","Load your Suno track → EQ + compression + limiter → louder, tighter WAV, ready to publish. 🤘")}</div>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>MASTERING</div>
+          <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Charge ta toune Suno → EQ + compression + limiteur → WAV plus fort et serré, prêt à publier. ","Load your Suno track → EQ + compression + limiter → louder, tighter WAV, ready to publish. ")}</div>
         </div>
         <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
           <iframe src="/master.html" title="Mastering" allow="autoplay" style={{width:"100%",height:"1150px",minHeight:"1150px",border:"none",display:"block",background:DARK}}/>
         </div>
         <div style={{...S.card,textAlign:"center"}}>
-          <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>🔜 {L("Bientôt — Elite Pro","Soon — Elite Pro")}</div>
-          <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>🎬 {L("Idée express — aperçu vidéo + maquette (Lyra/Gemini)","Quick Idea — video preview + mockup (Lyra/Gemini)")}</div>
+          <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>{L("Bientôt — Elite Pro","Soon — Elite Pro")}</div>
+          <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>{L("Idée express — aperçu vidéo + maquette (Lyra/Gemini)","Quick Idea — video preview + mockup (Lyra/Gemini)")}</div>
         </div>
         <div style={{height:80}}/>
       </div>)}
 
       {tab==="tuto"&&<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"26px 22px",borderColor:"#ff2e2e44"}}>
-          <div style={{fontSize:"2.2rem",marginBottom:"6px"}}>📚</div>
+          <div style={{fontSize:"2.2rem",marginBottom:"6px"}}></div>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:"2px",color:"#fff"}}>{L("APPRENDRE LE METAL","LEARN METAL")}</div>
-          <div style={{color:"#999",fontSize:"0.8rem",marginTop:"6px",lineHeight:1.5}}>{L("MetalPrompt, c'est plus qu'un prompteur — c'est ","MetalPrompt is more than a prompter — it's ")}<b style={{color:"#fff"}}>{L("LA plateforme du metalhead","THE metalhead platform")}</b>. 🤘</div>
+          <div style={{color:"#999",fontSize:"0.8rem",marginTop:"6px",lineHeight:1.5}}>{L("MetalPrompt, c'est plus qu'un prompteur — c'est ","MetalPrompt is more than a prompter — it's ")}<b style={{color:"#fff"}}>{L("LA plateforme du metalhead","THE metalhead platform")}</b>. </div>
         </div>
 
         <div style={S.card}>
-          <div style={S.ctitle}>{L("⚡ Démarrage rapide — de 0 à toune","⚡ Quick start — from 0 to track")}</div>
+          <div style={S.ctitle}>{L("Démarrage rapide — de 0 à toune","Quick start — from 0 to track")}</div>
           {[
             L("Choisis ton genre, ta batterie et tes voix dans les onglets.","Choose your genre, drums and vocals in the tabs."),
-            L("Clique sur l'enclume ⚒️ FORGER pour générer ton prompt.","Hit the anvil ⚒️ FORGE to generate your prompt."),
+            L("Clique sur l'enclume FORGER pour générer ton prompt.","Hit the anvil FORGE to generate your prompt."),
             L("Onglet Output : copie le « Style of Music » et colle-le dans le champ Style de Suno.","Output tab: copy the « Style of Music » and paste it into Suno's Style field."),
             L("Colle les blocs de structure EN HAUT du champ Lyrics de Suno.","Paste the structure blocks at the TOP of Suno's Lyrics field."),
-            L("Génère dans Suno, écoute, ajuste. C'est ta toune. 🤘","Generate in Suno, listen, tweak. That's your track. 🤘"),
+            L("Génère dans Suno, écoute, ajuste. C'est ta toune. ","Generate in Suno, listen, tweak. That's your track. "),
           ].map((s,i)=>(
             <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<4?"1px solid #1a1a1a":"none"}}>
               <div style={S.stepNum(RED)}>{i+1}</div>
@@ -1648,7 +1643,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
 
         <div style={S.card}>
-          <div style={S.ctitle}>🎛️ {L("Réglages avancés Suno (More Options)","Suno advanced sliders (More Options)")}</div>
+          <div style={S.ctitle}>{L("Réglages avancés Suno (More Options)","Suno advanced sliders (More Options)")}</div>
           <div style={{fontSize:"0.72rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("Dans Suno, ouvre « More Options ». Réglages conseillés pour le metal :","In Suno, open « More Options ». Recommended settings for metal:")}</div>
           {[
             {n:"Weirdness",v:"40-60%",d:L("Garde ça cohérent. Plus haut = chaos / expérimental.","Keep it coherent. Higher = chaos / experimental.")},
@@ -1665,18 +1660,18 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <div style={{fontSize:"0.68rem",color:"#888",lineHeight:1.5,marginTop:"2px"}}>{r.d}</div>
             </div>
           ))}
-          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("💡 Règle d'or : Style Influence haut + Weirdness modéré = Suno suit ton prompt sans déraper.","💡 Rule of thumb: high Style Influence + moderate Weirdness = Suno follows your prompt without going off the rails.")}</div>
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Règle d'or : Style Influence haut + Weirdness modéré = Suno suit ton prompt sans déraper.","Rule of thumb: high Style Influence + moderate Weirdness = Suno follows your prompt without going off the rails.")}</div>
         </div>
 
         <div style={S.card}>
-          <div style={S.ctitle}>{L("🎓 Cliniques de musique en ligne","🎓 Online music clinics")}</div>
+          <div style={S.ctitle}>{L("Cliniques de musique en ligne","Online music clinics")}</div>
           <div style={{fontSize:"0.78rem",color:"#999",lineHeight:1.7,marginBottom:"14px"}}>
             {L("Des sessions live avec de vrais musiciens pour passer au niveau supérieur — riffs, mix, écriture, voix extrêmes. Que tu joues déjà ou pas du tout, on t'aide à progresser.","Live sessions with real musicians to level up — riffs, mixing, songwriting, extreme vocals. Whether you already play or not at all, we help you progress.")}
           </div>
           {[
-            {i:"🎸",t:L("Riffing & composition","Riffing & songwriting"),d:L("Construire des riffs qui frappent et structurer une toune.","Build riffs that hit and structure a track.")},
-            {i:"🎙️",t:L("Voix extrêmes","Extreme vocals"),d:L("Scream, growl, fry — technique et santé vocale.","Scream, growl, fry — technique and vocal health.")},
-            {i:"🎚️",t:L("Mix & son metal","Mixing & metal tone"),d:L("Faire sonner gros : guitares, batterie, basse.","Make it sound huge: guitars, drums, bass.")},
+            {i:"",t:L("Riffing & composition","Riffing & songwriting"),d:L("Construire des riffs qui frappent et structurer une toune.","Build riffs that hit and structure a track.")},
+            {i:"",t:L("Voix extrêmes","Extreme vocals"),d:L("Scream, growl, fry — technique et santé vocale.","Scream, growl, fry — technique and vocal health.")},
+            {i:"",t:L("Mix & son metal","Mixing & metal tone"),d:L("Faire sonner gros : guitares, batterie, basse.","Make it sound huge: guitars, drums, bass.")},
           ].map(c=>(
             <div key={c.t} style={{...S.card,display:"flex",alignItems:"center",gap:"14px",marginBottom:"10px"}}>
               <div style={{fontSize:"1.8rem"}}>{c.i}</div>
@@ -1687,16 +1682,16 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
           ))}
           <a href="mailto:mmftechnisolutions@gmail.com?subject=Clinique%20de%20musique%20en%20ligne" style={{display:"block",textAlign:"center",marginTop:"6px",padding:"12px",background:RED,borderRadius:"8px",color:"#000",fontWeight:900,fontSize:"0.8rem",letterSpacing:"1px",textTransform:"uppercase",textDecoration:"none"}}>
-            {L("🤘 Tu donnes des cliniques ? Écris-nous","🤘 You run clinics? Get in touch")}
+            {L("Tu donnes des cliniques ? Écris-nous","You run clinics? Get in touch")}
           </a>
           <div style={{fontSize:"0.6rem",color:"#555",textAlign:"center",marginTop:"8px"}}>{L("Musiciens, profs, créateurs — proposez vos cliniques sur la plateforme.","Musicians, teachers, creators — offer your clinics on the platform.")}</div>
         </div>
 
         <div style={S.card}>
-          <div style={S.ctitle}>🧬 {L("Custom Model Studio","Custom Model Studio")}</div>
+          <div style={S.ctitle}>{L("Custom Model Studio","Custom Model Studio")}</div>
           <div style={{fontSize:"0.74rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("Entraîne un modèle Suno sur TON sound. MetalPrompt produit le jeu d'entraînement cohérent — c'est la clé d'un bon custom model.","Train a Suno model on YOUR sound. MetalPrompt produces the consistent training set — the key to a good custom model.")}</div>
           {[
-            L("Sauve ton profil dans « 🧬 Mon Sound » (onglet Genre) : tags, BPM, voix signature.","Save your profile in « 🧬 My Sound » (Genre tab): tags, BPM, signature vocals."),
+            L("Sauve ton profil dans « Mon Sound » (onglet Genre) : tags, BPM, voix signature.","Save your profile in « My Sound » (Genre tab): tags, BPM, signature vocals."),
             L("Génère 6 à 8 tounes COHÉRENTES dans Suno avec ce même profil.","Generate 6-8 CONSISTENT tracks in Suno with that same profile."),
             L("Dans Suno : menu du modèle → « Create Custom Model » → uploade tes 6+ tounes (que tu possèdes).","In Suno: model menu → « Create Custom Model » → upload your 6+ tracks (that you own)."),
             L("Génère avec ton custom model + tes prompts MetalPrompt pour diriger chaque toune.","Generate with your custom model + your MetalPrompt prompts to steer each track."),
@@ -1713,14 +1708,14 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {tab==="output"&&<div style={S.page}>
         {!styleTxt&&<div style={{...S.card,textAlign:"center",padding:"30px 20px",borderColor:"#222"}}>
-          <div style={{fontSize:"2.5rem",marginBottom:"10px"}}>⚒️</div>
+          <div style={{fontSize:"2.5rem",marginBottom:"10px"}}></div>
           <div style={{fontSize:"0.82rem",color:"#444"}}>{t.noPrompt}</div>
         </div>}
         {styleTxt&&<>
           {/* COMPACT TOGGLE + CONFLICTS */}
           <div style={{...S.card,display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",borderColor:"#2a2a2a"}}>
             <div>
-              <div style={{fontSize:"0.74rem",fontWeight:800,color:"#e0e0e0"}}>⚡ {L("Mode Compact","Compact mode")}</div>
+              <div style={{fontSize:"0.74rem",fontWeight:800,color:"#e0e0e0"}}>{L("Mode Compact","Compact mode")}</div>
               <div style={{fontSize:"0.58rem",color:"#666",marginTop:"2px"}}>{L("Réduit le style ≤120 car. · surplus → champ Lyrics","Trim style ≤120 chars · overflow → Lyrics field")}</div>
             </div>
             <button onClick={()=>setCompact(c=>!c)} style={{background:compact?RED:"#1a1a1a",border:`1px solid ${compact?RED:"#333"}`,borderRadius:"20px",width:"50px",height:"26px",position:"relative",cursor:"pointer",flexShrink:0,padding:0}}>
@@ -1739,19 +1734,19 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
             <div style={{fontSize:"0.63rem",color:"#888",marginBottom:"10px",lineHeight:1.6}}>{t.step1d}</div>
             {modelRec&&<div style={{background:"#0a0600",border:"1px solid #3a2a00",borderRadius:"6px",padding:"8px 10px",marginBottom:"10px",fontSize:"0.62rem",lineHeight:1.6}}>
-              <span style={{color:"#ffcc00",fontWeight:800}}>🎚️ {L("Modèle Suno recommandé","Recommended Suno model")} :</span>{" "}
-              <span style={{color:"#7fdd7f",fontWeight:700}}>🥇 {modelRec.best}</span> · <span style={{color:"#d8d86a"}}>👍 {modelRec.good}</span> · <span style={{color:"#cc8866"}}>👎 {modelRec.weak}</span>
+              <span style={{color:"#ffcc00",fontWeight:800}}>{L("Modèle Suno recommandé","Recommended Suno model")} :</span>{" "}
+              <span style={{color:"#7fdd7f",fontWeight:700}}>{modelRec.best}</span> · <span style={{color:"#d8d86a"}}>{modelRec.good}</span> · <span style={{color:"#cc8866"}}>{modelRec.weak}</span>
               <div style={{color:"#888",marginTop:"3px"}}>{modelRec.why} · {L("teste les 3 au goût","try all 3 to taste")}</div>
             </div>}
             <div style={{background:"#0a0a0a",border:"1px solid #3a0000",borderRadius:"6px",padding:"10px",position:"relative"}}>
               <CopyBtn getText={()=>styleShown}/>
               <div style={{color:"#ff9090",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{styleShown}</div>
             </div>
-            <div style={{fontSize:"0.58rem",marginTop:"7px",textAlign:"right",fontWeight:700,color:styleShown.length<=120?"#4caf50":styleShown.length<=180?"#cc9900":"#ff5555"}}>{styleShown.length} {L("car.","chars")} · {styleShown.length<=120?L("idéal Suno ✓","ideal for Suno ✓"):styleShown.length<=180?L("un peu long","a bit long"):L("trop long — Suno risque d'ignorer le tempo/détails","too long — Suno may drop tempo/details")}</div>
+            <div style={{fontSize:"0.58rem",marginTop:"7px",textAlign:"right",fontWeight:700,color:styleShown.length<=120?"#4caf50":styleShown.length<=180?"#cc9900":"#ff5555"}}>{styleShown.length} {L("car.","chars")} · {styleShown.length<=120?L("idéal Suno ","ideal for Suno "):styleShown.length<=180?L("un peu long","a bit long"):L("trop long — Suno risque d'ignorer le tempo/détails","too long — Suno may drop tempo/details")}</div>
           </div>
           {/* COVER + EXTEND (T11) */}
           {coverTxt&&<div style={{...S.card,borderColor:"#9b59b633",background:"#0a0510"}}>
-            <div style={{...S.outLbl,color:"#b06bff",marginBottom:"6px"}}>🔄 {L("Prompt COVER (sous-genre)","COVER prompt (sub-genre)")}</div>
+            <div style={{...S.outLbl,color:"#b06bff",marginBottom:"6px"}}>{L("Prompt COVER (sous-genre)","COVER prompt (sub-genre)")}</div>
             <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"8px",lineHeight:1.5}}>{L("Génère avec le Principal, puis fais « Cover » sur le résultat dans Suno avec ce prompt → pousse la fusion proprement.","Generate with the Main first, then 'Cover' the result in Suno with this prompt → pushes the fusion cleanly.")}</div>
             <div style={{background:"#0a0a0a",border:"1px solid #2a1a3a",borderRadius:"6px",padding:"10px",position:"relative"}}>
               <CopyBtn getText={()=>coverTxt}/>
@@ -1759,7 +1754,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
           </div>}
           {extendTxt&&<div style={{...S.card,borderColor:"#00aaaa33",background:"#03100f"}}>
-            <div style={{...S.outLbl,color:"#33ccbb",marginBottom:"6px"}}>➕ {L("Prompt EXTEND (rallonge)","EXTEND prompt (lengthen)")}</div>
+            <div style={{...S.outLbl,color:"#33ccbb",marginBottom:"6px"}}>{L("Prompt EXTEND (rallonge)","EXTEND prompt (lengthen)")}</div>
             <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"8px",lineHeight:1.5}}>{L("Utilise « Extend » dans Suno avec ce prompt pour continuer la toune sans qu'elle dérive.","Use 'Extend' in Suno with this prompt to continue the song without drift.")}</div>
             <div style={{background:"#0a0a0a",border:"1px solid #103a38",borderRadius:"6px",padding:"10px",position:"relative"}}>
               <CopyBtn getText={()=>extendTxt}/>
@@ -1774,8 +1769,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
             <div style={{fontSize:"0.63rem",color:"#688",marginBottom:"10px",lineHeight:1.6}}>{t.step2d}</div>
             {lyricsTxt
-              ? <div style={{fontSize:"0.62rem",color:"#4caf50",marginBottom:"8px",fontWeight:700}}>{L("✓ Tes paroles sont déjà placées sous chaque section — colle ce bloc tel quel.","✓ Your lyrics are already placed under each section — paste this block as is.")}</div>
-              : <div style={{fontSize:"0.6rem",color:"#777",marginBottom:"8px",lineHeight:1.5}}>{L("💡 Écris tes paroles sous chaque tag de section, ou laisse Suno improviser. (Paroles par IA : onglet Lyrics, plan Pro)","💡 Write your lyrics under each section tag, or let Suno improvise. (AI lyrics: Lyrics tab, Pro plan)")}</div>}
+              ? <div style={{fontSize:"0.62rem",color:"#4caf50",marginBottom:"8px",fontWeight:700}}>{L("Tes paroles sont déjà placées sous chaque section — colle ce bloc tel quel.","Your lyrics are already placed under each section — paste this block as is.")}</div>
+              : <div style={{fontSize:"0.6rem",color:"#777",marginBottom:"8px",lineHeight:1.5}}>{L("Écris tes paroles sous chaque tag de section, ou laisse Suno improviser. (Paroles par IA : onglet Lyrics, plan Pro)","Write your lyrics under each section tag, or let Suno improvise. (AI lyrics: Lyrics tab, Pro plan)")}</div>}
             <div style={{background:"#0a0a0a",border:"1px solid #1a4a1a",borderRadius:"6px",padding:"10px",position:"relative"}}>
               <CopyBtn getText={()=>step2Shown}/>
               <pre style={{whiteSpace:"pre-wrap",fontFamily:"monospace",fontSize:"0.82rem",lineHeight:2,color:"#aaffaa",paddingRight:"50px"}}>{step2Shown}</pre>
@@ -1806,12 +1801,12 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
           </div>}
           <div style={{...S.card,borderColor:"#1a3a1a",textAlign:"center"}}>
-            <div style={{color:"#4caf50",fontSize:"0.65rem",letterSpacing:"2px",textTransform:"uppercase",fontWeight:700,marginBottom:"8px"}}>{L("💡 Tips Suno","💡 Suno tips")}</div>
+            <div style={{color:"#4caf50",fontSize:"0.65rem",letterSpacing:"2px",textTransform:"uppercase",fontWeight:700,marginBottom:"8px"}}>{L("Tips Suno","Suno tips")}</div>
             <div style={{fontSize:"0.68rem",color:"#555",lineHeight:1.9}}>
               • {L("8–12 tags max dans Style of Music","8–12 tags max in Style of Music")}<br/>
               • {L("[Breakdown, half-time feel] = changement de rythme garanti","[Breakdown, half-time feel] = guaranteed rhythm change")}<br/>
               • {L("pig squeals + guttural growls = combo deathcore parfait","pig squeals + guttural growls = perfect deathcore combo")}<br/>
-              • {L("saxophone + metal = son unique et brutal 🎷🤘","saxophone + metal = unique, brutal sound 🎷🤘")}
+              • {L("saxophone + metal = son unique et brutal ","saxophone + metal = unique, brutal sound ")}
             </div>
           </div>
         </>}
@@ -1821,8 +1816,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* HISTORY */}
       {tab==="history"&&(isPro||isElite)&&<div style={S.page}>
         <div style={{...S.card,borderColor:"#ff2e2e22"}}>
-          <div style={S.ctitle}>{L("🕒 Historique PRO","🕒 PRO History")} — {history.length}/50 prompts</div>
-          {history.length===0&&<div style={{color:"#444",fontSize:"0.75rem",textAlign:"center",padding:"20px"}}>{L("Aucun prompt encore. Forge quelque chose ! 🤘","No prompts yet. Forge something! 🤘")}</div>}
+          <div style={S.ctitle}>{L("Historique PRO","PRO History")} — {history.length}/50 prompts</div>
+          {history.length===0&&<div style={{color:"#444",fontSize:"0.75rem",textAlign:"center",padding:"20px"}}>{L("Aucun prompt encore. Forge quelque chose ! ","No prompts yet. Forge something! ")}</div>}
           {history.map((h,i)=>(
             <div key={h.id} style={{borderBottom:"1px solid #1a1a1a",padding:"10px 0"}}>
               <div style={{fontSize:"0.58rem",color:"#555",letterSpacing:"1px",marginBottom:"4px"}}>#{history.length-i} · {h.date}</div>

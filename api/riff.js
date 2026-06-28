@@ -18,6 +18,23 @@ const STYLE_PAT = {
   funeraldoom:[1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
   dissonant:  [1,0,1,0,0,1,1,0,1,0,0,1,0,1,0,1],
 };
+// Rythme de guitare ALTERNATIF (phrase B) — alterné mesure par mesure pour casser la redondance
+const STYLE_PAT_B = {
+  thrash:   [1,0,1,1,0,1,0,1,1,0,1,0,1,1,0,1],
+  death:    [1,0,1,1,0,1,1,0,1,0,1,1,0,1,0,1],
+  doom:     [1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0],
+  blackened:[1,1,0,1,1,0,1,1,0,1,1,0,1,0,1,1],
+  groove:   [1,0,1,0,0,1,0,1,0,0,1,0,1,0,0,1],
+  rapcore:  [1,0,1,0,0,1,0,1,0,1,0,0,1,0,1,0],
+  djent:    [1,0,0,1,0,1,1,0,0,1,0,1,1,0,0,1],
+  speed:    [1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1],
+  slam:       [1,1,0,0,1,0,0,1,1,0,0,1,1,0,0,0],
+  sludge:     [1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0],
+  postmetal:  [1,0,0,0,1,0,0,0,0,0,1,0,0,0,1,0],
+  grindcore:  [1,1,0,1,1,1,1,0,1,1,1,0,1,1,1,1],
+  funeraldoom:[1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0],
+  dissonant:  [1,0,0,1,1,0,1,0,0,1,1,0,1,0,1,0],
+};
 const BASS_PAT = {
   thrash:   [1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0],
   death:    [1,0,1,0,1,1,0,1,0,1,0,1,1,0,0,1],
@@ -85,6 +102,7 @@ const NOTE_SEQ = {
 };
 // #7 — sous-genres additionnels (réutilisent les patterns de base)
 (function(_B){Object.assign(_B,{deathcore:_B.death,metalcore:_B.groove,melodicdeath:_B.death,melodicdeathcore:_B.death,brutaldeath:_B.death,techdeath:_B.dissonant,blackeneddeathcore:_B.blackened,numetal:_B.groove,beatdown:_B.groove,crossover:_B.thrash,hardcore:_B.thrash,deathgrind:_B.grindcore,mathcore:_B.dissonant,progmetal:_B.djent,powermetal:_B.speed,atmosblack:_B.blackened,symphonicblack:_B.blackened,blackgaze:_B.postmetal,industrial:_B.groove,gothic:_B.doom});})(STYLE_PAT);
+(function(_B){Object.assign(_B,{deathcore:_B.death,metalcore:_B.groove,melodicdeath:_B.death,melodicdeathcore:_B.death,brutaldeath:_B.death,techdeath:_B.dissonant,blackeneddeathcore:_B.blackened,numetal:_B.groove,beatdown:_B.groove,crossover:_B.thrash,hardcore:_B.thrash,deathgrind:_B.grindcore,mathcore:_B.dissonant,progmetal:_B.djent,powermetal:_B.speed,atmosblack:_B.blackened,symphonicblack:_B.blackened,blackgaze:_B.postmetal,industrial:_B.groove,gothic:_B.doom});})(STYLE_PAT_B);
 (function(_B){Object.assign(_B,{deathcore:_B.death,metalcore:_B.groove,melodicdeath:_B.death,melodicdeathcore:_B.death,brutaldeath:_B.death,techdeath:_B.dissonant,blackeneddeathcore:_B.blackened,numetal:_B.groove,beatdown:_B.groove,crossover:_B.thrash,hardcore:_B.thrash,deathgrind:_B.grindcore,mathcore:_B.dissonant,progmetal:_B.djent,powermetal:_B.speed,atmosblack:_B.blackened,symphonicblack:_B.blackened,blackgaze:_B.postmetal,industrial:_B.groove,gothic:_B.doom});})(BASS_PAT);
 (function(_B){Object.assign(_B,{deathcore:_B.death,metalcore:_B.groove,melodicdeath:_B.death,melodicdeathcore:_B.death,brutaldeath:_B.death,techdeath:_B.dissonant,blackeneddeathcore:_B.blackened,numetal:_B.groove,beatdown:_B.groove,crossover:_B.thrash,hardcore:_B.thrash,deathgrind:_B.grindcore,mathcore:_B.dissonant,progmetal:_B.djent,powermetal:_B.speed,atmosblack:_B.blackened,symphonicblack:_B.blackened,blackgaze:_B.postmetal,industrial:_B.groove,gothic:_B.doom});})(NOTE_SEQ);
 // transpose = décalage de hauteur (variété par section) · fill = roulement de snare en fin de phrase
@@ -104,6 +122,11 @@ const STRUCTURES = {
   doomcrawl:  {bars:[{drum:'doom'},{drum:'doom'},{drum:'half_time',transpose:5},{drum:'doom',fill:true}]},
   gallop:     {bars:[{drum:'thrash'},{drum:'thrash'},{drum:'thrash',transpose:5},{drum:'double_kick',transpose:7,fill:true}]},
   odyssey:    {bars:[{steps:14,drum:'mathcore'},{steps:12,drum:'mathcore',transpose:3},{steps:16,transpose:5},{steps:18,drum:'breakdown',fill:true}]},
+  // CLIPS de toune — 4 sections distinctes (intro / couplet / refrain / breakdown)
+  sec1: {bars:[{drum:'half_time'},{drum:'half_time'},{drum:'half_time',transpose:3},{drum:'standard',transpose:5,fill:true}]},
+  sec2: {bars:[{},{},{transpose:3},{fill:true}]},
+  sec3: {bars:[{transpose:5},{transpose:5},{transpose:7},{transpose:5,fill:true}]},
+  sec4: {bars:[{drum:'breakdown'},{drum:'breakdown',transpose:-2},{drum:'half_time'},{drum:'breakdown',transpose:3,fill:true}]},
 };
 const LEAD_RHY=[1,0,0,0,1,0,1,0,0,1,0,0,1,0,1,0];
 const LEAD_VOICE={
@@ -118,16 +141,25 @@ const ELITE_STYLES=['slam','sludge','postmetal','grindcore','funeraldoom','disso
 const TREMOLO=['blackened','postmetal','funeraldoom','dissonant'];   // guitare trémolo continue (mur black metal)
 const ATMOS=['blackened','postmetal','funeraldoom','dissonant','sludge','doom']; // nappe de cordes symphonique
 
+function varyDrum(dp){
+  const k=dp.kick.slice();
+  if(!k[7])k[7]=1;            // pickup avant la caisse claire du milieu
+  if(!k[15])k[15]=1;          // pickup en fin de mesure (relance)
+  return {kick:k,snare:dp.snare,hihat:dp.hihat};
+}
 function buildArrangement(p){
   const st=STRUCTURES[p.structure]||STRUCTURES.loop;
   const out={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],L:0};
-  st.bars.forEach(bar=>{
-    const dp = p.custom ? p.drum : (DRUM_PAT[bar.drum||p.drumKey]||p.drum);
+  st.bars.forEach((bar,bi)=>{
+    let dp = p.custom ? p.drum : (DRUM_PAT[bar.drum||p.drumKey]||p.drum);
+    if(!p.custom && !bar.drum && (bi%2===1)) dp = varyDrum(dp);   // batterie variée 1 mesure /2
+    const useB = (bar.g==='B') || (bar.g!=='A' && bi%2===1);
+    const gp = (useB && p.guitB) ? p.guitB : p.guit;               // rythme de guitare A/B
     const tr=bar.transpose||0;
     const n=bar.steps||16;
     for(let i=0;i<n;i++){
       const j=i%16;
-      out.guit.push(p.guit[j]);out.bass.push(p.bass[j]);
+      out.guit.push(gp[j]);out.bass.push(p.bass[j]);
       out.kick.push(dp.kick[j]);
       out.snare.push((bar.fill && i >= n - 4) ? 1 : dp.snare[j]);
       out.hihat.push(dp.hihat[j]);
@@ -332,6 +364,8 @@ export default function handler(req, res){
   }
 
   const drumKey = auto ? auto.drumKey : (DRUM_PAT[b.drums] ? b.drums : 'double_kick');
+  const SECTION = {1:'sec1',2:'sec2',3:'sec3',4:'sec4'};
+  const secKey = SECTION[parseInt(b.section)] || null;
   // groove importé par l'utilisateur (MIDI parsé côté client) — reste à l'utilisateur, jamais stocké
   const cd = b.customDrum;
   const customDrum = (cd && Array.isArray(cd.kick) && Array.isArray(cd.snare) && Array.isArray(cd.hihat)) ? { kick: cd.kick.slice(0, 16), snare: cd.snare.slice(0, 16), hihat: cd.hihat.slice(0, 16) } : null;
@@ -341,10 +375,11 @@ export default function handler(req, res){
     root: auto ? auto.tuning : (b.tuning || 'Db2'),
     dist: Math.max(10, Math.min(100, parseInt(b.dist) || 80)),
     drumKey,
-    structure: auto ? auto.structure : (STRUCTURES[b.structure] ? b.structure : 'loop'),
+    structure: secKey ? secKey : (auto ? auto.structure : (STRUCTURES[b.structure] ? b.structure : 'loop')),
     lead: b.lead || 'none',
     scene: auto ? auto.scene : (b.scene || '').toLowerCase(),
     guit: TREMOLO.includes(style) ? [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] : STYLE_PAT[style],
+    guitB: TREMOLO.includes(style) ? [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] : (STYLE_PAT_B[style]||STYLE_PAT[style]),
     bass: BASS_PAT[style],
     drum: customDrum || DRUM_PAT[drumKey],
     custom: !!customDrum,

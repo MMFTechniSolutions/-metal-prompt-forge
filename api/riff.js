@@ -66,21 +66,22 @@ const DRUM_PAT = {
   gallop:     {kick:[1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1],snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],hihat:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},
 };
 // Phrases de 16 notes (question/réponse) → le riff se développe au lieu de tourner en rond
+// Phrases de 32 notes (A = question, B = réponse/développement) → moins redondant, le riff respire sur 2 mesures
 const NOTE_SEQ = {
-  thrash:[0,0,3,0,5,3,7,5,0,0,3,0,8,7,5,3],
-  death:[0,0,1,0,6,1,8,6,0,0,1,3,6,5,3,1],
-  doom:[0,7,5,3,0,5,3,2,0,7,8,7,5,3,2,0],
-  blackened:[0,0,1,5,0,1,6,5,0,1,5,7,6,5,1,0],
-  groove:[0,5,7,0,3,5,7,3,0,7,5,3,5,7,3,0],
-  rapcore:[0,0,5,0,3,0,5,3,0,0,5,0,3,5,0,0],
-  djent:[0,0,7,0,5,7,3,0,0,5,0,7,3,5,0,0],
-  speed:[0,3,5,7,8,7,5,3,0,5,7,10,8,7,5,0],
-  slam:[0,0,1,0,2,1,0,3,0,0,1,2,1,0,2,0],
-  sludge:[0,3,5,3,0,5,7,5,0,3,2,0,3,5,3,0],
-  postmetal:[0,7,12,7,5,7,12,10,0,5,7,12,10,7,5,0],
-  grindcore:[0,1,0,2,3,2,1,0,0,1,3,2,1,0,2,0],
-  funeraldoom:[0,0,3,0,5,3,0,0,0,0,5,3,2,0,0,0],
-  dissonant:[0,1,6,0,1,8,6,1,0,1,8,6,11,8,6,0],
+  thrash:[0,0,3,0,5,3,7,5,0,0,3,0,8,7,5,3, 0,3,5,7,5,3,0,10,8,7,5,3,7,5,3,0],
+  death:[0,0,1,0,6,1,8,6,0,0,1,3,6,5,3,1, 0,1,3,1,8,6,3,1,0,6,8,6,3,1,6,0],
+  doom:[0,7,5,3,0,5,3,2,0,7,8,7,5,3,2,0, 0,3,5,7,8,7,5,3,0,2,3,5,3,2,0,0],
+  blackened:[0,0,1,5,0,1,6,5,0,1,5,7,6,5,1,0, 0,5,7,8,7,6,5,1,0,1,6,8,7,5,1,0],
+  groove:[0,5,7,0,3,5,7,3,0,7,5,3,5,7,3,0, 0,3,0,5,3,0,7,5,0,5,3,0,7,3,5,0],
+  rapcore:[0,0,5,0,3,0,5,3,0,0,5,0,3,5,0,0, 0,5,3,0,5,0,3,0,5,3,5,0,3,0,5,0],
+  djent:[0,0,7,0,5,7,3,0,0,5,0,7,3,5,0,0, 0,7,0,3,0,5,0,7,3,0,5,0,7,0,3,0],
+  speed:[0,3,5,7,8,7,5,3,0,5,7,10,8,7,5,0, 0,5,8,10,12,10,8,7,5,8,10,12,10,8,5,0],
+  slam:[0,0,1,0,2,1,0,3,0,0,1,2,1,0,2,0, 0,1,0,3,2,1,0,2,0,3,1,0,2,1,0,0],
+  sludge:[0,3,5,3,0,5,7,5,0,3,2,0,3,5,3,0, 0,5,7,8,7,5,3,0,0,3,5,3,2,0,3,0],
+  postmetal:[0,7,12,7,5,7,12,10,0,5,7,12,10,7,5,0, 0,5,7,12,14,12,10,7,5,7,10,12,7,5,0,0],
+  grindcore:[0,1,0,2,3,2,1,0,0,1,3,2,1,0,2,0, 0,2,3,1,0,3,2,1,0,1,2,3,1,0,2,0],
+  funeraldoom:[0,0,3,0,5,3,0,0,0,0,5,3,2,0,0,0, 0,3,5,7,5,3,0,0,0,2,3,2,0,0,0,0],
+  dissonant:[0,1,6,0,1,8,6,1,0,1,8,6,11,8,6,0, 0,6,8,11,8,6,1,0,0,1,11,8,6,1,8,0],
 };
 // #7 — sous-genres additionnels (réutilisent les patterns de base)
 (function(_B){Object.assign(_B,{deathcore:_B.death,metalcore:_B.groove,melodicdeath:_B.death,melodicdeathcore:_B.death,brutaldeath:_B.death,techdeath:_B.dissonant,blackeneddeathcore:_B.blackened,numetal:_B.groove,beatdown:_B.groove,crossover:_B.thrash,hardcore:_B.thrash,deathgrind:_B.grindcore,mathcore:_B.dissonant,progmetal:_B.djent,powermetal:_B.speed,atmosblack:_B.blackened,symphonicblack:_B.blackened,blackgaze:_B.postmetal,industrial:_B.groove,gothic:_B.doom});})(STYLE_PAT);
@@ -88,7 +89,7 @@ const NOTE_SEQ = {
 (function(_B){Object.assign(_B,{deathcore:_B.death,metalcore:_B.groove,melodicdeath:_B.death,melodicdeathcore:_B.death,brutaldeath:_B.death,techdeath:_B.dissonant,blackeneddeathcore:_B.blackened,numetal:_B.groove,beatdown:_B.groove,crossover:_B.thrash,hardcore:_B.thrash,deathgrind:_B.grindcore,mathcore:_B.dissonant,progmetal:_B.djent,powermetal:_B.speed,atmosblack:_B.blackened,symphonicblack:_B.blackened,blackgaze:_B.postmetal,industrial:_B.groove,gothic:_B.doom});})(NOTE_SEQ);
 // transpose = décalage de hauteur (variété par section) · fill = roulement de snare en fin de phrase
 const STRUCTURES = {
-  loop:   {bars:[{}]},
+  loop:   {bars:[{},{transpose:3},{transpose:5},{fill:true}]},
   vbd:    {bars:[{},{},{drum:'breakdown'},{drum:'breakdown',fill:true}]},
   irbo:   {bars:[{drum:'half_time'},{},{transpose:5},{drum:'breakdown',fill:true}]},
   drop:   {bars:[{drum:'half_time'},{drum:'double_kick',transpose:3},{drum:'blast_beat',transpose:5},{drum:'breakdown',fill:true}]},

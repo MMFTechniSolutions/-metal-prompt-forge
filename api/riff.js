@@ -227,32 +227,122 @@ function buildPrompt(p){
   return tags.filter(Boolean).join(', ');
 }
 
+// MODE AUTO — déduit les paramètres du riff depuis le prompt texte (recette protégée serveur).
+// Aucun nom de groupe : uniquement genres, scènes, lieux, tempos, accordages, grooves.
+const FREE_SUB={slam:'death',sludge:'doom',postmetal:'blackgaze',grindcore:'deathgrind',funeraldoom:'doom',dissonant:'techdeath'};
+function parsePrompt(text){
+  const t=(' '+(text||'').toLowerCase()+' ');
+  const has=(...ws)=>ws.some(w=>t.includes(w));
+  // genre — du plus spécifique au plus général (l'ordre compte)
+  const STYLE_KW=[
+    ['blackeneddeathcore','blackened deathcore'],['melodicdeathcore','melodic deathcore'],
+    ['deathcore','deathcore'],['metalcore','metalcore'],
+    ['melodicdeath','melodic death','melodeath','gothenburg'],
+    ['brutaldeath','brutal death'],['techdeath','technical death','tech death'],
+    ['deathgrind','deathgrind','goregrind'],['grindcore','grindcore','grind'],
+    ['dissonant','dissonant','dissonance'],['funeraldoom','funeral doom'],
+    ['sludge','sludge'],['doom','doom'],
+    ['postmetal','post-metal','post metal'],['blackgaze','blackgaze'],
+    ['djent','djent','thall'],['progmetal','progressive metal','prog metal'],
+    ['powermetal','power metal'],['symphonicblack','symphonic black'],
+    ['atmosblack','atmospheric black'],['blackened','black metal','blackened','kvlt'],
+    ['slam','slam'],['numetal','nu-metal','nu metal'],['beatdown','beatdown'],
+    ['hardcore','hardcore'],['crossover','crossover'],['mathcore','mathcore'],
+    ['industrial','industrial'],['gothic','gothic'],['speed','speed metal'],
+    ['groove','groove metal'],['death','death metal','brutal death','death'],
+    ['thrash','thrash'],
+  ];
+  let style='thrash';
+  for(const row of STYLE_KW){const st=row[0];if(row.slice(1).some(k=>t.includes(k))){style=st;break;}}
+  // scène régionale (lieux + signatures, pas de noms de groupes)
+  const SCENE_KW={
+    bayarea:['bay area','san francisco'],florida:['florida','tampa','morrisound'],
+    stockholm:['stockholm','polymetric','polymeter','polyrythm','8-string','8 string'],
+    gothenburg:['gothenburg','goteborg','melodic death','melodeath','buzzsaw'],
+    neoclassical:['neoclassical','neo-classical','baroque','sweep picking','sweeps'],
+    norwegian:['norwegian','norway'],finnish:['finnish','finland'],
+    swedish:['swedish','sweden','hm-2','hm2'],german:['german','germany','teutonic'],
+    canadian:['canadian','canada','quebec','quebec'],nola:['nola','new orleans','louisiana'],
+    brazilian:['brazil','brazilian'],french:['french','blackgaze'],american:['american']
+  };
+  let scene='';
+  for(const k in SCENE_KW){if(SCENE_KW[k].some(w=>t.includes(w))){scene=k;break;}}
+  // tempo
+  let bpm=160;const m=t.match(/(\d{2,3})\s*bpm/);
+  if(m){bpm=parseInt(m[1]);}
+  else if(has('hyperblast','blistering','260','280')) bpm=240;
+  else if(has('blast')) bpm=210;
+  else if(has('fast','rapide','uptempo','up-tempo','speed')) bpm=185;
+  else if(has('mid-tempo','midtempo','mid tempo','groovy','bounce')) bpm=120;
+  else if(has('slow','doom','funeral','crawl','lent','sludge')) bpm=80;
+  bpm=Math.max(60,Math.min(280,bpm));
+  // accordage
+  let tuning='Db2';
+  if(has('8-string','8 string','f# standard','f standard','drop g','drop f')) tuning='B1';
+  else if(has('b standard','7-string','7 string','drop a','drop b')) tuning='B1';
+  else if(has('c standard','drop c')) tuning='C2';
+  else if(has('d standard','drop d')) tuning='D2';
+  else if(has('eb','e flat','d# standard','half step down','half-step down')) tuning='Eb2';
+  else if(has('e standard','standard e','open e')) tuning='E2';
+  // groove batterie
+  let drumKey='double_kick';
+  if(has('blast')) drumKey='blast_beat';
+  else if(has('breakdown')) drumKey='breakdown';
+  else if(has('d-beat','dbeat','d beat')) drumKey='dbeat';
+  else if(has('gallop','galloping')) drumKey='gallop';
+  else if(has('half-time','halftime','half time')) drumKey='half_time';
+  else if(has('skank','grind')) drumKey='skank';
+  else if(has('slam')) drumKey='slam';
+  else if(has('two-step','two step')) drumKey='two_step';
+  else if(has('groove','bounce')) drumKey='groove';
+  // structure — le beat SUIT une structure de toune (sections) par défaut, pas une simple boucle
+  let structure='versechorus';
+  if(has('full song','complete song','toune compl','intro','outro','bridge')) structure='fullsong';
+  else if(has('breakdown')) structure='vbd';
+  else if(has('build','crescendo','buildup','intro to')) structure='buildup';
+  else if(has('blast assault','wall of blast','all-out blast')) structure='blastassault';
+  else if(has('doom','funeral','crawl')) structure='doomcrawl';
+  else if(has('verse','chorus','couplet','refrain')) structure='versechorus';
+  if(has('loop','boucle','one bar','1 bar','single bar','riff only','just a riff')) structure='loop';
+  return {style,scene,bpm,tuning,drumKey,structure};
+}
+
 export default function handler(req, res){
   let b = req.method === 'POST' ? req.body : (req.query || {});
   if (typeof b === 'string') { try { b = JSON.parse(b); } catch { b = {}; } }
   b = b || {};
 
   const tier = b.tier || 'free';
-  const style = STYLE_PAT[b.style] ? b.style : 'thrash';
 
-  // Gating serveur : styles Elite réservés aux comptes Elite
-  if (ELITE_STYLES.includes(style) && tier !== 'elite' && tier !== 'eliteplus') {
+  // MODE AUTO : déduit tout depuis le prompt texte (recette protégée)
+  let auto = null;
+  if (b.auto && typeof b.promptText === 'string') {
+    auto = parsePrompt(b.promptText);
+    if (ELITE_STYLES.includes(auto.style) && tier !== 'elite' && tier !== 'eliteplus') {
+      auto.style = FREE_SUB[auto.style] || 'death';   // substitut libre, pas de 403 en auto
+    }
+  }
+
+  const style = auto ? auto.style : (STYLE_PAT[b.style] ? b.style : 'thrash');
+
+  // Gating serveur : styles Elite réservés aux comptes Elite (mode manuel)
+  if (!auto && ELITE_STYLES.includes(style) && tier !== 'elite' && tier !== 'eliteplus') {
     return res.status(403).json({ error: 'Style Elite — abonnement Elite requis' });
   }
 
-  const drumKey = DRUM_PAT[b.drums] ? b.drums : 'double_kick';
+  const drumKey = auto ? auto.drumKey : (DRUM_PAT[b.drums] ? b.drums : 'double_kick');
   // groove importé par l'utilisateur (MIDI parsé côté client) — reste à l'utilisateur, jamais stocké
   const cd = b.customDrum;
   const customDrum = (cd && Array.isArray(cd.kick) && Array.isArray(cd.snare) && Array.isArray(cd.hihat)) ? { kick: cd.kick.slice(0, 16), snare: cd.snare.slice(0, 16), hihat: cd.hihat.slice(0, 16) } : null;
   const p = {
     style,
-    bpm: Math.max(60, Math.min(280, parseInt(b.bpm) || 160)),
-    root: b.tuning || 'Db2',
+    bpm: auto ? auto.bpm : Math.max(60, Math.min(280, parseInt(b.bpm) || 160)),
+    root: auto ? auto.tuning : (b.tuning || 'Db2'),
     dist: Math.max(10, Math.min(100, parseInt(b.dist) || 80)),
     drumKey,
-    structure: STRUCTURES[b.structure] ? b.structure : 'loop',
+    structure: auto ? auto.structure : (STRUCTURES[b.structure] ? b.structure : 'loop'),
     lead: b.lead || 'none',
-    scene: (b.scene || '').toLowerCase(),
+    scene: auto ? auto.scene : (b.scene || '').toLowerCase(),
     guit: TREMOLO.includes(style) ? [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] : STYLE_PAT[style],
     bass: BASS_PAT[style],
     drum: customDrum || DRUM_PAT[drumKey],
@@ -266,7 +356,7 @@ export default function handler(req, res){
   const tab = (tier === 'elite' || tier === 'eliteplus') ? buildTab(p) : '🔒 Tablature ASCII — reservee aux comptes Elite';
 
   return res.status(200).json({
-    style: p.style, bpm: p.bpm, root: p.root, dist: p.dist,
+    style: p.style, bpm: p.bpm, root: p.root, dist: p.dist, scene: p.scene,
     drumKey: p.drumKey, structure: p.structure, lead: p.lead,
     noteSeq: p.noteSeq, guit: p.guit, bass: p.bass, drum: p.drum, atmos: ATMOS.includes(p.style),
     arr, leadVoice, leadRhy: leadVoice ? LEAD_RHY : null, tab,

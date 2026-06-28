@@ -70,7 +70,16 @@
   <div class="rcol rcol-l">
   <div class="panel">
     <h2>Paramètres</h2>
-    <div class="grid2">
+    <div class="moderow" style="display:flex;gap:8px;margin-bottom:14px;">
+      <button type="button" class="bp" id="modeAuto" style="flex:1;">Automatique</button>
+      <button type="button" class="bs" id="modeAdv" style="flex:1;">Avancé</button>
+    </div>
+    <div id="autoPanel" class="cg" style="margin-bottom:14px;">
+      <label>Ton prompt — le beat suit ses précisions</label>
+      <textarea id="promptIn" rows="3" style="background:var(--steel);border:1px solid var(--iron);color:var(--white);font-family:'Share Tech Mono',monospace;font-size:.78rem;padding:9px 11px;width:100%;outline:none;resize:vertical;border-radius:2px;" placeholder="Ex : brutal deathcore breakdown, drop B, 140 bpm, blast beats, vibe Florida death metal"></textarea>
+      <div class="sb" style="font-size:.58rem;color:var(--ash);line-height:1.4;">Genre, BPM, accordage, groove, scène, structure — déduits automatiquement. Le beat suit une structure de toune, pas une simple boucle.</div>
+    </div>
+    <div class="grid2" id="advGrid">
       <div class="cg">
         <label>Style Metal</label>
         <select id="style">
@@ -220,6 +229,8 @@
         </select>
         <div class="sb" style="font-size:.56rem;color:var(--ember);line-height:1.4;margin-top:4px;">Astuce : ajoute un lead pour une empreinte 100% unique — le .wav passe le filtre anti-copie de Suno.</div>
       </div>
+    </div>
+    <div class="grid2" style="margin-top:12px;">
       <div class="cg">
         <label>Distorsion — <span id="distLbl">80</span>%</label>
         <input type="range" id="dist" min="10" max="100" value="80" oninput="document.getElementById('distLbl').textContent=this.value">
@@ -698,9 +709,28 @@ document.getElementById('drums').addEventListener('change',()=>{
     document.getElementById('midiClear').style.display='none';
     document.getElementById('midiStatus').textContent='Menu Pattern Drums actif (MIDI retiré).';}
 });
+let riffMode='auto';
+function setRiffMode(m){
+  riffMode=m;
+  const ap=document.getElementById('autoPanel'),ag=document.getElementById('advGrid');
+  if(ap)ap.style.display=(m==='auto')?'flex':'none';
+  if(ag)ag.style.display=(m==='auto')?'none':'grid';
+  document.getElementById('modeAuto').className=(m==='auto')?'bp':'bs';
+  document.getElementById('modeAdv').className=(m==='adv')?'bp':'bs';
+}
+document.getElementById('modeAuto').addEventListener('click',()=>setRiffMode('auto'));
+document.getElementById('modeAdv').addEventListener('click',()=>setRiffMode('adv'));
+setRiffMode('auto');
 document.getElementById('btnGen').addEventListener('click',async()=>{
   const tier=new URLSearchParams(location.search).get('tier')||'free';
-  const body={
+  const body = (riffMode==='auto') ? {
+    auto:true,
+    promptText:document.getElementById('promptIn').value,
+    dist:document.getElementById('dist').value,
+    lead:document.getElementById('lead').value,
+    customDrum:importedDrum,
+    tier,
+  } : {
     style:document.getElementById('style').value,
     scene:document.getElementById('scene').value,
     tuning:document.getElementById('tuning').value,
@@ -722,6 +752,11 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
   }catch(e){btn.disabled=false;document.getElementById('txtPlay').textContent='⚠ '+(e.message||'Erreur de génération');return;}
   btn.disabled=false;
   currentPat=data;
+  if(riffMode==='auto'){
+    const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null&&v!==''){el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));}};
+    set('style',data.style);set('tuning',data.root);set('bpm',data.bpm);
+    set('drums',data.drumKey);set('structure',data.structure);set('scene',data.scene);
+  }
   renderViz(currentPat);
   document.getElementById('tabOut').textContent=currentPat.tab||'';
   document.getElementById('btnCopyTab').disabled=!IS_ELITE;
@@ -771,12 +806,14 @@ const SCENE_FILL={
 };
 document.getElementById('scene').addEventListener('change',function(){
   const pr=SCENE_FILL[this.value];if(!pr)return;
+  setRiffMode('adv');
   const set=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
   set('style',pr.style);set('bpm',pr.bpm);set('tuning',pr.tuning);set('drums',pr.drums);set('structure',pr.structure);set('lead',pr.lead);
   const st=document.getElementById('midiStatus');if(st)st.textContent='Scène appliquée : contrôles calés sur la signature régionale — ajuste si tu veux, puis génère.';
 });
 document.querySelectorAll('[data-rp]').forEach(b=>b.addEventListener('click',()=>{
   const pr=RIFF_PRESETS[b.dataset.rp];if(!pr)return;
+  setRiffMode('adv');
   const set=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
   set('style',pr.style);set('bpm',pr.bpm);set('tuning',pr.tuning);set('drums',pr.drums);set('structure',pr.structure);set('lead',pr.lead);
   document.getElementById('btnGen').click();

@@ -435,9 +435,9 @@ function HammerFab({onClick}) {
   };
   return (
     <button style={S.fab} onClick={handle} title="FORGE">
-      <span style={{fontSize:"1.5rem",display:"inline-block",transformOrigin:"bottom center"}} className={hitting?"hammer-anim":""}></span>
+      <span style={{fontSize:"1.5rem",display:"inline-block",transformOrigin:"bottom center"}} className={hitting?"hammer-anim":""}>🔨</span>
       {sparks.map(s=>(
-        <span key={s.id} style={{position:"absolute",left:"50%",top:"50%",fontSize:"0.65rem",pointerEvents:"none",animation:"spark 0.55s ease forwards","--sx":s.sx,"--sy":s.sy}}></span>
+        <span key={s.id} style={{position:"absolute",left:"50%",top:"50%",fontSize:"0.65rem",pointerEvents:"none",animation:"spark 0.55s ease forwards","--sx":s.sx,"--sy":s.sy}}>✦</span>
       ))}
     </button>
   );

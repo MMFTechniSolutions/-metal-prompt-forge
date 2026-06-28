@@ -925,6 +925,33 @@ function CookieBanner({uiLang,onPrivacy}){
     </div>
   );
 }
+function Manifesto({onClose,uiLang}){
+  const fr=uiLang!=="en";
+  const piliers=[
+    [fr?"🔨 Une forge, pas une usine":"🔨 A forge, not a factory", fr?"Pas des chansons jetables — les outils pour forger TON son.":"Not throwaway songs — tools to forge YOUR sound."],
+    [fr?"🤘 L'artiste au centre":"🤘 The artist at the center", fr?"L'IA t'assiste, elle te remplace pas. Ta vision reste à toi.":"AI assists you, never replaces you. Your vision stays yours."],
+    [fr?"⛓️ Libre des majors":"⛓️ Free from the majors", fr?"Les mêmes outils que les gros, sans permission à demander.":"Same tools as the big players, no permission needed."],
+    [fr?"🌲 Respect de l'héritage":"🌲 Respecting the lineage", fr?"Du NWOBHM au djent, on honore ceux qui ont bâti le metal.":"From NWOBHM to djent, we honor those who built metal."],
+  ];
+  return (
+    <div style={{position:"fixed",inset:0,background:"#000000ee",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}}>
+      <div style={{maxWidth:"560px",width:"100%",background:"linear-gradient(180deg,#120000,#0a0a0b)",border:"1px solid #5a0000",borderRadius:"14px",padding:"30px 26px",boxShadow:"0 0 50px #000"}}>
+        <div style={{textAlign:"center",fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.72rem",letterSpacing:"4px",color:RED,marginBottom:"6px"}}>{fr?"LE MANIFESTE":"THE MANIFESTO"}</div>
+        <div className="forge-title" style={{textAlign:"center",fontSize:"1.7rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Un outil pour les musiciens. Jamais contre.":"A tool for musicians. Never against them."}</div>
+        <div style={{fontSize:"0.8rem",color:"#bbb",lineHeight:1.7,marginBottom:"18px",textAlign:"center"}}>{fr?"MetalPrompt existe pour une seule raison : remettre le pouvoir entre les mains des artistes. Pas les majors. Pas les gatekeepers. Les créateurs.":"MetalPrompt exists for one reason: to put the power back in artists' hands. Not the majors. Not the gatekeepers. The creators."}</div>
+        <div style={{display:"flex",flexDirection:"column",gap:"9px",marginBottom:"20px"}}>
+          {piliers.map((p,i)=>(<div key={i} style={{background:"#0d0000",border:"1px solid #2a0000",borderRadius:"8px",padding:"10px 12px"}}>
+            <div style={{color:"#ff9090",fontWeight:800,fontSize:"0.78rem"}}>{p[0]}</div>
+            <div style={{color:"#888",fontSize:"0.7rem",marginTop:"2px",lineHeight:1.5}}>{p[1]}</div>
+          </div>))}
+        </div>
+        <div style={{textAlign:"center",fontFamily:"'Bebas Neue',sans-serif",letterSpacing:"3px",color:RED,fontSize:"1.05rem",marginBottom:"18px"}}>{fr?"BRUTAL. ORGANIQUE. HUMAIN.":"BRUTAL. ORGANIC. HUMAN."}</div>
+        <button onClick={onClose} style={{width:"100%",padding:"14px",background:RED,border:"none",borderRadius:"8px",color:"#fff",fontWeight:900,fontSize:"0.9rem",letterSpacing:"2px",textTransform:"uppercase",cursor:"pointer"}}>🤘 {fr?"Entrer dans la forge":"Enter the forge"}</button>
+        <div style={{textAlign:"center",fontSize:"0.55rem",color:"#555",marginTop:"10px"}}>MMF Techni-Solutions</div>
+      </div>
+    </div>
+  );
+}
 export default function App({ user, onLogout, onRequestAuth }) {
   const [view,setView]=useState("app");
   const [tab,setTab]=useState("genre");
@@ -1034,6 +1061,9 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [heavy,setHeavy]=useState(9);
   const [emotions,setEmotions]=useState({});
   const [advanced,setAdvanced]=useState(false);
+  const [showManifesto,setShowManifesto]=useState(false);
+  useEffect(()=>{try{if(!localStorage.getItem('mp_manifesto_seen'))setShowManifesto(true);}catch(e){}},[]);
+  const closeManifesto=()=>{try{localStorage.setItem('mp_manifesto_seen','1');}catch(e){}setShowManifesto(false);};
   const [groove,setGroove]=useState(6);
   const [chaos,setChaos]=useState(7);
   const [melody,setMelody]=useState(3);
@@ -1196,6 +1226,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
     <>
       <LandingPage onEnter={()=>setView("app")} uiLang={uiLang} setUiLang={setUiLang} email={user?.email}/>
       <CookieBanner uiLang={uiLang} onPrivacy={()=>setLegalDoc("privacy")}/>
+      {showManifesto&&<Manifesto onClose={closeManifesto} uiLang={uiLang}/>}
       <SiteFooter onOpen={setLegalDoc} uiLang={uiLang}/>
       <LegalModal doc={legalDoc} onClose={()=>setLegalDoc(null)} uiLang={uiLang}/>
     </>
@@ -1213,6 +1244,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       <style>{css}</style>
       {showPaywall&&<PaywallModal onClose={()=>setShowPaywall(false)} email={user?.email} uiLang={uiLang}/>}
       <CookieBanner uiLang={uiLang} onPrivacy={()=>setLegalDoc("privacy")}/>
+      {showManifesto&&<Manifesto onClose={closeManifesto} uiLang={uiLang}/>}
 
       {warnLogout&&(
         <div style={{position:"fixed",top:0,left:0,right:0,background:"#1a0000",borderBottom:`1px solid ${RED}`,padding:"8px",textAlign:"center",zIndex:500,fontSize:"0.65rem",color:"#ff9090"}}>

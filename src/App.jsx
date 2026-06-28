@@ -1232,8 +1232,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
     {id:"drums",req:"free",adv:true},{id:"vocals",req:"free",adv:true},{id:"instrums",req:"forge",adv:true},{id:"structure",req:"forge",adv:true},{id:"organic",req:"pro",adv:true},{id:"exclude",req:"forge",adv:true},
     {id:"paroles",req:"pro"},{id:"output",req:"free"},
     {id:"riff",req:"elite"},{id:"master",req:"elite"},
-    {id:"tuto",req:"free"},{id:"masterclass",req:"free"},
     ...(isPro?[{id:"history",req:"pro"}]:[]),
+    {id:"masterclass",req:"free"},{id:"tuto",req:"free"},
   ].filter(tb=>advanced||!tb.adv);
 
   return (

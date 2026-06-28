@@ -278,8 +278,8 @@ const TIERS = {
     features:["✅ 3 prompts d'essai gratuits","✅ Aperçu de la bibliothèque","❌ Reste verrouillé — passe à MetalPrompt"],
     featuresEn:["✅ 3 free trial prompts","✅ Library preview","❌ Rest locked — go MetalPrompt"]},
   // ⚠️ STRIPE : crée un produit 4,99$/mois et remplace le lien 'stripe' ci-dessous (l'actuel = ancien 8,99$)
-  pro: {id:"pro", label:"🤘 METALPROMPT", price:"$4.99 USD/mois", priceYear:"$49.99 USD/an", color:"#ff2e2e", badge:"PRO",
-    stripe:"https://buy.stripe.com/00w3cx2oM6uPbUSbUHfQI04", stripeYear:"https://buy.stripe.com/7sY6oJ2oMaL5aQO0bZfQI05",
+  pro: {id:"pro", label:"🤘 METALPROMPT", price:"$4.99/mois", priceYear:"$49.99/an", color:"#ff2e2e", badge:"PRO",
+    stripe:"https://buy.stripe.com/00w3cx2oM6uPbUSbUHfQI04", stripeYear:"https://buy.stripe.com/dRm6oJ4wU06rcYW9MzfQI06",
     features:["✅ TOUT le site débloqué","✅ Bibliothèque complète + sliders + 10 émotions","✅ Générateur de Riff complet (28 styles)","✅ Module Mastering (débruitage + EQ)","✅ Paroles par IA illimitées","✅ Prompts Principal · Cover · Extend","✅ Reco de modèle Suno · prompts illimités"],
     featuresEn:["✅ FULL site unlocked","✅ Full library + sliders + 10 emotions","✅ Complete Riff Generator (28 styles)","✅ Mastering module (denoise + EQ)","✅ Unlimited AI lyrics","✅ Principal · Cover · Extend prompts","✅ Suno model rec · unlimited prompts"]},
 };
@@ -483,7 +483,7 @@ function PaywallModal({onClose,email,uiLang}) {
               <div style={{fontSize:"0.65rem",fontWeight:900,color:sel===t.id?t.color:"#555",letterSpacing:"1px",marginBottom:"4px"}}>{t.label}</div>
               {t.launch&&<div style={{fontSize:"0.55rem",color:"#777",textDecoration:"line-through"}}>{(year&&t.priceOldYear?t.priceOldYear:t.priceOld||"").split("/")[0]}</div>}
               <div style={{fontSize:"0.9rem",fontWeight:900,color:t.launch?"#7fdd7f":"#fff"}}>{priceOf(t).split("/")[0]}</div>
-              <div style={{fontSize:"0.5rem",color:"#444"}}>{year&&t.priceYear?L("/an","/yr"):L("/mois","/mo")}</div>
+              <div style={{fontSize:"0.5rem",color:"#444"}}>{year&&t.priceYear?L("/an","/yr"):L("/mois","/mo")} · USD</div>
               {t.launch&&<div style={{fontSize:"0.42rem",color:"#7fdd7f",fontWeight:900,letterSpacing:"0.5px",marginTop:"2px"}}>{L("LANCEMENT","LAUNCH")}</div>}
             </div>
           ))}

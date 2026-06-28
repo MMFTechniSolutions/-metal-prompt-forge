@@ -1731,6 +1731,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <div style={{fontSize:"0.8rem",color:"#ccc",lineHeight:1.6,paddingTop:"3px"}}>{s}</div>
             </div>
           ))}
+          <div style={{background:"#170c0c",border:"1px solid #4a2020",borderRadius:"6px",padding:"9px 12px",marginTop:"10px",fontSize:"0.66rem",color:"#e0a0a0",lineHeight:1.6}}>{L("Important : le mastering est l'étape FINALE, pour ta release. Fais tes Extend/Cover DANS Suno avant — ne re-uploade jamais une toune mastérisée dans Suno, son filtre anti-copie la bloquerait.","Important: mastering is the FINAL step, for your release. Do your Extends/Covers IN Suno first — never re-upload a mastered track into Suno, its anti-copy filter would block it.")}</div>
         </div>
 
         {/* CLINIQUES */}

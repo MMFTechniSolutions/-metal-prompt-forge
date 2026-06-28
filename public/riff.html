@@ -218,6 +218,7 @@
           <option value="synth">Synth Lead</option>
           <option value="cuivres">Cuivres</option>
         </select>
+        <div class="sb" style="font-size:.56rem;color:var(--ember);line-height:1.4;margin-top:4px;">Astuce : ajoute un lead pour une empreinte 100% unique — le .wav passe le filtre anti-copie de Suno.</div>
       </div>
       <div class="cg">
         <label>Distorsion — <span id="distLbl">80</span>%</label>
@@ -264,6 +265,7 @@
     </div>
     <div class="sb"><div class="dot" id="dotPlay"></div><span id="txtPlay">Configure et génère un riff</span></div>
     <div id="promptBox" style="display:none;margin-top:12px;">
+      <div style="background:#0c0f0c;border:1px solid #1f3a1f;border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:.6rem;color:#9fd09f;line-height:1.5;">Ce beat est un MIDI synthétisé de zéro : 100% original, Suno ne peut pas le matcher. Uploade le .wav comme « Audio Influence » dans Suno.</div>
       <div style="font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--ember);letter-spacing:.08em;margin-bottom:6px;">PROMPT OPTIMISÉ (qui fit le beat) — colle dans Suno + uploade le .wav</div>
       <pre id="promptOut" style="white-space:pre-wrap;background:#0a0a0b;border:1px solid var(--iron);border-radius:6px;padding:10px;font-size:.72rem;color:var(--bone);margin:0;"></pre>
       <button class="bs" id="btnCopyPrompt" style="margin-top:6px;">⧉ Copier le prompt</button>

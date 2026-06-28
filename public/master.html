@@ -552,8 +552,8 @@ function encodeWAV(buf){
   return new Blob([ab],{type:'audio/wav'});
 }
 function triggerDownload(blob,filename){
-  try{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);document.body.removeChild(a);},3000);}
-  catch(e){const r=new FileReader();r.onload=function(){const a=document.createElement('a');a.href=r.result;a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>document.body.removeChild(a),1000);};r.readAsDataURL(blob);}
+  try{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);document.body.removeChild(a);},3000);}
+  catch(e){const r=new FileReader();r.onload=function(){const a=document.createElement('a');a.href=r.result;a.download=filename;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();setTimeout(()=>document.body.removeChild(a),1000);};r.readAsDataURL(blob);}
 }
 </script>
 </body>

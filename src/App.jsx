@@ -1800,14 +1800,6 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <div style={{color:"#ff8844",fontSize:"0.78rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{excludeTxt.split(", ").map(x=>"-"+x).join(", ")}</div>
             </div>
           </div>}
-          {/* FULL */}
-          <div style={S.card}>
-            <div style={{...S.outLbl,marginBottom:"8px"}}>{L("📄 Prompt complet","📄 Full prompt")}</div>
-            <div style={{...S.outBox,border:"1px solid #1e1e1e"}}>
-              <CopyBtn getText={()=>fullTxt}/>
-              <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.72rem",lineHeight:1.8,color:"#777",paddingRight:"50px"}}>{fullTxt}</pre>
-            </div>
-          </div>
           <div style={{...S.card,borderColor:"#1a3a1a",textAlign:"center"}}>
             <div style={{color:"#4caf50",fontSize:"0.65rem",letterSpacing:"2px",textTransform:"uppercase",fontWeight:700,marginBottom:"8px"}}>{L("💡 Tips Suno","💡 Suno tips")}</div>
             <div style={{fontSize:"0.68rem",color:"#555",lineHeight:1.9}}>

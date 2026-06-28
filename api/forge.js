@@ -30,6 +30,16 @@ export default function handler(req, res) {
   else if (/doom|sludge|funeral|post|blackgaze|atmospheric/.test(_gtxt)) timeSig = _rs<0.55?'4/4':_rs<0.8?'6/8':'3/4';
   else if (chaos >= 8) timeSig = _rs<0.5?'4/4':_rs<0.75?'7/8':'5/4';
   else if (/groove|nu/.test(_gtxt) && _rs<0.3) timeSig = '6/8';
+  // Recommandation de modèle Suno par genre (mieux / bon / moins bon)
+  let modelRec;
+  if (/raw|kvlt|old.?school|grind|crust|d.?beat|war metal|primitive/.test(_gtxt))
+    modelRec = { best:'v4.5', good:'v4', weak:'v5', why: L('pour le grain cru — v5 lisse trop la crasse','for raw grit — v5 over-polishes') };
+  else if (/black|funeral|atmospheric|blackgaze|post-?metal|sludge|doom/.test(_gtxt))
+    modelRec = { best:'v4.5', good:'v5', weak:'v4', why: L('grain + atmosphère','grit + atmosphere') };
+  else if (/djent|prog|tech|symphonic|metalcore|deathcore|power|melodic|industrial/.test(_gtxt))
+    modelRec = { best:'v5', good:'v4.5', weak:'v4', why: L('clarté et séparation modernes','modern clarity and separation') };
+  else
+    modelRec = { best:'v5', good:'v4.5', weak:'v4', why: L('qualité globale','best overall quality') };
   const dedup = arr => { const s = new Set(); return arr.filter(x => { const k = String(x).toLowerCase().trim(); if (!x || s.has(k)) return false; s.add(k); return true; }); };
 
   // ── sauce secrète : sliders → tags subtils, fondus dans le lot ──
@@ -158,5 +168,5 @@ export default function handler(req, res) {
     '\n\n=== STRUCTURE (-> top of Lyrics) ===\n' + structStr +
     '\n\n=== PRODUCTION NOTES (keep for yourself) ===\n' + heavyD + '. ' + grooveD + '. ' + chaosD + '. ' + melodyD + '. ' + bpmTag + '.' + organicBlock;
 
-  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, full, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, timeSig });
+  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, full, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, timeSig, modelRec });
 }

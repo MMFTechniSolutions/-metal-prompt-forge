@@ -1110,6 +1110,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [styleTxtC,setStyleTxtC]=useState("");
   const [coverTxt,setCoverTxt]=useState("");
   const [extendTxt,setExtendTxt]=useState("");
+  const [modelRec,setModelRec]=useState(null);
   const [structTxtC,setStructTxtC]=useState("");
   const [compact,setCompact]=useState(false);
   const [conflicts,setConflicts]=useState([]);
@@ -1148,7 +1149,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(!r.ok)throw new Error('forge');
     }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie 🤘":"Generation error, try again 🤘"); return; }
     setConflicts(data.conflicts||[]);
-    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");
+    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");
     const nc=promptCount+1;setPromptCount(nc);
     if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
     saveToHistory(data.styleStr);
@@ -1732,6 +1733,11 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <div style={{...S.outLbl,marginBottom:0,color:RED}}>{t.step1t}</div>
             </div>
             <div style={{fontSize:"0.63rem",color:"#888",marginBottom:"10px",lineHeight:1.6}}>{t.step1d}</div>
+            {modelRec&&<div style={{background:"#0a0600",border:"1px solid #3a2a00",borderRadius:"6px",padding:"8px 10px",marginBottom:"10px",fontSize:"0.62rem",lineHeight:1.6}}>
+              <span style={{color:"#ffcc00",fontWeight:800}}>🎚️ {L("Modèle Suno recommandé","Recommended Suno model")} :</span>{" "}
+              <span style={{color:"#7fdd7f",fontWeight:700}}>🥇 {modelRec.best}</span> · <span style={{color:"#d8d86a"}}>👍 {modelRec.good}</span> · <span style={{color:"#cc8866"}}>👎 {modelRec.weak}</span>
+              <div style={{color:"#888",marginTop:"3px"}}>{modelRec.why} · {L("teste les 3 au goût","try all 3 to taste")}</div>
+            </div>}
             <div style={{background:"#0a0a0a",border:"1px solid #3a0000",borderRadius:"6px",padding:"10px",position:"relative"}}>
               <CopyBtn getText={()=>styleShown}/>
               <div style={{color:"#ff9090",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{styleShown}</div>

@@ -9,7 +9,7 @@ const CARD = "#141414";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",riff:"Riff",master:"Master",history:"History"},
+    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",galerie:"Gallery",riff:"Riff",master:"Master",history:"History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (max ~120 chars)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -21,7 +21,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",riff:"Riff",master:"Master",history:"Historique"},
+    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",galerie:"Galerie",riff:"Riff",master:"Master",history:"Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (max ~120 car.)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -947,6 +947,89 @@ function Manifesto({onClose,uiLang}){
     </div>
   );
 }
+
+// ── GALERIE : embed d'un lien soumis (Spotify / YouTube / SoundCloud), sinon bouton "Écouter" ──
+function galleryEmbed(url){
+  try{
+    const u=new URL(url); const h=u.hostname.replace('www.','');
+    if(h.includes('spotify.com')){
+      const p=u.pathname.split('/').filter(Boolean); const types=['track','album','playlist','episode'];
+      for(const t of types){const i=p.indexOf(t); if(i>=0&&p[i+1]) return {type:'iframe',src:`https://open.spotify.com/embed/${t}/${p[i+1]}`,h:(t==='track'?152:352)};}
+    }
+    if(h.includes('youtube.com')){const v=u.searchParams.get('v'); if(v) return {type:'iframe',src:`https://www.youtube.com/embed/${v}`,h:200};}
+    if(h.includes('youtu.be')){const id=u.pathname.slice(1).split('/')[0]; if(id) return {type:'iframe',src:`https://www.youtube.com/embed/${id}`,h:200};}
+    if(h.includes('soundcloud.com')) return {type:'iframe',src:`https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff2e2e&visual=false`,h:166};
+    return {type:'link',src:url};
+  }catch(e){return {type:'link',src:url};}
+}
+function Gallery({user,onRequestAuth,uiLang}){
+  const L=(fr,en)=>uiLang==="fr"?fr:en;
+  const GENRES=["Deathcore","Metalcore","Djent","Death Metal","Black Metal","Thrash","Groove","Doom","Melodic Death","Blackgaze","Power Metal","Autre"];
+  const [items,setItems]=useState([]);
+  const [filter,setFilter]=useState("");
+  const [loading,setLoading]=useState(true);
+  const [form,setForm]=useState({title:"",artist:"",genre:"Deathcore",url:""});
+  const [msg,setMsg]=useState("");
+  const [showForm,setShowForm]=useState(false);
+  useEffect(()=>{let on=true;
+    supabase.from('gallery').select('*').eq('status','approved').order('created_at',{ascending:false})
+      .then(({data})=>{if(on){setItems(data||[]);setLoading(false);}}).catch(()=>{if(on)setLoading(false);});
+    return ()=>{on=false;};},[]);
+  const genresPresent=[...new Set(items.map(i=>i.genre).filter(Boolean))];
+  const shown=filter?items.filter(i=>i.genre===filter):items;
+  const set=(k,v)=>setForm(ff=>({...ff,[k]:v}));
+  const chip=(on)=>({background:on?RED:"#161616",border:`1px solid ${on?RED:"#2a2a2a"}`,borderRadius:"20px",color:on?"#000":"#aaa",fontWeight:700,fontSize:"0.68rem",padding:"5px 13px",cursor:"pointer"});
+  const inp={background:"#0d0d0d",border:"1px solid #2a2a2a",borderRadius:"6px",color:"#eee",fontSize:"0.8rem",padding:"9px 11px",width:"100%",outline:"none"};
+  const submit=async()=>{
+    if(!user){onRequestAuth&&onRequestAuth();return;}
+    if(!form.title.trim()||!form.url.trim()){setMsg(L("Titre et lien requis.","Title and link required."));return;}
+    setMsg(L("Envoi…","Sending…"));
+    const {error}=await supabase.from('gallery').insert({title:form.title.trim(),artist:(form.artist.trim()||(user.email?user.email.split('@')[0]:"anon")),genre:form.genre,url:form.url.trim(),status:'pending'});
+    if(error){setMsg(L("Erreur — réessaie.","Error — try again."));return;}
+    setMsg(L("Merci ! Ta soumission sera revue avant d'apparaître. ","Thanks! Your submission will be reviewed before it appears. "));
+    setForm({title:"",artist:"",genre:"Deathcore",url:""});
+  };
+  return (
+    <div style={S.page}>
+      <div style={{...S.card,textAlign:"center",padding:"24px 20px",borderColor:"#ff2e2e44"}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.9rem",letterSpacing:"2px",color:"#fff"}}>{L("GALERIE","GALLERY")}</div>
+        <div style={{color:"#999",fontSize:"0.8rem",marginTop:"6px",lineHeight:1.55}}>{L("Les chansons forgées par la communauté. Metal fait avec l'IA comme un outil — l'humain au centre.","Tracks forged by the community. Metal made with AI as a tool — human at the center.")}</div>
+        <button onClick={()=>setShowForm(v=>!v)} style={{marginTop:"14px",background:RED,border:"none",borderRadius:"8px",color:"#000",fontWeight:900,fontSize:"0.8rem",letterSpacing:"1px",textTransform:"uppercase",padding:"11px 22px",cursor:"pointer"}}>{showForm?L("Fermer","Close"):L("Soumettre ma chanson","Submit my track")}</button>
+      </div>
+      {showForm&&<div style={S.card}>
+        <div style={S.ctitle}>{L("Soumettre une chanson","Submit a track")}</div>
+        <div style={{fontSize:"0.62rem",color:"#777",marginBottom:"10px",lineHeight:1.5}}>{L("Colle un lien Spotify, YouTube ou SoundCloud. Revue avant publication. Metal seulement.","Paste a Spotify, YouTube or SoundCloud link. Reviewed before publishing. Metal only.")}</div>
+        <div style={{display:"flex",flexDirection:"column",gap:"9px"}}>
+          <input style={inp} placeholder={L("Titre de la chanson","Track title")} value={form.title} onChange={e=>set('title',e.target.value)}/>
+          <input style={inp} placeholder={L("Nom d'artiste (optionnel)","Artist name (optional)")} value={form.artist} onChange={e=>set('artist',e.target.value)}/>
+          <select style={inp} value={form.genre} onChange={e=>set('genre',e.target.value)}>{GENRES.map(g=><option key={g} value={g}>{g}</option>)}</select>
+          <input style={inp} placeholder="https://open.spotify.com/... · youtube.com/... · soundcloud.com/..." value={form.url} onChange={e=>set('url',e.target.value)}/>
+          <button onClick={submit} style={{background:RED,border:"none",borderRadius:"7px",color:"#000",fontWeight:900,fontSize:"0.78rem",letterSpacing:"1px",textTransform:"uppercase",padding:"11px",cursor:"pointer"}}>{L("Envoyer","Send")}</button>
+          {msg&&<div style={{fontSize:"0.68rem",color:"#7fdd7f",lineHeight:1.5}}>{msg}</div>}
+        </div>
+      </div>}
+      {genresPresent.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+        <button onClick={()=>setFilter("")} style={chip(filter==="")}>{L("Tous","All")}</button>
+        {genresPresent.map(g=><button key={g} onClick={()=>setFilter(g)} style={chip(filter===g)}>{g}</button>)}
+      </div>}
+      {loading&&<div style={{...S.card,textAlign:"center",color:"#555",fontSize:"0.8rem"}}>{L("Chargement…","Loading…")}</div>}
+      {!loading&&shown.length===0&&<div style={{...S.card,textAlign:"center",padding:"30px 20px",color:"#555",fontSize:"0.82rem"}}>{L("Aucune chanson pour l'instant — sois le premier à soumettre la tienne. ","No tracks yet — be the first to submit yours. ")}</div>}
+      {shown.map(it=>{const e=galleryEmbed(it.url); return (
+        <div key={it.id} style={S.card}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:"8px",marginBottom:"8px"}}>
+            <div><div style={{color:"#fff",fontWeight:800,fontSize:"0.9rem"}}>{it.title}</div><div style={{color:"#888",fontSize:"0.66rem",marginTop:"2px"}}>{it.artist} · {it.genre}</div></div>
+            <span style={{flexShrink:0,fontSize:"0.5rem",fontWeight:900,color:"#000",background:"#7a7a7a",borderRadius:"5px",padding:"3px 7px",letterSpacing:"0.5px"}}>IA</span>
+          </div>
+          {e.type==="iframe"
+            ? <iframe src={e.src} title={it.title} loading="lazy" allow="encrypted-media; clipboard-write" style={{width:"100%",height:e.h+"px",border:"none",borderRadius:"8px"}}/>
+            : <a href={e.src} target="_blank" rel="noopener noreferrer" style={{display:"inline-block",background:"#1a0000",border:`1px solid ${RED}`,borderRadius:"7px",color:"#ff9090",fontWeight:800,fontSize:"0.74rem",padding:"9px 16px",textDecoration:"none"}}>{L("▶ Écouter","▶ Listen")}</a>}
+        </div>
+      );})}
+      <div style={{height:60}}/>
+    </div>
+  );
+}
+
 export default function App({ user, onLogout, onRequestAuth }) {
   const [view,setView]=useState("app");
   const [tab,setTab]=useState("genre");
@@ -1234,7 +1317,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
     {id:"paroles",req:"pro"},{id:"output",req:"free"},
     {id:"riff",req:"elite"},{id:"master",req:"elite"},
     ...(isPro?[{id:"history",req:"pro"}]:[]),
-    {id:"masterclass",req:"free"},{id:"tuto",req:"free"},
+    {id:"masterclass",req:"free"},{id:"galerie",req:"free"},{id:"tuto",req:"free"},
   ].filter(tb=>advanced||!tb.adv);
 
   return (
@@ -1756,6 +1839,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
         <div style={{height:80}}/>
       </div>}
+
+      {tab==="galerie"&&<Gallery user={user} onRequestAuth={onRequestAuth} uiLang={uiLang}/>}
 
       {tab==="masterclass"&&<div style={S.page}>
         {/* HERO */}

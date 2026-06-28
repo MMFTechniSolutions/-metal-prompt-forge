@@ -1108,6 +1108,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [excludeTxt,setExcludeTxt]=useState("");
   const [fullTxt,setFullTxt]=useState("");
   const [styleTxtC,setStyleTxtC]=useState("");
+  const [coverTxt,setCoverTxt]=useState("");
+  const [extendTxt,setExtendTxt]=useState("");
   const [structTxtC,setStructTxtC]=useState("");
   const [compact,setCompact]=useState(false);
   const [conflicts,setConflicts]=useState([]);
@@ -1146,7 +1148,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(!r.ok)throw new Error('forge');
     }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie 🤘":"Generation error, try again 🤘"); return; }
     setConflicts(data.conflicts||[]);
-    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");
+    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");
     const nc=promptCount+1;setPromptCount(nc);
     if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
     saveToHistory(data.styleStr);
@@ -1736,6 +1738,23 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
             <div style={{fontSize:"0.58rem",marginTop:"7px",textAlign:"right",fontWeight:700,color:styleShown.length<=120?"#4caf50":styleShown.length<=180?"#cc9900":"#ff5555"}}>{styleShown.length} {L("car.","chars")} · {styleShown.length<=120?L("idéal Suno ✓","ideal for Suno ✓"):styleShown.length<=180?L("un peu long","a bit long"):L("trop long — Suno risque d'ignorer le tempo/détails","too long — Suno may drop tempo/details")}</div>
           </div>
+          {/* COVER + EXTEND (T11) */}
+          {coverTxt&&<div style={{...S.card,borderColor:"#9b59b633",background:"#0a0510"}}>
+            <div style={{...S.outLbl,color:"#b06bff",marginBottom:"6px"}}>🔄 {L("Prompt COVER (sous-genre)","COVER prompt (sub-genre)")}</div>
+            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"8px",lineHeight:1.5}}>{L("Génère avec le Principal, puis fais « Cover » sur le résultat dans Suno avec ce prompt → pousse la fusion proprement.","Generate with the Main first, then 'Cover' the result in Suno with this prompt → pushes the fusion cleanly.")}</div>
+            <div style={{background:"#0a0a0a",border:"1px solid #2a1a3a",borderRadius:"6px",padding:"10px",position:"relative"}}>
+              <CopyBtn getText={()=>coverTxt}/>
+              <div style={{color:"#c9a0ff",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{coverTxt}</div>
+            </div>
+          </div>}
+          {extendTxt&&<div style={{...S.card,borderColor:"#00aaaa33",background:"#03100f"}}>
+            <div style={{...S.outLbl,color:"#33ccbb",marginBottom:"6px"}}>➕ {L("Prompt EXTEND (rallonge)","EXTEND prompt (lengthen)")}</div>
+            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"8px",lineHeight:1.5}}>{L("Utilise « Extend » dans Suno avec ce prompt pour continuer la toune sans qu'elle dérive.","Use 'Extend' in Suno with this prompt to continue the song without drift.")}</div>
+            <div style={{background:"#0a0a0a",border:"1px solid #103a38",borderRadius:"6px",padding:"10px",position:"relative"}}>
+              <CopyBtn getText={()=>extendTxt}/>
+              <div style={{color:"#7fded0",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{extendTxt}</div>
+            </div>
+          </div>}
           {/* STEP 2 */}
           {structTxt&&<div style={{...S.card,borderColor:"#00aa4433",background:"#030f03"}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>

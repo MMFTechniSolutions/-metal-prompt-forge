@@ -210,7 +210,7 @@ const EMOTIONS=[
   {id:'madness',label:'Démence',icon:'🌀',c:'#e91e8c'},
   {id:'profanation',label:'Profanation',icon:'⛧',c:'#b00710'},
 ];
-const EMO_LIMIT={free:2,forge:4,pro:6,elite:10,eliteplus:10};
+const EMO_LIMIT={free:2,forge:10,pro:10,elite:10,eliteplus:10};
 const EXCL_GENRES = ["pop","jazz","classical","country","r&b","hip hop","electronic","edm","ambient","folk","reggae","latin","disco","funk","soul","gospel","blues","indie pop","synthpop","new age"];
 const EXCL_VOCALS = ["clean vocals","autotune","pitch correction","electronic vocals","vocoder","falsetto","soft vocals","whisper vocals","pop vocals","processed vocals","digital vocal fx"];
 const EXCL_PROD   = ["polished production","crisp mix","over-produced","digital production","perfect timing","quantized drums","sterile mix","radio mix"];
@@ -274,15 +274,14 @@ const BLOCK_RHYTHMS = [
 
 // ── TIERS ──
 const TIERS = {
-  free:  {id:"free",  label:"FREE",         price:"$0",       color:"#444",    badge:null},
-  forge: {id:"forge", label:"⚒️ FORGE",      price:"$1.99/mois",priceYear:"$20/an",priceOld:"$4.99/mois",priceOldYear:"$29/an",launch:true,color:"#cc6600",badge:"FORGE",stripe:"https://buy.stripe.com/4gM28t9RecTdgb88IvfQI00",stripeYear:"https://buy.stripe.com/YOUR_FORGE_ANNUAL",
-    features:["✅ Bibliothèque COMPLÈTE (genres, voix, drums, guitares, instruments — par époque)","✅ 🎚️ Sliders d'intensité (Heaviness · Groove · Chaos · Melodic)","✅ Structure & Feeling rythmique","✅ Exclude Tags","✅ BPM & Mood","✅ Prompts illimités","❌ Paroles IA + Organic (Pro)","❌ Riff + Mastering (Elite)"],featuresEn:["✅ FULL library (genres, vocals, drums, guitars, instruments — by era)","✅ 🎚️ Intensity sliders (Heaviness · Groove · Chaos · Melodic)","✅ Structure & rhythm feel","✅ Exclude Tags","✅ BPM & Mood","✅ Unlimited prompts","❌ AI lyrics + Organic (Pro)","❌ Riff + Mastering (Elite)"]},
-  pro:   {id:"pro",   label:"🔥 FORGE PRO",  price:"$8.99/mois",priceYear:"$59/an",color:"#ff2e2e",badge:"PRO",  stripe:"https://buy.stripe.com/3cI14pfby4mH6Ay7ErfQI01",stripeYear:"https://buy.stripe.com/YOUR_PRO_ANNUAL",
-    features:["✅ Tout de FORGE +","✅ ✍️ Paroles par IA illimitées","✅ 🌿 Mode Organic / Anti-AI","✅ Historique + Mon Sound","❌ Riff + Mastering (Elite)"],featuresEn:["✅ Everything in FORGE +","✅ ✍️ Unlimited AI lyrics","✅ 🌿 Organic / Anti-AI Mode","✅ History + My Sound","❌ Riff + Mastering (Elite)"]},
-  elite: {id:"elite", label:"💀 FORGE ELITE",price:"$14.99/mois",priceYear:"$99/an",color:"#aa00ff",badge:"ELITE",stripe:"https://buy.stripe.com/00w3cx5AYaL5cYW9MzfQI02",stripeYear:"https://buy.stripe.com/YOUR_ELITE_ANNUAL",
-    features:["✅ Tout de FORGE PRO +","✅ 🎸 Riff Generator COMPLET (riff + tab + export WAV + import MIDI)","✅ 🎚️ Module MASTERING (EQ 9 bandes + compression + limiteur)","✅ Presets illimités + Export PDF","✅ Badge ELITE + support prioritaire"],featuresEn:["✅ Everything in FORGE PRO +","✅ 🎸 FULL Riff Generator (riff + tab + WAV export + MIDI import)","✅ 🎚️ MASTERING module (9-band EQ + compression + limiter)","✅ Unlimited presets + PDF export","✅ ELITE badge + priority support"]},
-  eliteplus: {id:"eliteplus", label:"🩸 ELITE PRO",price:"$59.99/mois",color:"#b00710",badge:"ELITE PRO",stripe:"https://buy.stripe.com/YOUR_ELITEPLUS_MONTHLY",stripeYear:"https://buy.stripe.com/YOUR_ELITEPLUS_ANNUAL",
-    features:["✅ Tout de ELITE +","✅ 🎬 Idée express (bientôt)","✅ 🎓 Accès Académie / masterclass (bientôt)","✅ Support VIP + accès anticipé"],featuresEn:["✅ Everything in ELITE +","✅ 🎬 Quick Idea (soon)","✅ 🎓 Academy / masterclass access (soon)","✅ VIP support + early access"]},
+  free: {id:"free", label:"FREE", price:"$0", color:"#444", badge:null,
+    features:["✅ 3 prompts d'essai gratuits","✅ Aperçu de la bibliothèque","❌ Reste verrouillé — passe à MetalPrompt"],
+    featuresEn:["✅ 3 free trial prompts","✅ Library preview","❌ Rest locked — go MetalPrompt"]},
+  // ⚠️ STRIPE : crée un produit 4,99$/mois et remplace le lien 'stripe' ci-dessous (l'actuel = ancien 8,99$)
+  pro: {id:"pro", label:"🤘 METALPROMPT", price:"$4.99/mois", priceYear:"$39/an", color:"#ff2e2e", badge:"PRO",
+    stripe:"https://buy.stripe.com/3cI14pfby4mH6Ay7ErfQI01", stripeYear:"https://buy.stripe.com/YOUR_PRO_ANNUAL",
+    features:["✅ TOUT le site débloqué","✅ Bibliothèque complète + sliders + 10 émotions","✅ Générateur de Riff complet (28 styles)","✅ Module Mastering (débruitage + EQ)","✅ Paroles par IA illimitées","✅ Prompts Principal · Cover · Extend","✅ Reco de modèle Suno · prompts illimités"],
+    featuresEn:["✅ FULL site unlocked","✅ Full library + sliders + 10 emotions","✅ Complete Riff Generator (28 styles)","✅ Mastering module (denoise + EQ)","✅ Unlimited AI lyrics","✅ Principal · Cover · Extend prompts","✅ Suno model rec · unlimited prompts"]},
 };
 const payUrl = (base, email) =>
   base && !base.includes("YOUR_") && email
@@ -967,12 +966,12 @@ export default function App({ user, onLogout, onRequestAuth }) {
     }
   },[user]);
   const isForge=TIER_RANK[userTier]>=1;
-  const isPro=TIER_RANK[userTier]>=2;
-  const isElite=TIER_RANK[userTier]>=3;
+  const isPro=TIER_RANK[userTier]>=1;
+  const isElite=TIER_RANK[userTier]>=1;
   const limit=LIMITS[userTier]||LIMITS.free;
   const tierColor=TIERS[userTier]?.color||"#444";
   const tierBadge=TIERS[userTier]?.badge||null;
-  const canAccess=req=>TIER_RANK[userTier]>=TIER_RANK[req||"free"];
+  const canAccess=req=>(!req||req==="free")?true:TIER_RANK[userTier]>=1;
 
   const useSet=(init=[])=>{
     const [s,setS]=useState(new Set(init));

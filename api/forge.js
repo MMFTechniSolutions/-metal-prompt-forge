@@ -87,7 +87,7 @@ export default function handler(req, res) {
   const tier = b.tier || 'free';
   const emotions = (b.emotions && typeof b.emotions === 'object') ? b.emotions : {};
   const EMO_ORDER = ['rage','melancholy','despair','triumph','coldness','defiance','dread','transcendence','madness','profanation'];
-  const EMO_LIMIT = { free:2, forge:4, pro:6, elite:10, eliteplus:10 };
+  const EMO_LIMIT = { free:2, forge:10, pro:10, elite:10, eliteplus:10 };
   const EMO = {
     rage:         { light:['aggressive energy'],            mid:['furious aggression','relentless attack'],   strong:['blind savage fury','berserk intensity','venomous rage'] },
     melancholy:   { light:['melancholic undertone'],        mid:['melancholic sorrowful melody'],              strong:['crushing sorrow','weeping melodic leads','mournful atmosphere'] },

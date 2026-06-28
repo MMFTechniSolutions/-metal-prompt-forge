@@ -676,19 +676,19 @@ La version en vigueur est celle publiée avec sa date. L'usage continu vaut acce
 mmftechnisolutions@gmail.com`,
 
   sales: `CONDITIONS GÉNÉRALES DE VENTE — MetalPrompt
-Dernière mise à jour : 26 juin 2026
+Dernière mise à jour : 28 juin 2026
 
 1. OBJET
 Vente des abonnements payants du Service, édité par MMF Techni-Solutions (NEQ 2279516308), 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1, sur https://metalprompt.com.
 
 2. INFOS AVANT L'ACHAT (CONTRAT À DISTANCE)
-Avant votre paiement, nous indiquons : notre identité et nos coordonnées, la description du plan, le prix total en CAD (taxes indiquées au paiement), la fréquence de facturation et le renouvellement, les modalités de résiliation et de remboursement. Après l'achat, vous recevez par courriel une confirmation tenant lieu de copie du contrat.
+Avant votre paiement, nous indiquons : notre identité et nos coordonnées, la description du plan, le prix total en USD (dollars américains ; taxes applicables indiquées au paiement), la fréquence de facturation et le renouvellement, les modalités de résiliation et de remboursement. Après l'achat, vous recevez par courriel une confirmation tenant lieu de copie du contrat.
 
 3. PLANS ET PAIEMENT
-Plans et prix affichés sur la page des tarifs. Paiements sécurisés par Stripe ; aucune donnée complète de carte n'est stockée. Vous autorisez le prélèvement récurrent jusqu'à résiliation. Prix modifiables pour les périodes futures, avec préavis.
+Abonnement unique donnant accès à l'ensemble du Service, offert en formule mensuelle (4,99 $ US/mois) ou annuelle (49,99 $ US/an, soit ~2 mois gratuits). TOUS LES PRIX SONT EN DOLLARS AMÉRICAINS (USD). Si vous payez avec une carte libellée dans une autre devise (ex. CAD), votre institution financière peut appliquer des frais de conversion qui ne sont PAS perçus par MetalPrompt. Paiements sécurisés par Stripe ; aucune donnée complète de carte n'est stockée. Vous autorisez le prélèvement récurrent jusqu'à résiliation. Prix modifiables pour les périodes futures, avec préavis.
 
 3.1 CRÉDITS DE GÉNÉRATION
-La génération de musique dans le Service fonctionne par crédits. Chaque plan inclut un nombre de crédits par période ; des crédits additionnels peuvent être achetés. Les crédits inclus valent pour la période en cours et ne se reportent pas (sauf indication contraire). Les crédits déjà utilisés ne sont pas remboursables. Un (1) crédit = une génération standard (jusqu'à ~3 min) ; les pistes plus longues peuvent coûter davantage. L'export de prompts vers des plateformes tierces (ex. Suno) n'utilise pas de crédits.
+L'abonnement donne un accès ILLIMITÉ au générateur de prompts, au générateur de riffs et au module de mastering. La génération de musique audio DANS le Service, si et quand cette fonction sera activée, fonctionnera par crédits dont les modalités seront affichées sur la page des tarifs au moment de l'activation. L'export de prompts vers des plateformes tierces (ex. Suno) n'utilise aucun crédit.
 
 4. RENOUVELLEMENT AUTOMATIQUE
 Renouvellement automatique par périodes identiques au tarif en vigueur, sauf résiliation avant l'échéance. Un avis de renouvellement est transmis lorsque la loi l'exige. Vous pouvez désactiver le renouvellement en tout temps.

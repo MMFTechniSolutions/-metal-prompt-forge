@@ -48,3 +48,26 @@
 5. Voix par genre (Belle & Bête, gurgle pitch-shift, shrieks reverb…)
 6. Production par genre (scooped mids thrash, gate djent, lo-fi black, room mics drone…)
 7. **Fusions** → noms d'hybrides + dominance/cover
+
+## SCÈNES GÉOGRAPHIQUES (signature régionale → injectée serveur, secret)
+| Scène | Tuning | Tempo | Gammes/Harmonie | Production / signature |
+|---|---|---|---|---|
+| Bay Area (US) — thrash/crossover | E standard | 180-220 | mineures, chromatique, triton | downpicking rapide, scooped mids, breakdowns crossover |
+| Tampa/Floride (US) — death (Morrisound) | D/C standard | 190-230 | mineure harmonique, phrygien, chromatique transposé | triggers batterie, isolation fûts, growl diaphragme, clarté chirurgicale |
+| Pacific NW (US) — sludge/drone | C ou + bas | 30-60 | bourdon tonique | larsen, résonance de pièce, peu/pas de voix |
+| NOLA (US) — sludge | Drop B/A | lent + d-beat | triton, blues poisseux | larsen, swamp, nihilisme sudiste |
+| Göteborg (SE) — melodeath | D standard | 160-200 | éolien/dorien, harmonies tierces/sixtes | tone buzzsaw HM-2+MT-2, EMG 81, guitares jumelles |
+| Stockholm (SE) — djent/death | 7-8 cordes Drop G/F# | polymétrie 7/8,17/16 /4/4 | triton, seconde mineure grave | noise-gate ultra, coupe 300-500Hz, boost 80-120Hz |
+| Finlande — death-doom | G# standard | lent caverneux | dissonant, glissando microtonal, note pédale | analog cru, étouffant, orgue/clavier |
+| Norvège — black 2e vague | standard | 150-220 | tremolo aigu non étouffé, dissonant | lo-fi abrasif, shrieks |
+| Norvège — gothique/symph | E/D standard | 80-130 | mineures, pédales tonique | Belle & Bête, orchestral, contraste calme/tempête |
+| La Ruhr (DE) — thrash teutonique | E/D standard | 180-220 | phrygien/locrien, chromatique martial | prises sèches sans reverb, sync guitare/double-kick rigoureuse |
+| Europe (Shrapnel) — néoclassique | E standard | 140-220 + ternaire 6/8 | mineure harmonique, phrygien dominant, dim7, sweep | solos virtuoses type violon, unissons guitare/clavier |
+| France — blackgaze | E standard | blast + post-rock aéré | add9, maj7, sus2, lumineux | mur de reverb/delay, voix en retrait, tremolo |
+| Belo Horizonte (BR) — proto-death/black | E/D standard | rapide instable | quartes/quintes, accords puissance | lo-fi analog, saturation bande, chaotique |
+| São Paulo (BR) — prog/power (Angra) | E standard | varié | fusion power+prog+rythmes brésiliens | technique, mélodique, percussions régionales |
+| UK — grindcore | Eb/C standard | 230-320 | quartes/quintes, microsongs | blast/gravity, brièveté extrême |
+
+## Production moderne (mix) — astuces du doc
+- **Split bass** : DI dupliqué → canal grave (passe-bas 150-250Hz + limiteur) + canal saturation (passe-haut 300-500Hz + disto), sommés.
+- **Palm-mute C4** : compresseur multibande sur 150-250Hz, 1-3 dB, déclenché seulement sur les palm-mutes (anti-boue).

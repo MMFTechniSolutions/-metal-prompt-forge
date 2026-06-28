@@ -194,8 +194,24 @@ function buildPrompt(p){
     deathcore:['crushing breakdowns','chugging riffs'],metalcore:['melodic riffs','breakdown chugs'],melodicdeath:['harmonized melodic leads','tremolo riffs'],melodicdeathcore:['melodic leads','crushing breakdowns'],brutaldeath:['relentless brutal riffs','blast beats'],techdeath:['complex technical riffs','dissonant sweeps'],blackeneddeathcore:['blackened tremolo','devastating breakdowns'],numetal:['bouncy down-tuned groove','syncopated chugs'],beatdown:['heavy mosh groove','two-step chug'],crossover:['punk thrash energy','fast riffs'],hardcore:['raw punk aggression','shout-along riffs'],deathgrind:['blast-driven brutality','grinding riffs'],mathcore:['chaotic angular riffs','start-stop chaos'],progmetal:['intricate progressive riffs','odd time signatures'],powermetal:['galloping melodic riffs','soaring leads'],atmosblack:['atmospheric tremolo wall','cold ambience'],symphonicblack:['orchestral black metal','epic tremolo'],blackgaze:['shimmering tremolo wall','dreamy reverb'],industrial:['mechanical groove','cold electronic edge'],gothic:['slow heavy romantic riffs','dark melody'],
   };
   // Pépite Suno : 4-7 descripteurs FOCUS battent 15 éparpillés. Genre en premier (ancrage fort).
-  const SCENE={norwegian:'norwegian',finnish:'finnish',swedish:'swedish',german:'german',american:'american',canadian:'canadian',quebecois:'quebecois'};
-  const genre=(SCENE[p.scene]?SCENE[p.scene]+' ':'')+(G[p.style]||'metal');
+  // SCÈNES GÉO (signature régionale secrète, du doc encyclopédie)
+  const SCENE_DB={
+    norwegian:{p:'norwegian',t:['raw lo-fi black metal production','continuous tremolo picking','icy abrasive tone']},
+    finnish:{p:'finnish',t:['cavernous death-doom atmosphere','crude analog production']},
+    swedish:{p:'swedish',t:['HM-2 buzzsaw guitar tone','melodic death harmonies']},
+    german:{p:'german',t:['teutonic thrash','dry martial production','tight downpicking']},
+    american:{p:'american',t:['polished modern production','tight scooped-mid guitars']},
+    canadian:{p:'canadian',t:['technical progressive death edge','crisp modern production']},
+    quebecois:{p:'québécois',t:['raw underground cold atmosphere']},
+    bayarea:{p:'Bay Area',t:['fast downpicked thrash','scooped mids','crossover breakdowns']},
+    florida:{p:'Florida',t:['Morrisound death metal clarity','triggered blast beats','phrygian riffs']},
+    gothenburg:{p:'Gothenburg',t:['HM-2 buzzsaw tone','twin-guitar melodic death harmonies']},
+    nola:{p:'NOLA',t:['swampy feedback-drenched sludge','southern groove']},
+    french:{p:'French',t:['blackgaze shimmer','add9 open chords','reverb wall']},
+    brazilian:{p:'Brazilian',t:['raw chaotic proto-black','savage lo-fi production']},
+  };
+  const _sc=SCENE_DB[p.scene];
+  const genre=(_sc?_sc.p+' ':'')+(G[p.style]||'metal');
   // Formule verifiee Suno : sous-genre + elements + VOIX + MIX + MOOD, genre ancre debut ET fin
   const VOX={thrash:'raspy aggressive male vocals',death:'guttural death growls',doom:'deep doom vocals',blackened:'black metal shrieks',groove:'powerful mid-range growls',djent:'mid-range harsh vocals',speed:'high-pitched aggressive vocals',slam:'ultra-low guttural vocals',sludge:'raw screaming vocals',postmetal:'distant atmospheric vocals',grindcore:'high-low screaming vocals',funeraldoom:'agonized low growls',dissonant:'tortured growls',rapcore:'aggressive rapped vocals',deathcore:'guttural growls and high screams',metalcore:'harsh screams with clean hooks',melodicdeath:'melodic death growls',melodicdeathcore:'growls with clean choruses',brutaldeath:'deep guttural growls',techdeath:'guttural death growls',blackeneddeathcore:'guttural growls and blackened shrieks',numetal:'aggressive shouted vocals',beatdown:'hardcore beatdown shouts',crossover:'shouted punk vocals',hardcore:'raw hardcore shouts',deathgrind:'guttural and shrieked vocals',mathcore:'frantic screamed vocals',progmetal:'mixed clean and harsh vocals',powermetal:'soaring clean high vocals',atmosblack:'distant blackened shrieks',symphonicblack:'theatrical blackened shrieks',blackgaze:'distant screamed vocals',industrial:'distorted harsh vocals',gothic:'deep baritone vocals'};
   const MIX={blackened:'raw kvlt production',grindcore:'raw punishing production',sludge:'thick abrasive production',funeraldoom:'cavernous production',doom:'vintage heavy production',dissonant:'dense aggressive production'};
@@ -203,7 +219,7 @@ function buildPrompt(p){
   const vox=VOX[p.style]||'aggressive harsh male vocals';
   const mix=MIX[p.style]||'modern polished mix, scooped mids, tight bass';
   const mood=MOOD[p.style]||'dark and aggressive';
-  const tags=[genre, T[p.root]||'', bpm+' BPM '+tempo, D[p.drumKey]||'heavy drums', ...(FLAVOR[p.style]||['chugging riffs','downtuned']).slice(0,2), vox, mix, 'very loud guitars and drums', mood, genre];
+  const tags=[genre, T[p.root]||'', bpm+' BPM '+tempo, D[p.drumKey]||'heavy drums', ...(FLAVOR[p.style]||['chugging riffs','downtuned']).slice(0,2), ...(_sc?_sc.t.slice(0,2):[]), vox, mix, 'very loud guitars and drums', mood, genre];
   return tags.filter(Boolean).join(', ');
 }
 

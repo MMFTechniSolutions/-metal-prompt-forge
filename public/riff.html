@@ -126,8 +126,10 @@
           <option value="bayarea">Bay Area (thrash)</option>
           <option value="florida">Floride (death)</option>
           <option value="gothenburg">Göteborg (melodeath)</option>
+          <option value="stockholm">Stockholm (djent / polymétrie)</option>
           <option value="nola">NOLA (sludge)</option>
           <option value="french">Française (blackgaze)</option>
+          <option value="neoclassical">Néoclassique européenne</option>
           <option value="brazilian">Brésilienne</option>
         </select>
       </div>
@@ -746,6 +748,29 @@ const RIFF_PRESETS={
   groove:   {style:'groove',bpm:130,tuning:'D2',drums:'stomp',structure:'versechorus',lead:'none'},
   speed:    {style:'speed',bpm:200,tuning:'E2',drums:'gallop',structure:'gallop',lead:'none'},
 };
+const SCENE_FILL={
+  norwegian:   {style:'blackened',bpm:200,tuning:'Eb2',drums:'blast_beat',structure:'fullsong',lead:'none'},
+  finnish:     {style:'death',bpm:100,tuning:'D2',drums:'doom',structure:'doomcrawl',lead:'none'},
+  swedish:     {style:'death',bpm:180,tuning:'D2',drums:'dbeat',structure:'gallop',lead:'none'},
+  german:      {style:'thrash',bpm:200,tuning:'E2',drums:'thrash',structure:'gallop',lead:'none'},
+  american:    {style:'groove',bpm:150,tuning:'D2',drums:'groove',structure:'versechorus',lead:'none'},
+  canadian:    {style:'death',bpm:200,tuning:'C2',drums:'blast_beat',structure:'blastassault',lead:'none'},
+  quebecois:   {style:'blackened',bpm:190,tuning:'Eb2',drums:'blast_beat',structure:'fullsong',lead:'none'},
+  bayarea:     {style:'thrash',bpm:200,tuning:'E2',drums:'skank',structure:'vbd',lead:'none'},
+  florida:     {style:'death',bpm:210,tuning:'D2',drums:'blast_beat',structure:'blastassault',lead:'none'},
+  stockholm:   {style:'djent',bpm:120,tuning:'B1',drums:'mathcore',structure:'djent7',lead:'none'},
+  gothenburg:  {style:'melodicdeath',bpm:180,tuning:'D2',drums:'dbeat',structure:'versechorus',lead:'guitarelec'},
+  neoclassical:{style:'powermetal',bpm:190,tuning:'E2',drums:'driving',structure:'gallop',lead:'guitarelec'},
+  nola:        {style:'groove',bpm:110,tuning:'C2',drums:'stomp',structure:'doomcrawl',lead:'none'},
+  french:      {style:'blackgaze',bpm:150,tuning:'E2',drums:'blast_beat',structure:'buildup',lead:'none'},
+  brazilian:   {style:'blackened',bpm:210,tuning:'Eb2',drums:'blast_beat',structure:'blastassault',lead:'none'},
+};
+document.getElementById('scene').addEventListener('change',function(){
+  const pr=SCENE_FILL[this.value];if(!pr)return;
+  const set=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
+  set('style',pr.style);set('bpm',pr.bpm);set('tuning',pr.tuning);set('drums',pr.drums);set('structure',pr.structure);set('lead',pr.lead);
+  const st=document.getElementById('midiStatus');if(st)st.textContent='Scène appliquée : contrôles calés sur la signature régionale — ajuste si tu veux, puis génère.';
+});
 document.querySelectorAll('[data-rp]').forEach(b=>b.addEventListener('click',()=>{
   const pr=RIFF_PRESETS[b.dataset.rp];if(!pr)return;
   const set=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};

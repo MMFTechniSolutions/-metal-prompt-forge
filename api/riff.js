@@ -197,18 +197,20 @@ function buildPrompt(p){
   // SCÈNES GÉO (signature régionale secrète, du doc encyclopédie)
   const SCENE_DB={
     norwegian:{p:'norwegian',t:['raw lo-fi black metal production','continuous tremolo picking','icy abrasive tone']},
-    finnish:{p:'finnish',t:['cavernous death-doom atmosphere','crude analog production']},
-    swedish:{p:'swedish',t:['HM-2 buzzsaw guitar tone','melodic death harmonies']},
-    german:{p:'german',t:['teutonic thrash','dry martial production','tight downpicking']},
-    american:{p:'american',t:['polished modern production','tight scooped-mid guitars']},
-    canadian:{p:'canadian',t:['technical progressive death edge','crisp modern production']},
-    quebecois:{p:'québécois',t:['raw underground cold atmosphere']},
-    bayarea:{p:'Bay Area',t:['fast downpicked thrash','scooped mids','crossover breakdowns']},
-    florida:{p:'Florida',t:['Morrisound death metal clarity','triggered blast beats','phrygian riffs']},
-    gothenburg:{p:'Gothenburg',t:['HM-2 buzzsaw tone','twin-guitar melodic death harmonies']},
-    nola:{p:'NOLA',t:['swampy feedback-drenched sludge','southern groove']},
-    french:{p:'French',t:['blackgaze shimmer','add9 open chords','reverb wall']},
-    brazilian:{p:'Brazilian',t:['raw chaotic proto-black','savage lo-fi production']},
+    finnish:{p:'finnish',t:['cavernous death-doom atmosphere','crude analog production','crushing slow dread']},
+    swedish:{p:'swedish',t:['HM-2 buzzsaw guitar tone','melodic death harmonies','d-beat drive']},
+    german:{p:'german',t:['teutonic thrash aggression','dry martial production','relentless tight downpicking']},
+    american:{p:'american',t:['polished modern production','tight scooped-mid guitars','punchy groove']},
+    canadian:{p:'canadian',t:['technical progressive death edge','crisp modern production','dissonant precision']},
+    quebecois:{p:'québécois',t:['raw underground cold atmosphere','frostbitten tremolo','lo-fi grimness']},
+    bayarea:{p:'Bay Area',t:['fast relentless downpicked thrash','tight palm-muted tritone power chords','skank beat into sudden half-time china breakdowns','scooped-mid crossover crunch']},
+    florida:{p:'Florida',t:['Morrisound death metal clarity and punch','triggered machine-gun blast beats','phrygian harmonic-minor death riffs','chromatic octave-glide tremolo']},
+    stockholm:{p:'Stockholm',t:['low 8-string djent chugs','asymmetrical polymetric riffing in 7/8 and 17/16','razor-tight noise-gated staccato','kick desynced over a steady 4/4 backbeat']},
+    gothenburg:{p:'Gothenburg',t:['twin-guitar harmonized leads in thirds and sixths','HM-2 buzzsaw guitar tone','melodic aeolian tremolo riffs','d-beat and double-kick cavalcades']},
+    neoclassical:{p:'European neoclassical',t:['neoclassical sweep-picked arpeggios','harmonic-minor and phrygian-dominant runs','baroque pedal-point shredding','ternary 6/8 triplet feel']},
+    nola:{p:'NOLA',t:['swampy feedback-drenched sludge','southern groove','filthy down-tuned riffs']},
+    french:{p:'French',t:['shimmering textural tremolo wall','lush add9 and maj7 open chords','atmospheric drowned blast beats','post-rock to blast dynamic swells']},
+    brazilian:{p:'Brazilian',t:['raw chaotic proto-black savagery','savage lo-fi production','primitive blast assault']},
   };
   const _sc=SCENE_DB[p.scene];
   const genre=(_sc?_sc.p+' ':'')+(G[p.style]||'metal');
@@ -219,7 +221,9 @@ function buildPrompt(p){
   const vox=VOX[p.style]||'aggressive harsh male vocals';
   const mix=MIX[p.style]||'modern polished mix, scooped mids, tight bass';
   const mood=MOOD[p.style]||'dark and aggressive';
-  const tags=[genre, T[p.root]||'', bpm+' BPM '+tempo, D[p.drumKey]||'heavy drums', ...(FLAVOR[p.style]||['chugging riffs','downtuned']).slice(0,2), ...(_sc?_sc.t.slice(0,2):[]), vox, mix, 'very loud guitars and drums', mood, genre];
+  const flav=(FLAVOR[p.style]||['chugging riffs','downtuned']).slice(0, _sc?1:2);
+  const scTags=_sc?_sc.t.slice(0,3):[];
+  const tags=[genre, T[p.root]||'', bpm+' BPM '+tempo, D[p.drumKey]||'heavy drums', ...flav, ...scTags, vox, mix, 'very loud guitars and drums', mood, genre];
   return tags.filter(Boolean).join(', ');
 }
 

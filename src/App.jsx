@@ -1080,7 +1080,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
     setDrums(_pick(pr.drums,1+_ri(2)));
     setVocals(_pick(pr.vocals,1+_ri(2)));
     setMood(_pick(pr.mood,1+_ri(2)));
-    setStructs(randStructure());
+    const _rs=randStructure();setStructs(_rs);setLblocks(_rs);
     setHeavy(_rand(pr.heavy[0],pr.heavy[1]));
     setGroove(_rand(pr.groove[0],pr.groove[1]));
     setChaos(_rand(pr.chaos[0],pr.chaos[1]));
@@ -1133,7 +1133,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
     if(promptCount>=limit.prompts){if(!user){onRequestAuth&&onRequestAuth();return;}setView("landing");return;}
     // #9 — structure auto si rien choisi (semi-aléatoire, cohérente Paroles+Style)
     const autoStructs = structs.size ? [...structs] : randStructure();
-    if(!structs.size) setStructs(autoStructs);
+    if(!structs.size){setStructs(autoStructs);setLblocks(autoStructs);}
     const body={
       genres:[...genres],drums:[...drums],vocals:[...vocals],guitar:[...guitar],tuning:[...tuning],mood:[...mood],prod:[...prod],globalRhythm:[...globalRhythm],vrange:[...vrange],
       bassStyle:[...bassStyle],bassTech:[...bassTech],bassTone:[...bassTone],bassTuning:[...bassTuning],bassProd:[...bassProd],sax:[...sax],brass:[...brass],keys:[...keys],strings:[...strings],
@@ -1164,7 +1164,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
     const genreList=[...genres].join("/")||"deathcore";
     const historyWords=lyricsHistory.flatMap(h=>h.match(/\b\w{4,}\b/g)||[]).filter((w,i,a)=>a.indexOf(w)===i).slice(0,40);
     const allBanned=[...new Set([...historyWords,...bannedWords.split(",").map(s=>s.trim()).filter(Boolean)])];
-    const blockInstr=[...lblocks].map(b=>{
+    const blockInstr=(structs.size?[...structs]:[...lblocks]).map(b=>{
       if(b==="verse")return"[Verse 1] and [Verse 2] — 4 lines each, DIFFERENT imagery";
       if(b==="prechorus")return"[Pre-Chorus] — 2 lines, build tension";
       if(b==="chorus")return"[Chorus] — 4 lines, powerful brutal hook";

@@ -9,7 +9,7 @@ const CARD = "#141414";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",riff:"Riff",master:"Master",history:"History"},
+    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",riff:"Riff",master:"Master",history:"History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (max ~120 chars)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -21,7 +21,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",riff:"Riff",master:"Master",history:"Historique"},
+    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",riff:"Riff",master:"Master",history:"Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (max ~120 car.)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -1230,7 +1230,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   const TABS=[
     {id:"genre",req:"free"},{id:"drums",req:"free",adv:true},{id:"vocals",req:"free",adv:true},
     {id:"instrums",req:"forge",adv:true},{id:"structure",req:"forge",adv:true},
-    {id:"paroles",req:"pro"},{id:"organic",req:"pro",adv:true},{id:"exclude",req:"forge",adv:true},{id:"output",req:"free"},{id:"tuto",req:"free"},{id:"riff",req:"elite"},{id:"master",req:"elite"},
+    {id:"paroles",req:"pro"},{id:"organic",req:"pro",adv:true},{id:"exclude",req:"forge",adv:true},{id:"output",req:"free"},{id:"tuto",req:"free"},{id:"masterclass",req:"free"},{id:"riff",req:"elite"},{id:"master",req:"elite"},
     ...(isPro?[{id:"history",req:"pro"}]:[]),
   ].filter(tb=>advanced||!tb.adv);
 
@@ -1734,30 +1734,6 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{background:"#170c0c",border:"1px solid #4a2020",borderRadius:"6px",padding:"9px 12px",marginTop:"10px",fontSize:"0.66rem",color:"#e0a0a0",lineHeight:1.6}}>{L("Important : le mastering est l'étape FINALE, pour ta release. Fais tes Extend/Cover DANS Suno avant — ne re-uploade jamais une toune mastérisée dans Suno, son filtre anti-copie la bloquerait.","Important: mastering is the FINAL step, for your release. Do your Extends/Covers IN Suno first — never re-upload a mastered track into Suno, its anti-copy filter would block it.")}</div>
         </div>
 
-        {/* CLINIQUES */}
-        <div style={S.card}>
-          <div style={S.ctitle}>{L("Cliniques de musique en ligne","Online music clinics")}</div>
-          <div style={{fontSize:"0.78rem",color:"#999",lineHeight:1.7,marginBottom:"14px"}}>
-            {L("Des sessions live avec de vrais musiciens pour passer au niveau supérieur — riffs, mix, écriture, voix extrêmes. Que tu joues déjà ou pas du tout, on t'aide à progresser.","Live sessions with real musicians to level up — riffs, mixing, songwriting, extreme vocals. Whether you already play or not at all, we help you progress.")}
-          </div>
-          {[
-            {t:L("Riffing & composition","Riffing & songwriting"),d:L("Construire des riffs qui frappent et structurer une toune.","Build riffs that hit and structure a track.")},
-            {t:L("Voix extrêmes","Extreme vocals"),d:L("Scream, growl, fry — technique et santé vocale.","Scream, growl, fry — technique and vocal health.")},
-            {t:L("Mix & son metal","Mixing & metal tone"),d:L("Faire sonner gros : guitares, batterie, basse.","Make it sound huge: guitars, drums, bass.")},
-          ].map(c=>(
-            <div key={c.t} style={{...S.card,display:"flex",alignItems:"center",gap:"14px",marginBottom:"10px"}}>
-              <div style={{flex:1}}>
-                <div style={{color:"#fff",fontWeight:800,fontSize:"0.88rem"}}>{c.t} <span style={{marginLeft:"6px",fontSize:"0.52rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"6px",padding:"2px 7px",letterSpacing:"0.5px",verticalAlign:"middle"}}>{L("BIENTÔT","SOON")}</span></div>
-                <div style={{color:"#888",fontSize:"0.74rem",marginTop:"3px",lineHeight:1.5}}>{c.d}</div>
-              </div>
-            </div>
-          ))}
-          <a href="mailto:mmftechnisolutions@gmail.com?subject=Clinique%20de%20musique%20en%20ligne" style={{display:"block",textAlign:"center",marginTop:"6px",padding:"12px",background:RED,borderRadius:"8px",color:"#000",fontWeight:900,fontSize:"0.8rem",letterSpacing:"1px",textTransform:"uppercase",textDecoration:"none"}}>
-            {L("Tu donnes des cliniques ? Écris-nous","You run clinics? Get in touch")}
-          </a>
-          <div style={{fontSize:"0.6rem",color:"#555",textAlign:"center",marginTop:"8px"}}>{L("Musiciens, profs, créateurs — proposez vos cliniques sur la plateforme.","Musicians, teachers, creators — offer your clinics on the platform.")}</div>
-        </div>
-
         {/* CUSTOM MODEL */}
         <div style={S.card}>
           <div style={S.ctitle}>{L("Custom Model Studio","Custom Model Studio")}</div>
@@ -1774,6 +1750,95 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
           ))}
           <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Custom Models : Suno Pro/Premier · ~2-5 min d'entraînement · jusqu'à 3 modèles · 6+ chansons que tu possèdes.","Custom Models: Suno Pro/Premier · ~2-5 min training · up to 3 models · 6+ songs you own.")}</div>
+        </div>
+        <div style={{height:80}}/>
+      </div>}
+
+      {tab==="masterclass"&&<div style={S.page}>
+        {/* HERO */}
+        <div style={{...S.card,textAlign:"center",padding:"26px 22px",borderColor:"#ff2e2e44"}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.9rem",letterSpacing:"2px",color:"#fff"}}>MASTERCLASS</div>
+          <div style={{color:"#999",fontSize:"0.82rem",marginTop:"6px",lineHeight:1.55}}>{L("Progresse avec de vrais musiciens. Riff, mix, écriture, voix extrême — peu importe ton niveau, on t'aide à monter en puissance.","Level up with real musicians. Riffing, mixing, songwriting, extreme vocals — whatever your level, we help you get stronger.")}</div>
+        </div>
+
+        {/* CE QUE TU PEUX APPRENDRE */}
+        <div style={S.card}>
+          <div style={S.ctitle}>{L("Ce que tu peux apprendre","What you can learn")}</div>
+          {[
+            {t:L("Riffing & composition","Riffing & songwriting"),d:L("Construire des riffs qui frappent et structurer une toune.","Build riffs that hit and structure a track.")},
+            {t:L("Voix extrêmes","Extreme vocals"),d:L("Scream, growl, fry — technique et santé vocale.","Scream, growl, fry — technique and vocal health.")},
+            {t:L("Mix & son metal","Mixing & metal tone"),d:L("Faire sonner gros : guitares, batterie, basse.","Make it sound huge: guitars, drums, bass.")},
+          ].map(c=>(
+            <div key={c.t} style={{...S.card,display:"flex",alignItems:"center",gap:"14px",marginBottom:"10px"}}>
+              <div style={{flex:1}}>
+                <div style={{color:"#fff",fontWeight:800,fontSize:"0.88rem"}}>{c.t} <span style={{marginLeft:"6px",fontSize:"0.52rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"6px",padding:"2px 7px",letterSpacing:"0.5px",verticalAlign:"middle"}}>{L("BIENTÔT","SOON")}</span></div>
+                <div style={{color:"#888",fontSize:"0.74rem",marginTop:"3px",lineHeight:1.5}}>{c.d}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* PARCOURS MODULES */}
+        <div style={S.card}>
+          <div style={S.ctitle}>{L("Parcours en modules","Module path")}</div>
+          <div style={{fontSize:"0.78rem",color:"#999",lineHeight:1.7,marginBottom:"16px"}}>{L("Les cours sont structurés en modules qui se suivent sur une timeline. Tu rejoins au module de ton niveau — pas besoin de repartir de zéro — et tu n'es pas obligé d'être là chaque semaine : tu avances à ton rythme.","Courses are structured into modules along a timeline. You join at your level's module — no need to start over — and you're not required to attend every week: progress at your own pace.")}</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"0",alignItems:"stretch"}}>
+            {[
+              {n:1,t:L("Fondations","Foundations"),d:L("Rythme, accordage, mécanique de base.","Timing, tuning, basic mechanics.")},
+              {n:2,t:L("Riffing","Riffing"),d:L("Construire des riffs qui frappent.","Build riffs that hit.")},
+              {n:3,t:L("Structure","Songwriting"),d:L("Assembler une toune complète.","Assemble a full track.")},
+              {n:4,t:L("Mix & son","Mix & tone"),d:L("Faire sonner gros.","Make it sound huge.")},
+              {n:5,t:L("Voix & finition","Vocals & polish"),d:L("Voix extrêmes, mastering, release.","Extreme vocals, mastering, release.")},
+            ].map((m,i,arr)=>(
+              <div key={m.n} style={{flex:"1 1 130px",minWidth:"125px",display:"flex",flexDirection:"column",gap:"6px",padding:"0 5px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:"7px"}}>
+                  <div style={{width:"30px",height:"30px",borderRadius:"50%",background:RED,color:"#000",fontWeight:900,fontSize:"0.82rem",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{m.n}</div>
+                  {i<arr.length-1&&<div style={{flex:1,height:"2px",background:"#3a0000"}}/>}
+                </div>
+                <div style={{color:"#fff",fontWeight:800,fontSize:"0.74rem"}}>{m.t}</div>
+                <div style={{color:"#888",fontSize:"0.64rem",lineHeight:1.45}}>{m.d}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"8px",marginTop:"16px"}}>
+            <div style={{flex:"1 1 200px",background:"#0c0f0c",border:"1px solid #1f3a1f",borderRadius:"6px",padding:"9px 11px",fontSize:"0.68rem",color:"#9fd09f",lineHeight:1.5}}>{L("Rejoins au module de ton niveau — pas besoin de recommencer.","Join at your level's module — no need to restart.")}</div>
+            <div style={{flex:"1 1 200px",background:"#0c0f0c",border:"1px solid #1f3a1f",borderRadius:"6px",padding:"9px 11px",fontSize:"0.68rem",color:"#9fd09f",lineHeight:1.5}}>{L("Pas obligé d'être là chaque semaine — avance à ton rythme.","Not required to attend every week — go at your own pace.")}</div>
+          </div>
+        </div>
+
+        {/* FORMATS HEBDO */}
+        <div style={S.card}>
+          <div style={S.ctitle}>{L("Classes hebdomadaires","Weekly classes")}</div>
+          {[
+            {t:L("Cohorte fixe","Fixed cohort"),d:L("Le même groupe chaque semaine — vous progressez ensemble, dans un esprit de band.","The same group every week — you progress together, band spirit.")},
+            {t:L("Sessions ouvertes","Open sessions"),d:L("Cours hebdo en drop-in : tu te joins quand tu veux, composition variable.","Weekly drop-in classes: join whenever, variable lineup.")},
+          ].map(c=>(
+            <div key={c.t} style={{padding:"9px 0",borderBottom:"1px solid #1a1a1a"}}>
+              <div style={{color:"#e0e0e0",fontWeight:800,fontSize:"0.82rem"}}>{c.t}</div>
+              <div style={{color:"#888",fontSize:"0.74rem",marginTop:"3px",lineHeight:1.5}}>{c.d}</div>
+            </div>
+          ))}
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Chaque prof choisit son format : cohorte fixe, sessions ouvertes, ou les deux.","Each instructor picks the format: fixed cohort, open sessions, or both.")}</div>
+        </div>
+
+        {/* RECRUTEMENT PROFS */}
+        <div style={{...S.card,borderColor:"#ff2e2e55",background:"#0d0000"}}>
+          <div style={{...S.ctitle,color:RED}}>{L("Tu enseignes ? Garde 100% de tes revenus","You teach? Keep 100% of your revenue")}</div>
+          <div style={{fontSize:"0.8rem",color:"#ccc",lineHeight:1.7,marginBottom:"12px"}}>{L("Place tes masterclasses sur MetalPrompt et garde 100% de ce que tu charges. Aucune commission : la plateforme se finance par l'abonnement, pas sur ton dos.","List your masterclasses on MetalPrompt and keep 100% of what you charge. No commission: the platform runs on subscriptions, not off your back.")}</div>
+          {[
+            L("Fixe tes propres tarifs et ton horaire.","Set your own rates and schedule."),
+            L("Cohorte fixe ou sessions ouvertes — c'est ton format.","Fixed cohort or open sessions — your format, your call."),
+            L("On t'amène les élèves : une communauté de metalheads motivés à progresser.","We bring you the students: a community of metalheads driven to improve."),
+          ].map((s,i)=>(
+            <div key={i} style={{display:"flex",gap:"9px",alignItems:"flex-start",padding:"4px 0"}}>
+              <span style={{color:RED,fontWeight:900,lineHeight:1.5}}>—</span>
+              <span style={{fontSize:"0.78rem",color:"#ddd",lineHeight:1.55}}>{s}</span>
+            </div>
+          ))}
+          <a href="mailto:mmftechnisolutions@gmail.com?subject=Devenir%20prof%20Masterclass%20MetalPrompt" style={{display:"block",textAlign:"center",marginTop:"14px",padding:"13px",background:RED,borderRadius:"8px",color:"#000",fontWeight:900,fontSize:"0.82rem",letterSpacing:"1px",textTransform:"uppercase",textDecoration:"none"}}>
+            {L("Deviens prof — propose ta masterclass","Become an instructor — pitch your masterclass")}
+          </a>
+          <div style={{fontSize:"0.6rem",color:"#555",textAlign:"center",marginTop:"8px",lineHeight:1.6}}>{L("Musiciens, profs, créateurs — bâtissons la plateforme du metalhead ensemble.","Musicians, teachers, creators — let's build the metalhead platform together.")}</div>
         </div>
         <div style={{height:80}}/>
       </div>}

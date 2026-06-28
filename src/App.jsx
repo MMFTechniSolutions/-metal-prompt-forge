@@ -1757,8 +1757,9 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {tab==="masterclass"&&<div style={S.page}>
         {/* HERO */}
         <div style={{...S.card,textAlign:"center",padding:"26px 22px",borderColor:"#ff2e2e44"}}>
+          <div style={{display:"inline-block",fontSize:"0.6rem",fontWeight:900,letterSpacing:"2px",color:"#000",background:RED,borderRadius:"20px",padding:"4px 14px",marginBottom:"12px"}}>{L("À VENIR","COMING SOON")}</div>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.9rem",letterSpacing:"2px",color:"#fff"}}>MASTERCLASS</div>
-          <div style={{color:"#999",fontSize:"0.82rem",marginTop:"6px",lineHeight:1.55}}>{L("Progresse avec de vrais musiciens. Riff, mix, écriture, voix extrême — peu importe ton niveau, on t'aide à monter en puissance.","Level up with real musicians. Riffing, mixing, songwriting, extreme vocals — whatever your level, we help you get stronger.")}</div>
+          <div style={{color:"#999",fontSize:"0.82rem",marginTop:"6px",lineHeight:1.55}}>{L("Bientôt : progresse avec de vrais musiciens. Les classes ne sont pas encore lancées — on bâtit la plateforme et on recrute les premiers profs. Tu enseignes ? Embarque dès maintenant (plus bas).","Coming soon: level up with real musicians. Classes aren't live yet — we're building the platform and recruiting our first instructors. You teach? Get in now (below).")}</div>
         </div>
 
         {/* CE QUE TU PEUX APPRENDRE */}
@@ -1836,7 +1837,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
           ))}
           <a href="mailto:mmftechnisolutions@gmail.com?subject=Devenir%20prof%20Masterclass%20MetalPrompt" style={{display:"block",textAlign:"center",marginTop:"14px",padding:"13px",background:RED,borderRadius:"8px",color:"#000",fontWeight:900,fontSize:"0.82rem",letterSpacing:"1px",textTransform:"uppercase",textDecoration:"none"}}>
-            {L("Deviens prof — propose ta masterclass","Become an instructor — pitch your masterclass")}
+            {L("Deviens prof fondateur — propose ta masterclass","Become a founding instructor — pitch your masterclass")}
           </a>
           <div style={{fontSize:"0.6rem",color:"#555",textAlign:"center",marginTop:"8px",lineHeight:1.6}}>{L("Musiciens, profs, créateurs — bâtissons la plateforme du metalhead ensemble.","Musicians, teachers, creators — let's build the metalhead platform together.")}</div>
         </div>

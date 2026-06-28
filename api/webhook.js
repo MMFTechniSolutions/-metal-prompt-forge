@@ -43,20 +43,8 @@ export default async function handler(req, res) {
     const session = event.data.object
     const email = session.customer_details?.email || session.customer_email
 
-    // line_items n'est PAS inclus dans l'event → on le récupère explicitement.
-    let priceId
-    try {
-      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
-        limit: 1,
-      })
-      priceId = lineItems.data[0]?.price?.id
-    } catch (e) {
-      priceId = undefined
-    }
-
-    let tier = 'forge'
-    if (priceId === process.env.PRICE_PRO) tier = 'pro'
-    if (priceId === process.env.PRICE_ELITE) tier = 'elite'
+    // Plan unique : TOUT paiement = accès complet (tier 'pro'). Plus besoin de matcher des price IDs.
+    const tier = 'pro'
 
     if (email) {
       await supabase.from('users').upsert(

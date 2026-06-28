@@ -278,8 +278,8 @@ const TIERS = {
     features:["✅ 3 prompts d'essai gratuits","✅ Aperçu de la bibliothèque","❌ Reste verrouillé — passe à MetalPrompt"],
     featuresEn:["✅ 3 free trial prompts","✅ Library preview","❌ Rest locked — go MetalPrompt"]},
   // ⚠️ STRIPE : crée un produit 4,99$/mois et remplace le lien 'stripe' ci-dessous (l'actuel = ancien 8,99$)
-  pro: {id:"pro", label:"🤘 METALPROMPT", price:"$4.99/mois", priceYear:"$39/an", color:"#ff2e2e", badge:"PRO",
-    stripe:"https://buy.stripe.com/3cI14pfby4mH6Ay7ErfQI01", stripeYear:"https://buy.stripe.com/YOUR_PRO_ANNUAL",
+  pro: {id:"pro", label:"🤘 METALPROMPT", price:"$4.99 USD/mois", color:"#ff2e2e", badge:"PRO",
+    stripe:"https://buy.stripe.com/00w3cx2oM6uPbUSbUHfQI04",
     features:["✅ TOUT le site débloqué","✅ Bibliothèque complète + sliders + 10 émotions","✅ Générateur de Riff complet (28 styles)","✅ Module Mastering (débruitage + EQ)","✅ Paroles par IA illimitées","✅ Prompts Principal · Cover · Extend","✅ Reco de modèle Suno · prompts illimités"],
     featuresEn:["✅ FULL site unlocked","✅ Full library + sliders + 10 emotions","✅ Complete Riff Generator (28 styles)","✅ Mastering module (denoise + EQ)","✅ Unlimited AI lyrics","✅ Principal · Cover · Extend prompts","✅ Suno model rec · unlimited prompts"]},
 };
@@ -472,10 +472,10 @@ function PaywallModal({onClose,email,uiLang}) {
           <div style={{fontSize:"0.6rem",color:"#555",letterSpacing:"3px",textTransform:"uppercase",marginBottom:"6px"}}>{L("PROMPT GRATUIT UTILISÉ","FREE PROMPT USED")}</div>
           <div className="forge-title" style={{fontSize:"1.5rem",color:"#fff",letterSpacing:"4px"}}>{L("CHOISIS TON PLAN","CHOOSE YOUR PLAN")}</div>
         </div>
-        <div style={{display:"flex",justifyContent:"center",gap:"8px",marginBottom:"16px"}}>
+        {Object.values(TIERS).some(t=>t.priceYear)&&<div style={{display:"flex",justifyContent:"center",gap:"8px",marginBottom:"16px"}}>
           <button onClick={()=>setBilling("month")} style={{padding:"6px 16px",borderRadius:"20px",border:`1px solid ${!year?"#ff2e2e":"#333"}`,background:!year?"#1a0000":"#111",color:!year?"#ff7070":"#666",fontSize:"0.66rem",fontWeight:700,cursor:"pointer"}}>{L("Mensuel","Monthly")}</button>
           <button onClick={()=>setBilling("year")} style={{padding:"6px 16px",borderRadius:"20px",border:`1px solid ${year?"#4caf50":"#333"}`,background:year?"#0a1f00":"#111",color:year?"#7fdd7f":"#666",fontSize:"0.66rem",fontWeight:700,cursor:"pointer"}}>{L("Annuel","Annual")} · {L("~moitié prix","~half price")}</button>
-        </div>
+        </div>}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",marginBottom:"18px"}}>
           {Object.values(TIERS).filter(t=>t.id!=="free").map(t=>(
             <div key={t.id} onClick={()=>setSel(t.id)}

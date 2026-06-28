@@ -276,10 +276,7 @@
     </div>
     <div class="sb"><div class="dot" id="dotPlay"></div><span id="txtPlay">Configure et génère un riff</span></div>
     <div id="promptBox" style="display:none;margin-top:12px;">
-      <div style="background:#0c0f0c;border:1px solid #1f3a1f;border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:.6rem;color:#9fd09f;line-height:1.5;">Ce beat est un MIDI synthétisé de zéro : 100% original, Suno ne peut pas le matcher. Uploade le .wav comme « Audio Influence » dans Suno.</div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--ember);letter-spacing:.08em;margin-bottom:6px;">PROMPT OPTIMISÉ (qui fit le beat) — colle dans Suno + uploade le .wav</div>
-      <pre id="promptOut" style="white-space:pre-wrap;background:#0a0a0b;border:1px solid var(--iron);border-radius:6px;padding:10px;font-size:.72rem;color:var(--bone);margin:0;"></pre>
-      <button class="bs" id="btnCopyPrompt" style="margin-top:6px;">⧉ Copier le prompt</button>
+      <div style="background:#0c0f0c;border:1px solid #1f3a1f;border-radius:6px;padding:9px 11px;font-size:.62rem;color:#9fd09f;line-height:1.55;">Beat MIDI synthétisé de zéro : 100% original, Suno ne peut pas le matcher. <strong>Export le .wav</strong> et uploade-le comme « Audio Influence » dans Suno. Pour le prompt texte, utilise celui de l'onglet <strong>Forge</strong>.</div>
     </div>
   </div>
 
@@ -769,7 +766,7 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
   document.getElementById('btnRender').disabled=false;
   document.getElementById('txtRec').textContent='Prêt à render';
   document.getElementById('txtPlay').textContent='Riff généré — '+currentPat.style+' · '+currentPat.bpm+' BPM';
-  if(currentPat.prompt){document.getElementById('promptOut').textContent=currentPat.prompt;document.getElementById('promptBox').style.display='block';}
+  document.getElementById('promptBox').style.display='block';
 });
 document.getElementById('btnPlay').addEventListener('click',async()=>{try{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat);}else{document.getElementById('txtPlay').textContent='⚠ Genere un riff d\'abord';}}catch(e){document.getElementById('txtPlay').textContent='⚠ ERREUR PLAY: '+(e&&e.message?e.message:e);console.error('PLAY ERROR',e);}});
 document.getElementById('btnStop').addEventListener('click',stopPlay);
@@ -777,10 +774,6 @@ document.getElementById('btnRender').addEventListener('click',async()=>{if(curre
 document.getElementById('btnCopyTab').addEventListener('click',()=>{
   const txt=document.getElementById('tabOut').textContent;
   navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('btnCopyTab');b.textContent='Copié';setTimeout(()=>b.textContent='⧉ Copier la tab',1500);});
-});
-document.getElementById('btnCopyPrompt').addEventListener('click',()=>{
-  const t=document.getElementById('promptOut').textContent;
-  navigator.clipboard.writeText(t).then(()=>{const b=document.getElementById('btnCopyPrompt');b.textContent='Copié';setTimeout(()=>b.textContent='⧉ Copier le prompt',1500);});
 });
 const RIFF_PRESETS={
   death:    {style:'death',bpm:200,tuning:'B1',drums:'blast_beat',structure:'blastassault',lead:'none'},

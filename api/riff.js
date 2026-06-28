@@ -360,6 +360,5 @@ export default function handler(req, res){
     drumKey: p.drumKey, structure: p.structure, lead: p.lead,
     noteSeq: p.noteSeq, guit: p.guit, bass: p.bass, drum: p.drum, atmos: ATMOS.includes(p.style),
     arr, leadVoice, leadRhy: leadVoice ? LEAD_RHY : null, tab,
-    prompt: buildPrompt(p),
   });
 }

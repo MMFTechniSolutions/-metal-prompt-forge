@@ -1595,7 +1595,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un riff + beat, écoute-le, et exporte un WAV prêt pour Suno (Style Reference / Custom Model). ","Generate a riff + beat, listen, and export a WAV ready for Suno (Style Reference / Custom Model). ")}</div>
         </div>
         <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
-          <iframe src={`/riff.html?tier=${userTier}`} title="Riff Generator" allow="autoplay" style={{width:"100%",height:"78vh",minHeight:"560px",border:"none",display:"block",background:DARK}}/>
+          <iframe src={`/riff.html?tier=${userTier}${styleTxt?`&prompt=${encodeURIComponent(styleTxt)}`:""}`} title="Riff Generator" allow="autoplay" style={{width:"100%",height:"78vh",minHeight:"560px",border:"none",display:"block",background:DARK}}/>
         </div>
         <div style={{...S.card,textAlign:"center"}}>
           <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>{L("Bientôt aussi","Also coming soon")}</div>

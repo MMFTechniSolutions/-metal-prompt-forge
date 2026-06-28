@@ -721,6 +721,11 @@ function setRiffMode(m){
 document.getElementById('modeAuto').addEventListener('click',()=>setRiffMode('auto'));
 document.getElementById('modeAdv').addEventListener('click',()=>setRiffMode('adv'));
 setRiffMode('auto');
+(function(){
+  var _qp=new URLSearchParams(location.search).get('prompt');
+  if(_qp){var _ta=document.getElementById('promptIn');if(_ta){_ta.value=_qp;setRiffMode('auto');
+    var _tp=document.getElementById('txtPlay');if(_tp)_tp.textContent='Prompt importé du Forge — clique Générer pour le beat';}}
+})();
 document.getElementById('btnGen').addEventListener('click',async()=>{
   const tier=new URLSearchParams(location.search).get('tier')||'free';
   const body = (riffMode==='auto') ? {

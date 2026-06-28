@@ -22,14 +22,47 @@ export default function handler(req, res) {
 
   const rFor = k => blockRhythm[k] ? ', ' + blockRhythm[k] : '';
   const tempoWord = bpm >= 210 ? 'blistering fast tempo' : bpm >= 170 ? 'fast tempo' : bpm >= 120 ? 'mid-tempo' : bpm >= 90 ? 'slow groovy tempo' : 'slow doom tempo';
-  // T10 — temps de mesure varié (pas tout en 4/4) selon le genre + chaos
+  // ENCYCLOPÉDIE → calibration par genre (temps de mesure, gamme/mode, production, tuning par défaut) — secret serveur
   const _gtxt = genres.map(x => String(x).toLowerCase()).join(' ');
   const _rs = Math.random();
-  let timeSig = '4/4';
-  if (/djent|math|prog|tech|dissonant|avant/.test(_gtxt)) timeSig = _rs<0.4?'4/4':_rs<0.65?'7/8':_rs<0.85?'5/4':'9/8';
-  else if (/doom|sludge|funeral|post|blackgaze|atmospheric/.test(_gtxt)) timeSig = _rs<0.55?'4/4':_rs<0.8?'6/8':'3/4';
-  else if (chaos >= 8) timeSig = _rs<0.5?'4/4':_rs<0.75?'7/8':'5/4';
-  else if (/groove|nu/.test(_gtxt) && _rs<0.3) timeSig = '6/8';
+  const GENRE_DB = [
+    [/djent/, {ts:(_rs<0.5?'7/8':'4/4'), scale:'polymetric minor-2nd and tritone riffs', prod:'surgical mix, ultra-fast noise gate, scooped 400Hz', tuning:'Drop A 8-string'}],
+    [/prog|math/, {ts:(_rs<0.5?'5/4':'7/8'), scale:'odd-time modulating riffs', prod:'clean digital precision', tuning:'Drop C'}],
+    [/tech.?death/, {ts:(_rs<0.5?'7/8':'4/4'), scale:'dissonant chromatic arpeggios, fretless bass', prod:'precise clean brutal mix', tuning:'C standard'}],
+    [/brutal|slam/, {ts:'4/4', scale:'chromatic slam riffs near the bridge', prod:'thick brutal triggered mix', tuning:'A standard'}],
+    [/melodic.?death/, {ts:'4/4', scale:'harmonized minor twin-guitar leads', prod:'polished melodic mix', tuning:'D standard'}],
+    [/deathcore/, {ts:'4/4', scale:'phrygian breakdowns, slam riffs', prod:'crushing triggered mix, guitars panned 100%', tuning:'Drop A'}],
+    [/death/, {ts:'4/4', scale:'phrygian dominant chromatic tremolo riffs', prod:'massive percussive mix, triggered kick', tuning:'D standard'}],
+    [/symphonic.?black/, {ts:'4/4', scale:'tremolo over orchestral arrangements', prod:'cinematic orchestral mix', tuning:'standard'}],
+    [/blackgaze|post.?black/, {ts:'4/4', scale:'consonant ionian and mixolydian, add9 maj7 sus2 open chords', prod:'wall of sound, infinite algorithmic reverb', tuning:'standard'}],
+    [/depressive|dsbm/, {ts:'4/4', scale:'melancholic hypnotic tremolo loops', prod:'raw lo-fi reverb', tuning:'standard'}],
+    [/black/, {ts:'4/4', scale:'dissonant chromatic tremolo, open chords', prod:'lo-fi abrasive, thin no-bass blizzard distortion', tuning:'standard'}],
+    [/funeral/, {ts:'4/4', scale:'abyssal slow tritone', prod:'suffocating funereal mix, funeral synths', tuning:'B standard'}],
+    [/drone/, {ts:'free-form drone', scale:'sustained pedal-point drone on fifths', prod:'room ambience, octave fuzz, no compression', tuning:'A standard'}],
+    [/sludge/, {ts:'4/4', scale:'tritone riffs dragging behind the beat', prod:'feedback-drenched dirty saturation', tuning:'Drop B'}],
+    [/stoner/, {ts:'4/4', scale:'fuzzy bluesy psychedelic riffs', prod:'fuzz-drenched warm low-mids', tuning:'Drop D'}],
+    [/post.?metal/, {ts:'4/4', scale:'slow narrative I-flatVI cadence, 9th and 11th chords', prod:'dynamic clean-to-massive crescendo', tuning:'Drop C'}],
+    [/epic.?doom/, {ts:'4/4', scale:'grandiose tritone epic melodies', prod:'thick warm operatic space', tuning:'C standard'}],
+    [/doom/, {ts:(_rs<0.5?'6/8':'4/4'), scale:'tritone bluesy slow riffs', prod:'thick warm vintage saturation', tuning:'C standard'}],
+    [/grind/, {ts:'4/4', scale:'chaotic buzzing chromatic microsong', prod:'raw chaotic blast mix', tuning:'C standard'}],
+    [/gothic/, {ts:'4/4', scale:'melancholic minor with dramatic strings', prod:'acoustic-to-saturated, beauty-and-the-beast vocals', tuning:'standard'}],
+    [/symphonic/, {ts:'4/4', scale:'classical leitmotivs and choral ruptures', prod:'full orchestra over double kick', tuning:'standard'}],
+    [/neoclassical/, {ts:'4/4', scale:'harmonic minor, diminished-7 arpeggios, sweep picking, pedal point', prod:'virtuosic baroque shred', tuning:'standard'}],
+    [/power/, {ts:'4/4', scale:'harmonic minor galloping leads', prod:'bombastic, continuous double kick', tuning:'standard'}],
+    [/metalcore/, {ts:'4/4', scale:'aeolian melodic riffs with breakdowns', prod:'tight mix, compressed kick/snare, guitars panned 100%', tuning:'Drop C'}],
+    [/nu.?metal/, {ts:'4/4', scale:'bouncy syncopated groove', prod:'turntables, samples, industrial textures', tuning:'Drop, 7-string'}],
+    [/industrial/, {ts:'4/4', scale:'rigid repetitive mechanical riffs', prod:'electronic drums, machine samples, cold synths', tuning:'Drop C'}],
+    [/groove/, {ts:'4/4', scale:'syncopated chugging riffs', prod:'colossal punchy drums', tuning:'D standard'}],
+    [/crossover/, {ts:'4/4', scale:'punk-thrash riffs with mosh parts', prod:'raw fast mix', tuning:'E standard'}],
+    [/thrash|speed/, {ts:'4/4', scale:'fast downpicked chromatic riffs', prod:'scooped mids, punchy double kick', tuning:'E standard'}],
+    [/nwobhm|heavy/, {ts:'4/4', scale:'twin-guitar harmonies in thirds', prod:'vintage tube warmth', tuning:'E standard'}],
+  ];
+  let _db = {}; for (const [re, v] of GENRE_DB){ if (re.test(_gtxt)){ _db = v; break; } }
+  let timeSig = _db.ts || '4/4';
+  if (timeSig === '4/4' && chaos >= 8 && _rs < 0.5) timeSig = _rs < 0.25 ? '7/8' : '5/4';
+  const scaleTag = _db.scale || '';
+  const genreProdTag = _db.prod || '';
+  const autoTuning = _db.tuning || '';
   // Recommandation de modèle Suno par genre (mieux / bon / moins bon)
   let modelRec;
   if (/raw|kvlt|old.?school|grind|crust|d.?beat|war metal|primitive/.test(_gtxt))
@@ -86,7 +119,7 @@ export default function handler(req, res) {
   OPP.forEach(([a, c]) => { if ((+emotions[a]||0) >= 60 && (+emotions[c]||0) >= 60) emoConf.push(L(EMO_LABEL[a]+' + '+EMO_LABEL[c]+' à fond se contredisent — baisse-en une.', EMO_LABEL[a]+' + '+EMO_LABEL[c]+' both high — they fight, lower one.')); });
 
   const bpmTag = bpm + ' BPM';
-  const fullTags = dedup([...genres, bpmTag, tempoWord, ...drums, ...guitar.slice(0, 3), ...tuning.slice(0, 1), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...secret, ...emotionTags, ...prod.slice(0, 2), ...allOrganic.slice(0, 4), ...globalRhythm]);
+  const fullTags = dedup([...genres, bpmTag, tempoWord, ...drums, ...guitar.slice(0, 3), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...prod.slice(0, 2), ...allOrganic.slice(0, 4), ...globalRhythm]);
   const compactCore = dedup([...genres.slice(0, 2), bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1)]);
   const overflow = fullTags.filter(x => !compactCore.includes(x));
   const styleStr = fullTags.join(', ');
@@ -94,9 +127,19 @@ export default function handler(req, res) {
   // T11 — prompts secondaires : COVER (sous-genre dominant) + EXTEND (callback cohérent)
   const _g1 = genres[0] || 'metal';
   const _g2 = genres[1] || null;
-  const coverCore = _g2
-    ? dedup([_g2, _g1, bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1), ...mood.slice(0,1)])
-    : dedup([_g1, 'heavier and more extreme', bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1)]);
+  const FUSIONS = [
+    [/black/,/death/,'blackened death metal'],[/death/,/doom/,'death-doom'],[/death/,/(core|metalcore)/,'deathcore'],
+    [/melodic/,/death/,'melodic death metal'],[/doom/,/(sludge|punk|hardcore)/,'sludge metal'],[/black/,/(shoegaze|post|gaze)/,'blackgaze'],
+    [/death/,/grind/,'deathgrind'],[/thrash/,/(punk|hardcore|crossover)/,'crossover thrash'],[/symphonic/,/black/,'symphonic black metal'],
+    [/power/,/symphonic/,'symphonic power metal'],[/metalcore/,/(djent|prog)/,'progressive metalcore'],[/doom/,/death/,'death-doom'],
+  ];
+  let fusionName = null;
+  if (_g2){ const _a=String(_g1).toLowerCase(), _b=String(_g2).toLowerCase(); for (const [r1,r2,nm] of FUSIONS){ if ((r1.test(_a)&&r2.test(_b))||(r1.test(_b)&&r2.test(_a))){ fusionName=nm; break; } } }
+  const coverCore = fusionName
+    ? dedup([fusionName, bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1), ...mood.slice(0,1)])
+    : _g2
+      ? dedup([_g2, _g1, bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1), ...mood.slice(0,1)])
+      : dedup([_g1, 'heavier and more extreme', bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1)]);
   const coverStr = coverCore.join(', ');
   const _climax = chaos >= 7 ? 'blast beat outro' : groove >= 7 ? 'crushing breakdown climax' : melody >= 7 ? 'melodic guitar solo climax' : 'final breakdown';
   const extendStr = 'continue with the same vibe and energy, keep ' + bpmTag + ' and ' + _g1 + ', stay consistent in tempo and instrumentation, build into a ' + _climax;

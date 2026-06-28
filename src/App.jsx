@@ -1809,17 +1809,18 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
         {/* FORMATS HEBDO */}
         <div style={S.card}>
-          <div style={S.ctitle}>{L("Classes hebdomadaires","Weekly classes")}</div>
+          <div style={S.ctitle}>{L("Formats de cours","Course formats")}</div>
           {[
-            {t:L("Cohorte fixe","Fixed cohort"),d:L("Le même groupe chaque semaine — vous progressez ensemble, dans un esprit de band.","The same group every week — you progress together, band spirit.")},
-            {t:L("Sessions ouvertes","Open sessions"),d:L("Cours hebdo en drop-in : tu te joins quand tu veux, composition variable.","Weekly drop-in classes: join whenever, variable lineup.")},
+            {t:L("Sessions pré-enregistrées","Pre-recorded sessions"),d:L("Les modules en vidéo, à la demande : regarde quand tu veux, repasse les passages, avance à ton rythme.","Modules on video, on demand: watch anytime, replay sections, go at your own pace.")},
+            {t:L("Direct — cohorte fixe","Live — fixed cohort"),d:L("Le même groupe chaque semaine — vous progressez ensemble, dans un esprit de band.","The same group every week — you progress together, band spirit.")},
+            {t:L("Direct — sessions ouvertes","Live — open sessions"),d:L("Cours en direct en drop-in : tu te joins quand tu veux, composition variable.","Live drop-in classes: join whenever, variable lineup.")},
           ].map(c=>(
             <div key={c.t} style={{padding:"9px 0",borderBottom:"1px solid #1a1a1a"}}>
               <div style={{color:"#e0e0e0",fontWeight:800,fontSize:"0.82rem"}}>{c.t}</div>
               <div style={{color:"#888",fontSize:"0.74rem",marginTop:"3px",lineHeight:1.5}}>{c.d}</div>
             </div>
           ))}
-          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Chaque prof choisit son format : cohorte fixe, sessions ouvertes, ou les deux.","Each instructor picks the format: fixed cohort, open sessions, or both.")}</div>
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Chaque prof choisit son format : pré-enregistré, direct (cohorte fixe ou ouvert), ou un mélange.","Each instructor picks the format: pre-recorded, live (fixed cohort or open), or a mix.")}</div>
         </div>
 
         {/* RECRUTEMENT PROFS */}

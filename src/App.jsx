@@ -278,8 +278,8 @@ const TIERS = {
     features:["✅ 3 prompts d'essai gratuits","✅ Aperçu de la bibliothèque","❌ Reste verrouillé — passe à MetalPrompt"],
     featuresEn:["✅ 3 free trial prompts","✅ Library preview","❌ Rest locked — go MetalPrompt"]},
   // ⚠️ STRIPE : crée un produit 4,99$/mois et remplace le lien 'stripe' ci-dessous (l'actuel = ancien 8,99$)
-  pro: {id:"pro", label:"🤘 METALPROMPT", price:"$4.99 USD/mois", color:"#ff2e2e", badge:"PRO",
-    stripe:"https://buy.stripe.com/00w3cx2oM6uPbUSbUHfQI04",
+  pro: {id:"pro", label:"🤘 METALPROMPT", price:"$4.99 USD/mois", priceYear:"$39 USD/an", color:"#ff2e2e", badge:"PRO",
+    stripe:"https://buy.stripe.com/00w3cx2oM6uPbUSbUHfQI04", stripeYear:"https://buy.stripe.com/7sY6oJ2oMaL5aQO0bZfQI05",
     features:["✅ TOUT le site débloqué","✅ Bibliothèque complète + sliders + 10 émotions","✅ Générateur de Riff complet (28 styles)","✅ Module Mastering (débruitage + EQ)","✅ Paroles par IA illimitées","✅ Prompts Principal · Cover · Extend","✅ Reco de modèle Suno · prompts illimités"],
     featuresEn:["✅ FULL site unlocked","✅ Full library + sliders + 10 emotions","✅ Complete Riff Generator (28 styles)","✅ Mastering module (denoise + EQ)","✅ Unlimited AI lyrics","✅ Principal · Cover · Extend prompts","✅ Suno model rec · unlimited prompts"]},
 };

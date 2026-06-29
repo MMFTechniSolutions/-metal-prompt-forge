@@ -138,13 +138,13 @@ export default function handler(req, res) {
   let fusionName = null;
   if (_g2){ const _a=String(_g1).toLowerCase(), _b=String(_g2).toLowerCase(); for (const [r1,r2,nm] of FUSIONS){ if ((r1.test(_a)&&r2.test(_b))||(r1.test(_b)&&r2.test(_a))){ fusionName=nm; break; } } }
   const coverCore = fusionName
-    ? dedup([fusionName, bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1), ...mood.slice(0,1)])
+    ? dedup([fusionName, bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1), ...mood.slice(0,1), ...leadInst.slice(0,1)])
     : _g2
-      ? dedup([_g2, _g1, bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1), ...mood.slice(0,1)])
-      : dedup([_g1, 'heavier and more extreme', bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1)]);
+      ? dedup([_g2, _g1, bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1), ...mood.slice(0,1), ...leadInst.slice(0,1)])
+      : dedup([_g1, 'heavier and more extreme', bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1), ...leadInst.slice(0,1)]);
   const coverStr = coverCore.join(', ');
   const _climax = chaos >= 7 ? 'blast beat outro' : groove >= 7 ? 'crushing breakdown climax' : melody >= 7 ? 'melodic guitar solo climax' : 'final breakdown';
-  const extendStr = 'continue with the same vibe and energy, keep ' + bpmTag + ' and ' + _g1 + ', stay consistent in tempo and instrumentation, build into a ' + _climax;
+  const extendStr = 'continue with the same vibe and energy, keep ' + bpmTag + ' and ' + _g1 + (leadInst.length ? ', keep the ' + leadInst[0] : '') + ', stay consistent in tempo and instrumentation, build into a ' + _climax;
 
   // ── détecteur de conflits ──
   const lc = x => String(x).toLowerCase();

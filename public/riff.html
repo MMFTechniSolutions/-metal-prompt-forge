@@ -77,7 +77,7 @@
     <div id="autoPanel" class="cg" style="margin-bottom:14px;">
       <label>Ton prompt — le beat suit ses précisions</label>
       <textarea id="promptIn" rows="3" style="background:var(--steel);border:1px solid var(--iron);color:var(--white);font-family:'Share Tech Mono',monospace;font-size:.78rem;padding:9px 11px;width:100%;outline:none;resize:vertical;border-radius:2px;" placeholder="Ex : brutal deathcore breakdown, drop B, 140 bpm, blast beats, vibe Florida death metal"></textarea>
-      <div class="sb" style="font-size:.58rem;color:var(--ash);line-height:1.4;">Genre, BPM, accordage, groove, scène, structure — déduits automatiquement. Le beat suit une structure de toune, pas une simple boucle.</div>
+      <div class="sb" style="font-size:.58rem;color:var(--ash);line-height:1.4;">Genre, BPM, accordage, groove, scène, structure — déduits automatiquement. Le beat suit une vraie structure (sections), pas une simple boucle.</div>
     </div>
     <div class="grid2" id="advGrid">
       <div class="cg">
@@ -208,7 +208,7 @@
           <option value="prog">Prog — métriques impaires</option>
           <option value="buildup">Crescendo — lent → blast</option>
           <option value="versechorus">Couplet → Refrain</option>
-          <option value="fullsong">Toune complète (8 mesures)</option>
+          <option value="fullsong">Séquence complète (8 mesures)</option>
           <option value="breakdownfest">Festival de Breakdowns</option>
           <option value="blastassault">Assaut de Blast Beats</option>
           <option value="doomcrawl">Doom — descente lente</option>
@@ -237,7 +237,7 @@
       </div>
       <div class="cg">
         <label>Durée export — <span id="durLbl">15</span>s</label>
-        <input type="range" id="dur" min="6" max="60" value="15" step="1" oninput="document.getElementById('durLbl').textContent=this.value">
+        <input type="range" id="dur" min="6" max="30" value="15" step="1" oninput="document.getElementById('durLbl').textContent=this.value">
       </div>
     </div>
   </div>
@@ -276,8 +276,8 @@
     </div>
     <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--iron);">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-        <span style="font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--ember);letter-spacing:.08em;">STRUCTURE (TOUNE) :</span>
-        <button class="bp" id="btnSong" style="font-size:.66rem;padding:7px 12px;">Générer la toune (4 clips)</button>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--ember);letter-spacing:.08em;">SÉQUENCE (4 CLIPS) :</span>
+        <button class="bp" id="btnSong" style="font-size:.66rem;padding:7px 12px;">Générer la séquence (4 clips)</button>
       </div>
       <div class="btn-row" id="clipRow" style="display:none;margin-bottom:8px;">
         <button class="bs clipbtn" data-clip="1" disabled>Clip 1</button>
@@ -287,7 +287,7 @@
         <button class="bs" id="btnReclip" disabled title="Régénère le clip sélectionné">↻ Ce clip</button>
       </div>
       <div class="btn-row" id="songRow" style="display:none;">
-        <button class="bp" id="btnPlaySong">▶ Jouer la toune 1→2→3→4</button>
+        <button class="bp" id="btnPlaySong">▶ Jouer la séquence 1→2→3→4</button>
         <button class="bs" id="btnStopSong">■ Stop</button>
       </div>
     </div>
@@ -299,11 +299,11 @@
 
   <div class="panel">
     <h2>Export WAV → Suno</h2>
-    <p class="dl-info">Render offline → télécharge le <strong>.wav</strong> prêt pour <strong>Suno Style Reference</strong>.<br>Durée ajustable dans les paramètres (6–60s). 15s recommandé pour les tests.</p>
+    <p class="dl-info">Render offline → télécharge le <strong>.wav</strong> prêt pour <strong>Suno Style Reference</strong>.<br>Durée ajustable dans les paramètres (6–30s). 15s recommandé.</p>
     <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
     <div class="btn-row">
       <button class="bp" id="btnRender" disabled>⏺ Render clip / riff</button>
-      <button class="bs" id="btnRenderSong" disabled>⤓ Export toune complète</button>
+      <button class="bs" id="btnRenderSong" disabled>⤓ Export séquence complète</button>
     </div>
     <div class="sb"><div class="dot" id="dotRec"></div><span id="txtRec">Génère un riff d'abord</span></div>
   </div>
@@ -523,7 +523,7 @@ function noteFreqHz(note){return Tone.Frequency(note).toFrequency();}
 function semiHz(base,semi){return base*Math.pow(2,semi/12);}
 
 async function renderAndDownload(p){
-  const dur=parseInt(document.getElementById('dur').value);
+  const dur=Math.min(30, Math.max(6, parseInt(document.getElementById('dur').value)||15));   // plafond 30s : evite le gel (trop de noeuds audio)
   const bpm=p.bpm;
   const sr=44100;
   const stepDur=(60/bpm)/4;
@@ -835,7 +835,7 @@ document.querySelectorAll('[data-rp]').forEach(b=>b.addEventListener('click',()=
   document.getElementById('btnGen').click();
 }));
 
-/* ── STRUCTURE : 4 clips assemblés en toune ── */
+/* ── SÉQUENCE : 4 clips assemblés ── */
 let songClips=[null,null,null,null];
 let activeClip=0;
 function riffBody(extra){
@@ -872,7 +872,7 @@ function setActiveClip(i){
 }
 document.getElementById('btnSong').addEventListener('click',async()=>{
   const btn=document.getElementById('btnSong');btn.disabled=true;
-  document.getElementById('txtPlay').textContent='Génération de la toune (4 clips)…';
+  document.getElementById('txtPlay').textContent='Génération de la séquence (4 clips)…';
   try{
     const res=await Promise.all([1,2,3,4].map(n=>riffFetch(riffBody({section:n}))));
     songClips=res;
@@ -885,7 +885,7 @@ document.getElementById('btnSong').addEventListener('click',async()=>{
     document.getElementById('btnRenderSong').disabled=false;
     document.getElementById('promptBox').style.display='block';
     setActiveClip(0);
-    document.getElementById('txtPlay').textContent='Toune générée — 4 clips prêts (édite ou joue)';
+    document.getElementById('txtPlay').textContent='Séquence générée — 4 clips prêts (édite ou joue)';
   }catch(e){document.getElementById('txtPlay').textContent='⚠ '+(e.message||'Erreur');}
   btn.disabled=false;
 });
@@ -903,7 +903,7 @@ document.getElementById('btnReclip').addEventListener('click',async()=>{
 document.getElementById('btnPlaySong').addEventListener('click',async()=>{
   if(!songClips.find(Boolean))return;
   try{if(isPlaying)stopPlay();await startPlay(songPattern());
-    document.getElementById('txtPlay').textContent='▶ Toune complète 1→2→3→4';}catch(e){}
+    document.getElementById('txtPlay').textContent='▶ Séquence complète 1→2→3→4';}catch(e){}
 });
 document.getElementById('btnStopSong').addEventListener('click',stopPlay);
 document.getElementById('btnRenderSong').addEventListener('click',async()=>{
@@ -911,7 +911,7 @@ document.getElementById('btnRenderSong').addEventListener('click',async()=>{
   if(isPlaying)stopPlay();
   const sp=songPattern();
   const stepDur=60/sp.bpm/4;                       // durée d'un 16e
-  const need=Math.min(60,Math.ceil(sp.arr.L*stepDur)+1);
+  const need=Math.min(30,Math.ceil(sp.arr.L*stepDur)+1);
   const durEl=document.getElementById('dur');durEl.value=need;
   durEl.dispatchEvent(new Event('input',{bubbles:true}));
   await renderAndDownload(sp);

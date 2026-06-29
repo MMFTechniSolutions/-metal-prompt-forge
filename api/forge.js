@@ -9,7 +9,9 @@ export default function handler(req, res) {
 
   const genres = A('genres'), drums = A('drums'), vocals = A('vocals'), guitar = A('guitar');
   const tuning = A('tuning'), mood = A('mood'), prod = A('prod'), globalRhythm = A('globalRhythm'), vrange = A('vrange');
-  const extraInst = [...A('bassStyle'), ...A('bassTech'), ...A('bassTone'), ...A('bassTuning'), ...A('bassProd'), ...A('sax'), ...A('brass'), ...A('keys'), ...A('strings')];
+  const bassInst = [...A('bassStyle'), ...A('bassTech'), ...A('bassTone'), ...A('bassTuning'), ...A('bassProd')];
+  const leadInst = [...A('sax'), ...A('brass'), ...A('keys'), ...A('strings')];   // instruments mélodiques (sax, cuivres, claviers, cordes)
+  const extraInst = [...bassInst, ...leadInst];
   const allOrganic = A('org');
   const excl = b.excl || null;
   const allExclude = excl ? [...(excl.g || []), ...(excl.v || []), ...(excl.p || []), ...(excl.i || []), ...String(excl.c || '').split(',').map(s => s.trim()).filter(Boolean)] : [];
@@ -119,8 +121,8 @@ export default function handler(req, res) {
   OPP.forEach(([a, c]) => { if ((+emotions[a]||0) >= 60 && (+emotions[c]||0) >= 60) emoConf.push(L(EMO_LABEL[a]+' + '+EMO_LABEL[c]+' à fond se contredisent — baisse-en une.', EMO_LABEL[a]+' + '+EMO_LABEL[c]+' both high — they fight, lower one.')); });
 
   const bpmTag = bpm + ' BPM';
-  const fullTags = dedup([...genres, bpmTag, tempoWord, ...drums, ...guitar.slice(0, 3), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...prod.slice(0, 2), ...allOrganic.slice(0, 4), ...globalRhythm]);
-  const compactCore = dedup([...genres.slice(0, 2), bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1)]);
+  const fullTags = dedup([...genres, bpmTag, tempoWord, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...prod.slice(0, 2), ...allOrganic.slice(0, 4), ...globalRhythm]);
+  const compactCore = dedup([...genres.slice(0, 2), bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1)]);
   const overflow = fullTags.filter(x => !compactCore.includes(x));
   const styleStr = fullTags.join(', ');
   const styleStrC = compactCore.join(', ');
@@ -211,5 +213,5 @@ export default function handler(req, res) {
     '\n\n=== STRUCTURE (-> top of Lyrics) ===\n' + structStr +
     '\n\n=== PRODUCTION NOTES (keep for yourself) ===\n' + heavyD + '. ' + grooveD + '. ' + chaosD + '. ' + melodyD + '. ' + bpmTag + '.' + organicBlock;
 
-  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, full, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, timeSig, modelRec });
+  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, timeSig, modelRec });
 }

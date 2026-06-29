@@ -962,7 +962,7 @@ function galleryEmbed(url){
     return {type:'link',src:url};
   }catch(e){return {type:'link',src:url};}
 }
-function Gallery({user,onRequestAuth,uiLang}){
+function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
   const L=(fr,en)=>uiLang==="fr"?fr:en;
   const GENRES=["Deathcore","Metalcore","Djent","Death Metal","Black Metal","Thrash","Groove","Doom","Melodic Death","Blackgaze","Power Metal","Autre"];
   const [items,setItems]=useState([]);
@@ -982,6 +982,7 @@ function Gallery({user,onRequestAuth,uiLang}){
   const inp={background:"#0d0d0d",border:"1px solid #2a2a2a",borderRadius:"6px",color:"#eee",fontSize:"0.8rem",padding:"9px 11px",width:"100%",outline:"none"};
   const submit=async()=>{
     if(!user){onRequestAuth&&onRequestAuth();return;}
+    if(!isPaid){onPaywall&&onPaywall();return;}
     if(!form.title.trim()||!form.url.trim()){setMsg(L("Titre et lien requis.","Title and link required."));return;}
     setMsg(L("Envoi…","Sending…"));
     const {error}=await supabase.from('gallery').insert({title:form.title.trim(),artist:(form.artist.trim()||(user.email?user.email.split('@')[0]:"anon")),genre:form.genre,url:form.url.trim(),status:'pending'});
@@ -998,7 +999,7 @@ function Gallery({user,onRequestAuth,uiLang}){
       </div>
       {showForm&&<div style={S.card}>
         <div style={S.ctitle}>{L("Soumettre une chanson","Submit a track")}</div>
-        <div style={{fontSize:"0.62rem",color:"#777",marginBottom:"10px",lineHeight:1.5}}>{L("Colle un lien Spotify, YouTube ou SoundCloud. Revue avant publication. Metal seulement.","Paste a Spotify, YouTube or SoundCloud link. Reviewed before publishing. Metal only.")}</div>
+        <div style={{fontSize:"0.62rem",color:"#777",marginBottom:"10px",lineHeight:1.5}}>{L("Réservé aux membres. Colle un lien Spotify, YouTube ou SoundCloud. Revue avant publication. Metal seulement.","Members only. Paste a Spotify, YouTube or SoundCloud link. Reviewed before publishing. Metal only.")}</div>
         <div style={{display:"flex",flexDirection:"column",gap:"9px"}}>
           <input style={inp} placeholder={L("Titre de la chanson","Track title")} value={form.title} onChange={e=>set('title',e.target.value)}/>
           <input style={inp} placeholder={L("Nom d'artiste (optionnel)","Artist name (optional)")} value={form.artist} onChange={e=>set('artist',e.target.value)}/>
@@ -1840,7 +1841,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <div style={{height:80}}/>
       </div>}
 
-      {tab==="galerie"&&<Gallery user={user} onRequestAuth={onRequestAuth} uiLang={uiLang}/>}
+      {tab==="galerie"&&<Gallery user={user} onRequestAuth={onRequestAuth} uiLang={uiLang} isPaid={isPro} onPaywall={()=>setShowPaywall(true)}/>}
 
       {tab==="masterclass"&&<div style={S.page}>
         {/* HERO */}

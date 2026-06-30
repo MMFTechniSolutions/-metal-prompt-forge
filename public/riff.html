@@ -69,19 +69,19 @@
 <main>
   <div class="rcol rcol-l">
   <div class="panel">
-    <h2>Paramètres</h2>
+    <h2 data-en="Settings">Paramètres</h2>
     <div class="moderow" style="display:flex;gap:8px;margin-bottom:14px;">
-      <button type="button" class="bp" id="modeAuto" style="flex:1;">Automatique</button>
-      <button type="button" class="bs" id="modeAdv" style="flex:1;">Avancé</button>
+      <button type="button" class="bp" id="modeAuto" style="flex:1;" data-en="Automatic">Automatique</button>
+      <button type="button" class="bs" id="modeAdv" style="flex:1;" data-en="Advanced">Avancé</button>
     </div>
     <div id="autoPanel" class="cg" style="margin-bottom:14px;">
-      <label>Ton prompt — le beat suit ses précisions</label>
-      <textarea id="promptIn" rows="3" style="background:var(--steel);border:1px solid var(--iron);color:var(--white);font-family:'Share Tech Mono',monospace;font-size:.78rem;padding:9px 11px;width:100%;outline:none;resize:vertical;border-radius:2px;" placeholder="Ex : brutal deathcore breakdown, drop B, 140 bpm, blast beats, vibe Florida death metal"></textarea>
-      <div class="sb" style="font-size:.58rem;color:var(--ash);line-height:1.4;">Genre, BPM, accordage, groove, scène, structure — déduits automatiquement. Le beat suit une vraie structure (sections), pas une simple boucle.</div>
+      <label data-en="Your prompt — the beat follows its details">Ton prompt — le beat suit ses précisions</label>
+      <textarea id="promptIn" rows="3" style="background:var(--steel);border:1px solid var(--iron);color:var(--white);font-family:'Share Tech Mono',monospace;font-size:.78rem;padding:9px 11px;width:100%;outline:none;resize:vertical;border-radius:2px;" placeholder="Ex : brutal deathcore breakdown, drop B, 140 bpm, blast beats, vibe Florida death metal" data-ph-en="Ex: brutal deathcore breakdown, drop B, 140 bpm, blast beats, Florida death metal vibe"></textarea>
+      <div class="sb" style="font-size:.58rem;color:var(--ash);line-height:1.4;" data-en="Genre, BPM, tuning, groove, scene, structure — auto-detected. The beat follows a real structure (sections), not just a loop.">Genre, BPM, accordage, groove, scène, structure — déduits automatiquement. Le beat suit une vraie structure (sections), pas une simple boucle.</div>
     </div>
     <div class="grid2" id="advGrid">
       <div class="cg">
-        <label>Style Metal</label>
+        <label data-en="Metal Style">Style Metal</label>
         <select id="style">
           <option value="thrash">Thrash Metal</option>
           <option value="death">Death Metal</option>
@@ -122,24 +122,24 @@
         </select>
       </div>
       <div class="cg">
-        <label>Scène (saveur régionale)</label>
+        <label data-en="Scene (regional flavor)">Scène (saveur régionale)</label>
         <select id="scene">
-          <option value="">— Aucune —</option>
-          <option value="norwegian">Norvégienne</option>
-          <option value="finnish">Finlandaise</option>
-          <option value="swedish">Suédoise</option>
-          <option value="german">Allemande</option>
-          <option value="american">Américaine</option>
-          <option value="canadian">Canadienne</option>
-          <option value="quebecois">Québécoise</option>
+          <option value="" data-en="— None —">— Aucune —</option>
+          <option value="norwegian" data-en="Norwegian">Norvégienne</option>
+          <option value="finnish" data-en="Finnish">Finlandaise</option>
+          <option value="swedish" data-en="Swedish">Suédoise</option>
+          <option value="german" data-en="German">Allemande</option>
+          <option value="american" data-en="American">Américaine</option>
+          <option value="canadian" data-en="Canadian">Canadienne</option>
+          <option value="quebecois" data-en="Québécois">Québécoise</option>
           <option value="bayarea">Bay Area (thrash)</option>
-          <option value="florida">Floride (death)</option>
+          <option value="florida" data-en="Florida (death)">Floride (death)</option>
           <option value="gothenburg">Göteborg (melodeath)</option>
-          <option value="stockholm">Stockholm (djent / polymétrie)</option>
+          <option value="stockholm" data-en="Stockholm (djent / polymeter)">Stockholm (djent / polymétrie)</option>
           <option value="nola">NOLA (sludge)</option>
-          <option value="french">Française (blackgaze)</option>
-          <option value="neoclassical">Néoclassique européenne</option>
-          <option value="brazilian">Brésilienne</option>
+          <option value="french" data-en="French (blackgaze)">Française (blackgaze)</option>
+          <option value="neoclassical" data-en="European neoclassical">Néoclassique européenne</option>
+          <option value="brazilian" data-en="Brazilian">Brésilienne</option>
         </select>
       </div>
       <div class="cg">
@@ -192,51 +192,51 @@
         </select>
       </div>
       <div class="cg">
-        <label>Ou importe TON groove MIDI </label>
+        <label data-en="Or import YOUR MIDI groove">Ou importe TON groove MIDI </label>
         <input type="file" id="midiDrum" accept=".mid,.midi">
-        <div class="sb" id="midiStatus" style="font-size:.58rem;color:var(--ash);">Menu actif. Charge un .mid pour utiliser TON groove (reste sur ton appareil).</div>
-        <button class="bs" id="midiClear" style="display:none;font-size:.6rem;padding:4px 10px;margin-top:5px;">Retirer — revenir au menu</button>
+        <div class="sb" id="midiStatus" style="font-size:.58rem;color:var(--ash);" data-en="Menu active. Load a .mid to use YOUR groove (stays on your device).">Menu actif. Charge un .mid pour utiliser TON groove (reste sur ton appareil).</div>
+        <button class="bs" id="midiClear" style="display:none;font-size:.6rem;padding:4px 10px;margin-top:5px;" data-en="Remove — back to menu">Retirer — revenir au menu</button>
       </div>
       <div class="cg">
-        <label>Structure (mesures)</label>
+        <label data-en="Structure (bars)">Structure (mesures)</label>
         <select id="structure">
-          <option value="loop">Loop — 4 mes. variées</option>
-          <option value="vbd">Couplet → Breakdown</option>
+          <option value="loop" data-en="Loop — 4 varied bars">Loop — 4 mes. variées</option>
+          <option value="vbd" data-en="Verse → Breakdown">Couplet → Breakdown</option>
           <option value="irbo">Intro → Riff → Breakdown</option>
           <option value="drop">Build-up → Drop</option>
           <option value="djent7">Djent — switch 7/8</option>
-          <option value="prog">Prog — métriques impaires</option>
-          <option value="buildup">Crescendo — lent → blast</option>
-          <option value="versechorus">Couplet → Refrain</option>
-          <option value="fullsong">Séquence complète (8 mesures)</option>
-          <option value="breakdownfest">Festival de Breakdowns</option>
-          <option value="blastassault">Assaut de Blast Beats</option>
-          <option value="doomcrawl">Doom — descente lente</option>
+          <option value="prog" data-en="Prog — odd meters">Prog — métriques impaires</option>
+          <option value="buildup" data-en="Crescendo — slow → blast">Crescendo — lent → blast</option>
+          <option value="versechorus" data-en="Verse → Chorus">Couplet → Refrain</option>
+          <option value="fullsong" data-en="Full sequence (8 bars)">Séquence complète (8 mesures)</option>
+          <option value="breakdownfest" data-en="Breakdown Fest">Festival de Breakdowns</option>
+          <option value="blastassault" data-en="Blast Beat Assault">Assaut de Blast Beats</option>
+          <option value="doomcrawl" data-en="Doom — slow descent">Doom — descente lente</option>
           <option value="gallop">Gallop Thrash</option>
-          <option value="odyssey">Odyssée — métriques impaires longues</option>
+          <option value="odyssey" data-en="Odyssey — long odd meters">Odyssée — métriques impaires longues</option>
         </select>
       </div>
       <div class="cg">
-        <label>Lead (mélodie)</label>
+        <label data-en="Lead (melody)">Lead (mélodie)</label>
         <select id="lead">
-          <option value="none">Aucun</option>
+          <option value="none" data-en="None">Aucun</option>
           <option value="saxophone">Saxophone</option>
-          <option value="violon">Violon</option>
-          <option value="guitarelec">Guitare électrique</option>
-          <option value="guitarclass">Guitare classique</option>
+          <option value="violon" data-en="Violin">Violon</option>
+          <option value="guitarelec" data-en="Electric guitar">Guitare électrique</option>
+          <option value="guitarclass" data-en="Classical guitar">Guitare classique</option>
           <option value="synth">Synth Lead</option>
-          <option value="cuivres">Cuivres</option>
+          <option value="cuivres" data-en="Brass">Cuivres</option>
         </select>
-        <div class="sb" style="font-size:.56rem;color:var(--ember);line-height:1.4;margin-top:4px;">Astuce : ajoute un lead pour une empreinte 100% unique — le .wav passe le filtre anti-copie de Suno.</div>
+        <div class="sb" style="font-size:.56rem;color:var(--ember);line-height:1.4;margin-top:4px;" data-en="Tip: add a lead for a 100% unique fingerprint — the .wav passes Suno's anti-copy filter.">Astuce : ajoute un lead pour une empreinte 100% unique — le .wav passe le filtre anti-copie de Suno.</div>
       </div>
     </div>
     <div class="grid2" style="margin-top:12px;">
       <div class="cg">
-        <label>Distorsion — <span id="distLbl">80</span>%</label>
+        <label data-en="Distortion — <span id=&quot;distLbl&quot;>80</span>%">Distorsion — <span id="distLbl">80</span>%</label>
         <input type="range" id="dist" min="10" max="100" value="80" oninput="document.getElementById('distLbl').textContent=this.value">
       </div>
       <div class="cg">
-        <label>Durée export — <span id="durLbl">15</span>s</label>
+        <label data-en="Export length — <span id=&quot;durLbl&quot;>15</span>s">Durée export — <span id="durLbl">15</span>s</label>
         <input type="range" id="dur" min="6" max="30" value="15" step="1" oninput="document.getElementById('durLbl').textContent=this.value">
       </div>
     </div>
@@ -245,24 +245,24 @@
   </div>
   <div class="rcol rcol-r">
   <div class="panel">
-    <h2>Séquenceur</h2>
+    <h2 data-en="Sequencer">Séquenceur</h2>
     <div class="tracks" id="tracksViz"></div>
   </div>
 
   <div class="panel">
-    <h2>Partition — Guitare · Basse · Batterie</h2>
-    <pre id="tabOut" style="font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--bone);overflow-x:auto;white-space:pre;line-height:1.5;margin:0;">Génère un riff pour voir la tablature</pre>
-    <div class="btn-row"><button class="bs" id="btnCopyTab" disabled>⧉ Copier la tab</button></div>
+    <h2 data-en="Score — Guitar · Bass · Drums">Partition — Guitare · Basse · Batterie</h2>
+    <pre id="tabOut" style="font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--bone);overflow-x:auto;white-space:pre;line-height:1.5;margin:0;" data-en="Generate a riff to see the tab">Génère un riff pour voir la tablature</pre>
+    <div class="btn-row"><button class="bs" id="btnCopyTab" disabled data-en="⧉ Copy tab">⧉ Copier la tab</button></div>
   </div>
 
   <div class="panel">
-    <h2>Lecture</h2>
+    <h2 data-en="Playback">Lecture</h2>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
       <span style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--ash);align-self:center;letter-spacing:.08em;">PRESETS:</span>
       <button class="bs" data-rp="death" style="font-size:.62rem;padding:6px 10px;">Death Brutal</button>
       <button class="bs" data-rp="thrash" style="font-size:.62rem;padding:6px 10px;">Thrash Attack</button>
       <button class="bs" data-rp="deathcore" style="font-size:.62rem;padding:6px 10px;">Deathcore Bounce</button>
-      <button class="bs" data-rp="black" style="font-size:.62rem;padding:6px 10px;">Black Symphonique</button>
+      <button class="bs" data-rp="black" style="font-size:.62rem;padding:6px 10px;" data-en="Symphonic Black">Black Symphonique</button>
       <button class="bs" data-rp="djent" style="font-size:.62rem;padding:6px 10px;">Djent Groove</button>
       <button class="bs" data-rp="doom" style="font-size:.62rem;padding:6px 10px;">Doom Crawl</button>
       <button class="bs" data-rp="groove" style="font-size:.62rem;padding:6px 10px;">Groove Stomp</button>
@@ -270,46 +270,54 @@
     </div>
     <canvas id="waveCanvas"></canvas>
     <div class="btn-row">
-      <button class="bp" id="btnGen">Générer</button>
+      <button class="bp" id="btnGen" data-en="Generate">Générer</button>
       <button class="bs" id="btnPlay" disabled>▶ Play</button>
       <button class="bs" id="btnStop" disabled>■ Stop</button>
     </div>
     <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--iron);">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-        <span style="font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--ember);letter-spacing:.08em;">SÉQUENCE (4 CLIPS) :</span>
-        <button class="bp" id="btnSong" style="font-size:.66rem;padding:7px 12px;">Générer la séquence (4 clips)</button>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--ember);letter-spacing:.08em;" data-en="SEQUENCE (4 CLIPS):">SÉQUENCE (4 CLIPS) :</span>
+        <button class="bp" id="btnSong" style="font-size:.66rem;padding:7px 12px;" data-en="Generate sequence (4 clips)">Générer la séquence (4 clips)</button>
       </div>
       <div class="btn-row" id="clipRow" style="display:none;margin-bottom:8px;">
         <button class="bs clipbtn" data-clip="1" disabled>Clip 1</button>
         <button class="bs clipbtn" data-clip="2" disabled>Clip 2</button>
         <button class="bs clipbtn" data-clip="3" disabled>Clip 3</button>
         <button class="bs clipbtn" data-clip="4" disabled>Clip 4</button>
-        <button class="bs" id="btnReclip" disabled title="Régénère le clip sélectionné">↻ Ce clip</button>
+        <button class="bs" id="btnReclip" disabled title="Régénère le clip sélectionné" data-en="↻ This clip" data-title-en="Regenerate selected clip">↻ Ce clip</button>
       </div>
       <div class="btn-row" id="songRow" style="display:none;">
-        <button class="bp" id="btnPlaySong">▶ Jouer la séquence 1→2→3→4</button>
+        <button class="bp" id="btnPlaySong" data-en="▶ Play sequence 1→2→3→4">▶ Jouer la séquence 1→2→3→4</button>
         <button class="bs" id="btnStopSong">■ Stop</button>
       </div>
     </div>
-    <div class="sb"><div class="dot" id="dotPlay"></div><span id="txtPlay">Configure et génère un riff</span></div>
+    <div class="sb"><div class="dot" id="dotPlay"></div><span id="txtPlay" data-en="Set up and generate a riff">Configure et génère un riff</span></div>
     <div id="promptBox" style="display:none;margin-top:12px;">
-      <div style="background:#0c0f0c;border:1px solid #1f3a1f;border-radius:6px;padding:9px 11px;font-size:.62rem;color:#9fd09f;line-height:1.55;">Beat MIDI synthétisé de zéro : 100% original, Suno ne peut pas le matcher. <strong>Export le .wav</strong> et uploade-le comme « Audio Influence » dans Suno. Pour le prompt texte, utilise celui de l'onglet <strong>Forge</strong>.</div>
+      <div style="background:#0c0f0c;border:1px solid #1f3a1f;border-radius:6px;padding:9px 11px;font-size:.62rem;color:#9fd09f;line-height:1.55;" data-en="MIDI beat synthesized from scratch: 100% original, Suno can't match it. <strong>Export the .wav</strong> and upload it as &quot;Audio Influence&quot; in Suno. For the text prompt, use the one from the <strong>Forge</strong> tab.">Beat MIDI synthétisé de zéro : 100% original, Suno ne peut pas le matcher. <strong>Export le .wav</strong> et uploade-le comme « Audio Influence » dans Suno. Pour le prompt texte, utilise celui de l'onglet <strong>Forge</strong>.</div>
     </div>
   </div>
 
   <div class="panel">
     <h2>Export WAV → Suno</h2>
-    <p class="dl-info">Render offline → télécharge le <strong>.wav</strong> prêt pour <strong>Suno Style Reference</strong>.<br>Durée ajustable dans les paramètres (6–30s). 15s recommandé.</p>
+    <p class="dl-info" data-en="Offline render → download the <strong>.wav</strong> ready for <strong>Suno Style Reference</strong>.<br>Length adjustable in settings (6–30s). 15s recommended.">Render offline → télécharge le <strong>.wav</strong> prêt pour <strong>Suno Style Reference</strong>.<br>Durée ajustable dans les paramètres (6–30s). 15s recommandé.</p>
     <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
     <div class="btn-row">
       <button class="bp" id="btnRender" disabled>⏺ Render clip / riff</button>
-      <button class="bs" id="btnRenderSong" disabled>⤓ Export séquence complète</button>
+      <button class="bs" id="btnRenderSong" disabled data-en="⤓ Export full sequence">⤓ Export séquence complète</button>
     </div>
-    <div class="sb"><div class="dot" id="dotRec"></div><span id="txtRec">Génère un riff d'abord</span></div>
+    <div class="sb"><div class="dot" id="dotRec"></div><span id="txtRec" data-en="Generate a riff first">Génère un riff d'abord</span></div>
   </div>
   </div>
 </main>
 <script>
+// ── i18n : langue lue depuis ?lang= (passée par App) ou <html lang>. T(fr,en) pour les chaînes dynamiques. ──
+const LANG=(new URLSearchParams(location.search).get('lang')||document.documentElement.getAttribute('lang')||'fr').toLowerCase().startsWith('en')?'en':'fr';
+const T=(fr,en)=>LANG==='en'?en:fr;
+if(LANG==='en'){document.documentElement.setAttribute('lang','en');
+  document.querySelectorAll('[data-en]').forEach(el=>{el.innerHTML=el.getAttribute('data-en');});
+  document.querySelectorAll('[data-ph-en]').forEach(el=>{el.setAttribute('placeholder',el.getAttribute('data-ph-en'));});
+  document.querySelectorAll('[data-title-en]').forEach(el=>{el.setAttribute('title',el.getAttribute('data-title-en'));});
+}
 // ── Patterns + arrangement + tablature : logique secrète déplacée côté serveur (/api/riff) ──
 // Le client n'envoie que des paramètres et reçoit l'arrangement déjà calculé.
 
@@ -508,7 +516,7 @@ function stopPlay(){
   seqs.forEach(s=>{try{s.stop();s.dispose();}catch(e){}});seqs=[];
   isPlaying=false;cancelAnimationFrame(animF);hlStep(-1);
   document.getElementById('dotPlay').className='dot';
-  document.getElementById('txtPlay').textContent='Arrêté';
+  document.getElementById('txtPlay').textContent=T('Arrêté','Stopped');
   document.getElementById('btnPlay').disabled=false;
   document.getElementById('btnStop').disabled=true;
 }
@@ -531,7 +539,7 @@ async function renderAndDownload(p){
   const totalSamples=Math.ceil((totalSteps*stepDur+0.4)*sr);
 
   document.getElementById('dotRec').className='dot rec';
-  document.getElementById('txtRec').textContent=`Render ${dur}s en cours…`;
+  document.getElementById('txtRec').textContent=T(`Render ${dur}s en cours…`,`Rendering ${dur}s…`);
   document.getElementById('btnRender').disabled=true;
 
   const off=new OfflineAudioContext(2,totalSamples,sr);
@@ -634,7 +642,7 @@ async function renderAndDownload(p){
 
   let rendered;
   try{rendered=await off.startRendering();}
-  catch(e){clearInterval(ticker);document.getElementById('txtRec').textContent='Erreur: '+e.message;document.getElementById('btnRender').disabled=false;return;}
+  catch(e){clearInterval(ticker);document.getElementById('txtRec').textContent=T('Erreur: ','Error: ')+e.message;document.getElementById('btnRender').disabled=false;return;}
   clearInterval(ticker);
   prog.style.width='100%';
 
@@ -646,7 +654,7 @@ async function renderAndDownload(p){
   triggerDownload(wav,fname);
 
   document.getElementById('dotRec').className='dot';
-  document.getElementById('txtRec').textContent=`${dur}s · ${bpm} BPM · ${p.root} — téléchargement lancé`;
+  document.getElementById('txtRec').textContent=`${dur}s · ${bpm} BPM · ${p.root} — `+T('téléchargement lancé','download started');
   document.getElementById('btnRender').disabled=false;
   setTimeout(()=>{prog.style.width='0%';},2000);
 }
@@ -698,31 +706,31 @@ const IS_ELITE=['elite','eliteplus'].includes(new URLSearchParams(location.searc
     const g=document.getElementById('eliteGroup');
     if(g){g.label='ELITE 🔒';[...g.children].forEach(o=>{o.disabled=true;o.textContent='🔒 '+o.textContent;});}
     const tab=document.getElementById('tabOut');
-    if(tab)tab.textContent='🔒 Tablature ASCII — réservée aux comptes Elite';
+    if(tab)tab.textContent=T('🔒 Tablature ASCII — réservée aux comptes Elite','🔒 ASCII tab — Elite accounts only');
   }
 })();
 
 // ── EVENTS ──
 document.getElementById('midiDrum').addEventListener('change',async(e)=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const st=document.getElementById('midiStatus');st.textContent='Lecture…';
+  const st=document.getElementById('midiStatus');st.textContent=T('Lecture…','Reading…');
   try{
     const r=parseMidiToDrum(await f.arrayBuffer());
-    if(!r){importedDrum=null;st.textContent='⚠ MIDI illisible ou vide';return;}
+    if(!r){importedDrum=null;st.textContent=T('⚠ MIDI illisible ou vide','⚠ MIDI unreadable or empty');return;}
     importedDrum=r;
-    st.innerHTML='<b style="color:var(--ember-hot)">'+f.name+'</b> ACTIF — remplace le menu. Clique Générer.';
+    st.innerHTML='<b style="color:var(--ember-hot)">'+f.name+'</b>'+T(' ACTIF — remplace le menu. Clique Générer.',' ACTIVE — replaces the menu. Click Generate.');
     document.getElementById('midiClear').style.display='inline-block';
   }catch(err){importedDrum=null;st.textContent='⚠ '+(err.message||'erreur');}
 });
 document.getElementById('midiClear').addEventListener('click',()=>{
   importedDrum=null;document.getElementById('midiDrum').value='';
-  document.getElementById('midiStatus').textContent='Menu Pattern Drums actif.';
+  document.getElementById('midiStatus').textContent=T('Menu Pattern Drums actif.','Drums pattern menu active.');
   document.getElementById('midiClear').style.display='none';
 });
 document.getElementById('drums').addEventListener('change',()=>{
   if(importedDrum){importedDrum=null;document.getElementById('midiDrum').value='';
     document.getElementById('midiClear').style.display='none';
-    document.getElementById('midiStatus').textContent='Menu Pattern Drums actif (MIDI retiré).';}
+    document.getElementById('midiStatus').textContent=T('Menu Pattern Drums actif (MIDI retiré).','Drums pattern menu active (MIDI removed).');}
 });
 let riffMode='auto';
 function setRiffMode(m){
@@ -739,7 +747,7 @@ setRiffMode('auto');
 (function(){
   var _qp=new URLSearchParams(location.search).get('prompt');
   if(_qp){var _ta=document.getElementById('promptIn');if(_ta){_ta.value=_qp;setRiffMode('auto');
-    var _tp=document.getElementById('txtPlay');if(_tp)_tp.textContent='Prompt importé du Forge — clique Générer pour le beat';}}
+    var _tp=document.getElementById('txtPlay');if(_tp)_tp.textContent=T('Prompt importé du Forge — clique Générer pour le beat','Prompt imported from Forge — click Generate for the beat');}}
 })();
 document.getElementById('btnGen').addEventListener('click',async()=>{
   const tier=new URLSearchParams(location.search).get('tier')||'free';
@@ -763,7 +771,7 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
     tier,
   };
   const btn=document.getElementById('btnGen');btn.disabled=true;
-  document.getElementById('txtPlay').textContent='Génération…';
+  document.getElementById('txtPlay').textContent=T('Génération…','Generating…');
   let data;
   try{
     const r=await fetch('/api/riff',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -782,16 +790,16 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
   document.getElementById('btnCopyTab').disabled=!IS_ELITE;
   document.getElementById('btnPlay').disabled=false;
   document.getElementById('btnRender').disabled=false;
-  document.getElementById('txtRec').textContent='Prêt à render';
-  document.getElementById('txtPlay').textContent='Riff généré — '+currentPat.style+' · '+currentPat.bpm+' BPM';
+  document.getElementById('txtRec').textContent=T('Prêt à render','Ready to render');
+  document.getElementById('txtPlay').textContent=T('Riff généré — ','Riff generated — ')+currentPat.style+' · '+currentPat.bpm+' BPM';
   document.getElementById('promptBox').style.display='block';
 });
-document.getElementById('btnPlay').addEventListener('click',async()=>{try{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat);}else{document.getElementById('txtPlay').textContent='⚠ Genere un riff d\'abord';}}catch(e){document.getElementById('txtPlay').textContent='⚠ ERREUR PLAY: '+(e&&e.message?e.message:e);console.error('PLAY ERROR',e);}});
+document.getElementById('btnPlay').addEventListener('click',async()=>{try{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat);}else{document.getElementById('txtPlay').textContent=T('⚠ Genere un riff d\'abord','⚠ Generate a riff first');}}catch(e){document.getElementById('txtPlay').textContent=T('⚠ ERREUR PLAY: ','⚠ PLAY ERROR: ')+(e&&e.message?e.message:e);console.error('PLAY ERROR',e);}});
 document.getElementById('btnStop').addEventListener('click',stopPlay);
 document.getElementById('btnRender').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await renderAndDownload(currentPat);}});
 document.getElementById('btnCopyTab').addEventListener('click',()=>{
   const txt=document.getElementById('tabOut').textContent;
-  navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('btnCopyTab');b.textContent='Copié';setTimeout(()=>b.textContent='⧉ Copier la tab',1500);});
+  navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('btnCopyTab');b.textContent=T('Copié','Copied');setTimeout(()=>b.textContent=T('⧉ Copier la tab','⧉ Copy tab'),1500);});
 });
 const RIFF_PRESETS={
   death:    {style:'death',bpm:200,tuning:'B1',drums:'blast_beat',structure:'blastassault',lead:'none'},
@@ -825,7 +833,7 @@ document.getElementById('scene').addEventListener('change',function(){
   setRiffMode('adv');
   const set=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
   set('style',pr.style);set('bpm',pr.bpm);set('tuning',pr.tuning);set('drums',pr.drums);set('structure',pr.structure);set('lead',pr.lead);
-  const st=document.getElementById('midiStatus');if(st)st.textContent='Scène appliquée : contrôles calés sur la signature régionale — ajuste si tu veux, puis génère.';
+  const st=document.getElementById('midiStatus');if(st)st.textContent=T('Scène appliquée : contrôles calés sur la signature régionale — ajuste si tu veux, puis génère.','Scene applied: controls set to the regional signature — tweak if you want, then generate.');
 });
 document.querySelectorAll('[data-rp]').forEach(b=>b.addEventListener('click',()=>{
   const pr=RIFF_PRESETS[b.dataset.rp];if(!pr)return;
@@ -872,7 +880,7 @@ function setActiveClip(i){
 }
 document.getElementById('btnSong').addEventListener('click',async()=>{
   const btn=document.getElementById('btnSong');btn.disabled=true;
-  document.getElementById('txtPlay').textContent='Génération de la séquence (4 clips)…';
+  document.getElementById('txtPlay').textContent=T('Génération de la séquence (4 clips)…','Generating sequence (4 clips)…');
   try{
     const res=await Promise.all([1,2,3,4].map(n=>riffFetch(riffBody({section:n}))));
     songClips=res;
@@ -885,7 +893,7 @@ document.getElementById('btnSong').addEventListener('click',async()=>{
     document.getElementById('btnRenderSong').disabled=false;
     document.getElementById('promptBox').style.display='block';
     setActiveClip(0);
-    document.getElementById('txtPlay').textContent='Séquence générée — 4 clips prêts (édite ou joue)';
+    document.getElementById('txtPlay').textContent=T('Séquence générée — 4 clips prêts (édite ou joue)','Sequence generated — 4 clips ready (edit or play)');
   }catch(e){document.getElementById('txtPlay').textContent='⚠ '+(e.message||'Erreur');}
   btn.disabled=false;
 });
@@ -896,14 +904,14 @@ document.querySelectorAll('.clipbtn').forEach(b=>b.addEventListener('click',asyn
 document.getElementById('btnReclip').addEventListener('click',async()=>{
   const i=activeClip,btn=document.getElementById('btnReclip');btn.disabled=true;
   try{const d=await riffFetch(riffBody({section:i+1}));songClips[i]=d;setActiveClip(i);
-    document.getElementById('txtPlay').textContent='Clip '+(i+1)+' régénéré';}
+    document.getElementById('txtPlay').textContent='Clip '+(i+1)+T(' régénéré',' regenerated');}
   catch(e){document.getElementById('txtPlay').textContent='⚠ '+(e.message||'Erreur');}
   btn.disabled=false;
 });
 document.getElementById('btnPlaySong').addEventListener('click',async()=>{
   if(!songClips.find(Boolean))return;
   try{if(isPlaying)stopPlay();await startPlay(songPattern());
-    document.getElementById('txtPlay').textContent='▶ Séquence complète 1→2→3→4';}catch(e){}
+    document.getElementById('txtPlay').textContent=T('▶ Séquence complète 1→2→3→4','▶ Full sequence 1→2→3→4');}catch(e){}
 });
 document.getElementById('btnStopSong').addEventListener('click',stopPlay);
 document.getElementById('btnRenderSong').addEventListener('click',async()=>{

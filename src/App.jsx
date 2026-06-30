@@ -76,32 +76,32 @@ const css = `
 const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal","hard rock","heavy metal","proto-metal","blues rock","traditional heavy metal","nwobhm","speed metal","power metal","glam metal","punk rock","hardcore punk","crossover thrash","d-beat","powerviolence","rapcore","post-black metal","blackgaze","technical deathcore","deathgrind","brutal death metal","drone metal","atmospheric sludge metal","depressive black metal"];
 // Genres groupés par ÉPOQUE (arbre généalogique du metal) — styles seulement, tier conservé
 const GENRE_FAMILIES = [
-  {name:"Années 60-70 (Racines)", icon:"", genres:[
+  {name:"Années 60-70 (Racines)", nameEn:"60s-70s (Roots)", icon:"",genres:[
     {g:"hard rock",req:"free"},{g:"heavy metal",req:"free"},{g:"punk rock",req:"free"},{g:"proto-metal",req:"forge"},{g:"blues rock",req:"forge"},
   ]},
-  {name:"Années 80", icon:"", genres:[
+  {name:"Années 80", nameEn:"80s", icon:"",genres:[
     {g:"traditional heavy metal",req:"forge"},{g:"nwobhm",req:"forge"},{g:"speed metal",req:"forge"},{g:"power metal",req:"forge"},{g:"glam metal",req:"forge"},
     {g:"thrash metal",req:"forge"},{g:"hardcore punk",req:"forge"},{g:"crossover thrash",req:"forge"},{g:"d-beat",req:"forge"},
     {g:"death metal",req:"free"},{g:"black metal",req:"forge"},{g:"doom metal",req:"forge"},{g:"grindcore",req:"forge"},
   ]},
-  {name:"Années 90", icon:"", genres:[
+  {name:"Années 90", nameEn:"90s", icon:"", genres:[
     {g:"groove metal",req:"free"},{g:"metalcore",req:"free"},{g:"nu-metal",req:"forge"},{g:"rapcore",req:"forge"},{g:"alternative metal",req:"forge"},{g:"powerviolence",req:"forge"},
     {g:"melodic death metal",req:"forge"},{g:"technical death metal",req:"forge"},{g:"mathcore",req:"forge"},{g:"beatdown hardcore",req:"forge"},{g:"industrial metal",req:"forge"},{g:"symphonic metal",req:"forge"},
     {g:"blackened death metal",req:"forge"},{g:"atmospheric black metal",req:"forge"},{g:"funeral doom",req:"forge"},{g:"sludge metal",req:"forge"},{g:"post-metal",req:"forge"},{g:"progressive metal",req:"forge"},
     {g:"deathgrind",req:"forge"},{g:"brutal death metal",req:"forge"},{g:"drone metal",req:"elite"},
   ]},
-  {name:"Années 2000", icon:"", genres:[
+  {name:"Années 2000", nameEn:"2000s", icon:"", genres:[
     {g:"deathcore",req:"free"},{g:"melodic deathcore",req:"forge"},{g:"melodic metalcore",req:"forge"},{g:"post-hardcore",req:"forge"},
     {g:"blackened deathcore",req:"forge"},
     {g:"slam metal",req:"forge"},{g:"dissonant death metal",req:"forge"},{g:"avant-garde metal",req:"forge"},
     {g:"atmospheric sludge metal",req:"forge"},{g:"depressive black metal",req:"elite"},
   ]},
-  {name:"Années 2010", icon:"", genres:[
+  {name:"Années 2010", nameEn:"2010s", icon:"", genres:[
     {g:"djent",req:"forge"},{g:"modern metalcore",req:"forge"},
     {g:"progressive metalcore",req:"forge"},{g:"electronicore",req:"forge"},{g:"arena metalcore",req:"forge"},{g:"atmospheric metalcore",req:"forge"},
     {g:"post-black metal",req:"forge"},{g:"blackgaze",req:"forge"},{g:"technical deathcore",req:"forge"},
   ]},
-  {name:"Années 2020", icon:"", genres:[
+  {name:"Années 2020", nameEn:"2020s", icon:"", genres:[
     {g:"synth metalcore",req:"forge"},
     {g:"ambient metalcore",req:"forge"},{g:"pop metalcore",req:"forge"},{g:"progressive post-hardcore",req:"forge"},{g:"modern alternative metal",req:"forge"},
   ]},
@@ -111,19 +111,19 @@ const MOOD     = ["crushing and heavy","sinister and dark","chaotic and frantic"
 // Drums (style) : remplacé par DRUM_ERAS (par époque).
 const DRUM_PROD= ["triggered drums","live drum sound","massive snare","clicky kick drum","trashy cymbals","programmed drums","natural room drums","reverb-heavy drums","punchy compressed drums","organic acoustic kit","raw garage drums","tight modern production","huge ambient drums","lo-fi drum sound"];
 const DRUM_ERAS = [
-  {name:"Années 60-70 (Racines)", icon:"", d:[
+  {name:"Années 60-70 (Racines)", nameEn:"60s-70s (Roots)", icon:"",d:[
     {v:"straight rock beat",req:"free"},{v:"four-on-the-floor",req:"free"},{v:"bluesy shuffle",req:"free"},{v:"swing groove",req:"forge"},{v:"big room toms",req:"forge"},
   ]},
-  {name:"Années 80", icon:"", d:[
+  {name:"Années 80", nameEn:"80s", icon:"",d:[
     {v:"double bass drumming",req:"free"},{v:"d-beat",req:"free"},{v:"thrash beat",req:"free"},{v:"skank beat",req:"forge"},{v:"galloping drums",req:"forge"},
   ]},
-  {name:"90s", icon:"", d:[
+  {name:"Années 90", nameEn:"90s", icon:"",d:[
     {v:"blast beats",req:"free"},{v:"groovy mid-tempo drums",req:"free"},{v:"half-time groove",req:"free"},{v:"two-step beat",req:"forge"},{v:"tom-heavy fills",req:"forge"},{v:"tribal toms",req:"forge"},{v:"hyperblast beats",req:"pro"},
   ]},
-  {name:"2000s", icon:"", d:[
+  {name:"Années 2000", nameEn:"2000s", icon:"",d:[
     {v:"machine-gun double bass",req:"free"},{v:"stomp breakdown drums",req:"free"},{v:"deathcore groove",req:"free"},{v:"breakbeat percussion",req:"forge"},{v:"china cymbal accents",req:"forge"},{v:"bounce groove",req:"forge"},{v:"gravity blast beats",req:"pro"},
   ]},
-  {name:"Moderne (10-20s)", icon:"", d:[
+  {name:"Moderne (10-20s)", nameEn:"Modern (10-20s)", icon:"",d:[
     {v:"polyrhythmic drums",req:"forge"},{v:"syncopated rhythms",req:"forge"},{v:"djent groove",req:"pro"},{v:"math metal drums",req:"pro"},{v:"ghost-note drumming",req:"forge"},{v:"tribal drumming",req:"forge"},{v:"modern hybrid blast",req:"elite"},
   ]},
 ];
@@ -132,26 +132,26 @@ const DRUM_NEW = ["thrash beat","galloping drums","two-step beat","deathcore gro
 // Vocals : listes par tier remplacées par VOCAL_ERAS (par époque). VOCAL_NEW conservé pour les badges.
 // Voix par ÉPOQUE (bibliothèque enrichie · tier conservé) — mélange les ères pour des hybrides uniques
 const VOCAL_ERAS = [
-  {name:"Années 60-70 (Racines)", icon:"", vox:[
+  {name:"Années 60-70 (Racines)", nameEn:"60s-70s (Roots)", icon:"",vox:[
     {v:"bluesy clean vocals",req:"free"},{v:"raw rock vocals",req:"free"},{v:"soulful clean singing",req:"free"},{v:"high wailing vocals",req:"forge"},{v:"psychedelic vocals",req:"forge"},
   ]},
-  {name:"Classique (80s)", icon:"", vox:[
+  {name:"Classique (80s)", nameEn:"Classic (80s)", icon:"", vox:[
     {v:"clean powerful vocals",req:"free"},{v:"melodic clean singing",req:"free"},{v:"high-pitched screams",req:"free"},
     {v:"clean melodic chorus vocals",req:"forge"},{v:"heavy metal wails",req:"forge"},{v:"anthemic clean vocals",req:"forge"},
     {v:"falsetto screams",req:"forge"},{v:"operatic vocals",req:"forge"},
   ]},
-  {name:"90s", icon:"", vox:[
+  {name:"Années 90", nameEn:"90s", icon:"",vox:[
     {v:"guttural death growls",req:"free"},{v:"raspy harsh vocals",req:"free"},{v:"low death growls",req:"forge"},
     {v:"mid-range harsh vocals",req:"forge"},{v:"raspy mid screams",req:"forge"},{v:"tortured screams",req:"forge"},
     {v:"black metal shrieks",req:"forge"},{v:"low false-chord growls",req:"forge"},{v:"doom clean chants",req:"forge"},
   ]},
-  {name:"2000s", icon:"", vox:[
+  {name:"Années 2000", nameEn:"2000s", icon:"",vox:[
     {v:"metalcore screams",req:"free"},{v:"pig squeals",req:"free"},{v:"deathcore lows",req:"forge"},
     {v:"gang shouts",req:"forge"},{v:"layered harsh vocals",req:"forge"},{v:"screamo screams",req:"forge"},
     {v:"guttural gurgles",req:"forge"},{v:"clean and scream combo",req:"forge"},
     {v:"rapped vocals",req:"forge"},{v:"aggressive rap vocals",req:"forge"},
   ]},
-  {name:"Moderne (10-20s)", icon:"", vox:[
+  {name:"Moderne (10-20s)", nameEn:"Modern (10-20s)", icon:"",vox:[
     {v:"hardcore beatdown vocals",req:"forge"},
     {v:"whispered spoken word",req:"forge"},{v:"demonic inhale vocals",req:"forge"},{v:"whisper-to-scream dynamics",req:"forge"},{v:"fry screams",req:"forge"},{v:"modern clean and harsh mix",req:"forge"},
     {v:"tunnel-throat gutturals",req:"forge"},{v:"goblin vocals",req:"forge"},{v:"throat singing",req:"forge"},{v:"spoken word narration",req:"forge"},{v:"choir vocals",req:"forge"},{v:"heavy breathing",req:"forge"},{v:"powerful belt",req:"forge"},{v:"ritual chant",req:"forge"},{v:"pitched-up shrieks",req:"forge"},
@@ -163,19 +163,19 @@ const VFX    = ["vocal reverb","vocal distortion","pitch-shifted vocals","dual v
 const VOCAL_RANGE = ["piccolo highs","tenor","baritone","bass vocals","falsetto","soprano","alto","mezzo-soprano","countertenor","false chord highs","fry screams","mid-range screams","low gutturals","subharmonic lows","tunnel-throat lows"];
 // Guitar (techniques) : remplacé par GUITAR_ERAS (par époque).
 const GUITAR_ERAS = [
-  {name:"Années 60-70 (Racines)", icon:"", d:[
+  {name:"Années 60-70 (Racines)", nameEn:"60s-70s (Roots)", icon:"",d:[
     {v:"bluesy bends",req:"free"},{v:"pentatonic riffs",req:"free"},{v:"fuzz riffs",req:"free"},{v:"wah-wah leads",req:"forge"},{v:"vintage overdrive licks",req:"forge"},
   ]},
-  {name:"Années 80", icon:"", d:[
+  {name:"Années 80", nameEn:"80s", icon:"",d:[
     {v:"palm muting",req:"free"},{v:"tremolo picking",req:"free"},{v:"galloping riffs",req:"free"},{v:"sweep picking solos",req:"forge"},{v:"tapping",req:"forge"},{v:"whammy bar dives",req:"forge"},{v:"melodic shred solos",req:"pro"},
   ]},
-  {name:"90s", icon:"", d:[
+  {name:"Années 90", nameEn:"90s", icon:"",d:[
     {v:"chugging riffs",req:"free"},{v:"pinch harmonics",req:"free"},{v:"groove riffs",req:"free"},{v:"open string riffs",req:"forge"},{v:"drop-tuned riffs",req:"forge"},
   ]},
-  {name:"2000s", icon:"", d:[
+  {name:"Années 2000", nameEn:"2000s", icon:"",d:[
     {v:"breakdown chugs",req:"free"},{v:"legato runs",req:"forge"},{v:"dual guitar harmonies",req:"forge"},{v:"melodic lead harmonies",req:"pro"},
   ]},
-  {name:"Moderne (10-20s)", icon:"", d:[
+  {name:"Moderne (10-20s)", nameEn:"Modern (10-20s)", icon:"",d:[
     {v:"djent-style syncopated riffs",req:"forge"},{v:"polymetric riffs",req:"pro"},{v:"tapped arpeggios",req:"pro"},{v:"djent chug-stutter",req:"pro"},{v:"dissonant riffs",req:"forge"},{v:"8-string staccato chugs",req:"pro"},{v:"ambient lead textures",req:"elite"},
   ]},
 ];
@@ -199,16 +199,16 @@ const ORG_GUITAR = ["tube amp recording","cabinet mic'd","natural pick attack","
 const ORG_AVOID  = ["perfect production","polished mix","crisp","digital","quantized","pitch corrected","over-produced","clean mix"];
 // Émotions — méta d'affichage seulement (la recette émotion->tags vit dans /api/forge, secrète)
 const EMOTIONS=[
-  {id:'rage',label:'Rage',icon:'',c:'#ff2e2e'},
-  {id:'melancholy',label:'Mélancolie',icon:'',c:'#5a8fd0'},
-  {id:'despair',label:'Désespoir',icon:'',c:'#888'},
-  {id:'triumph',label:'Triomphe',icon:'',c:'#ffcc00'},
-  {id:'coldness',label:'Froideur',icon:'',c:'#7fd0ff'},
-  {id:'defiance',label:'Défiance',icon:'',c:'#ff7a00'},
-  {id:'dread',label:'Effroi',icon:'',c:'#9b59b6'},
-  {id:'transcendence',label:'Transcendance',icon:'',c:'#b06bff'},
-  {id:'madness',label:'Démence',icon:'',c:'#e91e8c'},
-  {id:'profanation',label:'Profanation',icon:'',c:'#b00710'},
+  {id:'rage',label:'Rage',labelEn:'Rage',icon:'',c:'#ff2e2e'},
+  {id:'melancholy',label:'Mélancolie',labelEn:'Melancholy',icon:'',c:'#5a8fd0'},
+  {id:'despair',label:'Désespoir',labelEn:'Despair',icon:'',c:'#888'},
+  {id:'triumph',label:'Triomphe',labelEn:'Triumph',icon:'',c:'#ffcc00'},
+  {id:'coldness',label:'Froideur',labelEn:'Coldness',icon:'',c:'#7fd0ff'},
+  {id:'defiance',label:'Défiance',labelEn:'Defiance',icon:'',c:'#ff7a00'},
+  {id:'dread',label:'Effroi',labelEn:'Dread',icon:'',c:'#9b59b6'},
+  {id:'transcendence',label:'Transcendance',labelEn:'Transcendence',icon:'',c:'#b06bff'},
+  {id:'madness',label:'Démence',labelEn:'Madness',icon:'',c:'#e91e8c'},
+  {id:'profanation',label:'Profanation',labelEn:'Profanation',icon:'',c:'#b00710'},
 ];
 const EMO_LIMIT={free:2,forge:10,pro:10,elite:10,eliteplus:10};
 const EXCL_GENRES = ["pop","jazz","classical","country","r&b","hip hop","electronic","edm","ambient","folk","reggae","latin","disco","funk","soul","gospel","blues","indie pop","synthpop","new age"];
@@ -1402,7 +1402,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             const open=f?true:!!openFam[fam.name];
             return (<div key={fam.name} style={{borderTop:"1px solid #1a1a1a"}}>
               <div onClick={()=>!f&&setOpenFam(p=>({...p,[fam.name]:!open}))} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:f?"default":"pointer",userSelect:"none",padding:"10px 2px"}}>
-                <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{fam.icon} {fam.name.toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
+                <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{fam.icon} {L(fam.name,fam.nameEn||fam.name).toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
                 <span style={{color:"#777",fontSize:"0.75rem"}}>{open?"▾":"▸"}</span>
               </div>
               {open&&<div style={{marginBottom:"8px"}}><Tags list={list} sel={genres} toggle={onGenrePick} lockedItems={locked} newItems={GENRES_NEW} filter={genreFilter}/></div>}
@@ -1425,11 +1425,11 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {EMOTIONS.map((e,i)=>{
             const lim=Math.min(10,EMO_LIMIT[userTier]||2);const locked=i>=lim;const v=emotions[e.id]||0;
             if(locked) return (<div key={e.id} onClick={()=>setShowPaywall(true)} style={{display:"flex",alignItems:"center",gap:"8px",padding:"5px 0",opacity:0.4,cursor:"pointer"}}>
-              <span style={{fontSize:"0.72rem",width:"120px"}}>🔒 {e.icon} {e.label}</span>
+              <span style={{fontSize:"0.72rem",width:"120px"}}>🔒 {e.icon} {L(e.label,e.labelEn||e.label)}</span>
               <span style={{fontSize:"0.55rem",color:RED,fontWeight:700}}>{L("Tier supérieur","Upgrade")}</span>
             </div>);
             return (<div key={e.id} style={{display:"flex",alignItems:"center",gap:"8px",padding:"4px 0"}}>
-              <span style={{fontSize:"0.72rem",width:"120px",color:v>0?e.c:"#aaa"}}>{e.icon} {e.label}</span>
+              <span style={{fontSize:"0.72rem",width:"120px",color:v>0?e.c:"#aaa"}}>{e.icon} {L(e.label,e.labelEn||e.label)}</span>
               <input type="range" min="0" max="100" step="5" value={v} onChange={ev=>setEmotions(p=>({...p,[e.id]:+ev.target.value}))} style={{flex:1,accentColor:e.c}}/>
               <span style={{fontSize:"0.62rem",fontFamily:"monospace",color:v>0?e.c:"#555",width:"30px",textAlign:"right"}}>{v}</span>
             </div>);
@@ -1453,7 +1453,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             const open=f?true:!!openDrumEra[era.name];
             return (<div key={era.name} style={{borderTop:"1px solid #1a1a1a"}}>
               <div onClick={()=>!f&&setOpenDrumEra(p=>({...p,[era.name]:!open}))} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:f?"default":"pointer",userSelect:"none",padding:"10px 2px"}}>
-                <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{era.icon} {era.name.toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
+                <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{era.icon} {L(era.name,era.nameEn||era.name).toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
                 <span style={{color:"#777",fontSize:"0.75rem"}}>{open?"▾":"▸"}</span>
               </div>
               {open&&<div style={{marginBottom:"8px"}}><Tags list={list} sel={drums} toggle={tDrums} lockedItems={locked} newItems={DRUM_NEW} filter={drumFilter}/></div>}
@@ -1498,7 +1498,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             const open=f?true:!!openVocEra[era.name];
             return (<div key={era.name} style={{borderTop:"1px solid #1a1a1a"}}>
               <div onClick={()=>!f&&setOpenVocEra(p=>({...p,[era.name]:!open}))} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:f?"default":"pointer",userSelect:"none",padding:"10px 2px"}}>
-                <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{era.icon} {era.name.toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
+                <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{era.icon} {L(era.name,era.nameEn||era.name).toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
                 <span style={{color:"#777",fontSize:"0.75rem"}}>{open?"▾":"▸"}</span>
               </div>
               {open&&<div style={{marginBottom:"8px"}}><Tags list={list} sel={vocals} toggle={tVocal} lockedItems={locked} newItems={VOCAL_NEW} filter={vocFilter}/></div>}
@@ -1527,7 +1527,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             const open=f?true:!!openGtrEra[era.name];
             return (<div key={era.name} style={{borderTop:"1px solid #1a1a1a"}}>
               <div onClick={()=>!f&&setOpenGtrEra(p=>({...p,[era.name]:!open}))} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:f?"default":"pointer",userSelect:"none",padding:"10px 2px"}}>
-                <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{era.icon} {era.name.toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
+                <span style={{fontSize:"0.62rem",color:"#bbb",letterSpacing:"1.5px",fontWeight:700}}>{era.icon} {L(era.name,era.nameEn||era.name).toUpperCase()} <span style={{color:"#555"}}>({list.length})</span>{selCount>0&&<span style={{marginLeft:"7px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 6px"}}>{selCount}</span>}</span>
                 <span style={{color:"#777",fontSize:"0.75rem"}}>{open?"▾":"▸"}</span>
               </div>
               {open&&<div style={{marginBottom:"8px"}}><Tags list={list} sel={guitar} toggle={tGuitar} lockedItems={locked} newItems={GUITAR_NEW} filter={gtrFilter}/></div>}
@@ -1682,7 +1682,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un riff + beat, écoute-le, et exporte un WAV prêt pour Suno (Style Reference / Custom Model). ","Generate a riff + beat, listen, and export a WAV ready for Suno (Style Reference / Custom Model). ")}</div>
         </div>
         <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
-          <iframe src={`/riff.html?tier=${userTier}${styleTxt?`&prompt=${encodeURIComponent(styleTxt)}`:""}`} title="Riff Generator" allow="autoplay" style={{width:"100%",height:"78vh",minHeight:"560px",border:"none",display:"block",background:DARK}}/>
+          <iframe src={`/riff.html?lang=${uiLang}&tier=${userTier}${styleTxt?`&prompt=${encodeURIComponent(styleTxt)}`:""}`} title="Riff Generator" allow="autoplay" style={{width:"100%",height:"78vh",minHeight:"560px",border:"none",display:"block",background:DARK}}/>
         </div>
         <div style={{...S.card,textAlign:"center"}}>
           <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>{L("Bientôt aussi","Also coming soon")}</div>
@@ -1697,7 +1697,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Charge ta chanson Suno → EQ + compression + limiteur → WAV plus fort et serré, prêt à publier. ","Load your Suno track → EQ + compression + limiter → louder, tighter WAV, ready to publish. ")}</div>
         </div>
         <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
-          <iframe src="/master.html" title="Mastering" allow="autoplay" style={{width:"100%",height:"1150px",minHeight:"1150px",border:"none",display:"block",background:DARK}}/>
+          <iframe src={`/master.html?lang=${uiLang}`} title="Mastering" allow="autoplay" style={{width:"100%",height:"1150px",minHeight:"1150px",border:"none",display:"block",background:DARK}}/>
         </div>
         <div style={{...S.card,textAlign:"center"}}>
           <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>{L("Bientôt — Elite Pro","Soon — Elite Pro")}</div>

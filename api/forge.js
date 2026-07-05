@@ -5,6 +5,8 @@ import { TIME_SIGNATURES_BY_STYLE } from './_lib/timeSignaturesByStyle.js';
 
 // Mapping regex genre → clé du module temps de mesure (ordre = priorité)
 const STYLE_ID_MAP = [
+  [/blackened.?deathcore/, 'deathcore'],
+  [/blackened.?death/, 'death-metal'],
   [/blackgaze|post.?black/, 'blackgaze'],
   [/atmospheric.?black/, 'atmospheric-black'],
   [/symphonic.?black/, 'black-metal'],
@@ -183,7 +185,12 @@ export default function handler(req, res) {
   const _vTxt0 = vocals.map(x => String(x).toLowerCase()).join(' ');
   const harshVox = /growl|scream|guttural|shriek|harsh|pig squeal|fry|roar|rasp/.test(_vTxt0) || phonetic.enabled;
   const voxLead = harshVox ? [...vocals.slice(0, 3), ...vrange.slice(0, 1)] : [];
-  const fullTags = dedup([...voxLead, ...genres, bpmTag, tempoWord, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...prod.slice(0, 2), ...allOrganic.slice(0, 4), ...globalRhythm, ...rhythmTags]);
+  // rhythmTags injectés tôt (priorité recette) — le budget coupe la fin, pas eux
+  const fullTagsRaw = dedup([...voxLead, ...genres, bpmTag, tempoWord, ...rhythmTags, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...prod.slice(0, 2), ...allOrganic.slice(0, 4), ...globalRhythm]);
+  // Budget : au-delà de ~480 car., Suno dilue/ignore — on coupe par la fin
+  const STYLE_BUDGET = 480;
+  const fullTags = [...fullTagsRaw];
+  while (fullTags.length > 8 && fullTags.join(', ').length > STYLE_BUDGET) fullTags.pop();
   const compactCore = dedup([...voxLead.slice(0, 2), ...genres.slice(0, 2), bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1), ...rhythmTags.slice(0, 1)]);
   const overflow = fullTags.filter(x => !compactCore.includes(x));
   const styleStr = fullTags.join(', ');

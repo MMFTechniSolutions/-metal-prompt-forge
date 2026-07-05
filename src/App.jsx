@@ -9,7 +9,7 @@ const CARD = "#141414";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",galerie:"Gallery",riff:"Riff",master:"Master",history:"History"},
+    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",galerie:"Gallery",riff:"Riff",master:"Master",aimusic:"AI Music",history:"History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (max ~120 chars)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -21,7 +21,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",galerie:"Galerie",riff:"Riff",master:"Master",history:"Historique"},
+    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",galerie:"Galerie",riff:"Riff",master:"Master",aimusic:"Musique IA",history:"Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (max ~120 car.)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -1061,6 +1061,13 @@ export default function App({ user, onLogout, onRequestAuth }) {
   // ── TIER ──
   const [promptCount,setPromptCount]=useState(0);
   const [userTier,setUserTier]=useState("free");
+  const [musicPrompt,setMusicPrompt]=useState("");
+  const [musicUrl,setMusicUrl]=useState("");
+  const [musicLyrics,setMusicLyrics]=useState("");
+  const [musicErr,setMusicErr]=useState("");
+  const [musicBusy,setMusicBusy]=useState(false);
+  const [musicFull,setMusicFull]=useState(false);
+  const [musicLeft,setMusicLeft]=useState(null);
   useEffect(()=>{
     if(user?.email){
       supabase.from('users').select('tier,prompts_used').eq('email',user.email).single()
@@ -1200,6 +1207,10 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const structShown=compact?(structTxtC||structTxt):structTxt;
   const [keywords,setKeywords]=useState("");
   const [lyricsTxt,setLyricsTxt]=useState("");
+  // Phonétique (vocals illisibles) — la recommandation vient de /api/forge, la déformation de /api/lyrics
+  const [lyricsRaw,setLyricsRaw]=useState("");const [lyricsPhon,setLyricsPhon]=useState("");
+  const [phoneticRec,setPhoneticRec]=useState(null);const [phoneticOn,setPhoneticOn]=useState(true);
+  const [showPhon,setShowPhon]=useState(true);
   const step2Shown=lyricsTxt?mergeStructLyrics(structShown,lyricsTxt):structShown;
   const [lyricsLoading,setLyricsLoading]=useState(false);
   const [lyricsErr,setLyricsErr]=useState("");
@@ -1232,7 +1243,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(!r.ok)throw new Error('forge');
     }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie ":"Generation error, try again "); return; }
     setConflicts(data.conflicts||[]);
-    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");
+    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);
     const nc=promptCount+1;setPromptCount(nc);
     if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
     saveToHistory(data.styleStr);
@@ -1289,11 +1300,15 @@ RULES:
 - Be SPECIFIC and CONCRETE, not vague
 OUTPUT: ONLY raw lyrics. Zero commentary.`;
     try {
-      const res=await fetch("/api/lyrics",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
+      const lyricsBody={prompt};
+      if(phoneticOn&&phoneticRec?.enabled)lyricsBody.phoneticIntensity=phoneticRec.intensity;
+      const res=await fetch("/api/lyrics",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(lyricsBody)});
       const data=await res.json();
       if(!res.ok) throw new Error(data.error||"Erreur serveur");
       const text=data.text||"Error.";
-      setLyricsTxt(text);
+      const phon=data.textPhonetic||"";
+      setLyricsRaw(text);setLyricsPhon(phon);
+      setLyricsTxt(phon&&showPhon?phon:text);
       setLyricsHistory(prev=>[...prev.slice(-2),text]);
       const nc=promptCount+1;setPromptCount(nc);
     } catch(e){setLyricsErr("Erreur API : "+e.message);}
@@ -1301,6 +1316,21 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   };
 
   const sendLyricsToOutput=()=>{setFullTxt((fullTxt?fullTxt+"\n\n":"")+`=== PAROLES ===\n${lyricsTxt}`);setTab("output");};
+  async function genMusic(full){
+    setMusicErr("");setMusicUrl("");setMusicBusy(true);
+    try{
+      const {data:sess}=await supabase.auth.getSession();
+      const token=sess?.session?.access_token;
+      if(!token){setMusicErr(L("Connecte-toi pour générer.","Sign in to generate."));setMusicBusy(false);return;}
+      const prompt=(musicPrompt||fullTxt||"").toString().slice(0,2000);
+      if(!prompt.trim()){setMusicErr(L("Écris ou forge un prompt d'abord.","Write or forge a prompt first."));setMusicBusy(false);return;}
+      const r=await fetch('/api/lyria',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({prompt,full})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok){setMusicErr(d.error||L("Erreur de génération.","Generation error."));}
+      else{setMusicUrl('data:'+(d.mime||'audio/mpeg')+';base64,'+d.audioBase64);setMusicLyrics(d.lyrics||"");if(d.left!=null)setMusicLeft(d.left);}
+    }catch(e){setMusicErr(''+(e?.message||e));}
+    setMusicBusy(false);
+  }
 
   if(view==="landing") return (
     <>
@@ -1316,7 +1346,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
     {id:"genre",req:"free"},
     {id:"drums",req:"free",adv:true},{id:"vocals",req:"free",adv:true},{id:"instrums",req:"forge",adv:true},{id:"structure",req:"forge",adv:true},{id:"organic",req:"pro",adv:true},{id:"exclude",req:"forge",adv:true},
     {id:"paroles",req:"pro"},{id:"output",req:"free"},
-    {id:"riff",req:"elite"},{id:"master",req:"elite"},
+    {id:"riff",req:"elite"},{id:"master",req:"elite"},{id:"aimusic",req:"forge"},
     ...(isPro?[{id:"history",req:"pro"}]:[]),
     {id:"masterclass",req:"free"},{id:"galerie",req:"free"},{id:"tuto",req:"free"},
   ].filter(tb=>advanced||!tb.adv);
@@ -1636,11 +1666,22 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
         <Collapse title={L("Langue des paroles","Lyrics language")} n={LYRIC_LANGS.length} selCount={lang.size} defaultOpen={true}><Tags list={LYRIC_LANGS} sel={lang} toggle={tLang}/></Collapse>
         <Collapse title={L("Blocs à générer","Blocks to generate")} n={LYRIC_BLOCKS.length} selCount={lblocks.size}><div style={{marginBottom:"10px"}}><SelAll all={LYRIC_BLOCKS.map(b=>b.v)} set={setLblocks} L={L}/></div><Tags list={LYRIC_BLOCKS} sel={lblocks} toggle={tLblock}/></Collapse>
+        {phoneticRec?.enabled&&<div style={{display:"flex",alignItems:"center",gap:"10px",background:"#0a0600",border:"1px solid #3a2a00",borderRadius:"6px",padding:"9px 12px",marginBottom:"10px"}}>
+          <label style={{display:"flex",alignItems:"center",gap:"8px",cursor:"pointer",fontSize:"0.68rem",color:"#d8d86a",fontWeight:700,letterSpacing:"1px"}}>
+            <input type="checkbox" checked={phoneticOn} onChange={e=>setPhoneticOn(e.target.checked)} style={{accentColor:"#ff2e2e"}}/>
+            {L("VOCALS ILLISIBLES (PHONÉTIQUE)","UNINTELLIGIBLE VOCALS (PHONETIC)")}
+          </label>
+          <span style={{color:"#666",fontSize:"0.6rem",lineHeight:1.4}}>{phoneticRec.why} · {phoneticRec.intensity}</span>
+        </div>}
         <button style={S.genBtn} onClick={generateLyrics} disabled={lyricsLoading}>{lyricsLoading?""+t.generating:L("GÉNÉRER LES PAROLES","GENERATE LYRICS")}</button>
         {lyricsLoading&&<div style={{textAlign:"center",padding:"20px"}}><div style={{fontSize:"1.8rem",animation:"spin 1s linear infinite",display:"inline-block"}}></div><div style={{color:"#444",fontSize:"0.7rem",letterSpacing:"2px",marginTop:"8px"}}>{L("CLAUDE COMPOSE...","CLAUDE IS COMPOSING...")}</div></div>}
         {lyricsErr&&<div style={{color:"#ff5555",fontSize:"0.8rem",padding:"10px",background:"#1a0000",borderRadius:"8px",marginBottom:"10px"}}>{lyricsErr}</div>}
         {lyricsTxt&&!lyricsLoading&&(<div>
           <div style={S.outLbl}>{L("Paroles générées","Generated lyrics")}</div>
+          {lyricsPhon&&<div style={{display:"flex",gap:"6px",marginBottom:"8px"}}>
+            <button onClick={()=>{setShowPhon(false);setLyricsTxt(lyricsRaw);}} style={{padding:"5px 12px",background:!showPhon?"#2a0000":"#111",border:"1px solid "+(!showPhon?"#ff2e2e":"#222"),borderRadius:"5px",color:!showPhon?"#ff5555":"#666",fontSize:"0.62rem",fontWeight:700,cursor:"pointer",letterSpacing:"1px"}}>{L("LISIBLE","READABLE")}</button>
+            <button onClick={()=>{setShowPhon(true);setLyricsTxt(lyricsPhon);}} style={{padding:"5px 12px",background:showPhon?"#2a0000":"#111",border:"1px solid "+(showPhon?"#ff2e2e":"#222"),borderRadius:"5px",color:showPhon?"#ff5555":"#666",fontSize:"0.62rem",fontWeight:700,cursor:"pointer",letterSpacing:"1px"}}>{L("PHONÉTIQUE SUNO","SUNO PHONETIC")}</button>
+          </div>}
           <div style={{...S.outBox,borderColor:"#ff2e2e33"}}><CopyBtn getText={()=>lyricsTxt}/><pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.8rem",lineHeight:1.9,color:"#ddd",paddingRight:"50px"}}>{lyricsTxt}</pre></div>
           <div style={{display:"flex",gap:"10px",marginBottom:"12px"}}>
             <button onClick={generateLyrics} style={{flex:1,padding:"10px",background:"#1a1a1a",border:"1px solid #222",borderRadius:"6px",color:"#888",fontSize:"0.72rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>{L("Régénérer","Regenerate")}</button>
@@ -1703,6 +1744,30 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>{L("Bientôt — Elite Pro","Soon — Elite Pro")}</div>
           <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>{L("Idée express — aperçu vidéo + maquette (Lyra/Gemini)","Quick Idea — video preview + mockup (Lyra/Gemini)")}</div>
         </div>
+        <div style={{height:80}}/>
+      </div>)}
+
+      {tab==="aimusic"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
+        <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#b06bff44"}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>{L("MUSIQUE IA","AI MUSIC")}</div>
+          <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un aperçu audio avec Lyria 3 (Google). Clip 30s ou chanson complète.","Generate an audio preview with Lyria 3 (Google). 30s clip or full song.")}</div>
+          {musicLeft!=null&&<div style={{marginTop:"8px",fontSize:"0.7rem",color:"#b06bff"}}>{L("Restant ce mois-ci : ","Left this month: ")}<b>{musicLeft}</b></div>}
+        </div>
+        <div style={S.card}>
+          <div style={S.ctitle}>{L("Ton prompt","Your prompt")}</div>
+          <textarea value={musicPrompt} onChange={e=>setMusicPrompt(e.target.value)} placeholder={fullTxt?L("(vide = utilise ton prompt forgé)","(empty = uses your forged prompt)"):L("Décris la toune…","Describe the track…")} rows={4} style={{width:"100%",background:"#0d0d0d",border:"1px solid #333",borderRadius:"6px",color:"#fff",fontFamily:"monospace",fontSize:"0.78rem",padding:"10px",resize:"vertical",marginTop:"6px"}}/>
+          <div style={{display:"flex",gap:"8px",marginTop:"10px"}}>
+            <button onClick={()=>setMusicFull(false)} style={{flex:1,padding:"8px",borderRadius:"6px",border:"1px solid "+(!musicFull?RED:"#333"),background:!musicFull?"#1a0000":"#111",color:!musicFull?"#ff9090":"#888",fontSize:"0.7rem",fontWeight:700,cursor:"pointer"}}>{L("Clip 30s","30s clip")}</button>
+            <button onClick={()=>setMusicFull(true)} style={{flex:1,padding:"8px",borderRadius:"6px",border:"1px solid "+(musicFull?RED:"#333"),background:musicFull?"#1a0000":"#111",color:musicFull?"#ff9090":"#888",fontSize:"0.7rem",fontWeight:700,cursor:"pointer"}}>{L("Chanson complète","Full song")}</button>
+          </div>
+          <button disabled={musicBusy} onClick={()=>genMusic(musicFull)} style={{width:"100%",marginTop:"12px",padding:"12px",background:musicBusy?"#333":RED,border:"none",borderRadius:"8px",color:"#fff",fontWeight:900,fontSize:"0.9rem",letterSpacing:"1px",textTransform:"uppercase",cursor:musicBusy?"default":"pointer"}}>{musicBusy?L("Génération…","Generating…"):L("Générer la musique","Generate music")}</button>
+          {musicErr&&<div style={{color:RED,fontSize:"0.72rem",marginTop:"8px"}}>{musicErr}</div>}
+          {musicUrl&&<div style={{marginTop:"14px"}}>
+            <audio controls src={musicUrl} style={{width:"100%"}}/>
+            <a href={musicUrl} download="metalprompt.mp3" style={{display:"inline-block",marginTop:"8px",color:"#b06bff",fontSize:"0.74rem",textDecoration:"none"}}>⤓ {L("Télécharger le MP3","Download MP3")}</a>
+          </div>}
+        </div>
+        <div style={{...S.card,fontSize:"0.66rem",color:"#888",lineHeight:1.5}}>{L("⚠️ Lyria tend vers le chant clair — pour les growls/screams extrêmes, Suno reste meilleur. Idéal ici : instrumentaux, riffs, styles à voix claires. Pistes 100% IA : watermark SynthID, non protégeables telles quelles.","⚠️ Lyria leans toward clean singing — for extreme growls/screams, Suno is still better. Best here: instrumentals, riffs, clean-vocal styles. 100% AI tracks: SynthID watermark, not copyrightable as-is.")}</div>
         <div style={{height:80}}/>
       </div>)}
 

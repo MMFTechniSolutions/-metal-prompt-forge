@@ -1,6 +1,42 @@
 // /api/forge.js — Assemblage du prompt Suno côté serveur (la "recette" secrète).
 // Le client envoie les sélections brutes, le serveur renvoie le prompt déjà calculé.
 
+import { TIME_SIGNATURES_BY_STYLE } from './_lib/timeSignaturesByStyle.js';
+
+// Mapping regex genre → clé du module temps de mesure (ordre = priorité)
+const STYLE_ID_MAP = [
+  [/blackgaze|post.?black/, 'blackgaze'],
+  [/atmospheric.?black/, 'atmospheric-black'],
+  [/symphonic.?black/, 'black-metal'],
+  [/black/, 'black-metal'],
+  [/tech.?death/, 'tech-death'],
+  [/melodic.?death/, 'melodic-death'],
+  [/deathcore/, 'deathcore'],
+  [/death/, 'death-metal'],
+  [/grind/, 'grindcore'],
+  [/djent/, 'djent'],
+  [/mathcore|math/, 'mathcore'],
+  [/prog/, 'progressive-metal'],
+  [/metalcore/, 'metalcore'],
+  [/nu.?metal/, 'nu-metal'],
+  [/industrial/, 'industrial-metal'],
+  [/groove/, 'groove-metal'],
+  [/sludge/, 'sludge-metal'],
+  [/stoner/, 'stoner-metal'],
+  [/post.?metal/, 'post-metal'],
+  [/doom|funeral/, 'doom-metal'],
+  [/folk|viking|pagan/, 'folk-metal'],
+  [/gothic/, 'gothic-metal'],
+  [/symphonic/, 'symphonic-metal'],
+  [/power/, 'power-metal'],
+  [/thrash|crossover/, 'thrash-metal'],
+  [/speed/, 'speed-metal'],
+  [/glam|hair/, 'glam-metal'],
+  [/avant|experimental/, 'avant-garde-metal'],
+  [/alternative/, 'alternative-metal'],
+  [/heavy|nwobhm/, 'heavy-metal'],
+];
+
 export default function handler(req, res) {
   let b = req.method === 'POST' ? req.body : (req.query || {});
   if (typeof b === 'string') { try { b = JSON.parse(b); } catch { b = {}; } }
@@ -129,9 +165,26 @@ export default function handler(req, res) {
   const emoConf = [];
   OPP.forEach(([a, c]) => { if ((+emotions[a]||0) >= 60 && (+emotions[c]||0) >= 60) emoConf.push(L(EMO_LABEL[a]+' + '+EMO_LABEL[c]+' à fond se contredisent — baisse-en une.', EMO_LABEL[a]+' + '+EMO_LABEL[c]+' both high — they fight, lower one.')); });
 
+  // Temps de mesure → DESCRIPTEURS TEXTUELS (validé : Suno ignore les chiffres
+  // seuls comme instruction; les descripteurs marchent, les chiffres en hint
+  // teintent le feel). Le timeSig numérique reste pour l'affichage UI.
+  let rhythmTags = [], rhythmStructTags = [];
+  const _sid = (STYLE_ID_MAP.find(([re]) => re.test(_gtxt)) || [])[1];
+  if (_sid && TIME_SIGNATURES_BY_STYLE[_sid]) {
+    const _s = TIME_SIGNATURES_BY_STYLE[_sid].suno;
+    rhythmTags = [...(_s.styleTags || []).slice(0, 2), ...(_s.meterHints || []).slice(0, 1)];
+    rhythmStructTags = (_s.structureTags || []).slice(0, 2);
+  }
+
   const bpmTag = bpm + ' BPM';
-  const fullTags = dedup([...genres, bpmTag, tempoWord, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...prod.slice(0, 2), ...allOrganic.slice(0, 4), ...globalRhythm]);
-  const compactCore = dedup([...genres.slice(0, 2), bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1)]);
+  // Vocal en premier (validé 2026-07-04) : Suno pèse plus fort le début du
+  // Style — pour les vocaux harsh, les consignes vocales OUVRENT le prompt.
+  // dedup garde la première occurrence, donc pas de doublon plus loin.
+  const _vTxt0 = vocals.map(x => String(x).toLowerCase()).join(' ');
+  const harshVox = /growl|scream|guttural|shriek|harsh|pig squeal|fry|roar|rasp/.test(_vTxt0) || phonetic.enabled;
+  const voxLead = harshVox ? [...vocals.slice(0, 3), ...vrange.slice(0, 1)] : [];
+  const fullTags = dedup([...voxLead, ...genres, bpmTag, tempoWord, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...prod.slice(0, 2), ...allOrganic.slice(0, 4), ...globalRhythm, ...rhythmTags]);
+  const compactCore = dedup([...voxLead.slice(0, 2), ...genres.slice(0, 2), bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1), ...rhythmTags.slice(0, 1)]);
   const overflow = fullTags.filter(x => !compactCore.includes(x));
   const styleStr = fullTags.join(', ');
   const styleStrC = compactCore.join(', ');
@@ -222,5 +275,5 @@ export default function handler(req, res) {
     '\n\n=== STRUCTURE (-> top of Lyrics) ===\n' + structStr +
     '\n\n=== PRODUCTION NOTES (keep for yourself) ===\n' + heavyD + '. ' + grooveD + '. ' + chaosD + '. ' + melodyD + '. ' + bpmTag + '.' + organicBlock;
 
-  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, timeSig, modelRec, phonetic });
+  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, timeSig, modelRec, phonetic, rhythmStructTags });
 }

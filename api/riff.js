@@ -128,6 +128,46 @@ const STRUCTURES = {
   sec3: {bars:[{transpose:5},{transpose:5},{transpose:7},{transpose:5,fill:true}]},
   sec4: {bars:[{drum:'breakdown'},{drum:'breakdown',transpose:-2},{drum:'half_time'},{drum:'breakdown',transpose:3,fill:true}]},
 };
+// ── TEMPS DE MESURE PAR STYLE (en pas de 16e ; 16 = 4/4, 14 = 7/8, 12 = 6/8/3-4, 20 = 5/4, 18 = 9/8, 10 = 5/8, 8 = 2/4) ──
+// Fidèle aux conventions du genre. lvl:'mod' = surtout 4/4 qui groove (le mouvement vient de la batterie/des sections).
+// lvl:'agg' = mesures impaires fréquentes (djent/math/prog/techdeath/dissonant vivent là-dedans).
+const M44=[16];
+const STYLE_META = {
+  // Styles droits — 4/4 solide, le metal classique ; la variété vient du beat et des sections
+  thrash:{lvl:'mod',meters:M44}, speed:{lvl:'mod',meters:M44}, crossover:{lvl:'mod',meters:M44},
+  hardcore:{lvl:'mod',meters:M44}, grindcore:{lvl:'mod',meters:M44}, deathgrind:{lvl:'mod',meters:M44},
+  beatdown:{lvl:'mod',meters:M44}, numetal:{lvl:'mod',meters:M44}, rapcore:{lvl:'mod',meters:M44},
+  industrial:{lvl:'mod',meters:M44}, groove:{lvl:'mod',meters:M44}, metalcore:{lvl:'mod',meters:M44},
+  melodicdeath:{lvl:'mod',meters:M44}, melodicdeathcore:{lvl:'mod',meters:M44},
+  brutaldeath:{lvl:'mod',meters:M44}, slam:{lvl:'mod',meters:M44}, death:{lvl:'mod',meters:M44},
+  deathcore:{lvl:'mod',meters:[16,16,16,8]},               // coupures 2/4 sur les breakdowns
+  blackeneddeathcore:{lvl:'mod',meters:[16,16,16,14]},     // teinte 7/8 occasionnelle
+  // Racines blues/doom + atmosphère — feel 6/8 / 12/8 récurrent
+  doom:{lvl:'mod',meters:[16,16,12]}, funeraldoom:{lvl:'mod',meters:[16,16,12]},
+  sludge:{lvl:'mod',meters:[16,16,12]}, gothic:{lvl:'mod',meters:[16,16,12]},
+  powermetal:{lvl:'mod',meters:[16,16,12]},                // galop 4/4 + envolées 6/8
+  blackened:{lvl:'mod',meters:[16,16,12]}, atmosblack:{lvl:'mod',meters:[16,16,12]},
+  symphonicblack:{lvl:'mod',meters:[16,16,12]},
+  blackgaze:{lvl:'mod',meters:[16,16,12,20]}, postmetal:{lvl:'mod',meters:[16,16,12,20]}, // builds post-rock
+  // Styles techniques — mesures impaires fréquentes, changements de mesure dans la toune
+  djent:{lvl:'agg',meters:[16,14,20,10,12]},               // 7/8, 5/4, 5/8, polymétrie
+  techdeath:{lvl:'agg',meters:[16,14,12,20,18]},
+  mathcore:{lvl:'agg',meters:[12,14,10,16,18,20]},         // chaos, se pose rarement en 4/4
+  progmetal:{lvl:'agg',meters:[16,14,20,12,18]},
+  dissonant:{lvl:'agg',meters:[16,14,18,12,20]},
+};
+function rpick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+// Choisit la mesure d'une barre : structure d'abord, sinon selon le style (avec hasard léger par génération)
+function meterFor(meta,bi,prev){
+  if(meta.lvl==='agg'){
+    let n=rpick(meta.meters),g=0;
+    while(n===prev && meta.meters.length>1 && g++<4) n=rpick(meta.meters); // évite de répéter la même mesure
+    return n;
+  }
+  const alt=meta.meters.filter(x=>x!==16);
+  if(alt.length && (bi%2===1) && Math.random()<0.4) return rpick(alt);     // teinte occasionnelle
+  return 16;
+}
 const LEAD_RHY=[1,0,0,0,1,0,1,0,0,1,0,0,1,0,1,0];
 const LEAD_VOICE={
   saxophone:{wave:'sawtooth',cut:2200,q:3},
@@ -149,14 +189,25 @@ function varyDrum(dp){
 }
 function buildArrangement(p){
   const st=STRUCTURES[p.structure]||STRUCTURES.loop;
+  const meta=STYLE_META[p.style]||{lvl:'mod',meters:M44};
   const out={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],L:0};
+  let prevN=16;
   st.bars.forEach((bar,bi)=>{
     let dp = p.custom ? p.drum : (DRUM_PAT[bar.drum||p.drumKey]||p.drum);
-    if(!p.custom && !bar.drum && (bi%2===1)) dp = varyDrum(dp);   // batterie variée 1 mesure /2
+    if(!p.custom && !bar.drum){
+      // Mouvement de batterie quand la mélodie bouge (transpose) ou 1 mesure /2 — casse le « toujours le même beat »
+      if(bi%2===1 || bar.transpose) dp = varyDrum(dp);
+      // Styles techniques : vrai switch de beat sur les sections transposées (la mélodie monte → le beat change pour vrai)
+      if(meta.lvl==='agg' && bar.transpose){
+        const swap = DRUM_PAT[ p.drumKey==='blast_beat' ? 'double_kick' : 'blast_beat' ];
+        if(swap) dp = varyDrum(swap);
+      }
+    }
     const useB = (bar.g==='B') || (bar.g!=='A' && bi%2===1);
     const gp = (useB && p.guitB) ? p.guitB : p.guit;               // rythme de guitare A/B
     const tr=bar.transpose||0;
-    const n=bar.steps||16;
+    const n = bar.steps || meterFor(meta,bi,prevN);                // structure d'abord, sinon mesure selon le style
+    prevN=n;
     for(let i=0;i<n;i++){
       const j=i%16;
       out.guit.push(gp[j]);out.bass.push(p.bass[j]);

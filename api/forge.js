@@ -75,6 +75,15 @@ export default function handler(req, res) {
     modelRec = { best:'v5', good:'v4.5', weak:'v4', why: L('clarté et séparation modernes','modern clarity and separation') };
   else
     modelRec = { best:'v5', good:'v4.5', weak:'v4', why: L('qualité globale','best overall quality') };
+  // Recommandation phonétique (voir /api/_lib/phoneticize.js) — validé 2026-07-04 :
+  // déformer l'orthographe empêche Suno de sur-articuler les vocaux harsh.
+  let phonetic = { enabled: false, intensity: null, why: null };
+  if (/grind|crust|d.?beat/.test(_gtxt))
+    phonetic = { enabled: true, intensity: 'extreme', why: L('bouillie hachée — le grind est de la percussion vocale','chopped mush — grind vocals are percussion') };
+  else if (/black|dsbm|depressive|funeral|war metal/.test(_gtxt))
+    phonetic = { enabled: true, intensity: 'stretched', why: L('voyelles extra-longues pour shrieks tenus sur tremolo','extra-long vowels for sustained shrieks over tremolo') };
+  else if (/death|slam|brutal|sludge/.test(_gtxt))
+    phonetic = { enabled: true, intensity: 'normal', why: L('growls sales, pas sur-articulés','dirty growls, not over-enunciated') };
   const dedup = arr => { const s = new Set(); return arr.filter(x => { const k = String(x).toLowerCase().trim(); if (!x || s.has(k)) return false; s.add(k); return true; }); };
 
   // ── sauce secrète : sliders → tags subtils, fondus dans le lot ──
@@ -213,5 +222,5 @@ export default function handler(req, res) {
     '\n\n=== STRUCTURE (-> top of Lyrics) ===\n' + structStr +
     '\n\n=== PRODUCTION NOTES (keep for yourself) ===\n' + heavyD + '. ' + grooveD + '. ' + chaosD + '. ' + melodyD + '. ' + bpmTag + '.' + organicBlock;
 
-  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, timeSig, modelRec });
+  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, timeSig, modelRec, phonetic });
 }

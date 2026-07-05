@@ -1,6 +1,8 @@
 // Fonction serveur : génère les paroles via l'API Anthropic, côté serveur
 // (l'appel direct depuis le navigateur est bloqué par CORS et exposerait la clé).
 
+import { phoneticize } from './_lib/phoneticize.js'
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -47,6 +49,13 @@ export default async function handler(req, res) {
     }
 
     const text = data.content?.find((b) => b.type === 'text')?.text || ''
+
+    // Déformation phonétique optionnelle (recette : vocaux harsh).
+    // Le client passe phoneticIntensity depuis la réponse de /api/forge.
+    const intensity = body.phoneticIntensity
+    if (['normal', 'extreme', 'stretched'].includes(intensity)) {
+      return res.status(200).json({ text, textPhonetic: phoneticize(text, intensity) })
+    }
     return res.status(200).json({ text })
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Erreur serveur' })

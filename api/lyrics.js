@@ -3,6 +3,17 @@
 
 import { phoneticize } from './_lib/phoneticize.js'
 
+// Consignes d'écriture par intensité vocale (recette — validé 2026-07-04) :
+// le générateur doit écrire POUR le style vocal, pas juste déformer après.
+const STYLE_WRITING = {
+  normal:
+    "\n\nIMPORTANT - vocal style constraints: these lyrics are for harsh death metal growls. Favor hard consonants and short punchy syllables. Avoid long open-vowel melodic phrases and avoid words that only work sung clean.",
+  extreme:
+    "\n\nIMPORTANT - vocal style constraints: these lyrics are for grindcore. Write ultra-short fragments of 1-4 syllables, percussive words, almost no full sentences. Total length very short (under 60 words). Repetition as percussion is good.",
+  stretched:
+    "\n\nIMPORTANT - vocal style constraints: these lyrics are for black metal shrieks held over tremolo picking. Few words per line (4-6 max), long open vowels that can be sustained (fall, cold, moon, throne), evocative imagery. Leave room for the voice to stretch each word.",
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -15,9 +26,15 @@ export default async function handler(req, res) {
   }
   if (!body) body = {}
 
-  const prompt = body.prompt
+  let prompt = body.prompt
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt manquant' })
+  }
+
+  // Le générateur voit le style vocal : consigne d'écriture selon l'intensité
+  const intensity = body.phoneticIntensity
+  if (STYLE_WRITING[intensity]) {
+    prompt += STYLE_WRITING[intensity]
   }
 
   const apiKey =
@@ -52,7 +69,6 @@ export default async function handler(req, res) {
 
     // Déformation phonétique optionnelle (recette : vocaux harsh).
     // Le client passe phoneticIntensity depuis la réponse de /api/forge.
-    const intensity = body.phoneticIntensity
     if (['normal', 'extreme', 'stretched'].includes(intensity)) {
       return res.status(200).json({ text, textPhonetic: phoneticize(text, intensity) })
     }

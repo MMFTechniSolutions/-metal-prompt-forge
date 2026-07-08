@@ -238,10 +238,16 @@ const PRESETS = {
   blackmetal: {label:"Black Metal",req:"elite", bpm:200, genres:["black metal"], drums:["blast beats","hyperblast beats"], vocals:["black metal shrieks","high-pitched screams"], guitar:["tremolo picking","open string riffs"], tuning:["standard E tuning"], mood:["sinister and dark","dark and menacing"]},
   doom:       {label:"Doom",      req:"elite", bpm:70,  genres:["doom metal"], drums:["half-time groove","tom-heavy fills"], vocals:["tortured screams"], guitar:["palm muting","open string riffs"], tuning:["drop C tuning"], mood:["crushing and heavy","dark and menacing"]},
 };
-const THEMES = ["mort et décomposition","apocalypse","chaos intérieur","guerre et destruction","trahison","démons et obscurité","résistance et rébellion","nihilisme","vengeance","aliénation et solitude","horreur cosmique","violence et brutalité"];
-const LYRIC_ATMO = ["sombre et menaçant","poétique et métaphorique","direct et violent","philosophique","narratif comme une histoire","cri de rage"];
-const THEME_TR = {"mort et décomposition":"death and decay","apocalypse":"apocalypse","chaos intérieur":"inner chaos","guerre et destruction":"war and destruction","trahison":"betrayal","démons et obscurité":"demons and darkness","résistance et rébellion":"resistance and rebellion","nihilisme":"nihilism","vengeance":"vengeance","aliénation et solitude":"alienation and solitude","horreur cosmique":"cosmic horror","violence et brutalité":"violence and brutality"};
-const ATMO_TR = {"sombre et menaçant":"dark and menacing","poétique et métaphorique":"poetic and metaphorical","direct et violent":"direct and violent","philosophique":"philosophical","narratif comme une histoire":"narrative like a story","cri de rage":"cry of rage"};
+const THEMES = ["mort et décomposition","apocalypse","chaos intérieur","guerre et destruction","trahison","démons et obscurité","résistance et rébellion","nihilisme","vengeance","aliénation et solitude","horreur cosmique","violence et brutalité",
+  // thèmes lumière
+  "renaissance et renouveau","espoir dans les ténèbres","fraternité et loyauté","nature et éléments","conquête et gloire","mythes et légendes","amour perdu","transcendance spirituelle","liberté et évasion","mémoire et héritage","étoiles et cosmos","le feu intérieur"];
+const LYRIC_ATMO = ["sombre et menaçant","poétique et métaphorique","direct et violent","philosophique","narratif comme une histoire","cri de rage",
+  // atmosphères lumière
+  "épique et héroïque","mélancolique et doux-amer","contemplatif et lumineux","festif et rassembleur","onirique et éthéré","hymne de victoire"];
+const THEME_TR = {"mort et décomposition":"death and decay","apocalypse":"apocalypse","chaos intérieur":"inner chaos","guerre et destruction":"war and destruction","trahison":"betrayal","démons et obscurité":"demons and darkness","résistance et rébellion":"resistance and rebellion","nihilisme":"nihilism","vengeance":"vengeance","aliénation et solitude":"alienation and solitude","horreur cosmique":"cosmic horror","violence et brutalité":"violence and brutality",
+  "renaissance et renouveau":"rebirth and renewal","espoir dans les ténèbres":"hope in darkness","fraternité et loyauté":"brotherhood and loyalty","nature et éléments":"nature and the elements","conquête et gloire":"conquest and glory","mythes et légendes":"myths and legends","amour perdu":"lost love","transcendance spirituelle":"spiritual transcendence","liberté et évasion":"freedom and escape","mémoire et héritage":"memory and legacy","étoiles et cosmos":"stars and cosmos","le feu intérieur":"the fire within"};
+const ATMO_TR = {"sombre et menaçant":"dark and menacing","poétique et métaphorique":"poetic and metaphorical","direct et violent":"direct and violent","philosophique":"philosophical","narratif comme une histoire":"narrative like a story","cri de rage":"cry of rage",
+  "épique et héroïque":"epic and heroic","mélancolique et doux-amer":"melancholic and bittersweet","contemplatif et lumineux":"contemplative and luminous","festif et rassembleur":"festive and rousing","onirique et éthéré":"dreamlike and ethereal","hymne de victoire":"victory anthem"};
 const LYRIC_LANGS = [
   {v:"en",l:"English"},{v:"fr",l:"Français"},{v:"de",l:"Deutsch"},
   {v:"es",l:"Español"},{v:"sv",l:"Svenska"},{v:"fi",l:"Suomi"},
@@ -380,7 +386,7 @@ function Tags({list,sel,toggle,lockedItems=[],newItems=[],tr=null,filter=""}) {
         const disp=tr&&tr[label]?tr[label]:label;
         if(f && !String(label).toLowerCase().includes(f) && !String(val).toLowerCase().includes(f)) return null;
         const locked=lockedItems.includes(val);
-        const isNew=newItems.includes(val);
+        const isNew=false; // badges NEW désactivés (contenu plus nouveau) — remettre newItems.includes(val) au besoin
         return <span key={val} style={S.tag(sel.has(val),locked)} onClick={()=>!locked&&toggle(val)}>{locked?"🔒 ":""}{disp}{isNew&&<span style={{marginLeft:"5px",fontSize:"0.5rem",fontWeight:900,color:"#fff",background:RED,borderRadius:"4px",padding:"1px 4px",letterSpacing:"0.5px",verticalAlign:"middle"}}>NEW</span>}</span>;
       })}
     </div>

@@ -89,6 +89,7 @@ const GENRE_FAMILIES = [
     {g:"melodic death metal",req:"forge"},{g:"technical death metal",req:"forge"},{g:"mathcore",req:"forge"},{g:"beatdown hardcore",req:"forge"},{g:"industrial metal",req:"forge"},{g:"symphonic metal",req:"forge"},
     {g:"blackened death metal",req:"forge"},{g:"atmospheric black metal",req:"forge"},{g:"funeral doom",req:"forge"},{g:"sludge metal",req:"forge"},{g:"post-metal",req:"forge"},{g:"progressive metal",req:"forge"},
     {g:"deathgrind",req:"forge"},{g:"brutal death metal",req:"forge"},{g:"drone metal",req:"elite"},
+    {g:"folk metal",req:"forge"},{g:"viking metal",req:"forge"},{g:"gothic metal",req:"forge"},{g:"stoner metal",req:"forge"},
   ]},
   {name:"Années 2000", nameEn:"2000s", icon:"", genres:[
     {g:"deathcore",req:"free"},{g:"melodic deathcore",req:"forge"},{g:"melodic metalcore",req:"forge"},{g:"post-hardcore",req:"forge"},
@@ -107,7 +108,9 @@ const GENRE_FAMILIES = [
   ]},
 ];
 
-const MOOD     = ["crushing and heavy","sinister and dark","chaotic and frantic","groovy and headbang-worthy","melodic and atmospheric","dissonant","intense and aggressive","dark and menacing","epic","raw and abrasive"];
+const MOOD     = ["crushing and heavy","sinister and dark","chaotic and frantic","groovy and headbang-worthy","melodic and atmospheric","dissonant","intense and aggressive","dark and menacing","epic","raw and abrasive",
+  // atmosphères lumière (miroirs)
+  "uplifting and soaring","dreamy and ethereal","warm and hopeful","triumphant and radiant","serene and expansive","bittersweet and nostalgic","luminous and shimmering","euphoric and energetic","majestic and grandiose","tender and haunting"];
 // Drums (style) : remplacé par DRUM_ERAS (par époque).
 const DRUM_PROD= ["triggered drums","live drum sound","massive snare","clicky kick drum","trashy cymbals","programmed drums","natural room drums","reverb-heavy drums","punchy compressed drums","organic acoustic kit","raw garage drums","tight modern production","huge ambient drums","lo-fi drum sound"];
 const DRUM_ERAS = [
@@ -209,8 +212,19 @@ const EMOTIONS=[
   {id:'transcendence',label:'Transcendance',labelEn:'Transcendence',icon:'',c:'#b06bff'},
   {id:'madness',label:'Démence',labelEn:'Madness',icon:'',c:'#e91e8c'},
   {id:'profanation',label:'Profanation',labelEn:'Profanation',icon:'',c:'#b00710'},
+  // ── Émotions lumière (miroirs des sombres) ──
+  {id:'serenity',label:'Sérénité',labelEn:'Serenity',icon:'',c:'#8fd0b0'},
+  {id:'joy',label:'Joie',labelEn:'Joy',icon:'',c:'#ffe066'},
+  {id:'hope',label:'Espoir',labelEn:'Hope',icon:'',c:'#7fdd7f'},
+  {id:'warmth',label:'Chaleur',labelEn:'Warmth',icon:'',c:'#ffb366'},
+  {id:'wonder',label:'Émerveillement',labelEn:'Wonder',icon:'',c:'#66d9ff'},
+  {id:'clarity',label:'Clarté',labelEn:'Clarity',icon:'',c:'#d8ecff'},
+  {id:'reverence',label:'Sacré',labelEn:'Reverence',icon:'',c:'#d8c86a'},
+  {id:'unity',label:'Unité',labelEn:'Unity',icon:'',c:'#66ffcc'},
+  {id:'grace',label:'Grâce',labelEn:'Grace',icon:'',c:'#f0b0d8'},
+  {id:'radiance',label:'Lumière',labelEn:'Radiance',icon:'',c:'#fff0a0'},
 ];
-const EMO_LIMIT={free:2,forge:10,pro:10,elite:10,eliteplus:10};
+const EMO_LIMIT={free:2,forge:20,pro:20,elite:20,eliteplus:20};
 const EXCL_GENRES = ["pop","jazz","classical","country","r&b","hip hop","electronic","edm","ambient","folk","reggae","latin","disco","funk","soul","gospel","blues","indie pop","synthpop","new age"];
 const EXCL_VOCALS = ["clean vocals","autotune","pitch correction","electronic vocals","vocoder","falsetto","soft vocals","whisper vocals","pop vocals","processed vocals","digital vocal fx"];
 const EXCL_PROD   = ["polished production","crisp mix","over-produced","digital production","perfect timing","quantized drums","sterile mix","radio mix"];
@@ -1449,11 +1463,11 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <div style={S.card}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
             <div style={{...S.ctitle,marginBottom:0}}>{L("Émotions","Emotions")}</div>
-            <span style={{fontSize:"0.55rem",color:"#666"}}>{Math.min(10,EMO_LIMIT[userTier]||2)}/10 {L("débloquées","unlocked")}</span>
+            <span style={{fontSize:"0.55rem",color:"#666"}}>{Math.min(EMOTIONS.length,EMO_LIMIT[userTier]||2)}/{EMOTIONS.length} {L("débloquées","unlocked")}</span>
           </div>
           <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"10px",lineHeight:1.5}}>{L("Dose les émotions — MetalPrompt injecte les bons tags. La plus forte domine le morceau.","Dial emotions — MetalPrompt injects the matching tags. The strongest one dominates.")}</div>
           {EMOTIONS.map((e,i)=>{
-            const lim=Math.min(10,EMO_LIMIT[userTier]||2);const locked=i>=lim;const v=emotions[e.id]||0;
+            const lim=Math.min(EMOTIONS.length,EMO_LIMIT[userTier]||2);const locked=i>=lim;const v=emotions[e.id]||0;
             if(locked) return (<div key={e.id} onClick={()=>setShowPaywall(true)} style={{display:"flex",alignItems:"center",gap:"8px",padding:"5px 0",opacity:0.4,cursor:"pointer"}}>
               <span style={{fontSize:"0.72rem",width:"120px"}}>🔒 {e.icon} {L(e.label,e.labelEn||e.label)}</span>
               <span style={{fontSize:"0.55rem",color:RED,fontWeight:700}}>{L("Tier supérieur","Upgrade")}</span>

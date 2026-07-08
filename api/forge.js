@@ -85,6 +85,7 @@ export default function handler(req, res) {
     [/epic.?doom/, {ts:'4/4', scale:'grandiose tritone epic melodies', prod:'thick warm operatic space', tuning:'C standard'}],
     [/doom/, {ts:(_rs<0.5?'6/8':'4/4'), scale:'tritone bluesy slow riffs', prod:'thick warm vintage saturation', tuning:'C standard'}],
     [/grind/, {ts:'4/4', scale:'chaotic buzzing chromatic microsong', prod:'raw chaotic blast mix', tuning:'C standard'}],
+    [/folk|viking|pagan|celtic/, {ts:(_rs<0.5?'6/8':'4/4'), scale:'folk dance melodies, fiddle and tin whistle leads over riffs', prod:'organic folk-metal mix, acoustic instruments upfront', tuning:'standard'}],
     [/gothic/, {ts:'4/4', scale:'melancholic minor with dramatic strings', prod:'acoustic-to-saturated, beauty-and-the-beast vocals', tuning:'standard'}],
     [/symphonic/, {ts:'4/4', scale:'classical leitmotivs and choral ruptures', prod:'full orchestra over double kick', tuning:'standard'}],
     [/neoclassical/, {ts:'4/4', scale:'harmonic minor, diminished-7 arpeggios, sweep picking, pedal point', prod:'virtuosic baroque shred', tuning:'standard'}],
@@ -135,8 +136,8 @@ export default function handler(req, res) {
   // ── MOTEUR D'ÉMOTIONS (recette secrète) — 10 émotions, gated 2/4/6/10, dominance + conflits ──
   const tier = b.tier || 'free';
   const emotions = (b.emotions && typeof b.emotions === 'object') ? b.emotions : {};
-  const EMO_ORDER = ['rage','melancholy','despair','triumph','coldness','defiance','dread','transcendence','madness','profanation'];
-  const EMO_LIMIT = { free:2, forge:10, pro:10, elite:10, eliteplus:10 };
+  const EMO_ORDER = ['rage','melancholy','despair','triumph','coldness','defiance','dread','transcendence','madness','profanation','serenity','joy','hope','warmth','wonder','clarity','reverence','unity','grace','radiance'];
+  const EMO_LIMIT = { free:2, forge:20, pro:20, elite:20, eliteplus:20 };
   const EMO = {
     rage:         { light:['aggressive energy'],            mid:['furious aggression','relentless attack'],   strong:['blind savage fury','berserk intensity','venomous rage'] },
     melancholy:   { light:['melancholic undertone'],        mid:['melancholic sorrowful melody'],              strong:['crushing sorrow','weeping melodic leads','mournful atmosphere'] },
@@ -148,8 +149,19 @@ export default function handler(req, res) {
     transcendence:{ light:['atmospheric expanse'],          mid:['transcendent cosmic atmosphere'],            strong:['cosmic transcendence','astral vastness','ego-death euphoria'] },
     madness:      { light:['unstable edge'],                mid:['deranged unhinged'],                         strong:['psychotic madness','schizophrenic chaos','deranged frenzy'] },
     profanation:  { light:['blasphemous undertone'],        mid:['blasphemous sacrilegious'],                  strong:['blasphemous desecration','sacrilegious ritual','profane blackened ritual'] },
+    // ── ÉMOTIONS LUMIÈRE (miroirs des sombres) ──
+    serenity:     { light:['calm undertone'],               mid:['serene peaceful passages'],                  strong:['deep meditative serenity','weightless calm','still-water tranquility'] },
+    joy:          { light:['bright uplifting edge'],        mid:['joyful energetic melody'],                   strong:['euphoric celebration','radiant joyful anthems','unbridled elation'] },
+    hope:         { light:['hopeful undertone'],            mid:['hopeful rising melody'],                     strong:['soaring hopeful crescendos','light breaking through darkness','hope reborn from ashes'] },
+    warmth:       { light:['warm organic tone'],            mid:['warm embracing atmosphere'],                 strong:['golden enveloping warmth','sunlit analog warmth','comforting embrace'] },
+    wonder:       { light:['sense of wonder'],              mid:['wide-eyed cosmic wonder'],                   strong:['awe-struck celestial wonder','breathtaking vastness','starlit astonishment'] },
+    clarity:      { light:['clear focused tone'],           mid:['lucid crystalline clarity'],                 strong:['crystal-clear transcendent focus','pristine shimmering textures','enlightened calm'] },
+    reverence:    { light:['solemn reverent undertone'],    mid:['sacred ceremonial atmosphere'],              strong:['sacred choral reverence','liturgical grandeur','divine luminous ritual'] },
+    unity:        { light:['anthemic togetherness'],        mid:['unifying gang-vocal brotherhood'],           strong:['arena-wide unity chants','shoulder-to-shoulder anthem','triumphant collective voice'] },
+    grace:        { light:['graceful melodic touch'],       mid:['elegant flowing grace'],                     strong:['weightless ethereal grace','delicate sublime beauty','fragile tenderness'] },
+    radiance:     { light:['luminous shimmer'],             mid:['radiant glowing soundscape'],                strong:['blinding radiant climax','sunburst wall of light','incandescent brilliance'] },
   };
-  const EMO_LABEL = { rage:'Rage', melancholy:'Mélancolie', despair:'Désespoir', triumph:'Triomphe', coldness:'Froideur', defiance:'Défiance', dread:'Effroi', transcendence:'Transcendance', madness:'Démence', profanation:'Profanation' };
+  const EMO_LABEL = { rage:'Rage', melancholy:'Mélancolie', despair:'Désespoir', triumph:'Triomphe', coldness:'Froideur', defiance:'Défiance', dread:'Effroi', transcendence:'Transcendance', madness:'Démence', profanation:'Profanation', serenity:'Sérénité', joy:'Joie', hope:'Espoir', warmth:'Chaleur', wonder:'Émerveillement', clarity:'Clarté', reverence:'Sacré', unity:'Unité', grace:'Grâce', radiance:'Lumière' };
   const emoLimit = EMO_LIMIT[tier] != null ? EMO_LIMIT[tier] : 2;
   const emoActive = EMO_ORDER
     .map((id, i) => ({ id, i, val: Math.max(0, Math.min(100, +emotions[id] || 0)) }))
@@ -163,7 +175,7 @@ export default function handler(req, res) {
     emoLabels.push(EMO_LABEL[e.id] + ' ' + e.val + '%');
   });
   const emotionTags = dedup(emoTags).slice(0, 4);
-  const OPP = [['triumph','despair'],['triumph','melancholy'],['transcendence','profanation'],['coldness','rage']];
+  const OPP = [['triumph','despair'],['triumph','melancholy'],['transcendence','profanation'],['coldness','rage'],['rage','serenity'],['despair','hope'],['coldness','warmth'],['dread','wonder'],['madness','clarity'],['profanation','reverence'],['melancholy','joy']];
   const emoConf = [];
   OPP.forEach(([a, c]) => { if ((+emotions[a]||0) >= 60 && (+emotions[c]||0) >= 60) emoConf.push(L(EMO_LABEL[a]+' + '+EMO_LABEL[c]+' à fond se contredisent — baisse-en une.', EMO_LABEL[a]+' + '+EMO_LABEL[c]+' both high — they fight, lower one.')); });
 

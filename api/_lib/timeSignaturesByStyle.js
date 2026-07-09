@@ -48,6 +48,19 @@ export const PHONETIC_VOCALS = {
   "atmospheric-black": { enabled: true, intensity: "stretched" },
   "blackgaze": { enabled: true, intensity: "stretched" },
   "sludge-metal": { enabled: true, intensity: "normal" },
+  // styles ajoutés 2026-07-07
+  "brutal-death": { enabled: true, intensity: "normal" },
+  "slam-metal": { enabled: true, intensity: "extreme" },
+  "deathgrind": { enabled: true, intensity: "extreme" },
+  "powerviolence": { enabled: true, intensity: "extreme" },
+  "blackened-death": { enabled: true, intensity: "normal" },
+  "dissonant-death": { enabled: true, intensity: "normal" },
+  "funeral-doom": { enabled: true, intensity: "stretched" },
+  "dsbm": { enabled: true, intensity: "stretched" },
+  "symphonic-black": { enabled: true, intensity: "stretched" },
+  "atmospheric-sludge": { enabled: true, intensity: "normal" },
+  "melodic-deathcore": { enabled: true, intensity: "normal" },
+  "technical-deathcore": { enabled: true, intensity: "normal" },
   lastValidated: "2026-07-04",
 };
 
@@ -486,6 +499,152 @@ export const TIME_SIGNATURES_BY_STYLE = {
       styleTags: ["catchy rock groove", "anthemic stadium rhythm", "power ballad feel"],
       structureTags: ["[Anthemic chorus]", "[Power ballad bridge]"],
     },
+  },
+
+  // ------------------------------------------------- RACINES (60-70s)
+  "hard-rock": {
+    ui: { label: "Hard Rock", signatures: ["4/4", "12/8 (blues)"], references: ["AC/DC", "Guns N' Roses", "Deep Purple"], description: "4/4 rock carré, swing bluesy occasionnel." },
+    suno: { styleTags: ["driving hard rock groove", "bluesy swagger", "anthemic riffs"], structureTags: ["[Guitar solo]", "[Anthemic chorus]"] },
+  },
+  "proto-metal": {
+    ui: { label: "Proto-Metal", signatures: ["4/4 lourd", "12/8"], references: ["Blue Cheer", "Deep Purple", "early Sabbath"], description: "Blues rock alourdi, les racines du metal." },
+    suno: { styleTags: ["heavy bluesy proto-metal riffs", "vintage fuzz", "raw 70s energy"], structureTags: ["[Heavy blues jam]"] },
+  },
+  "blues-rock": {
+    ui: { label: "Blues Rock", signatures: ["12/8 (shuffle)", "4/4"], references: ["Cream", "Led Zeppelin"], description: "Shuffle blues électrifié." },
+    suno: { styleTags: ["electric blues shuffle", "expressive string bends", "warm tube crunch"], structureTags: ["[Blues solo section]"] },
+  },
+  "punk-rock": {
+    ui: { label: "Punk Rock", signatures: ["4/4 rapide", "2/4"], references: ["Ramones", "Sex Pistols"], description: "4/4 simple, rapide, trois accords." },
+    suno: { styleTags: ["fast three-chord punk", "raw garage energy", "shouted gang vocals"], structureTags: ["[Fast punk verse]"] },
+  },
+  "hardcore-punk": {
+    ui: { label: "Hardcore Punk", signatures: ["4/4 très rapide", "2/4"], references: ["Black Flag", "Minor Threat", "Bad Brains"], description: "Punk accéléré et enragé, breakdowns primitifs." },
+    suno: { styleTags: ["furious hardcore punk speed", "shouted vocals", "raw aggressive energy"], structureTags: ["[Circle pit section]", "[Mosh part]"] },
+  },
+  "d-beat": {
+    ui: { label: "D-Beat / Crust", signatures: ["4/4 (d-beat)"], references: ["Discharge", "Wolfbrigade"], description: "LE beat Discharge, martelé sans pause." },
+    suno: { styleTags: ["relentless d-beat drumming", "crust punk distortion", "raw war-torn energy"], structureTags: ["[D-beat assault]"] },
+  },
+  "crossover-thrash": {
+    ui: { label: "Crossover Thrash", signatures: ["4/4 rapide", "2/4"], references: ["S.O.D.", "Municipal Waste", "Power Trip"], description: "Punk + thrash, parts de mosh obligatoires." },
+    suno: { styleTags: ["punk-infused thrash riffs", "mosh-ready breakdowns", "gang shout choruses"], structureTags: ["[Mosh part]", "[Skank beat section]"] },
+  },
+  "powerviolence": {
+    ui: { label: "Powerviolence", signatures: ["Coups de fouet 2/4 ↔ lent"], references: ["Spazz", "Infest"], description: "Blast ultra-court alterné avec des drops sludge — chaos total." },
+    suno: { styleTags: ["whiplash tempo shifts", "micro-blast bursts into sludge crawls", "frantic powerviolence chaos", "loud"], structureTags: ["[Blast burst]", "[Sudden sludge drop]", "[Abrupt stop]"] },
+  },
+  "beatdown-hardcore": {
+    ui: { label: "Beatdown Hardcore", signatures: ["4/4 lent (stomp)", "half-time"], references: ["Bulldoze", "Sunami"], description: "Stomp lent et menaçant, mosh assumé." },
+    suno: { styleTags: ["slow menacing beatdown stomps", "heavy mosh riffs", "aggressive shouted vocals"], structureTags: ["[Beatdown stomp]", "[Mosh call]"] },
+  },
+  "rapcore": {
+    ui: { label: "Rapcore / Rap Metal", signatures: ["4/4 (groove hip-hop)"], references: ["Rage Against the Machine", "Body Count"], description: "Flow rappé sur des riffs lourds." },
+    suno: { styleTags: ["rapped verses over heavy riffs", "funky aggressive groove", "bounce and attitude"], structureTags: ["[Rapped verse]", "[Heavy chorus]"] },
+  },
+
+  // ------------------------------------------------- EXTRÊME AVANCÉ
+  "brutal-death": {
+    ui: { label: "Brutal Death Metal", signatures: ["4/4 (blast/slam)"], references: ["Suffocation", "Defeated Sanity"], description: "Death metal densifié, slams près du chevalet." },
+    suno: { styleTags: ["punishing brutal death riffs", "deep guttural vocals", "slamming grooves", "relentless blast beats"], structureTags: ["[Slam section]", "[Blast beat section]"] },
+  },
+  "slam-metal": {
+    ui: { label: "Slam Metal", signatures: ["4/4 lent (slam)", "half-time"], references: ["Devourment", "Waking the Cadaver"], description: "Le slam comme mode de vie — gutturals liquides, groove de bulldozer." },
+    suno: { styleTags: ["gurgling guttural vocals", "knuckle-dragging slam grooves", "pitch-shifted brutality", "loud"], structureTags: ["[Slam section]", "[Half-time slam groove]"] },
+  },
+  "deathgrind": {
+    ui: { label: "Deathgrind", signatures: ["4/4 (blast)", "2/4"], references: ["Cattle Decapitation", "Misery Index"], description: "Death metal à vitesse grind." },
+    suno: { styleTags: ["deathgrind intensity", "technical blast barrage", "visceral growled screams", "loud"], structureTags: ["[All-out blast]", "[Grinding riff section]"] },
+  },
+  "blackened-death": {
+    ui: { label: "Blackened Death Metal", signatures: ["4/4 (blast)", "6/8"], references: ["Behemoth", "Belphegor"], description: "Death metal trempé dans l'atmosphère black." },
+    suno: { styleTags: ["blackened death riffing", "ominous ritual atmosphere", "tremolo over double kick"], structureTags: ["[Ritualistic tremolo section]", "[Blast beat section]"] },
+  },
+  "dissonant-death": {
+    ui: { label: "Dissonant Death Metal", signatures: ["Métriques mouvantes", "7/8", "5/4"], references: ["Ulcerate", "Gorguts"], description: "Dissonance architecturale, angles impossibles." },
+    suno: { styleTags: ["dissonant angular death metal", "unsettling atonal riffs", "shifting odd meters", "cavernous atmosphere"], meterHints: ["shifting between 7/8 and 5/4"], structureTags: ["[Dissonant swell]", "[Angular riff section]"] },
+  },
+  "funeral-doom": {
+    ui: { label: "Funeral Doom", signatures: ["4/4 extrême-lent", "6/8"], references: ["Bell Witch", "Ahab", "Mournful Congregation"], description: "Plus lent que lent, chaque note est un deuil." },
+    suno: { styleTags: ["glacial funeral pace", "cavernous mournful growls", "suffocating weight", "funereal organ textures"], structureTags: ["[Funeral pace section]", "[Mournful swell]"] },
+  },
+  "drone-metal": {
+    ui: { label: "Drone Metal", signatures: ["Sans pulsation (drone)"], references: ["Sunn O)))", "Earth"], description: "Pas de beat — des murs de fréquences qui vibrent." },
+    suno: { styleTags: ["beatless droning walls of amplifier worship", "sustained low-end vibration", "ritual ambience"], structureTags: ["[Drone swell]", "[Feedback meditation]"] },
+  },
+  "dsbm": {
+    ui: { label: "DSBM (Depressive Black)", signatures: ["4/4 lent-mid", "6/8"], references: ["Xasthur", "Silencer", "Shining"], description: "Black metal du désespoir — wails torturés, boucles hypnotiques." },
+    suno: { styleTags: ["anguished tortured wails", "hypnotic depressive tremolo loops", "raw lo-fi despair", "dragging mid-tempo"], structureTags: ["[Tortured wail section]", "[Hypnotic loop]"] },
+  },
+  "symphonic-black": {
+    ui: { label: "Symphonic Black Metal", signatures: ["4/4 (blast)", "3/4", "6/8"], references: ["Dimmu Borgir", "Emperor", "Carach Angren"], description: "Black metal orchestral, grandeur cinématique." },
+    suno: { styleTags: ["orchestral black metal grandeur", "cinematic choirs over blast beats", "tremolo with symphonic layers"], structureTags: ["[Orchestral blast section]", "[Cinematic interlude]"] },
+  },
+  "atmospheric-sludge": {
+    ui: { label: "Atmospheric Sludge", signatures: ["4/4 lent", "6/8"], references: ["Neurosis", "Amenra"], description: "Sludge élevé en cathédrale — poids + espace." },
+    suno: { styleTags: ["cavernous atmospheric sludge", "slow tectonic riffs", "anguished distant screams", "expansive dynamics"], structureTags: ["[Slow build]", "[Crushing climax]"] },
+  },
+
+  // ------------------------------------------------- CORE MODERNE
+  "melodic-deathcore": {
+    ui: { label: "Melodic Deathcore", signatures: ["4/4", "half-time (breakdowns)"], references: ["Shadow of Intent", "Brand of Sacrifice"], description: "Deathcore avec leads mélodiques et ampleur symphonique." },
+    suno: { styleTags: ["melodic deathcore leads", "crushing breakdowns under soaring melodies", "dynamic gutturals and highs"], structureTags: ["[Melodic lead section]", "[Crushing breakdown, quarter-time feel]"] },
+  },
+  "technical-deathcore": {
+    ui: { label: "Technical Deathcore", signatures: ["4/4", "métriques brisées"], references: ["Rings of Saturn", "Viraemia"], description: "Deathcore alien — sweeps, glitchs rythmiques." },
+    suno: { styleTags: ["alien technical riffing", "glitchy rhythmic stutters", "sweep arpeggios into breakdowns"], structureTags: ["[Technical flurry]", "[Glitch breakdown]"] },
+  },
+  "melodic-metalcore": {
+    ui: { label: "Melodic Metalcore", signatures: ["4/4", "half-time"], references: ["Trivium", "All That Remains", "Bullet for My Valentine"], description: "Metalcore accrocheur, refrains clean soignés." },
+    suno: { styleTags: ["melodic metalcore hooks", "clean sung choruses over harsh verses", "twin lead melodies"], structureTags: ["[Melodic chorus]", "[Breakdown, half-time feel]"] },
+  },
+  "modern-metalcore": {
+    ui: { label: "Modern Metalcore", signatures: ["4/4", "half-time", "syncopes djent"], references: ["Architects", "Currents", "Invent Animate"], description: "Metalcore 2020s — ambiances, syncopes, production massive." },
+    suno: { styleTags: ["modern metalcore atmosphere", "syncopated low-tuned grooves", "soaring cleans over screams", "massive organic mix"], structureTags: ["[Atmospheric verse]", "[Massive breakdown]"] },
+  },
+  "progressive-metalcore": {
+    ui: { label: "Progressive Metalcore", signatures: ["7/8", "5/4", "polymètres", "4/4"], references: ["Erra", "Periphery", "Northlane"], description: "Metalcore + métriques prog + textures planantes." },
+    suno: { styleTags: ["progressive metalcore", "odd-meter riffing", "ethereal clean passages", "polymetric grooves"], meterHints: ["in 7/8"], structureTags: ["[Odd-meter section]", "[Ethereal bridge]"] },
+  },
+  "atmospheric-metalcore": {
+    ui: { label: "Atmospheric Metalcore", signatures: ["4/4", "half-time"], references: ["Invent Animate", "Thornhill"], description: "Metalcore immersif, nappes et espace." },
+    suno: { styleTags: ["lush atmospheric layers", "spacious metalcore dynamics", "reverb-soaked leads"], structureTags: ["[Ambient swell]", "[Heavy drop]"] },
+  },
+  "arena-metalcore": {
+    ui: { label: "Arena Metalcore", signatures: ["4/4 (stadium)"], references: ["Bring Me The Horizon", "Bad Omens"], description: "Metalcore taillé pour les stades — hooks énormes." },
+    suno: { styleTags: ["stadium-sized metalcore hooks", "electronic accents", "huge singalong choruses"], structureTags: ["[Anthemic chorus]", "[Drop breakdown]"] },
+  },
+  "synth-metalcore": {
+    ui: { label: "Synth Metalcore", signatures: ["4/4"], references: ["Motionless in White", "Static Dress"], description: "Metalcore chargé de synthés dark." },
+    suno: { styleTags: ["dark synth layers over metalcore riffs", "industrial-tinged breakdowns", "electronic pulses"], structureTags: ["[Synth intro]", "[Electronic breakdown]"] },
+  },
+  "ambient-metalcore": {
+    ui: { label: "Ambient Metalcore", signatures: ["4/4 flottant"], references: ["Loathe", "Holding Absence"], description: "Shoegaze + metalcore — beauté qui écrase." },
+    suno: { styleTags: ["dreamy shoegaze textures into crushing riffs", "ethereal vocals over low-tuned heaviness", "ambient-to-heavy dynamics"], structureTags: ["[Dreamy passage]", "[Sudden heavy drop]"] },
+  },
+  "pop-metalcore": {
+    ui: { label: "Pop Metalcore", signatures: ["4/4 (structure pop)"], references: ["Bad Omens", "Sleep Token"], description: "Songwriting pop, exécution metalcore." },
+    suno: { styleTags: ["pop song structures with metalcore weight", "catchy melodic vocals", "polished heavy drops"], structureTags: ["[Catchy chorus]", "[Heavy drop]"] },
+  },
+  "electronicore": {
+    ui: { label: "Electronicore", signatures: ["4/4 (EDM x core)"], references: ["Enter Shikari", "Attack Attack!"], description: "Metalcore + drops électro." },
+    suno: { styleTags: ["EDM drops into breakdowns", "glitchy electronics with metalcore riffs", "rave-to-mosh energy"], structureTags: ["[EDM drop]", "[Breakdown, half-time feel]"] },
+  },
+  "post-hardcore": {
+    ui: { label: "Post-Hardcore", signatures: ["4/4", "dynamiques fortes"], references: ["Underoath", "Thursday", "Glassjaw"], description: "Hardcore émotif et expérimental, tension/relâche." },
+    suno: { styleTags: ["emotional post-hardcore dynamics", "screamed verses into soaring cleans", "angular guitar interplay"], structureTags: ["[Quiet tense verse]", "[Cathartic chorus]"] },
+  },
+  "progressive-post-hardcore": {
+    ui: { label: "Progressive Post-Hardcore", signatures: ["Changements fréquents", "7/8"], references: ["Dance Gavin Dance", "Hail the Sun"], description: "Post-hardcore virtuose, sassy et imprévisible." },
+    suno: { styleTags: ["intricate noodly guitar work", "sassy vocal swagger with screams", "unpredictable song turns"], meterHints: ["occasional 7/8 turns"], structureTags: ["[Noodly interlude]", "[Sassy verse]"] },
+  },
+  "modern-alternative-metal": {
+    ui: { label: "Modern Alternative Metal", signatures: ["4/4", "syncopes"], references: ["Sleep Token", "Spiritbox", "Loathe"], description: "Alt-metal 2020s — R&B, électro pis lourdeur fusionnés." },
+    suno: { styleTags: ["genre-blending alternative metal", "soulful vocals into crushing riffs", "electronic textures with organic weight"], structureTags: ["[Soulful verse]", "[Crushing drop]"] },
+  },
+  "nwobhm": {
+    ui: { label: "NWOBHM", signatures: ["4/4", "6/8 (gallop)"], references: ["Iron Maiden", "Saxon", "Diamond Head"], description: "La nouvelle vague britannique — twin guitars, gallop, énergie." },
+    suno: { styleTags: ["nwobhm twin guitar attack", "galloping rhythms", "soaring heavy metal vocals", "early 80s british steel sound"], structureTags: ["[Twin guitar harmony]", "[Gallop riff]"] },
   },
 };
 

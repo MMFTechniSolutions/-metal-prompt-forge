@@ -3,40 +3,76 @@
 
 import { TIME_SIGNATURES_BY_STYLE } from './_lib/timeSignaturesByStyle.js';
 
-// Mapping regex genre → clé du module temps de mesure (ordre = priorité)
+// Mapping regex genre → clé du module temps de mesure (ordre = priorité :
+// les spécifiques AVANT les génériques)
 const STYLE_ID_MAP = [
+  // composés spécifiques d'abord
   [/blackened.?deathcore/, 'deathcore'],
-  [/blackened.?death/, 'death-metal'],
+  [/blackened.?death/, 'blackened-death'],
   [/blackgaze|post.?black/, 'blackgaze'],
   [/atmospheric.?black/, 'atmospheric-black'],
-  [/symphonic.?black/, 'black-metal'],
-  [/black/, 'black-metal'],
+  [/symphonic.?black/, 'symphonic-black'],
+  [/depressive|dsbm/, 'dsbm'],
+  [/melodic.?deathcore/, 'melodic-deathcore'],
+  [/technical.?deathcore/, 'technical-deathcore'],
   [/tech.?death/, 'tech-death'],
   [/melodic.?death/, 'melodic-death'],
+  [/brutal.?death|brutal/, 'brutal-death'],
+  [/slam/, 'slam-metal'],
+  [/dissonant/, 'dissonant-death'],
+  [/deathgrind|goregrind/, 'deathgrind'],
   [/deathcore/, 'deathcore'],
   [/death/, 'death-metal'],
+  [/black/, 'black-metal'],
+  [/powerviolence/, 'powerviolence'],
   [/grind/, 'grindcore'],
+  [/funeral/, 'funeral-doom'],
+  [/drone/, 'drone-metal'],
+  [/atmospheric.?sludge/, 'atmospheric-sludge'],
+  [/sludge/, 'sludge-metal'],
   [/djent/, 'djent'],
   [/mathcore|math/, 'mathcore'],
-  [/prog/, 'progressive-metal'],
+  // variantes metalcore avant le générique
+  [/melodic.?metalcore/, 'melodic-metalcore'],
+  [/progressive.?metalcore/, 'progressive-metalcore'],
+  [/atmospheric.?metalcore/, 'atmospheric-metalcore'],
+  [/arena.?metalcore/, 'arena-metalcore'],
+  [/synth.?metalcore/, 'synth-metalcore'],
+  [/ambient.?metalcore/, 'ambient-metalcore'],
+  [/pop.?metalcore/, 'pop-metalcore'],
+  [/modern.?metalcore/, 'modern-metalcore'],
+  [/electronicore/, 'electronicore'],
   [/metalcore/, 'metalcore'],
+  [/progressive.?post.?hardcore/, 'progressive-post-hardcore'],
+  [/post.?hardcore/, 'post-hardcore'],
+  [/beatdown/, 'beatdown-hardcore'],
+  [/hardcore.?punk|powerviolence/, 'hardcore-punk'],
+  [/rapcore|rap.?metal/, 'rapcore'],
+  [/d.?beat|crust/, 'd-beat'],
+  [/punk.?rock/, 'punk-rock'],
+  [/prog/, 'progressive-metal'],
   [/nu.?metal/, 'nu-metal'],
   [/industrial/, 'industrial-metal'],
   [/groove/, 'groove-metal'],
-  [/sludge/, 'sludge-metal'],
   [/stoner/, 'stoner-metal'],
   [/post.?metal/, 'post-metal'],
-  [/doom|funeral/, 'doom-metal'],
-  [/folk|viking|pagan/, 'folk-metal'],
+  [/doom/, 'doom-metal'],
+  [/folk|viking|pagan|celtic/, 'folk-metal'],
   [/gothic/, 'gothic-metal'],
   [/symphonic/, 'symphonic-metal'],
   [/power/, 'power-metal'],
-  [/thrash|crossover/, 'thrash-metal'],
+  [/crossover/, 'crossover-thrash'],
+  [/thrash/, 'thrash-metal'],
   [/speed/, 'speed-metal'],
   [/glam|hair/, 'glam-metal'],
   [/avant|experimental/, 'avant-garde-metal'],
+  [/modern.?alternative/, 'modern-alternative-metal'],
   [/alternative/, 'alternative-metal'],
-  [/heavy|nwobhm/, 'heavy-metal'],
+  [/nwobhm/, 'nwobhm'],
+  [/proto.?metal/, 'proto-metal'],
+  [/blues.?rock/, 'blues-rock'],
+  [/hard.?rock/, 'hard-rock'],
+  [/heavy/, 'heavy-metal'],
 ];
 
 export default function handler(req, res) {
@@ -117,11 +153,11 @@ export default function handler(req, res) {
   // Recommandation phonétique (voir /api/_lib/phoneticize.js) — validé 2026-07-04 :
   // déformer l'orthographe empêche Suno de sur-articuler les vocaux harsh.
   let phonetic = { enabled: false, intensity: null, why: null };
-  if (/grind|crust|d.?beat/.test(_gtxt))
-    phonetic = { enabled: true, intensity: 'extreme', why: L('bouillie hachée — le grind est de la percussion vocale','chopped mush — grind vocals are percussion') };
+  if (/grind|crust|d.?beat|powerviolence|slam/.test(_gtxt))
+    phonetic = { enabled: true, intensity: 'extreme', why: L('bouillie hachée — percussion vocale','chopped mush — vocals as percussion') };
   else if (/black|dsbm|depressive|funeral|war metal/.test(_gtxt))
     phonetic = { enabled: true, intensity: 'stretched', why: L('voyelles extra-longues pour shrieks tenus sur tremolo','extra-long vowels for sustained shrieks over tremolo') };
-  else if (/death|slam|brutal|sludge/.test(_gtxt))
+  else if (/death|brutal|sludge/.test(_gtxt))
     phonetic = { enabled: true, intensity: 'normal', why: L('growls sales, pas sur-articulés','dirty growls, not over-enunciated') };
   const dedup = arr => { const s = new Set(); return arr.filter(x => { const k = String(x).toLowerCase().trim(); if (!x || s.has(k)) return false; s.add(k); return true; }); };
 

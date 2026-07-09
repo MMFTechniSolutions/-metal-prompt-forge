@@ -1763,12 +1763,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>MASTERING</div>
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Charge ta chanson Suno → EQ + compression + limiteur → WAV plus fort et serré, prêt à publier. ","Load your Suno track → EQ + compression + limiter → louder, tighter WAV, ready to publish. ")}</div>
         </div>
-        <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
-          <iframe src={`/master.html?lang=${uiLang}`} title="Mastering" allow="autoplay" style={{width:"100%",height:"1150px",minHeight:"1150px",border:"none",display:"block",background:DARK}}/>
-        </div>
-        <div style={{...S.card,textAlign:"center"}}>
-          <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>{L("Bientôt — Elite Pro","Soon — Elite Pro")}</div>
-          <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>{L("Idée express — aperçu vidéo + maquette (Lyra/Gemini)","Quick Idea — video preview + mockup (Lyra/Gemini)")}</div>
+        <div style={{...S.card,textAlign:"center",padding:"48px 22px",borderColor:"#ffcc0033"}}>
+          <div style={{fontSize:"2.2rem",marginBottom:"10px"}}>🔨</div>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.5rem",letterSpacing:"3px",color:"#ffcc00"}}>{L("BIENTÔT DISPONIBLE","COMING SOON")}</div>
+          <div style={{color:"#888",fontSize:"0.78rem",marginTop:"10px",lineHeight:1.7,maxWidth:"420px",margin:"10px auto 0"}}>{L("Le mastering intégré est en forge — EQ, compression pis limiteur directement dans MetalPrompt. En attendant, exporte ta toune Suno pis masterise dans ton DAW.","Integrated mastering is being forged — EQ, compression and limiter right inside MetalPrompt. Meanwhile, export your Suno track and master it in your DAW.")}</div>
         </div>
         <div style={{height:80}}/>
       </div>)}
@@ -1777,23 +1775,12 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#b06bff44"}}>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>{L("MUSIQUE IA","AI MUSIC")}</div>
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un aperçu audio avec Lyria 3 (Google). Clip 30s ou chanson complète.","Generate an audio preview with Lyria 3 (Google). 30s clip or full song.")}</div>
-          {musicLeft!=null&&<div style={{marginTop:"8px",fontSize:"0.7rem",color:"#b06bff"}}>{L("Restant ce mois-ci : ","Left this month: ")}<b>{musicLeft}</b></div>}
         </div>
-        <div style={S.card}>
-          <div style={S.ctitle}>{L("Ton prompt","Your prompt")}</div>
-          <textarea value={musicPrompt} onChange={e=>setMusicPrompt(e.target.value)} placeholder={fullTxt?L("(vide = utilise ton prompt forgé)","(empty = uses your forged prompt)"):L("Décris la toune…","Describe the track…")} rows={4} style={{width:"100%",background:"#0d0d0d",border:"1px solid #333",borderRadius:"6px",color:"#fff",fontFamily:"monospace",fontSize:"0.78rem",padding:"10px",resize:"vertical",marginTop:"6px"}}/>
-          <div style={{display:"flex",gap:"8px",marginTop:"10px"}}>
-            <button onClick={()=>setMusicFull(false)} style={{flex:1,padding:"8px",borderRadius:"6px",border:"1px solid "+(!musicFull?RED:"#333"),background:!musicFull?"#1a0000":"#111",color:!musicFull?"#ff9090":"#888",fontSize:"0.7rem",fontWeight:700,cursor:"pointer"}}>{L("Clip 30s","30s clip")}</button>
-            <button onClick={()=>setMusicFull(true)} style={{flex:1,padding:"8px",borderRadius:"6px",border:"1px solid "+(musicFull?RED:"#333"),background:musicFull?"#1a0000":"#111",color:musicFull?"#ff9090":"#888",fontSize:"0.7rem",fontWeight:700,cursor:"pointer"}}>{L("Chanson complète","Full song")}</button>
-          </div>
-          <button disabled={musicBusy} onClick={()=>genMusic(musicFull)} style={{width:"100%",marginTop:"12px",padding:"12px",background:musicBusy?"#333":RED,border:"none",borderRadius:"8px",color:"#fff",fontWeight:900,fontSize:"0.9rem",letterSpacing:"1px",textTransform:"uppercase",cursor:musicBusy?"default":"pointer"}}>{musicBusy?L("Génération…","Generating…"):L("Générer la musique","Generate music")}</button>
-          {musicErr&&<div style={{color:RED,fontSize:"0.72rem",marginTop:"8px"}}>{musicErr}</div>}
-          {musicUrl&&<div style={{marginTop:"14px"}}>
-            <audio controls src={musicUrl} style={{width:"100%"}}/>
-            <a href={musicUrl} download="metalprompt.mp3" style={{display:"inline-block",marginTop:"8px",color:"#b06bff",fontSize:"0.74rem",textDecoration:"none"}}>⤓ {L("Télécharger le MP3","Download MP3")}</a>
-          </div>}
+        <div style={{...S.card,textAlign:"center",padding:"48px 22px",borderColor:"#b06bff33"}}>
+          <div style={{fontSize:"2.2rem",marginBottom:"10px"}}>🎧</div>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.5rem",letterSpacing:"3px",color:"#b06bff"}}>{L("BIENTÔT DISPONIBLE","COMING SOON")}</div>
+          <div style={{color:"#888",fontSize:"0.78rem",marginTop:"10px",lineHeight:1.7,maxWidth:"420px",margin:"10px auto 0"}}>{L("La génération d'aperçus audio arrive — clips 30s direct dans MetalPrompt. En attendant, copie ton prompt forgé pis colle-le dans Suno.","Audio preview generation is coming — 30s clips right inside MetalPrompt. Meanwhile, copy your forged prompt and paste it into Suno.")}</div>
         </div>
-        <div style={{...S.card,fontSize:"0.66rem",color:"#888",lineHeight:1.5}}>{L("⚠️ Lyria tend vers le chant clair — pour les growls/screams extrêmes, Suno reste meilleur. Idéal ici : instrumentaux, riffs, styles à voix claires. Pistes 100% IA : watermark SynthID, non protégeables telles quelles.","⚠️ Lyria leans toward clean singing — for extreme growls/screams, Suno is still better. Best here: instrumentals, riffs, clean-vocal styles. 100% AI tracks: SynthID watermark, not copyrightable as-is.")}</div>
         <div style={{height:80}}/>
       </div>)}
 

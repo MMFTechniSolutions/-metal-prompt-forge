@@ -43,6 +43,12 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Clé API non configurée' })
   }
 
+  // Plafond de génération : assez haut pour NE PAS tronquer les grosses structures
+  // (jusqu'à ~18 blocs). La facturation se fait sur les tokens réellement produits,
+  // donc un plafond élevé ne coûte pas plus cher — il évite juste la coupure.
+  // Le client peut aussi envoyer body.maxTokens (borné 1200..8000).
+  const maxTokens = Math.min(8000, Math.max(1200, parseInt(body.maxTokens) || 8000))
+
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -53,7 +59,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1200,
+        max_tokens: maxTokens,
         messages: [{ role: 'user', content: prompt }],
       }),
     })
@@ -66,13 +72,15 @@ export default async function handler(req, res) {
     }
 
     const text = data.content?.find((b) => b.type === 'text')?.text || ''
+    // stop_reason peut valoir "max_tokens" si jamais c'était encore coupé (diagnostic).
+    const truncated = data.stop_reason === 'max_tokens'
 
     // Déformation phonétique optionnelle (recette : vocaux harsh).
     // Le client passe phoneticIntensity depuis la réponse de /api/forge.
     if (['normal', 'extreme', 'stretched'].includes(intensity)) {
-      return res.status(200).json({ text, textPhonetic: phoneticize(text, intensity) })
+      return res.status(200).json({ text, textPhonetic: phoneticize(text, intensity), truncated })
     }
-    return res.status(200).json({ text })
+    return res.status(200).json({ text, truncated })
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Erreur serveur' })
   }

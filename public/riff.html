@@ -271,7 +271,9 @@
     <canvas id="waveCanvas"></canvas>
     <div class="btn-row">
       <button class="bp" id="btnGen" data-en="Generate">Générer</button>
-      <button class="bs" id="btnPlay" disabled>▶ Play</button>
+      <button class="bs" id="btnPlay" disabled data-en="▶ Mix">▶ Mix</button>
+      <button class="bp" id="btnPlayBeat" disabled>▶ Beat</button>
+      <button class="bp" id="btnPlayMelody" disabled>▶ Mélodie</button>
       <button class="bs" id="btnStop" disabled>■ Stop</button>
     </div>
     <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--iron);">
@@ -309,7 +311,7 @@
       <button class="bs" id="btnRender" disabled data-en="⏺ Full mix">⏺ Mix complet</button>
       <button class="bs" id="btnRenderSong" disabled data-en="⤓ Export full sequence">⤓ Export séquence</button>
     </div>
-    <div class="sb" style="margin-top:6px;">🎵 <a href="melody.html" style="color:var(--ember-hot);text-decoration:none;" data-en="Advanced melody generator (varied + editable) →">Générateur de mélodie avancé (varié + éditable) →</a></div>
+    <a href="melody.html" class="bp" style="display:block;margin-top:12px;text-decoration:none;text-align:center;font-size:1.15rem;padding:14px 22px;" data-en="🎵 ADVANCED MELODY GENERATOR (varied, editable) →">🎵 GÉNÉRATEUR DE MÉLODIE (varié, éditable) →</a>
     <div class="sb"><div class="dot" id="dotRec"></div><span id="txtRec" data-en="Generate a riff first">Génère un riff d'abord</span></div>
   </div>
   </div>
@@ -652,7 +654,12 @@ function drawWave(){
   if(isPlaying)animF=requestAnimationFrame(drawWave);
 }
 
-async function startPlay(p){
+async function startPlay(p, stem){
+  stem=stem||'full';   // 'full' = tout · 'beat' = batt+basse+riff · 'melody' = lead seul (clair)
+  if(stem==='melody' && (!p.lead || p.lead==='none' || !p.leadRhy)){
+    document.getElementById('txtPlay').textContent=T("⚠ Choisis un Lead (menu Lead) pour écouter la mélodie","⚠ Pick a Lead first to hear the melody");
+    return;
+  }
   await initTone();
   Tone.getTransport().bpm.value=p.bpm;
   let ni=0;
@@ -662,31 +669,34 @@ async function startPlay(p){
   seqs.forEach(s=>{try{s.stop();s.dispose();}catch(e){}});seqs=[];
   seqs.push(makeSeq((t,step)=>{
     hlStep(step%16);
-    if(a.guit[step]){const semi=p.noteSeq[ni%p.noteSeq.length]+a.trans[step];synth.triggerAttackRelease(semFreq(root,semi),'16n',t,.8);synth.triggerAttackRelease(semFreq(root,semi+7),'16n',t,.45);ni++;}
+    if(stem!=='melody' && a.guit[step]){const semi=p.noteSeq[ni%p.noteSeq.length]+a.trans[step];synth.triggerAttackRelease(semFreq(root,semi),'16n',t,.8);synth.triggerAttackRelease(semFreq(root,semi+7),'16n',t,.45);ni++;}
   }));
-  seqs.push(makeSeq((t,step)=>{if(a.bass[step]){const broot=Tone.Frequency(root).transpose(a.trans[step]-12).toNote();bassSynth.triggerAttackRelease(broot,'16n',t,.65);}}));
-  seqs.push(makeSeq((t,step)=>{if(a.kick[step])playDrum(drumBuf.kick,t,1.0);}));
-  seqs.push(makeSeq((t,step)=>{if(a.snare[step])playDrum(drumBuf.snare,t,0.9);}));
-  seqs.push(makeSeq((t,step)=>{if(a.hihat[step])playDrum(drumBuf.hihat,t,0.5);}));
-  if(p.lead&&p.lead!=='none'&&p.leadRhy){
+  if(stem!=='melody'){
+    seqs.push(makeSeq((t,step)=>{if(a.bass[step]){const broot=Tone.Frequency(root).transpose(a.trans[step]-12).toNote();bassSynth.triggerAttackRelease(broot,'16n',t,.65);}}));
+    seqs.push(makeSeq((t,step)=>{if(a.kick[step])playDrum(drumBuf.kick,t,1.0);}));
+    seqs.push(makeSeq((t,step)=>{if(a.snare[step])playDrum(drumBuf.snare,t,0.9);}));
+    seqs.push(makeSeq((t,step)=>{if(a.hihat[step])playDrum(drumBuf.hihat,t,0.5);}));
+  }
+  if(stem!=='beat' && p.lead&&p.lead!=='none'&&p.leadRhy){
     const rawCtx=Tone.getContext().rawContext;
     const stepSec=60/p.bpm/4;
     const isGuitar=(p.lead==='guitarelec'||p.lead==='guitarclass');
-    // Guitare = synthèse ampli maison (fiable, aucun CDN). Sax/violon/cuivres = vrais samples si dispo.
-    const font=isGuitar?null:await ensureLeadFont(p.lead);
+    const clean=(stem==='melody');                       // preview mélodie = son CLAIR (comme l'export)
+    // Guitare (ou preview clean) = synthèse maison. Sax/violon/cuivres = vrais samples si dispo.
+    const font=(isGuitar||clean)?null:await ensureLeadFont(p.lead);
     let li=0;
     if(font&&wafPlayer&&leadWafGain){
       const cfg=LEAD_FONT[p.lead]||{vol:.5,pluck:false};
       const ldur=cfg.pluck?stepSec*1.3:stepSec*2.4;      // guitare = plus court, sax/violon = tenu
       seqs.push(makeSeq((t,step)=>{if(p.leadRhy[step%16]){const semi=p.noteSeq[li%p.noteSeq.length]+12+a.trans[step];li++;const midi=Tone.Frequency(root).transpose(semi).toMidi();try{wafPlayer.queueWaveTable(rawCtx,leadWafGain,font,t,midi,ldur,cfg.vol);}catch(e){}}}));
     } else {
-      // Guitare OU fallback (soundfont indispo) : synthèse réaliste par instrument
+      // Guitare OU fallback OU preview clean : synthèse réaliste par instrument
       const dest=leadWafGain||rawCtx.destination;
-      const ldur=stepSec*(LEAD_DURMUL[p.lead]||1.8);
-      seqs.push(makeSeq((t,step)=>{if(p.leadRhy[step%16]){const semi=p.noteSeq[li%p.noteSeq.length]+12+a.trans[step];li++;const freq=Tone.Frequency(root).transpose(semi).toFrequency();spawnLead(rawCtx,dest,p.lead,freq,t,ldur);}}));
+      const ldur=stepSec*(LEAD_DURMUL[p.lead]||1.8)*(clean?1.15:1);
+      seqs.push(makeSeq((t,step)=>{if(p.leadRhy[step%16]){const semi=p.noteSeq[li%p.noteSeq.length]+12+a.trans[step];li++;const freq=Tone.Frequency(root).transpose(semi).toFrequency();spawnLead(rawCtx,dest,p.lead,freq,t,ldur,clean);}}));
     }
   }
-  if(p.atmos&&padSynth){
+  if(stem!=='melody' && p.atmos&&padSynth){
     seqs.push(makeSeq((t,step)=>{if(step%16===0){padSynth.triggerAttackRelease([semFreq(root,12+a.trans[step]),semFreq(root,19+a.trans[step]),semFreq(root,24+a.trans[step])],'2n',t,.4);}}));
   }
   seqs.forEach(s=>s.start(0));
@@ -695,7 +705,7 @@ async function startPlay(p){
   animF=requestAnimationFrame(drawWave);
   document.getElementById('dotPlay').className='dot playing';
   document.getElementById('txtPlay').textContent=`▶ ${p.style} · ${p.bpm} BPM · ${p.root}`;
-  document.getElementById('btnPlay').disabled=true;
+  ['btnPlay','btnPlayBeat','btnPlayMelody'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true;});
   document.getElementById('btnStop').disabled=false;
 }
 
@@ -705,7 +715,7 @@ function stopPlay(){
   isPlaying=false;cancelAnimationFrame(animF);hlStep(-1);
   document.getElementById('dotPlay').className='dot';
   document.getElementById('txtPlay').textContent=T('Arrêté','Stopped');
-  document.getElementById('btnPlay').disabled=false;
+  document.getElementById('btnPlay').disabled=false;document.getElementById('btnPlayBeat').disabled=false;document.getElementById('btnPlayMelody').disabled=false;
   document.getElementById('btnStop').disabled=true;
 }
 
@@ -994,13 +1004,15 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
   renderViz(currentPat);
   document.getElementById('tabOut').textContent=currentPat.tab||'';
   document.getElementById('btnCopyTab').disabled=!IS_ELITE;
-  document.getElementById('btnPlay').disabled=false;
+  document.getElementById('btnPlay').disabled=false;document.getElementById('btnPlayBeat').disabled=false;document.getElementById('btnPlayMelody').disabled=false;
   document.getElementById('btnRender').disabled=false;document.getElementById('btnRenderBeat').disabled=false;document.getElementById('btnRenderMelody').disabled=false;
   document.getElementById('txtRec').textContent=T('Prêt à render','Ready to render');
   document.getElementById('txtPlay').textContent=T('Riff généré — ','Riff generated — ')+currentPat.style+' · '+currentPat.bpm+' BPM';
   document.getElementById('promptBox').style.display='block';
 });
 document.getElementById('btnPlay').addEventListener('click',async()=>{try{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat);}else{document.getElementById('txtPlay').textContent=T('⚠ Genere un riff d\'abord','⚠ Generate a riff first');}}catch(e){document.getElementById('txtPlay').textContent=T('⚠ ERREUR PLAY: ','⚠ PLAY ERROR: ')+(e&&e.message?e.message:e);console.error('PLAY ERROR',e);}});
+document.getElementById('btnPlayBeat').addEventListener('click',async()=>{try{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat,'beat');}else{document.getElementById('txtPlay').textContent=T('⚠ Génère un riff d\'abord','⚠ Generate a riff first');}}catch(e){document.getElementById('txtPlay').textContent='⚠ '+(e&&e.message?e.message:e);console.error(e);}});
+document.getElementById('btnPlayMelody').addEventListener('click',async()=>{try{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat,'melody');}else{document.getElementById('txtPlay').textContent=T('⚠ Génère un riff d\'abord','⚠ Generate a riff first');}}catch(e){document.getElementById('txtPlay').textContent='⚠ '+(e&&e.message?e.message:e);console.error(e);}});
 document.getElementById('btnStop').addEventListener('click',stopPlay);
 document.getElementById('btnRender').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await renderAndDownload(currentPat);}});
 document.getElementById('btnRenderBeat').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await renderAndDownload(currentPat,'beat');}});
@@ -1096,7 +1108,7 @@ document.getElementById('btnSong').addEventListener('click',async()=>{
     document.getElementById('songRow').style.display='flex';
     document.querySelectorAll('.clipbtn').forEach(b=>b.disabled=false);
     document.getElementById('btnReclip').disabled=false;
-    document.getElementById('btnPlay').disabled=false;
+    document.getElementById('btnPlay').disabled=false;document.getElementById('btnPlayBeat').disabled=false;document.getElementById('btnPlayMelody').disabled=false;
     document.getElementById('btnRender').disabled=false;document.getElementById('btnRenderBeat').disabled=false;document.getElementById('btnRenderMelody').disabled=false;
     document.getElementById('btnRenderSong').disabled=false;
     document.getElementById('promptBox').style.display='block';

@@ -1160,6 +1160,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [lyricsAngle,setLyricsAngle]=useState("");
   const [lyricsNarrator,setLyricsNarrator]=useState("first");
   const [lyricsTense,setLyricsTense]=useState("present");
+  const [vocalMix,setVocalMix]=useState("harsh");   // harsh | mix | clean — mixe guttural et chant clair
   const [bannedWords,setBannedWords]=useState("");
   const [blockRhythm,setBlockRhythm]=useState({});
   const [globalRhythm,tGlobalRhythm]=useSet([]);
@@ -1285,7 +1286,9 @@ export default function App({ user, onLogout, onRequestAuth }) {
     const genreList=[...genres].join("/")||"deathcore";
     const historyWords=lyricsHistory.flatMap(h=>h.match(/\b\w{4,}\b/g)||[]).filter((w,i,a)=>a.indexOf(w)===i).slice(0,40);
     const allBanned=[...new Set([...historyWords,...bannedWords.split(",").map(s=>s.trim()).filter(Boolean)])];
+    const CLEAN_BLK=new Set(["chorus","prechorus","bridge","intro","atmosphericbreak","outro"]);
     const blockInstr=(structs.size?[...structs]:[...lblocks]).map(b=>{
+      const _s=(()=>{
       if(b==="verse")return"[Verse 1] and [Verse 2] — 4 lines each, DIFFERENT imagery";
       if(b==="prechorus")return"[Pre-Chorus] — 2 lines, build tension";
       if(b==="chorus")return"[Chorus] — 4 lines, powerful brutal hook";
@@ -1305,6 +1308,10 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(b==="intro")return"[Intro] — 0-1 menacing line or (instrumental)";
       if(b==="outro")return"[Outro] — 2-3 final devastating lines";
       return`[${b}] — appropriate metal content`;
+      })();
+      if(vocalMix==="mix") return _s+(CLEAN_BLK.has(b)?"  [CLEAN SINGING]":"  [HARSH GROWLS]");
+      if(vocalMix==="clean") return _s+"  [CLEAN SINGING]";
+      return _s;
     }).filter(Boolean).join("\n");
     const seeds=["Focus on physical sensations and body horror.","Use industrial machine metaphors.","Write from the perspective of the void.","Use geological destruction metaphors.","Focus on psychological collapse.","Use drowning and suffocation metaphors.","Architecture collapsing as metaphor.","Cosmic entity dying."];
     const creativeSeed=seeds[Math.floor(Math.random()*seeds.length)];
@@ -1317,6 +1324,7 @@ THEMES: ${[...themes].join(", ")||"death, chaos, darkness"}.
 ATMOSPHERE: ${[...latmo].join(", ")||"dark, menacing"}.
 ${lyricsAngle?`ANGLE: ${lyricsAngle}`:`CREATIVE ANGLE: ${creativeSeed}`}
 ${keywords?`MUST USE: ${keywords}.`:""}
+${vocalMix==="mix"?"VOCALS: Mix harsh growls and clean singing. Sections marked [CLEAN SINGING] must be melodic, catchy, singable with open sustained vowels; sections marked [HARSH GROWLS] stay aggressive and percussive. KEEP the vocal tag in each section header of the output.":vocalMix==="clean"?"VOCALS: All clean melodic singing — soaring, catchy, singable, open vowels.":""}
 STRUCTURE:\n${blockInstr}
 RULES:
 - NEVER: darkness, blood, pain, rise, fall, burning, ashes, chains, void, shadows, broken, shattered
@@ -1327,7 +1335,7 @@ RULES:
 OUTPUT: ONLY raw lyrics. Zero commentary.`;
     try {
       const lyricsBody={prompt};
-      if(phoneticOn&&phoneticRec?.enabled)lyricsBody.phoneticIntensity=phoneticRec.intensity;
+      if(phoneticOn&&phoneticRec?.enabled&&vocalMix==="harsh")lyricsBody.phoneticIntensity=phoneticRec.intensity;
       const res=await fetch("/api/lyrics",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(lyricsBody)});
       const data=await res.json();
       if(!res.ok) throw new Error(data.error||"Erreur serveur");
@@ -1692,6 +1700,15 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
         <Collapse title={L("Langue des paroles","Lyrics language")} n={LYRIC_LANGS.length} selCount={lang.size} defaultOpen={true}><Tags list={LYRIC_LANGS} sel={lang} toggle={tLang}/></Collapse>
         <Collapse title={L("Blocs à générer","Blocks to generate")} n={LYRIC_BLOCKS.length} selCount={lblocks.size}><div style={{marginBottom:"10px"}}><SelAll all={LYRIC_BLOCKS.map(b=>b.v)} set={setLblocks} L={L}/></div><Tags list={LYRIC_BLOCKS} sel={lblocks} toggle={tLblock}/></Collapse>
+        <div style={S.card}><div style={S.ctitle}>{L("Voix","Vocals")}</div>
+          <div style={{display:"flex",gap:"6px"}}>
+            {[["harsh",L("Guttural","Harsh")],["mix",L("Mix guttural + clean","Mix harsh + clean")],["clean",L("Chant clair","Clean")]].map(([v,lab])=>(
+              <div key={v} onClick={()=>setVocalMix(v)} style={{flex:1,textAlign:"center",padding:"8px 6px",borderRadius:"6px",cursor:"pointer",fontSize:"0.7rem",background:vocalMix===v?"#2a0000":"#111",border:`1px solid ${vocalMix===v?RED:"#222"}`,color:vocalMix===v?"#ff7070":"#888"}}>{lab}</div>
+            ))}
+          </div>
+          {vocalMix==="mix"&&<div style={{color:"#666",fontSize:"0.62rem",marginTop:"6px",lineHeight:1.4}}>{L("Refrains, ponts, intro/outro en chant clair · couplets, breakdowns en guttural — chaque section est taguée pour Suno.","Choruses, bridges, intro/outro clean-sung · verses, breakdowns harsh — each section tagged for Suno.")}</div>}
+          {vocalMix!=="harsh"&&phoneticRec?.enabled&&<div style={{color:"#8a6a2a",fontSize:"0.6rem",marginTop:"5px"}}>{L("Note : la déformation phonétique harsh est désactivée en mode Mix/Clair.","Note: harsh phonetic deformation is off in Mix/Clean mode.")}</div>}
+        </div>
         {phoneticRec?.enabled&&<div style={{display:"flex",alignItems:"center",gap:"10px",background:"#0a0600",border:"1px solid #3a2a00",borderRadius:"6px",padding:"9px 12px",marginBottom:"10px"}}>
           <label style={{display:"flex",alignItems:"center",gap:"8px",cursor:"pointer",fontSize:"0.68rem",color:"#d8d86a",fontWeight:700,letterSpacing:"1px"}}>
             <input type="checkbox" checked={phoneticOn} onChange={e=>setPhoneticOn(e.target.checked)} style={{accentColor:"#ff2e2e"}}/>

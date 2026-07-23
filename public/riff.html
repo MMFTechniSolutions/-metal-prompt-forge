@@ -299,11 +299,15 @@
 
   <div class="panel">
     <h2>Export WAV → Suno</h2>
-    <p class="dl-info" data-en="Offline render → download the <strong>.wav</strong> ready for <strong>Suno Style Reference</strong>.<br>Length adjustable in settings (6–30s). 15s recommended.">Render offline → télécharge le <strong>.wav</strong> prêt pour <strong>Suno Style Reference</strong>.<br>Durée ajustable dans les paramètres (6–30s). 15s recommandé.</p>
+    <p class="dl-info" data-en="Two separate exports for Suno inspiration: <strong>Beat</strong> (drums + bass + riff) and <strong>Melody</strong> (lead alone, clean tone). Upload both as inspiration.<br>Length adjustable (6–30s).">Deux exports séparés pour Suno (inspiration) : <strong>Beat</strong> (batterie + basse + riff) et <strong>Mélodie</strong> (lead seul, son clair). Upload les deux comme inspiration.<br>Durée ajustable (6–30s).</p>
     <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
     <div class="btn-row">
-      <button class="bp" id="btnRender" disabled>⏺ Render clip / riff</button>
-      <button class="bs" id="btnRenderSong" disabled data-en="⤓ Export full sequence">⤓ Export séquence complète</button>
+      <button class="bp" id="btnRenderBeat" disabled data-en="⏺ Beat (WAV)">⏺ Beat (WAV)</button>
+      <button class="bp" id="btnRenderMelody" disabled data-en="⏺ Melody (WAV)">⏺ Mélodie (WAV)</button>
+    </div>
+    <div class="btn-row">
+      <button class="bs" id="btnRender" disabled data-en="⏺ Full mix">⏺ Mix complet</button>
+      <button class="bs" id="btnRenderSong" disabled data-en="⤓ Export full sequence">⤓ Export séquence</button>
     </div>
     <div class="sb"><div class="dot" id="dotRec"></div><span id="txtRec" data-en="Generate a riff first">Génère un riff d'abord</span></div>
   </div>
@@ -381,7 +385,7 @@ const LEAD_SYNTH={
 const LEAD_DURMUL={guitarelec:2.2,guitarclass:1.3,violon:2.6,saxophone:2.4,cuivres:2.2,synth:1.8};
 function _noiseBuf(ctx,dur){const n=Math.max(1,Math.ceil(dur*ctx.sampleRate));const b=ctx.createBuffer(1,n,ctx.sampleRate);const d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;return b;}
 // Synthétise UNE note de lead pour l'instrument voulu. ctx = AudioContext ou OfflineAudioContext.
-function spawnLead(ctx,dest,inst,freq,t,dur){
+function spawnLead(ctx,dest,inst,freq,t,dur,clean){
   const S=LEAD_SYNTH[inst]||LEAD_SYNTH.synth;
   const end=t+dur;
   const vca=ctx.createGain();vca.connect(dest);
@@ -398,17 +402,25 @@ function spawnLead(ctx,dest,inst,freq,t,dur){
   const run=osc=>{osc.start(t);osc.stop(end+0.05);};
   const bq=(type,f,q,g)=>{const n=ctx.createBiquadFilter();n.type=type;n.frequency.value=f;if(q!=null)n.Q.value=q;if(g!=null)n.gain.value=g;return n;};
 
-  if(S.kind==='guitar'){                       // lead guitar ampliée (raccord avec la rythmique)
+  if(S.kind==='guitar'){                       // lead guitar (ampliée, ou CLAIRE si clean)
     const o1=ctx.createOscillator(),o2=ctx.createOscillator();
-    o1.type='sawtooth';o2.type='sawtooth';
-    o1.frequency.value=freq;o2.frequency.value=freq*1.004;wire(o1);wire(o2);
-    const d=ctx.createWaveShaper();d.curve=makeCurve(0.85);d.oversample='4x';
-    const hp=bq('highpass',150,0.7),body=bq('peaking',420,1,3),pres=bq('peaking',2900,1.3,6),lp=bq('lowpass',7200,0.7);
-    o1.connect(d);o2.connect(d);d.connect(hp);hp.connect(body);body.connect(pres);pres.connect(lp);lp.connect(vca);
+    o1.type='sawtooth';o2.type=clean?'triangle':'sawtooth';
+    o1.frequency.value=freq;o2.frequency.value=freq*(clean?1.0:1.004);wire(o1);wire(o2);
+    const g=clean?(S.gain*1.5):S.gain;
+    if(clean){
+      // Son CLAIR : aucune distorsion → ligne mélodique nette et lisible pour Suno
+      const hp=bq('highpass',110,0.7),body=bq('peaking',500,1,3),pres=bq('peaking',2200,1,3),lp=bq('lowpass',5200,0.7);
+      const o2g=ctx.createGain();o2g.gain.value=0.5;
+      o1.connect(hp);o2.connect(o2g);o2g.connect(hp);hp.connect(body);body.connect(pres);pres.connect(lp);lp.connect(vca);
+    } else {
+      const d=ctx.createWaveShaper();d.curve=makeCurve(0.85);d.oversample='4x';
+      const hp=bq('highpass',150,0.7),body=bq('peaking',420,1,3),pres=bq('peaking',2900,1.3,6),lp=bq('lowpass',7200,0.7);
+      o1.connect(d);o2.connect(d);d.connect(hp);hp.connect(body);body.connect(pres);pres.connect(lp);lp.connect(vca);
+    }
     run(o1);run(o2);
     vca.gain.setValueAtTime(0,t);
-    vca.gain.linearRampToValueAtTime(S.gain,t+S.atk);
-    vca.gain.setValueAtTime(S.gain,t+dur*0.55);
+    vca.gain.linearRampToValueAtTime(g,t+S.atk);
+    vca.gain.setValueAtTime(g,t+dur*0.55);
     vca.gain.exponentialRampToValueAtTime(0.0008,end);
     return;
   }
@@ -705,7 +717,12 @@ function makeCurve(amt){
 function noteFreqHz(note){return Tone.Frequency(note).toFrequency();}
 function semiHz(base,semi){return base*Math.pow(2,semi/12);}
 
-async function renderAndDownload(p){
+async function renderAndDownload(p, stem){
+  stem=stem||'full';   // 'full' = mix complet · 'beat' = batterie+basse+riff · 'melody' = lead seul (clair)
+  if(stem==='melody' && (!p.lead || p.lead==='none' || !p.leadRhy)){
+    document.getElementById('txtRec').textContent=T("⚠ Choisis un Lead (menu Lead) avant d'exporter la mélodie","⚠ Pick a Lead first to export the melody");
+    return;
+  }
   const dur=Math.min(30, Math.max(6, parseInt(document.getElementById('dur').value)||15));   // plafond 30s : evite le gel (trop de noeuds audio)
   const bpm=p.bpm;
   const sr=44100;
@@ -715,10 +732,10 @@ async function renderAndDownload(p){
 
   document.getElementById('dotRec').className='dot rec';
   document.getElementById('txtRec').textContent=T(`Render ${dur}s en cours…`,`Rendering ${dur}s…`);
-  document.getElementById('btnRender').disabled=true;
+  ['btnRender','btnRenderBeat','btnRenderMelody','btnRenderSong'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true;});
 
   const off=new OfflineAudioContext(2,totalSamples,sr);
-  const master=off.createGain();master.gain.value=0.5;
+  const master=off.createGain();master.gain.value=(stem==='melody')?0.95:0.5;   // mélodie seule = pas de concurrence → on monte
   // compresseur-limiteur (évite le clipping et le "crescendo" quand les notes s'empilent)
   const comp=off.createDynamicsCompressor();
   comp.threshold.value=-8;comp.knee.value=6;comp.ratio.value=6;comp.attack.value=0.004;comp.release.value=0.18;
@@ -743,7 +760,7 @@ async function renderAndDownload(p){
     const t=step*stepDur+0.05;
     const i=step%a.L;
 
-    if(a.guit[i]){
+    if(stem!=='melody' && a.guit[i]){
       const semi=p.noteSeq[gi%p.noteSeq.length]+a.trans[i];gi++;
       [0,7].forEach((interval,fi)=>{
         const freq=semiHz(rootHz,semi+interval);
@@ -771,7 +788,7 @@ async function renderAndDownload(p){
         o2.start(t);o2.stop(t+stepDur+.05);
       });
     }
-    if(a.bass[i]){
+    if(stem!=='melody' && a.bass[i]){
       const bh=semiHz(bassHz,a.trans[i]);
       const o=off.createOscillator(),o2=off.createOscillator();
       const d=off.createWaveShaper(),lo=off.createBiquadFilter(),pres=off.createBiquadFilter(),hi=off.createBiquadFilter(),g=off.createGain();
@@ -785,10 +802,12 @@ async function renderAndDownload(p){
       o.connect(d);o2.connect(d);d.connect(lo);lo.connect(pres);pres.connect(hi);hi.connect(g);g.connect(master);
       o.start(t);o.stop(t+stepDur+.05);o2.start(t);o2.stop(t+stepDur+.05);
     }
-    if(a.kick[i])playOff(obuf.kick,t,1.0);
-    if(a.snare[i])playOff(obuf.snare,t,0.9);
-    if(a.hihat[i])playOff(obuf.hihat,t,0.5);
-    if(LEAD&&p.leadRhy[i%16]){
+    if(stem!=='melody'){
+      if(a.kick[i])playOff(obuf.kick,t,1.0);
+      if(a.snare[i])playOff(obuf.snare,t,0.9);
+      if(a.hihat[i])playOff(obuf.hihat,t,0.5);
+    }
+    if(stem!=='beat' && LEAD&&p.leadRhy[i%16]){
       const semi=p.noteSeq[leadI%p.noteSeq.length]+12+a.trans[i];leadI++;
       if(leadFontTone&&wafPlayer){
         // VRAIS samples (sax/violon/cuivres) dans le WAV exporté
@@ -797,12 +816,12 @@ async function renderAndDownload(p){
         const ldur=cfg.pluck?stepDur*1.3:stepDur*2.4;
         try{wafPlayer.queueWaveTable(off,master,leadFontTone,t,midi,ldur,cfg.vol);}catch(e){}
       } else {
-        // Guitare ampliée OU fallback réaliste par instrument (même moteur que la lecture directe)
+        // Guitare ampliée OU fallback réaliste par instrument. stem 'melody' → son CLAIR (clean)
         const freq=semiHz(rootHz,semi);
-        spawnLead(off,master,p.lead,freq,t,stepDur*(LEAD_DURMUL[p.lead]||1.8));
+        spawnLead(off,master,p.lead,freq,t,stepDur*(LEAD_DURMUL[p.lead]||1.8),stem==='melody');
       }
     }
-    if(p.atmos && (step%16)===0){
+    if(stem!=='melody' && p.atmos && (step%16)===0){
       const barDur=16*stepDur;
       [0,7,12].forEach(iv=>{
         const o=off.createOscillator(),o2=off.createOscillator(),f=off.createBiquadFilter(),g=off.createGain();
@@ -826,7 +845,7 @@ async function renderAndDownload(p){
 
   let rendered;
   try{rendered=await off.startRendering();}
-  catch(e){clearInterval(ticker);document.getElementById('txtRec').textContent=T('Erreur: ','Error: ')+e.message;document.getElementById('btnRender').disabled=false;return;}
+  catch(e){clearInterval(ticker);document.getElementById('txtRec').textContent=T('Erreur: ','Error: ')+e.message;['btnRender','btnRenderBeat','btnRenderMelody','btnRenderSong'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=false;});return;}
   clearInterval(ticker);
   prog.style.width='100%';
 
@@ -834,12 +853,14 @@ async function renderAndDownload(p){
   const wav=encodeWAV(rendered);
 
   // Download — méthode robuste
-  const fname=`metalprompt_${p.style}_${bpm}bpm_${p.root}_${dur}s.wav`;
+  const stemLbl=stem==='beat'?'BEAT':stem==='melody'?'MELODY':p.style;
+  const fname=`metalprompt_${stemLbl}_${bpm}bpm_${p.root}_${dur}s.wav`;
   triggerDownload(wav,fname);
 
   document.getElementById('dotRec').className='dot';
-  document.getElementById('txtRec').textContent=`${dur}s · ${bpm} BPM · ${p.root} — `+T('téléchargement lancé','download started');
-  document.getElementById('btnRender').disabled=false;
+  const stemTxt=stem==='beat'?T('BEAT (batt+basse+riff)','BEAT'):stem==='melody'?T('MÉLODIE (lead clair)','MELODY'):p.style;
+  document.getElementById('txtRec').textContent=`${stemTxt} · ${dur}s · ${bpm} BPM · ${p.root} — `+T('téléchargement lancé','download started');
+  ['btnRender','btnRenderBeat','btnRenderMelody','btnRenderSong'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=false;});
   setTimeout(()=>{prog.style.width='0%';},2000);
 }
 
@@ -973,7 +994,7 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
   document.getElementById('tabOut').textContent=currentPat.tab||'';
   document.getElementById('btnCopyTab').disabled=!IS_ELITE;
   document.getElementById('btnPlay').disabled=false;
-  document.getElementById('btnRender').disabled=false;
+  document.getElementById('btnRender').disabled=false;document.getElementById('btnRenderBeat').disabled=false;document.getElementById('btnRenderMelody').disabled=false;
   document.getElementById('txtRec').textContent=T('Prêt à render','Ready to render');
   document.getElementById('txtPlay').textContent=T('Riff généré — ','Riff generated — ')+currentPat.style+' · '+currentPat.bpm+' BPM';
   document.getElementById('promptBox').style.display='block';
@@ -981,6 +1002,8 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
 document.getElementById('btnPlay').addEventListener('click',async()=>{try{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat);}else{document.getElementById('txtPlay').textContent=T('⚠ Genere un riff d\'abord','⚠ Generate a riff first');}}catch(e){document.getElementById('txtPlay').textContent=T('⚠ ERREUR PLAY: ','⚠ PLAY ERROR: ')+(e&&e.message?e.message:e);console.error('PLAY ERROR',e);}});
 document.getElementById('btnStop').addEventListener('click',stopPlay);
 document.getElementById('btnRender').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await renderAndDownload(currentPat);}});
+document.getElementById('btnRenderBeat').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await renderAndDownload(currentPat,'beat');}});
+document.getElementById('btnRenderMelody').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await renderAndDownload(currentPat,'melody');}});
 document.getElementById('btnCopyTab').addEventListener('click',()=>{
   const txt=document.getElementById('tabOut').textContent;
   navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('btnCopyTab');b.textContent=T('Copié','Copied');setTimeout(()=>b.textContent=T('⧉ Copier la tab','⧉ Copy tab'),1500);});
@@ -1073,7 +1096,7 @@ document.getElementById('btnSong').addEventListener('click',async()=>{
     document.querySelectorAll('.clipbtn').forEach(b=>b.disabled=false);
     document.getElementById('btnReclip').disabled=false;
     document.getElementById('btnPlay').disabled=false;
-    document.getElementById('btnRender').disabled=false;
+    document.getElementById('btnRender').disabled=false;document.getElementById('btnRenderBeat').disabled=false;document.getElementById('btnRenderMelody').disabled=false;
     document.getElementById('btnRenderSong').disabled=false;
     document.getElementById('promptBox').style.display='block';
     setActiveClip(0);

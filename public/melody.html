@@ -96,7 +96,13 @@
       <div class="cg"><label>Caractère <span class="rv" id="smoothLbl">fluide</span></label>
         <input type="range" id="smooth" min="0" max="100" value="70" step="5"></div>
     </div>
-    <div class="grid3">
+    <div class="grid4">
+      <div class="cg"><label>Phrasé</label>
+        <select id="phrase">
+          <option value="filant" selected>Filant (glissé)</option>
+          <option value="legato">Lié (legato)</option>
+          <option value="rythmic">Rythmé (notes)</option>
+        </select></div>
       <div class="cg"><label>Son (clair)</label>
         <select id="inst">
           <option value="guitarelec">Guitare claire</option>
@@ -159,39 +165,43 @@ const LEAD_SYNTH={
 };
 function makeCurve(amt){const n=512,c=new Float32Array(n),k=amt*300;for(let i=0;i<n;i++){const x=(i*2)/n-1;c[i]=((Math.PI+k)*x)/(Math.PI+k*Math.abs(x));}return c;}
 function _noiseBuf(ctx,dur){const n=Math.max(1,Math.ceil(dur*ctx.sampleRate));const b=ctx.createBuffer(1,n,ctx.sampleRate);const d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;return b;}
-function spawnLead(ctx,dest,inst,freq,t,dur,clean){
+function spawnLead(ctx,dest,inst,freq,t,dur,clean,glideFromHz){
   const S=LEAD_SYNTH[inst]||LEAD_SYNTH.synth;const end=t+dur;
   const vca=ctx.createGain();vca.connect(dest);
   let vib=null;
   if(S.vibHz){const lfo=ctx.createOscillator();lfo.type='sine';lfo.frequency.value=S.vibHz;vib=ctx.createGain();vib.gain.setValueAtTime(0,t);vib.gain.linearRampToValueAtTime(freq*S.vibC,t+Math.min(0.28,dur*0.5));lfo.connect(vib);lfo.start(t);lfo.stop(end+0.05);}
-  const wire=o=>{if(vib)vib.connect(o.frequency);};const run=o=>{o.start(t);o.stop(end+0.05);};
+  const glide=(glideFromHz&&glideFromHz>0)?Math.min(dur*0.5,0.16):0;   // portamento = "son filant" (glissando)
+  const atk=glide>0?Math.max(S.atk,0.05):S.atk;                        // attaque plus douce quand ça glisse (legato)
+  // setF : pose la fréquence, ou la fait GLISSER depuis la note précédente (en gardant le même intervalle sur les osc désaccordés)
+  const setF=(osc,target)=>{if(glide>0){osc.frequency.setValueAtTime(glideFromHz*(target/freq),t);osc.frequency.exponentialRampToValueAtTime(target,t+glide);}else{osc.frequency.value=target;}if(vib)vib.connect(osc.frequency);};
+  const run=o=>{o.start(t);o.stop(end+0.05);};
   const bq=(type,f,q,g)=>{const n=ctx.createBiquadFilter();n.type=type;n.frequency.value=f;if(q!=null)n.Q.value=q;if(g!=null)n.gain.value=g;return n;};
   if(S.kind==='guitar'){
     const o1=ctx.createOscillator(),o2=ctx.createOscillator();
     o1.type='sawtooth';o2.type=clean?'triangle':'sawtooth';
-    o1.frequency.value=freq;o2.frequency.value=freq*(clean?1.0:1.004);wire(o1);wire(o2);
+    setF(o1,freq);setF(o2,freq*(clean?1.0:1.004));
     const g=clean?(S.gain*1.5):S.gain;
     if(clean){const hp=bq('highpass',110,0.7),body=bq('peaking',500,1,3),pres=bq('peaking',2200,1,3),lp=bq('lowpass',5200,0.7),o2g=ctx.createGain();o2g.gain.value=0.5;o1.connect(hp);o2.connect(o2g);o2g.connect(hp);hp.connect(body);body.connect(pres);pres.connect(lp);lp.connect(vca);}
     else{const d=ctx.createWaveShaper();d.curve=makeCurve(0.85);d.oversample='4x';const hp=bq('highpass',150,0.7),body=bq('peaking',420,1,3),pres=bq('peaking',2900,1.3,6),lp=bq('lowpass',7200,0.7);o1.connect(d);o2.connect(d);d.connect(hp);hp.connect(body);body.connect(pres);pres.connect(lp);lp.connect(vca);}
     run(o1);run(o2);
-    vca.gain.setValueAtTime(0,t);vca.gain.linearRampToValueAtTime(g,t+S.atk);vca.gain.setValueAtTime(g,t+dur*0.55);vca.gain.exponentialRampToValueAtTime(0.0008,end);return;
+    vca.gain.setValueAtTime(0,t);vca.gain.linearRampToValueAtTime(g,t+atk);vca.gain.setValueAtTime(g,t+dur*0.6);vca.gain.exponentialRampToValueAtTime(0.0008,end);return;
   }
   if(S.kind==='pluck'){
-    const o1=ctx.createOscillator(),o2=ctx.createOscillator();o1.type='triangle';o2.type='sawtooth';o1.frequency.value=freq;o2.frequency.value=freq;wire(o1);wire(o2);
+    const o1=ctx.createOscillator(),o2=ctx.createOscillator();o1.type='triangle';o2.type='sawtooth';setF(o1,freq);setF(o2,freq);
     const o2g=ctx.createGain();o2g.gain.value=0.30;const body=bq('bandpass',Math.min(6000,freq*2.4),0.8,null),lp=bq('lowpass',4600,0.7);
     o1.connect(body);o2.connect(o2g);o2g.connect(body);body.connect(lp);lp.connect(vca);run(o1);run(o2);
-    vca.gain.setValueAtTime(0,t);vca.gain.linearRampToValueAtTime(S.gain,t+S.atk);vca.gain.exponentialRampToValueAtTime(0.0008,end);return;
+    vca.gain.setValueAtTime(0,t);vca.gain.linearRampToValueAtTime(S.gain,t+atk);vca.gain.exponentialRampToValueAtTime(0.0008,end);return;
   }
   if(S.kind==='bow'){
-    const o1=ctx.createOscillator(),o2=ctx.createOscillator();o1.type='sawtooth';o2.type='sawtooth';o1.frequency.value=freq;o2.frequency.value=freq*1.006;wire(o1);wire(o2);
+    const o1=ctx.createOscillator(),o2=ctx.createOscillator();o1.type='sawtooth';o2.type='sawtooth';setF(o1,freq);setF(o2,freq*1.006);
     const pres=bq('peaking',2600,1.2,5),lp=bq('lowpass',5200,0.6);const nb=ctx.createBufferSource();nb.buffer=_noiseBuf(ctx,dur+0.1);const nf=bq('bandpass',3200,0.8,null),ng=ctx.createGain();ng.gain.value=0.015;
     o1.connect(pres);o2.connect(pres);pres.connect(lp);lp.connect(vca);nb.connect(nf);nf.connect(ng);ng.connect(vca);run(o1);run(o2);nb.start(t);nb.stop(end+0.05);
-    vca.gain.setValueAtTime(0,t);vca.gain.linearRampToValueAtTime(S.gain,t+S.atk);vca.gain.setValueAtTime(S.gain,t+dur*0.8);vca.gain.linearRampToValueAtTime(0.0008,end);return;
+    vca.gain.setValueAtTime(0,t);vca.gain.linearRampToValueAtTime(S.gain,t+atk);vca.gain.setValueAtTime(S.gain,t+dur*0.85);vca.gain.linearRampToValueAtTime(0.0008,end);return;
   }
   // synth clair
-  const o1=ctx.createOscillator(),o2=ctx.createOscillator();o1.type='sawtooth';o2.type='square';o1.frequency.value=freq;o2.frequency.value=freq*0.5;
+  const o1=ctx.createOscillator(),o2=ctx.createOscillator();o1.type='sawtooth';o2.type='square';setF(o1,freq);setF(o2,freq*0.5);
   const o2g=ctx.createGain();o2g.gain.value=0.3;const lp=bq('lowpass',3800,1);o1.connect(lp);o2.connect(o2g);o2g.connect(lp);lp.connect(vca);run(o1);run(o2);
-  vca.gain.setValueAtTime(0,t);vca.gain.linearRampToValueAtTime(S.gain,t+S.atk);vca.gain.exponentialRampToValueAtTime(0.0008,end);
+  vca.gain.setValueAtTime(0,t);vca.gain.linearRampToValueAtTime(S.gain,t+atk);vca.gain.exponentialRampToValueAtTime(0.0008,end);
 }
 function softClip(ctx){const s=ctx.createWaveShaper();const N=2048,c=new Float32Array(N),k=1.5,ceil=0.985;for(let i=0;i<N;i++){const x=(i/(N-1))*2-1;c[i]=ceil*Math.tanh(k*x)/Math.tanh(k);}s.curve=c;s.oversample='2x';return s;}
 function encodeWAV(buf){
@@ -220,6 +230,7 @@ function smooth(){return parseInt($('smooth').value)/100;}
 function bpm(){return parseInt($('bpm').value);}
 function family(){return $('family').value;}
 function inst(){return $('inst').value;}
+function phrase(){return $('phrase').value;}
 
 function populateRoots(){const s=$('root');s.innerHTML='';for(let pc=0;pc<12;pc++){const o=document.createElement('option');o.value=pc;o.textContent=NAMES[pc];if(pc===4)o.selected=true;s.appendChild(o);}} // défaut E
 function populateScales(){
@@ -246,7 +257,7 @@ function generate(){
   const feel=FAMILY_FEEL[family()];const dens=density();const sm=smooth();
   mel=new Array(steps).fill(null);
   // 1) rythme : quelles cases sonnent (phrasé = on laisse des silences)
-  const onsets=[];
+  let onsets=[];
   for(let i=0;i<steps;i++){
     const inBar=i%16, beat=inBar%4===0, off8=inBar%2===0;
     let p=dens*(beat?1.15:off8?0.9:(0.5+feel.syncop*0.7));
@@ -256,6 +267,14 @@ function generate(){
   if(onsets.length<Math.max(3,steps/12)){       // garde un minimum de notes
     for(let i=0;i<steps&&onsets.length<steps/8;i+=2)if(!onsets.includes(i))onsets.push(i);
     onsets.sort((a,b)=>a-b);
+  }
+  // Phrasé : « filant »/« lié » → on éclaircit pour des notes LONGUES et tenues (au lieu de croches hachées)
+  const ph=phrase();
+  if(ph!=='rythmic'){
+    const minGap=ph==='filant'?4:2;
+    const thin=[];let last=-99;
+    onsets.forEach(s=>{if(s-last>=minGap){thin.push(s);last=s;}});
+    if(thin.length>=2)onsets=thin;
   }
   // 2) hauteurs : marche mélodique (conjoint + sauts), arc de phrase, motif
   const chords=chordIdxs();
@@ -318,7 +337,9 @@ $('roll').addEventListener('click',e=>{
 });
 
 // ═══════════════ DURÉE DES NOTES (legato jusqu'à la suivante) ═══════════════
-function noteDur(i,stepDur){let j=i+1;while(j<steps&&mel[j]==null)j++;const gap=(j-i);return Math.min(gap*stepDur*0.95, stepDur*6);}
+function noteDur(i,stepDur){let j=i+1;while(j<steps&&mel[j]==null)j++;const gap=(j-i);return Math.min(gap*stepDur*0.98, stepDur*8);}
+// Liste ordonnée des notes avec la fréquence de la précédente (pour le glissando "filant")
+function noteList(stepDur){const out=[];let prevHz=0;for(let i=0;i<steps;i++){if(mel[i]==null)continue;const hz=midiHz(mel[i]);out.push({i,hz,dur:noteDur(i,stepDur),prevHz});prevHz=hz;}return out;}
 
 // ═══════════════ LECTURE ═══════════════
 let actx=null,playRAF=null,playT0=0;
@@ -328,7 +349,8 @@ async function play(){
   actx=new (window.AudioContext||window.webkitAudioContext)();
   const master=actx.createGain();master.gain.value=0.85;const sc=softClip(actx);master.connect(sc);sc.connect(actx.destination);
   const stepDur=60/bpm()/4;const t0=actx.currentTime+0.12;playT0=t0;
-  mel.forEach((n,i)=>{if(n==null)return;spawnLead(actx,master,inst(),midiHz(n),t0+i*stepDur,noteDur(i,stepDur),true);});
+  const gl=phrase()!=='rythmic';
+  noteList(stepDur).forEach(nt=>{spawnLead(actx,master,inst(),nt.hz,t0+nt.i*stepDur,nt.dur,true,gl?nt.prevHz:0);});
   const total=steps*stepDur;
   $('dot').className='dot playing';$('btnStop').disabled=false;$('btnPlay').disabled=true;status('Lecture…',true);
   const ph=$('playhead'),cw=window.__cw||16;ph.style.display='block';
@@ -345,7 +367,8 @@ async function exportWav(){
   const sr=44100,stepDur=60/bpm()/4,total=Math.ceil((steps*stepDur+0.6)*sr);
   const off=new OfflineAudioContext(1,total,sr);
   const master=off.createGain();master.gain.value=0.85;const sc=softClip(off);master.connect(sc);sc.connect(off.destination);
-  mel.forEach((n,i)=>{if(n==null)return;spawnLead(off,master,inst(),midiHz(n),i*stepDur+0.05,noteDur(i,stepDur),true);});
+  const gl=phrase()!=='rythmic';
+  noteList(stepDur).forEach(nt=>{spawnLead(off,master,inst(),nt.hz,nt.i*stepDur+0.05,nt.dur,true,gl?nt.prevHz:0);});
   let buf;try{buf=await off.startRendering();}catch(e){status('Erreur: '+e.message,false);$('dot').className='dot';$('btnExport').disabled=false;return;}
   const wav=encodeWAV(buf);const dur=Math.round(steps*stepDur);
   triggerDownload(wav,`melody_${family()}_${NAMES[rootPc()].replace('#','s')}_${bpm()}bpm_${dur}s.wav`);
@@ -359,7 +382,7 @@ $('density').addEventListener('input',()=>$('densLbl').textContent=$('density').
 $('smooth').addEventListener('input',()=>{const v=+$('smooth').value;$('smoothLbl').textContent=v>66?'fluide':v>33?'mixte':'sauts';});
 $('bpm').addEventListener('input',()=>$('bpmLbl').textContent=$('bpm').value+' BPM');
 $('family').addEventListener('change',()=>{populateScales();generate();});
-['scale','root','octave','range','bars'].forEach(id=>$(id).addEventListener('change',generate));
+['scale','root','octave','range','bars','phrase'].forEach(id=>$(id).addEventListener('change',generate));
 $('btnGen').addEventListener('click',generate);
 $('btnPlay').addEventListener('click',()=>{play().catch(e=>{status('⚠ '+e.message,false);});});
 $('btnStop').addEventListener('click',()=>{stopPlay();status('Arrêté',false);});

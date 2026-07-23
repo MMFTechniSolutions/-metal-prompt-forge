@@ -65,6 +65,13 @@
 </style>
 </head>
 <body>
+<div id="gate" style="position:fixed;inset:0;background:rgba(10,10,11,0.98);z-index:9999;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;">
+  <div style="max-width:460px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:2.1rem;color:#f0f0f4;letter-spacing:.07em;">MÉLODIE <span style="color:#c0392b;">— ABONNÉS</span></div>
+    <div id="gateMsg" style="color:#6b6b78;margin:16px 0 22px;font-size:.95rem;line-height:1.6;font-family:'Inter',sans-serif;">Vérification de l'accès…</div>
+    <div id="gateActions" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;"></div>
+  </div>
+</div>
 <header>
   <div class="logo">METAL<span>PROMPT</span></div>
   <div class="badge">MÉLODIE GEN</div>
@@ -446,8 +453,40 @@ $('btnPlay').addEventListener('click',()=>{play().catch(e=>{status('⚠ '+e.mess
 $('btnStop').addEventListener('click',()=>{stopPlay();status('Arrêté',false);});
 $('btnExport').addEventListener('click',exportWav);
 
-// init
-populateRoots();populateScales();generate();
+// ═══════════════ CONTRÔLE D'ACCÈS — abonnés payants seulement ═══════════════
+function getSupaToken(){
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.indexOf('sb-')===0&&k.indexOf('-auth-token')>0){
+        const v=JSON.parse(localStorage.getItem(k));
+        return (v&&(v.access_token||(v.currentSession&&v.currentSession.access_token)))||null;
+      }
+    }
+  }catch(e){}
+  return null;
+}
+function showPaywall(kind){
+  const msg=$('gateMsg'),act=$('gateActions');
+  const plansBtn='<a href="/" class="bp" style="text-decoration:none;padding:12px 22px;">Voir les plans →</a>';
+  if(kind==='connect'){msg.innerHTML='Le générateur de mélodie est réservé aux <strong style="color:#c8c8d0;">abonnés payants</strong>. Connecte-toi avec un compte payant, ou choisis un plan.';act.innerHTML=plansBtn;}
+  else if(kind==='upgrade'){msg.innerHTML='Ton compte n\'a pas d\'abonnement actif. Ce générateur est réservé aux <strong style="color:#c8c8d0;">abonnés</strong>.';act.innerHTML=plansBtn;}
+  else{msg.innerHTML='Impossible de vérifier l\'accès pour l\'instant.';act.innerHTML='<button class="bp" onclick="location.reload()">Réessayer</button> '+plansBtn;}
+}
+async function checkAccess(){
+  const token=getSupaToken();
+  if(!token){showPaywall('connect');return false;}
+  try{
+    const r=await fetch('/api/melody-access',{method:'POST',headers:{'Authorization':'Bearer '+token}});
+    let j={};try{j=await r.json();}catch(e){}
+    if(r.ok&&j.allowed)return true;
+    showPaywall((j&&j.tier&&j.tier!=='free')?'error':'upgrade');return false;
+  }catch(e){showPaywall('error');return false;}
+}
+// init (seulement APRÈS contrôle d'accès payant)
+checkAccess().then(ok=>{
+  if(ok){ $('gate').style.display='none'; populateRoots();populateScales();generate(); }
+});
 </script>
 </body>
 </html>

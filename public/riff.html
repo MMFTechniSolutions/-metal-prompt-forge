@@ -371,7 +371,7 @@ async function ensureLeadFont(name){
 // (harmoniques + vibrato retardé + formant + attaque propre à l'instrument).
 // ═══════════════════════════════════════════════════════════════════
 const LEAD_SYNTH={
-  guitarelec: {kind:'guitar', gain:0.30, atk:0.006, dur:2.2},
+  guitarelec: {kind:'guitar', gain:0.26, atk:0.006, dur:2.2},
   guitarclass:{kind:'pluck',  gain:0.34, atk:0.004, dur:1.3},
   violon:     {kind:'bow',    gain:0.22, atk:0.09,  dur:2.6, vibHz:6,   vibC:0.011},
   saxophone:  {kind:'reed',   gain:0.24, atk:0.05,  dur:2.4, vibHz:5,   vibC:0.010},
@@ -721,9 +721,12 @@ async function renderAndDownload(p){
   const master=off.createGain();master.gain.value=0.5;
   // compresseur-limiteur (évite le clipping et le "crescendo" quand les notes s'empilent)
   const comp=off.createDynamicsCompressor();
-  comp.threshold.value=-4;comp.knee.value=0;comp.ratio.value=20;comp.attack.value=0.002;comp.release.value=0.12;
-  const outGain=off.createGain();outGain.gain.value=0.9;
-  master.connect(comp);comp.connect(outGain);outGain.connect(off.destination);
+  comp.threshold.value=-8;comp.knee.value=6;comp.ratio.value=6;comp.attack.value=0.004;comp.release.value=0.18;
+  const outGain=off.createGain();outGain.gain.value=0.82;
+  // Soft-clip final (tanh) : arrondit les pointes au lieu d'un écrêtage dur "qui griche"
+  const soft=off.createWaveShaper();
+  {const N=2048,c=new Float32Array(N),k=1.5;for(let i=0;i<N;i++){const x=(i/(N-1))*2-1;c[i]=Math.tanh(k*x)/Math.tanh(k);}soft.curve=c;soft.oversample='4x';}
+  master.connect(comp);comp.connect(outGain);outGain.connect(soft);soft.connect(off.destination);
 
   const rootHz=noteFreqHz(p.root);
   const bassHz=rootHz/2;

@@ -63,6 +63,7 @@
   .scaleName{font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--gold);}
   .hint{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--ash);}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 <div id="gate" style="position:fixed;inset:0;background:rgba(10,10,11,0.98);z-index:9999;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;">
@@ -585,18 +586,11 @@ $('btnStop').addEventListener('click',()=>{stopPlay();status('Arrêté',false);}
 $('btnExport').addEventListener('click',exportWav);
 
 // ═══════════════ CONTRÔLE D'ACCÈS — abonnés payants seulement ═══════════════
-function getSupaToken(){
-  try{
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(k&&k.indexOf('sb-')===0&&k.indexOf('-auth-token')>0){
-        const v=JSON.parse(localStorage.getItem(k));
-        return (v&&(v.access_token||(v.currentSession&&v.currentSession.access_token)))||null;
-      }
-    }
-  }catch(e){}
-  return null;
-}
+const SUPA_URL='https://wlnttrzmjfefyghxlbyb.supabase.co';
+const SUPA_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndsbnR0cnptamZlZnlnaHhsYnliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDM2MjksImV4cCI6MjA5NzgxOTYyOX0.VtHoMxrejhIgq046uv4JE1pvHyzRxjUbPqHZ39kiMBw';
+const OWNER_EMAILS=['rzlajoie@gmail.com'];   // accès garanti (propriétaire), même sans abonnement
+let _sb=null;
+function supaClient(){ if(!_sb && window.supabase && window.supabase.createClient) _sb=window.supabase.createClient(SUPA_URL,SUPA_ANON); return _sb; }
 function showPaywall(kind){
   const msg=$('gateMsg'),act=$('gateActions');
   const plansBtn='<a href="/" class="bp" style="text-decoration:none;padding:12px 22px;">Voir les plans →</a>';
@@ -604,14 +598,21 @@ function showPaywall(kind){
   else if(kind==='upgrade'){msg.innerHTML='Ton compte n\'a pas d\'abonnement actif. Ce générateur est réservé aux <strong style="color:#c8c8d0;">abonnés</strong>.';act.innerHTML=plansBtn;}
   else{msg.innerHTML='Impossible de vérifier l\'accès pour l\'instant.';act.innerHTML='<button class="bp" onclick="location.reload()">Réessayer</button> '+plansBtn;}
 }
+// Vérifie l'abonnement EXACTEMENT comme l'app (App.jsx lit users.tier via Supabase).
+// Fiable en local ET en prod (ne dépend pas des variables d'env serveur).
 async function checkAccess(){
-  const token=getSupaToken();
-  if(!token){showPaywall('connect');return false;}
   try{
-    const r=await fetch('/api/melody-access',{method:'POST',headers:{'Authorization':'Bearer '+token}});
-    let j={};try{j=await r.json();}catch(e){}
-    if(r.ok&&j.allowed)return true;
-    showPaywall((j&&j.tier&&j.tier!=='free')?'error':'upgrade');return false;
+    const sb=supaClient();
+    if(!sb){showPaywall('error');return false;}
+    const {data:{session}}=await sb.auth.getSession();
+    const email=session&&session.user&&session.user.email;
+    if(!email){showPaywall('connect');return false;}
+    if(OWNER_EMAILS.includes(email.toLowerCase()))return true;         // propriétaire
+    const {data,error}=await sb.from('users').select('tier').eq('email',email).single();
+    if(error){showPaywall('error');return false;}
+    const tier=((data&&data.tier)||'free').toString().trim().toLowerCase();
+    if(tier && tier!=='free')return true;                             // abonné
+    showPaywall('upgrade');return false;                              // gratuit
   }catch(e){showPaywall('error');return false;}
 }
 // init (seulement APRÈS contrôle d'accès payant)

@@ -187,6 +187,32 @@ function varyDrum(dp){
   if(!k[15])k[15]=1;          // pickup en fin de mesure (relance)
   return {kick:k,snare:dp.snare,hihat:dp.hihat};
 }
+function rint(n){return Math.floor(Math.random()*n);}
+// VARIÉTÉ DE BEAT — variation aléatoire par mesure (kicks syncopés, relances, hi-hat) tout en gardant
+// le groove signature (backbeat de caisse, murs de blast). Chaque génération = un pattern différent.
+function spiceDrum(dp, aggr){
+  aggr = (aggr==null)?0.5:aggr;
+  const kick=dp.kick.slice(), snare=dp.snare.slice(), hihat=dp.hihat.slice();
+  const kdens=kick.reduce((a,b)=>a+b,0);
+  // Kicks syncopés (le groove metal vient des kicks) — seulement si pas déjà saturé (blast/double kick)
+  if(kdens<9){
+    const addK = 1 + rint(aggr>0.6?3:2);
+    for(let a=0;a<addK;a++){ const s=1+rint(15); if(!snare[s]) kick[s]=1; }
+    if(Math.random()<0.45){ const cand=[]; for(let s=1;s<16;s++) if(kick[s]&&!snare[s]&&s!==8) cand.push(s); if(cand.length) kick[cand[rint(cand.length)]]=0; }
+  }
+  if(Math.random()<0.85) kick[0]=1;                       // garde le temps 1 la plupart du temps
+  // Caisse claire : garde le backbeat, ajoute parfois UNE relance juste avant
+  if(Math.random()<0.28){ const back=[]; for(let s=0;s<16;s++) if(snare[s]) back.push(s); if(back.length){ const t=back[rint(back.length)]-1; if(t>0 && !snare[t]) snare[t]=1; } }
+  // Hi-hat : varie le motif (garde / croches / doubles-croches) sans casser un mur de hats
+  const hdens=hihat.reduce((a,b)=>a+b,0);
+  if(hdens<16){
+    const hmode=rint(3);
+    if(hmode===1) for(let s=0;s<16;s++) hihat[s]=(s%2===0)?1:0;
+    else if(hmode===2) for(let s=0;s<16;s++) hihat[s]=1;
+  }
+  if(Math.random()<0.4){ const s=rint(16); hihat[s]=hihat[s]?0:1; }
+  return {kick,snare,hihat};
+}
 function buildArrangement(p){
   const st=STRUCTURES[p.structure]||STRUCTURES.loop;
   const meta=STYLE_META[p.style]||{lvl:'mod',meters:M44};
@@ -194,26 +220,31 @@ function buildArrangement(p){
   let prevN=16;
   st.bars.forEach((bar,bi)=>{
     let dp = p.custom ? p.drum : (DRUM_PAT[bar.drum||p.drumKey]||p.drum);
-    if(!p.custom && !bar.drum){
-      // Mouvement de batterie quand la mélodie bouge (transpose) ou 1 mesure /2 — casse le « toujours le même beat »
-      if(bi%2===1 || bar.transpose) dp = varyDrum(dp);
-      // Styles techniques : vrai switch de beat sur les sections transposées (la mélodie monte → le beat change pour vrai)
-      if(meta.lvl==='agg' && bar.transpose){
+    if(!p.custom){
+      // Styles techniques : vrai switch de beat sur les sections transposées (la mélodie monte → le beat change)
+      if(!bar.drum && meta.lvl==='agg' && bar.transpose){
         const swap = DRUM_PAT[ p.drumKey==='blast_beat' ? 'double_kick' : 'blast_beat' ];
-        if(swap) dp = varyDrum(swap);
+        if(swap) dp = swap;
       }
+      // VARIÉTÉ : chaque mesure reçoit une variation aléatoire → jamais deux générations pareilles
+      dp = spiceDrum(dp, meta.lvl==='agg' ? 0.75 : 0.5);
     }
     const useB = (bar.g==='B') || (bar.g!=='A' && bi%2===1);
     const gp = (useB && p.guitB) ? p.guitB : p.guit;               // rythme de guitare A/B
     const tr=bar.transpose||0;
     const n = bar.steps || meterFor(meta,bi,prevN);                // structure d'abord, sinon mesure selon le style
     prevN=n;
+    const fillType = (!p.custom && bar.fill) ? (1+rint(3)) : 0;    // fill varié (jamais sur un groove MIDI importé)
     for(let i=0;i<n;i++){
       const j=i%16;
       out.guit.push(gp[j]);out.bass.push(p.bass[j]);
-      out.kick.push(dp.kick[j]);
-      out.snare.push((bar.fill && i >= n - 4) ? 1 : dp.snare[j]);
-      out.hihat.push(dp.hihat[j]);
+      let kk=dp.kick[j], sn=dp.snare[j], hh=dp.hihat[j];
+      if(fillType && i >= n-4){
+        if(fillType===1){ sn=1; }                                    // roulement de caisse (16e)
+        else if(fillType===2){ sn=(i%2===0)?1:0; kk=(i%2===1)?1:0; } // kick/caisse alternés
+        else { sn=(i===n-4||i>=n-2)?1:0; kk=(i===n-3)?1:0; }         // fill espacé
+      }
+      out.kick.push(kk); out.snare.push(sn); out.hihat.push(hh);
       out.trans.push(tr);
     }
   });

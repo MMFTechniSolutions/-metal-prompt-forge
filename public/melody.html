@@ -103,12 +103,19 @@
           <option value="legato">Lié (legato)</option>
           <option value="rythmic">Rythmé (notes)</option>
         </select></div>
-      <div class="cg"><label>Son (clair)</label>
+      <div class="cg"><label>Instrument (réel)</label>
         <select id="inst">
-          <option value="guitarelec">Guitare claire</option>
-          <option value="guitarclass">Nylon / pluck</option>
-          <option value="violon">Violon</option>
-          <option value="synth">Synth clair</option>
+          <option value="guitar_clean">Guitare élec. claire</option>
+          <option value="guitar_ac">Guitare acoustique</option>
+          <option value="guitar_nylon">Guitare nylon</option>
+          <option value="piano">Piano</option>
+          <option value="violin">Violon</option>
+          <option value="cello">Violoncelle</option>
+          <option value="strings">Cordes (ensemble)</option>
+          <option value="flute">Flûte</option>
+          <option value="sax">Saxophone</option>
+          <option value="trumpet">Trompette</option>
+          <option value="synth">Synthé (secours)</option>
         </select></div>
       <div class="cg"><label>Tempo <span class="rv" id="bpmLbl">140 BPM</span></label>
         <input type="range" id="bpm" min="60" max="240" value="140" step="1"></div>
@@ -213,6 +220,51 @@ function encodeWAV(buf){
   return new Blob([ab],{type:'audio/wav'});
 }
 function triggerDownload(blob,fname){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=fname;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1500);}
+
+// ═══════════════ VRAIS INSTRUMENTS ÉCHANTILLONNÉS (WebAudioFont — sons réels) ═══════════════
+// Au lieu d'oscillateurs (= synthé), on joue de VRAIS samples d'instruments. Suno reprend alors un vrai timbre.
+const WAF_PLAYER_URL='https://cdn.jsdelivr.net/gh/surikov/webaudiofont/npm/dist/WebAudioFontPlayer.js';
+const WAF_BASE='https://cdn.jsdelivr.net/gh/surikov/webaudiofontdata/sound/';
+const INSTBANK={
+  guitar_clean:{file:'0270_FluidR3_GM_sf2_file',vol:0.7},
+  guitar_ac:{file:'0250_FluidR3_GM_sf2_file',vol:0.8},
+  guitar_nylon:{file:'0240_FluidR3_GM_sf2_file',vol:0.8},
+  piano:{file:'0000_FluidR3_GM_sf2_file',vol:0.7},
+  violin:{file:'0400_FluidR3_GM_sf2_file',vol:0.8},
+  cello:{file:'0420_FluidR3_GM_sf2_file',vol:0.85},
+  strings:{file:'0480_FluidR3_GM_sf2_file',vol:0.7},
+  flute:{file:'0730_FluidR3_GM_sf2_file',vol:0.85},
+  sax:{file:'0660_FluidR3_GM_sf2_file',vol:0.75},
+  trumpet:{file:'0560_FluidR3_GM_sf2_file',vol:0.7},
+};
+let wafPlayer=null,wafCtx=null;const wafTone={};
+function loadScript(url){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=url;s.async=true;s.onload=()=>res();s.onerror=()=>rej(new Error('load'));document.head.appendChild(s);});}
+async function ensureFont(key){
+  const cfg=INSTBANK[key];if(!cfg)return null;
+  if(wafTone[key])return wafTone[key];
+  try{
+    if(!window.WebAudioFontPlayer)await loadScript(WAF_PLAYER_URL);
+    if(!wafPlayer)wafPlayer=new WebAudioFontPlayer();
+    if(!wafCtx){try{wafCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:44100});}catch(e){wafCtx=new (window.AudioContext||window.webkitAudioContext)();}}
+    const vn='_tone_'+cfg.file;
+    if(!window[vn])await loadScript(WAF_BASE+cfg.file+'.js');
+    if(!window[vn])return null;
+    wafPlayer.loader.decodeAfterLoading(wafCtx,vn);
+    await Promise.race([new Promise(r=>wafPlayer.loader.waitLoad(r)),new Promise(r=>setTimeout(r,10000))]);
+    wafTone[key]=window[vn];return wafTone[key];
+  }catch(e){console.warn('SoundFont indispo, fallback synthé:',e&&e.message);return null;}
+}
+// Joue une note : vrai instrument si dispo (avec glissando en mode filant), sinon synthé de secours.
+function playNote(ctx,dest,font,key,nt,t,slideOn){
+  if(font&&wafPlayer){
+    const cfg=INSTBANK[key];
+    let slides=null;
+    if(slideOn&&nt.prevMidi!=null&&nt.prevMidi!==nt.midi){slides=[{delay:0,pitch:nt.prevMidi},{delay:Math.min(nt.dur*0.4,0.14),pitch:nt.midi}];}
+    try{wafPlayer.queueWaveTable(ctx,dest,font,t,nt.midi,nt.dur,cfg.vol,slides);return;}
+    catch(e){try{wafPlayer.queueWaveTable(ctx,dest,font,t,nt.midi,nt.dur,cfg.vol);return;}catch(e2){}}
+  }
+  spawnLead(ctx,dest,'guitarelec',nt.hz,t,nt.dur,true,(slideOn?nt.prevHz:0));   // secours synthé
+}
 
 // ═══════════════ ÉTAT ═══════════════
 const $=id=>document.getElementById(id);
@@ -339,20 +391,23 @@ $('roll').addEventListener('click',e=>{
 // ═══════════════ DURÉE DES NOTES (legato jusqu'à la suivante) ═══════════════
 function noteDur(i,stepDur){let j=i+1;while(j<steps&&mel[j]==null)j++;const gap=(j-i);return Math.min(gap*stepDur*0.98, stepDur*8);}
 // Liste ordonnée des notes avec la fréquence de la précédente (pour le glissando "filant")
-function noteList(stepDur){const out=[];let prevHz=0;for(let i=0;i<steps;i++){if(mel[i]==null)continue;const hz=midiHz(mel[i]);out.push({i,hz,dur:noteDur(i,stepDur),prevHz});prevHz=hz;}return out;}
+function noteList(stepDur){const out=[];let prevHz=0,prevMidi=null;for(let i=0;i<steps;i++){if(mel[i]==null)continue;const hz=midiHz(mel[i]);out.push({i,midi:mel[i],hz,dur:noteDur(i,stepDur),prevHz,prevMidi});prevHz=hz;prevMidi=mel[i];}return out;}
 
 // ═══════════════ LECTURE ═══════════════
 let actx=null,playRAF=null,playT0=0;
 function stopPlay(){if(playRAF)cancelAnimationFrame(playRAF);playRAF=null;if(actx){try{actx.close();}catch(e){}actx=null;}$('dot').className='dot';$('btnStop').disabled=true;$('btnPlay').disabled=false;$('playhead').style.display='none';}
 async function play(){
   stopPlay();
+  const key=inst();
+  status('Chargement de l\'instrument…',true);
+  const font=(key in INSTBANK)?await ensureFont(key):null;
   actx=new (window.AudioContext||window.webkitAudioContext)();
-  const master=actx.createGain();master.gain.value=0.85;const sc=softClip(actx);master.connect(sc);sc.connect(actx.destination);
-  const stepDur=60/bpm()/4;const t0=actx.currentTime+0.12;playT0=t0;
-  const gl=phrase()!=='rythmic';
-  noteList(stepDur).forEach(nt=>{spawnLead(actx,master,inst(),nt.hz,t0+nt.i*stepDur,nt.dur,true,gl?nt.prevHz:0);});
+  const master=actx.createGain();master.gain.value=font?0.9:0.85;const sc=softClip(actx);master.connect(sc);sc.connect(actx.destination);
+  const stepDur=60/bpm()/4;const t0=actx.currentTime+0.15;playT0=t0;
+  const slideOn=phrase()==='filant';
+  noteList(stepDur).forEach(nt=>{playNote(actx,master,font,key,nt,t0+nt.i*stepDur,slideOn);});
   const total=steps*stepDur;
-  $('dot').className='dot playing';$('btnStop').disabled=false;$('btnPlay').disabled=true;status('Lecture…',true);
+  $('dot').className='dot playing';$('btnStop').disabled=false;$('btnPlay').disabled=true;status(font?'Lecture (vrai instrument)…':'Lecture (synthé de secours)…',true);
   const ph=$('playhead'),cw=window.__cw||16;ph.style.display='block';
   const roll=$('roll');
   const tick=()=>{const el=actx?actx.currentTime-playT0:total+1;if(el>=total){stopPlay();status('Fin de lecture',false);return;}
@@ -363,16 +418,19 @@ async function play(){
 // ═══════════════ EXPORT WAV (clair) ═══════════════
 async function exportWav(){
   if(!mel.some(v=>v!=null)){status('⚠ Génère une mélodie d\'abord',false);return;}
-  $('dot').className='dot rec';status('Render…',true);$('btnExport').disabled=true;
-  const sr=44100,stepDur=60/bpm()/4,total=Math.ceil((steps*stepDur+0.6)*sr);
+  const key=inst();
+  $('dot').className='dot rec';status('Chargement de l\'instrument…',true);$('btnExport').disabled=true;
+  const font=(key in INSTBANK)?await ensureFont(key):null;
+  status('Render…',true);
+  const sr=44100,stepDur=60/bpm()/4,total=Math.ceil((steps*stepDur+1.4)*sr);
   const off=new OfflineAudioContext(1,total,sr);
-  const master=off.createGain();master.gain.value=0.85;const sc=softClip(off);master.connect(sc);sc.connect(off.destination);
-  const gl=phrase()!=='rythmic';
-  noteList(stepDur).forEach(nt=>{spawnLead(off,master,inst(),nt.hz,nt.i*stepDur+0.05,nt.dur,true,gl?nt.prevHz:0);});
+  const master=off.createGain();master.gain.value=font?0.9:0.85;const sc=softClip(off);master.connect(sc);sc.connect(off.destination);
+  const slideOn=phrase()==='filant';
+  noteList(stepDur).forEach(nt=>{playNote(off,master,font,key,nt,nt.i*stepDur+0.05,slideOn);});
   let buf;try{buf=await off.startRendering();}catch(e){status('Erreur: '+e.message,false);$('dot').className='dot';$('btnExport').disabled=false;return;}
   const wav=encodeWAV(buf);const dur=Math.round(steps*stepDur);
-  triggerDownload(wav,`melody_${family()}_${NAMES[rootPc()].replace('#','s')}_${bpm()}bpm_${dur}s.wav`);
-  $('dot').className='dot';$('btnExport').disabled=false;status('Mélodie exportée · '+dur+'s',false);
+  triggerDownload(wav,`melody_${key}_${NAMES[rootPc()].replace('#','s')}_${bpm()}bpm_${dur}s.wav`);
+  $('dot').className='dot';$('btnExport').disabled=false;status((font?'Mélodie (vrai instrument) exportée · ':'Mélodie exportée · ')+dur+'s',false);
 }
 
 function status(msg,active){$('status').textContent=msg;}

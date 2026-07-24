@@ -73,11 +73,12 @@ const css = `
 
 // ── DATA ──
 // Genres : listes par tier remplacées par GENRE_FAMILIES (par époque). GENRES_NEW conservé pour les badges.
-const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal","hard rock","heavy metal","proto-metal","blues rock","traditional heavy metal","nwobhm","speed metal","power metal","glam metal","punk rock","hardcore punk","crossover thrash","d-beat","powerviolence","rapcore","post-black metal","blackgaze","technical deathcore","deathgrind","brutal death metal","drone metal","atmospheric sludge metal","depressive black metal"];
+const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death metal","symphonic metal","progressive metalcore","industrial metal","atmospheric black metal","blackened death metal","grindcore","funeral doom","dissonant death metal","avant-garde metal","melodic metalcore","post-hardcore","electronicore","arena metalcore","ambient metalcore","pop metalcore","modern metalcore","alternative metal","synth metalcore","atmospheric metalcore","progressive post-hardcore","modern alternative metal","hard rock","heavy metal","proto-metal","blues rock","traditional heavy metal","nwobhm","speed metal","power metal","glam metal","punk rock","hardcore punk","crossover thrash","d-beat","powerviolence","rapcore","post-black metal","blackgaze","technical deathcore","deathgrind","brutal death metal","drone metal","atmospheric sludge metal","depressive black metal","progressive rock","70s progressive rock","psychedelic rock","jazz fusion","post-rock","post-punk","shoegaze","cinematic orchestral","neoclassical","ambient","dark ambient","trip-hop","synthwave","darksynth","future rave","dark cinematic techno","industrial techno","trance","idm","drum and bass"];
 // Genres groupés par ÉPOQUE (arbre généalogique du metal) — styles seulement, tier conservé
 const GENRE_FAMILIES = [
   {name:"Années 60-70 (Racines)", nameEn:"60s-70s (Roots)", icon:"",genres:[
     {g:"hard rock",req:"free"},{g:"heavy metal",req:"free"},{g:"punk rock",req:"free"},{g:"proto-metal",req:"forge"},{g:"blues rock",req:"forge"},
+    {g:"progressive rock",req:"forge"},{g:"psychedelic rock",req:"forge"},{g:"70s progressive rock",req:"forge"},
   ]},
   {name:"Années 80", nameEn:"80s", icon:"",genres:[
     {g:"traditional heavy metal",req:"forge"},{g:"nwobhm",req:"forge"},{g:"speed metal",req:"forge"},{g:"power metal",req:"forge"},{g:"glam metal",req:"forge"},
@@ -105,6 +106,11 @@ const GENRE_FAMILIES = [
   {name:"Années 2020", nameEn:"2020s", icon:"", genres:[
     {g:"synth metalcore",req:"forge"},
     {g:"ambient metalcore",req:"forge"},{g:"pop metalcore",req:"forge"},{g:"progressive post-hardcore",req:"forge"},{g:"modern alternative metal",req:"forge"},
+  ]},
+  {name:"Fusion & Hors-metal (mix)", nameEn:"Fusion & Crossover (mix)", icon:"", genres:[
+    {g:"progressive rock",req:"forge"},{g:"70s progressive rock",req:"forge"},{g:"psychedelic rock",req:"forge"},{g:"jazz fusion",req:"forge"},{g:"post-rock",req:"forge"},{g:"post-punk",req:"forge"},{g:"shoegaze",req:"forge"},
+    {g:"cinematic orchestral",req:"forge"},{g:"neoclassical",req:"forge"},{g:"ambient",req:"forge"},{g:"dark ambient",req:"forge"},{g:"trip-hop",req:"forge"},
+    {g:"synthwave",req:"forge"},{g:"darksynth",req:"forge"},{g:"future rave",req:"forge"},{g:"dark cinematic techno",req:"forge"},{g:"industrial techno",req:"forge"},{g:"trance",req:"forge"},{g:"idm",req:"forge"},{g:"drum and bass",req:"forge"},
   ]},
 ];
 

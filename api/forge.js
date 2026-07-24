@@ -241,8 +241,48 @@ export default function handler(req, res) {
   while (fullTags.length > 8 && fullTags.join(', ').length > STYLE_BUDGET) fullTags.pop();
   const compactCore = dedup([...voxLead.slice(0, 2), ...genres.slice(0, 2), bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1), ...rhythmTags.slice(0, 1)]);
   const overflow = fullTags.filter(x => !compactCore.includes(x));
-  const styleStr = fullTags.join(', ');
-  const styleStrC = compactCore.join(', ');
+  // ── PROMPT "RICHE" (tournure fluide groupée par « ; », optimisée Suno v4.5+) ──
+  // Genre-fusion ; dynamiques/structure ; voix ; instruments/riffs ; accordage+tonalités ; mood+émotions ; tempo/changements
+  const _lc = x => String(x).toLowerCase();
+  const _gl = dedup(genres.map(x => String(x).trim())).filter(Boolean);
+  const genreClause = _gl.length >= 2 ? (_gl[0] + ' meets ' + _gl.slice(1, 3).join(' and ')) : (_gl[0] || 'metal');
+
+  const _hasAtmos = melody >= 6 || structs.some(s => /atmospheric|interlude|intro|clean/.test(s)) || allOrganic.some(o => /acoustic|clean|ambient/.test(_lc(o)));
+  const _hasHeavy = heavy >= 6 || drums.some(d => /blast|double/.test(_lc(d))) || structs.some(s => /breakdown|blast|drop|halftime/.test(s));
+  let dynamicsClause = '';
+  if (_hasHeavy && _hasAtmos) dynamicsClause = 'dynamic long-form song shifting between crushing heavy sections and mellow atmospheric passages';
+  else if (_hasHeavy) dynamicsClause = heavy >= 8 ? 'relentless crushing intensity' : 'heavy driving momentum';
+  else if (_hasAtmos) dynamicsClause = 'atmospheric, dynamic and evolving';
+
+  const _hasClean = /clean|melodic sing|baritone|choir|spoken|croon/.test(_vTxt0);
+  let vocalsClause = '';
+  if (vocals.length) {
+    if (harshVox && _hasClean) {
+      const _h = dedup(vocals.filter(v => /growl|scream|guttural|shriek|harsh|rasp|roar|squeal/.test(_lc(v)))).slice(0, 2);
+      const _c = dedup(vocals.filter(v => /clean|melodic|baritone|choir|spoken|croon/.test(_lc(v)))).slice(0, 2);
+      vocalsClause = (_h.join(', ') || 'harsh vocals') + ' alternating with ' + (_c.join(', ') || 'clean vocals');
+    } else vocalsClause = dedup([...vocals.slice(0, 3), ...vrange.slice(0, 1)]).join(', ');
+  } else if (harshVox) vocalsClause = 'aggressive harsh vocals';
+
+  const instrumentsClause = dedup([...guitar.slice(0, 2), (scaleTag || ''), ...drums.slice(0, 2), ...leadInst.slice(0, 3), ...bassInst.slice(0, 1)].filter(Boolean)).join(', ');
+
+  const _tun = tuning[0] || autoTuning || '';
+  const _modes = String(scaleTag).match(/phrygian dominant|harmonic minor|melodic minor|phrygian|dorian|aeolian|mixolydian|ionian|locrian|lydian|minor/g) || [];
+  const _tonality = _modes.length ? [...new Set(_modes)].slice(0, 3).join('/') + ' tonalities' : '';
+  const tuningToneClause = dedup([_tun, _tonality].filter(Boolean)).join(', ');
+
+  const moodClause = dedup([...mood.slice(0, 3), ...emotionTags]).join(', ');
+
+  const _rhythmDyn = [];
+  if (chaos >= 6 || /prog|math|djent|tech|post/.test(_gtxt)) _rhythmDyn.push('frequent time-signature changes');
+  _rhythmDyn.push('soft-to-heavy builds and sudden drops');
+  const rhythmDynClause = dedup([bpmTag, tempoWord, ...rhythmTags.slice(0, 1), ..._rhythmDyn]).join(', ');
+
+  const richClauses = [genreClause, dynamicsClause, vocalsClause, instrumentsClause, tuningToneClause, moodClause, ...secret.slice(0, 1), rhythmDynClause].filter(x => x && String(x).trim());
+  const RICH_BUDGET = 1000;   // v4.5+ tolère ~1000 car. ; on coupe des clauses par la fin si trop long (jamais le genre/mood)
+  let styleStr = richClauses.join('; ');
+  while (richClauses.length > 4 && styleStr.length > RICH_BUDGET) { richClauses.splice(richClauses.length - 2, 1); styleStr = richClauses.join('; '); }
+  const styleStrC = compactCore.join(', ');   // version compacte inchangée (fallback court)
   // T11 — prompts secondaires : COVER (sous-genre dominant) + EXTEND (callback cohérent)
   const _g1 = genres[0] || 'metal';
   const _g2 = genres[1] || null;

@@ -1118,14 +1118,23 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const tierBadge=TIERS[userTier]?.badge||null;
   const canAccess=req=>(!req||req==="free")?true:TIER_RANK[userTier]>=1;
 
-  const useSet=(init=[])=>{
-    const [s,setS]=useState(new Set(init));
+  // useSet avec persistance optionnelle (garde les selections au refresh)
+  const useSet=(init=[], key=null)=>{
+    const [s,setS]=useState(()=>{
+      if(key){ try{ const v=JSON.parse(localStorage.getItem('mpf_sel_'+key)); if(Array.isArray(v)) return new Set(v); }catch(e){} }
+      return new Set(init);
+    });
+    useEffect(()=>{ if(key){ try{ localStorage.setItem('mpf_sel_'+key, JSON.stringify([...s])); }catch(e){} } }, [s, key]);
     const toggle=v=>setS(p=>{const n=new Set(p);n.has(v)?n.delete(v):n.add(v);return n;});
     const setAll=arr=>setS(new Set(arr));
     return [s,toggle,setAll];
   };
+  // Snapshot sauvegarde (persistance des scalaires/sorties au refresh), lu une seule fois
+  const _svRef=useRef(null);
+  if(_svRef.current===null){ try{ _svRef.current=JSON.parse(localStorage.getItem('mpf_state')||'{}')||{}; }catch(e){ _svRef.current={}; } }
+  const SV=_svRef.current;
 
-  const [genres,tGenre,setGenres]=useSet([]);
+  const [genres,tGenre,setGenres]=useSet([],"genres");
   const [genreFilter,setGenreFilter]=useState("");
   const [openFam,setOpenFam]=useState({});
   const [vocFilter,setVocFilter]=useState("");
@@ -1134,59 +1143,59 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [openDrumEra,setOpenDrumEra]=useState({});
   const [gtrFilter,setGtrFilter]=useState("");
   const [openGtrEra,setOpenGtrEra]=useState({});
-  const [mood,tMood,setMood]=useSet([]);
-  const [drums,tDrums,setDrums]=useSet([]);
-  const [drumP,tDrumP,setDrumP]=useSet(["triggered drums"]);
-  const [vocals,tVocal,setVocals]=useSet([]);
-  const [vrange,tVrange,setVrange]=useSet([]);
-  const [vfx,tVfx,setVfx]=useSet([]);
-  const [guitar,tGuitar,setGuitar]=useSet(["chugging riffs","palm muting"]);
-  const [tuning,tTuning,setTuning]=useSet(["drop B tuning"]);
-  const [gprod,tGprod]=useSet(["heavy distortion","layered guitar tracks"]);
-  const [bassStyle,tBassStyle]=useSet(["fingerstyle bass"]);
-  const [bassTech,tBassTech]=useSet([]);
-  const [bassTone,tBassTone]=useSet(["distorted bass"]);
-  const [bassTuning,tBassTuning]=useSet(["bass drop B"]);
-  const [bassProd,tBassProd]=useSet(["sub-bass boosted"]);
-  const [sax,tSax]=useSet([]);
-  const [brass,tBrass]=useSet([]);
-  const [keys,tKeys]=useSet([]);
-  const [strings,tStr]=useSet([]);
-  const [prod,tProd]=useSet(["heavy production","modern metal production"]);
-  const [orgRec,tOrgRec,setOrgRec]=useSet([]);
-  const [orgDrm,tOrgDrm,setOrgDrm]=useSet([]);
-  const [orgVoc,tOrgVoc,setOrgVoc]=useSet([]);
-  const [orgGtr,tOrgGtr,setOrgGtr]=useSet([]);
-  const [structs,tStruct,setStructs]=useSet([]);
-  const [themes,tTheme]=useSet(["mort et décomposition"]);
-  const [latmo,tLatmo]=useSet(["sombre et menaçant"]);
-  const [lblocks,tLblock,setLblocks]=useSet(["verse","chorus","breakdown"]);
-  const [lang,tLang]=useSet(["en"]);
+  const [mood,tMood,setMood]=useSet([],"mood");
+  const [drums,tDrums,setDrums]=useSet([],"drums");
+  const [drumP,tDrumP,setDrumP]=useSet(["triggered drums"],"drumP");
+  const [vocals,tVocal,setVocals]=useSet([],"vocals");
+  const [vrange,tVrange,setVrange]=useSet([],"vrange");
+  const [vfx,tVfx,setVfx]=useSet([],"vfx");
+  const [guitar,tGuitar,setGuitar]=useSet(["chugging riffs","palm muting"],"guitar");
+  const [tuning,tTuning,setTuning]=useSet(["drop B tuning"],"tuning");
+  const [gprod,tGprod]=useSet(["heavy distortion","layered guitar tracks"],"gprod");
+  const [bassStyle,tBassStyle]=useSet(["fingerstyle bass"],"bassStyle");
+  const [bassTech,tBassTech]=useSet([],"bassTech");
+  const [bassTone,tBassTone]=useSet(["distorted bass"],"bassTone");
+  const [bassTuning,tBassTuning]=useSet(["bass drop B"],"bassTuning");
+  const [bassProd,tBassProd]=useSet(["sub-bass boosted"],"bassProd");
+  const [sax,tSax]=useSet([],"sax");
+  const [brass,tBrass]=useSet([],"brass");
+  const [keys,tKeys]=useSet([],"keys");
+  const [strings,tStr]=useSet([],"strings");
+  const [prod,tProd]=useSet(["heavy production","modern metal production"],"prod");
+  const [orgRec,tOrgRec,setOrgRec]=useSet([],"orgRec");
+  const [orgDrm,tOrgDrm,setOrgDrm]=useSet([],"orgDrm");
+  const [orgVoc,tOrgVoc,setOrgVoc]=useSet([],"orgVoc");
+  const [orgGtr,tOrgGtr,setOrgGtr]=useSet([],"orgGtr");
+  const [structs,tStruct,setStructs]=useSet([],"structs");
+  const [themes,tTheme]=useSet(["mort et décomposition"],"themes");
+  const [latmo,tLatmo]=useSet(["sombre et menaçant"],"latmo");
+  const [lblocks,tLblock,setLblocks]=useSet(["verse","chorus","breakdown"],"lblocks");
+  const [lang,tLang]=useSet(["en"],"lang");
   const [lyricsHistory,setLyricsHistory]=useState([]);
-  const [lyricsAngle,setLyricsAngle]=useState("");
-  const [lyricsNarrator,setLyricsNarrator]=useState("first");
-  const [lyricsTense,setLyricsTense]=useState("present");
-  const [vocalMix,setVocalMix]=useState("harsh");   // harsh | mix | clean — mixe guttural et chant clair
-  const [bannedWords,setBannedWords]=useState("");
-  const [blockRhythm,setBlockRhythm]=useState({});
-  const [globalRhythm,tGlobalRhythm]=useSet([]);
+  const [lyricsAngle,setLyricsAngle]=useState(SV.lyricsAngle ?? "");
+  const [lyricsNarrator,setLyricsNarrator]=useState(SV.lyricsNarrator ?? "first");
+  const [lyricsTense,setLyricsTense]=useState(SV.lyricsTense ?? "present");
+  const [vocalMix,setVocalMix]=useState(SV.vocalMix ?? "harsh");   // harsh | mix | clean — mixe guttural et chant clair
+  const [bannedWords,setBannedWords]=useState(SV.bannedWords ?? "");
+  const [blockRhythm,setBlockRhythm]=useState(SV.blockRhythm ?? {});
+  const [globalRhythm,tGlobalRhythm]=useSet([],"globalRhythm");
   const setBlockR=(k,v)=>setBlockRhythm(p=>({...p,[k]:v}));
   const clearBlockR=k=>setBlockRhythm(p=>{const n={...p};delete n[k];return n;});
-  const [exclGenre,tExclGenre,setExclGenre]=useSet([]);
-  const [exclVocal,tExclVocal,setExclVocal]=useSet([]);
-  const [exclProd,tExclProd,setExclProd]=useSet([]);
-  const [exclInst,tExclInst,setExclInst]=useSet([]);
-  const [exclCustom,setExclCustom]=useState("");
-  const [heavy,setHeavy]=useState(9);
-  const [emotions,setEmotions]=useState({});
+  const [exclGenre,tExclGenre,setExclGenre]=useSet([],"exclGenre");
+  const [exclVocal,tExclVocal,setExclVocal]=useSet([],"exclVocal");
+  const [exclProd,tExclProd,setExclProd]=useSet([],"exclProd");
+  const [exclInst,tExclInst,setExclInst]=useSet([],"exclInst");
+  const [exclCustom,setExclCustom]=useState(SV.exclCustom ?? "");
+  const [heavy,setHeavy]=useState(SV.heavy ?? 9);
+  const [emotions,setEmotions]=useState(SV.emotions ?? {});
   const [advanced,setAdvanced]=useState(false);
   const [showManifesto,setShowManifesto]=useState(false);
   useEffect(()=>{try{if(!localStorage.getItem('mp_manifesto_seen'))setShowManifesto(true);}catch(e){}},[]);
   const closeManifesto=()=>{try{localStorage.setItem('mp_manifesto_seen','1');}catch(e){}setShowManifesto(false);};
-  const [groove,setGroove]=useState(6);
-  const [chaos,setChaos]=useState(7);
-  const [melody,setMelody]=useState(3);
-  const [bpm,setBpmVal]=useState(180);
+  const [groove,setGroove]=useState(SV.groove ?? 6);
+  const [chaos,setChaos]=useState(SV.chaos ?? 7);
+  const [melody,setMelody]=useState(SV.melody ?? 3);
+  const [bpm,setBpmVal]=useState(SV.bpm ?? 180);
   const setBPM=v=>setBpmVal(Math.max(60,Math.min(280,v)));
   const applyPreset=key=>{
     const p=PRESETS[key]; if(!p) return;
@@ -1224,30 +1233,32 @@ export default function App({ user, onLogout, onRequestAuth }) {
     setGenres(d.genres||[]);setBPM(d.bpm||180);setDrums(d.drums||[]);setVocals(d.vocals||[]);setMood(d.mood||[]);setGuitar(d.guitar||[]);setTuning(d.tuning||[]);
   };
   const delSound=id=>persistSounds(sounds.filter(x=>x.id!==id));
-  const [styleTxt,setStyleTxt]=useState("");
-  const [structTxt,setStructTxt]=useState("");
-  const [structNotes,setStructNotes]=useState("");
-  const [excludeTxt,setExcludeTxt]=useState("");
-  const [fullTxt,setFullTxt]=useState("");
-  const [styleTxtC,setStyleTxtC]=useState("");
-  const [coverTxt,setCoverTxt]=useState("");
-  const [extendTxt,setExtendTxt]=useState("");
-  const [modelRec,setModelRec]=useState(null);
-  const [structTxtC,setStructTxtC]=useState("");
+  const [styleTxt,setStyleTxt]=useState(SV.styleTxt ?? "");
+  const [structTxt,setStructTxt]=useState(SV.structTxt ?? "");
+  const [structNotes,setStructNotes]=useState(SV.structNotes ?? "");
+  const [excludeTxt,setExcludeTxt]=useState(SV.excludeTxt ?? "");
+  const [fullTxt,setFullTxt]=useState(SV.fullTxt ?? "");
+  const [styleTxtC,setStyleTxtC]=useState(SV.styleTxtC ?? "");
+  const [coverTxt,setCoverTxt]=useState(SV.coverTxt ?? "");
+  const [extendTxt,setExtendTxt]=useState(SV.extendTxt ?? "");
+  const [modelRec,setModelRec]=useState(SV.modelRec ?? null);
+  const [structTxtC,setStructTxtC]=useState(SV.structTxtC ?? "");
   const [compact,setCompact]=useState(false);
-  const [conflicts,setConflicts]=useState([]);
+  const [conflicts,setConflicts]=useState(SV.conflicts ?? []);
   const styleShown=compact?(styleTxtC||styleTxt):styleTxt;
   const structShown=compact?(structTxtC||structTxt):structTxt;
-  const [keywords,setKeywords]=useState("");
-  const [lyricsTxt,setLyricsTxt]=useState("");
+  const [keywords,setKeywords]=useState(SV.keywords ?? "");
+  const [lyricsTxt,setLyricsTxt]=useState(SV.lyricsTxt ?? "");
   // Phonétique (vocals illisibles) — la recommandation vient de /api/forge, la déformation de /api/lyrics
-  const [lyricsRaw,setLyricsRaw]=useState("");const [lyricsPhon,setLyricsPhon]=useState("");
-  const [phoneticRec,setPhoneticRec]=useState(null);const [phoneticOn,setPhoneticOn]=useState(true);
+  const [lyricsRaw,setLyricsRaw]=useState(SV.lyricsRaw ?? "");const [lyricsPhon,setLyricsPhon]=useState(SV.lyricsPhon ?? "");
+  const [phoneticRec,setPhoneticRec]=useState(SV.phoneticRec ?? null);const [phoneticOn,setPhoneticOn]=useState(SV.phoneticOn ?? true);
   const [showPhon,setShowPhon]=useState(true);
   const step2Shown=lyricsTxt?mergeStructLyrics(structShown,lyricsTxt):structShown;
   const [lyricsLoading,setLyricsLoading]=useState(false);
   const [lyricsErr,setLyricsErr]=useState("");
   const [history,setHistory]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_history")||"[]")}catch{return[]}});
+  // Sauvegarde continue de l'etat (persistance au refresh)
+  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({heavy,groove,chaos,melody,bpm,emotions,vocalMix,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[heavy,groove,chaos,melody,bpm,emotions,vocalMix,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
   const saveToHistory=p=>{
     if(!isPro)return;
     const e={date:new Date().toLocaleDateString("fr-CA"),prompt:p,id:Date.now()};

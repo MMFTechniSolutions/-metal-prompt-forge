@@ -213,10 +213,12 @@ function spiceDrum(dp, aggr){
   if(Math.random()<0.4){ const s=rint(16); hihat[s]=hihat[s]?0:1; }
   return {kick,snare,hihat};
 }
+// Multiplicateur de tempo par type de beat (si l'option est activée) → sections lentes/rapides pour de vrai
+const TEMPO_BY_DRUM={half_time:0.8,halftime2:0.8,halfgroove:0.85,doom:0.7,funeraldoom:0.65,breakdown:0.85,stomp:0.85,slam:0.9,marching:0.85,blast_beat:1.25,gravity:1.3,bombblast:1.3,blast_china:1.25,double_kick:1.12,straight_dk:1.15,gallop:1.12,thrash:1.1,skank:1.18,driving:1.12};
 function buildArrangement(p){
   const st=STRUCTURES[p.structure]||STRUCTURES.loop;
   const meta=STYLE_META[p.style]||{lvl:'mod',meters:M44};
-  const out={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],L:0};
+  const out={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],tempo:[],L:0};
   let prevN=16;
   st.bars.forEach((bar,bi)=>{
     let dp = p.custom ? p.drum : (DRUM_PAT[bar.drum||p.drumKey]||p.drum);
@@ -234,6 +236,8 @@ function buildArrangement(p){
     const tr=bar.transpose||0;
     const n = bar.steps || meterFor(meta,bi,prevN);                // structure d'abord, sinon mesure selon le style
     prevN=n;
+    const dkey = bar.drum||p.drumKey;
+    const tmul = p.tempoVar ? (TEMPO_BY_DRUM[dkey]||1) : 1;         // vitesse de la section (option changements de tempo)
     const fillType = (!p.custom && bar.fill) ? (1+rint(3)) : 0;    // fill varié (jamais sur un groove MIDI importé)
     for(let i=0;i<n;i++){
       const j=i%16;
@@ -245,7 +249,7 @@ function buildArrangement(p){
         else { sn=(i===n-4||i>=n-2)?1:0; kk=(i===n-3)?1:0; }         // fill espacé
       }
       out.kick.push(kk); out.snare.push(sn); out.hihat.push(hh);
-      out.trans.push(tr);
+      out.trans.push(tr); out.tempo.push(tmul);
     }
   });
   out.L=out.guit.length;
@@ -466,6 +470,7 @@ export default function handler(req, res){
     drum: customDrum || DRUM_PAT[drumKey],
     custom: !!customDrum,
     noteSeq: NOTE_SEQ[style],
+    tempoVar: !!(auto ? (b.tempoVar||b.promptText&&/tempo change|change de tempo|dynamic tempo|accel|ritard|slow to fast|fast to slow/i.test(b.promptText)) : b.tempoVar),
   };
 
   const arr = buildArrangement(p);

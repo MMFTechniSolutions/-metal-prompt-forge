@@ -240,6 +240,9 @@
         <input type="range" id="dur" min="6" max="30" value="15" step="1" oninput="document.getElementById('durLbl').textContent=this.value">
       </div>
     </div>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-family:'Share Tech Mono',monospace;font-size:.66rem;color:var(--ash);letter-spacing:.09em;text-transform:uppercase;cursor:pointer;">
+      <input type="checkbox" id="tempoVar" style="accent-color:var(--ember);"> <span data-en="Tempo changes (slow / fast sections)">Changements de tempo (sections lentes / rapides)</span>
+    </label>
   </div>
 
   </div>
@@ -737,9 +740,13 @@ async function renderAndDownload(p, stem){
   const dur=Math.min(30, Math.max(6, parseInt(document.getElementById('dur').value)||15));   // plafond 30s : evite le gel (trop de noeuds audio)
   const bpm=p.bpm;
   const sr=44100;
-  const stepDur=(60/bpm)/4;
-  const totalSteps=Math.ceil(dur/stepDur);
-  const totalSamples=Math.ceil((totalSteps*stepDur+0.4)*sr);
+  const baseStep=(60/bpm)/4;
+  // Tempo variable : précalcule le temps de chaque pas (sections lentes/rapides via arr.tempo)
+  const _arr=p.arr, _tempo=(_arr&&_arr.tempo&&_arr.tempo.length)?_arr.tempo:null, _L=(_arr&&_arr.L)?_arr.L:1;
+  const times=[], stepDurs=[]; let _acc=0, _st=0;
+  while(_acc < dur && _st < 20000){ const tm=_tempo?(_tempo[_st%_L]||1):1; const sd=baseStep/tm; times.push(_acc); stepDurs.push(sd); _acc+=sd; _st++; }
+  const totalSteps=times.length;
+  const totalSamples=Math.ceil((_acc+0.5)*sr);
 
   document.getElementById('dotRec').className='dot rec';
   document.getElementById('txtRec').textContent=T(`Render ${dur}s en cours…`,`Rendering ${dur}s…`);
@@ -768,7 +775,8 @@ async function renderAndDownload(p, stem){
   const playOff=(buf,t,g)=>{const s=off.createBufferSource();s.buffer=buf;const gn=off.createGain();gn.gain.value=g;s.connect(gn);gn.connect(master);s.start(t);};
 
   for(let step=0;step<totalSteps;step++){
-    const t=step*stepDur+0.05;
+    const t=times[step]+0.05;
+    const stepDur=stepDurs[step];                 // durée du pas (varie avec le tempo de la section)
     const i=step%a.L;
 
     if(stem!=='melody' && a.guit[i]){
@@ -973,6 +981,7 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
     dist:document.getElementById('dist').value,
     lead:document.getElementById('lead').value,
     customDrum:importedDrum,
+    tempoVar:(document.getElementById('tempoVar')||{}).checked||false,
     tier,
   } : {
     style:document.getElementById('style').value,
@@ -984,6 +993,7 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
     structure:document.getElementById('structure').value,
     lead:document.getElementById('lead').value,
     customDrum:importedDrum,
+    tempoVar:(document.getElementById('tempoVar')||{}).checked||false,
     tier,
   };
   const btn=document.getElementById('btnGen');btn.disabled=true;

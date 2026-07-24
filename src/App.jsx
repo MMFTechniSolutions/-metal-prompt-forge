@@ -492,8 +492,24 @@ function LockedOverlay({req,t,email,onRequestAuth}) {
 function PaywallModal({onClose,email,uiLang}) {
   const [sel,setSel]=useState("pro");
   const [billing,setBilling]=useState("month");
+  const [promo,setPromo]=useState("");
+  const [promoMsg,setPromoMsg]=useState(null); // {ok:bool,text:string}
+  const [promoBusy,setPromoBusy]=useState(false);
   const tier=TIERS[sel];
   const L=(fr,en)=>uiLang==="fr"?fr:en;
+  const redeemPromo=async()=>{
+    const code=promo.trim();
+    if(!code){setPromoMsg({ok:false,text:L("Entre un code.","Enter a code.")});return;}
+    if(!email){setPromoMsg({ok:false,text:L("Connecte-toi d'abord pour utiliser un code.","Log in first to use a code.")});return;}
+    setPromoBusy(true);setPromoMsg(null);
+    try{
+      const r=await fetch("/api/redeem-promo",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,email})});
+      const d=await r.json();
+      if(!r.ok||!d.ok){setPromoMsg({ok:false,text:d.error||L("Code invalide.","Invalid code.")});setPromoBusy(false);return;}
+      setPromoMsg({ok:true,text:L(`Accès débloqué jusqu'au ${d.expires||""} ! Rechargement…`,`Access unlocked until ${d.expires||""}! Reloading…`)});
+      setTimeout(()=>location.reload(),1600);
+    }catch(e){setPromoMsg({ok:false,text:L("Erreur réseau. Réessaie.","Network error. Try again.")});setPromoBusy(false);}
+  };
   const year=billing==="year";
   const priceOf=t=>year&&t.priceYear?t.priceYear:t.price;
   const checkoutUrl=year&&tier.stripeYear?tier.stripeYear:tier.stripe;
@@ -528,6 +544,16 @@ function PaywallModal({onClose,email,uiLang}) {
           style={{display:"block",width:"100%",padding:"14px",background:tier.color,borderRadius:"8px",color:sel==="elite"?"#fff":"#000",fontWeight:900,fontSize:"0.85rem",letterSpacing:"2px",textTransform:"uppercase",textDecoration:"none",textAlign:"center",marginBottom:"10px"}}>
           {L("COMMENCER","START")} {tier.label} {year?L("(annuel)","(annual)"):""}
         </a>
+        <div style={{borderTop:"1px solid #1c1c1c",margin:"4px 0 12px",paddingTop:"14px"}}>
+          <div style={{fontSize:"0.55rem",color:"#666",letterSpacing:"2px",textTransform:"uppercase",fontWeight:800,marginBottom:"8px",textAlign:"center"}}>{L("Tu as un code promo ?","Have a promo code?")}</div>
+          <div style={{display:"flex",gap:"8px"}}>
+            <input value={promo} onChange={e=>{setPromo(e.target.value.toUpperCase());setPromoMsg(null);}} onKeyDown={e=>{if(e.key==="Enter")redeemPromo();}} placeholder={L("CODE PROMO","PROMO CODE")}
+              style={{flex:1,background:"#0a0a0a",border:"1px solid #333",borderRadius:"7px",padding:"11px 12px",color:"#fff",fontSize:"0.8rem",letterSpacing:"2px",fontFamily:"monospace",textTransform:"uppercase"}}/>
+            <button onClick={redeemPromo} disabled={promoBusy} style={{padding:"0 18px",background:promoBusy?"#222":"#7fdd7f",border:"none",borderRadius:"7px",color:promoBusy?"#666":"#000",fontWeight:900,fontSize:"0.72rem",letterSpacing:"1px",textTransform:"uppercase",cursor:promoBusy?"default":"pointer",whiteSpace:"nowrap"}}>{promoBusy?"…":L("Activer","Redeem")}</button>
+          </div>
+          {promoMsg&&<div style={{fontSize:"0.68rem",marginTop:"8px",color:promoMsg.ok?"#7fdd7f":"#ff6b6b",lineHeight:1.4}}>{promoMsg.text}</div>}
+          <div style={{fontSize:"0.55rem",color:"#444",marginTop:"6px",textAlign:"center"}}>{L("30 jours d'accès complet gratuit.","30 days full access, free.")}</div>
+        </div>
         <button onClick={onClose} style={{width:"100%",background:"none",border:"none",color:"#333",fontSize:"0.65rem",cursor:"pointer",textDecoration:"underline"}}>{L("Continuer sans abonnement","Continue without a plan")}</button>
       </div>
     </div>
@@ -980,6 +1006,42 @@ function Manifesto({onClose,uiLang}){
   );
 }
 
+// ── NOUVEAUTÉS : message affiché une fois à la prochaine connexion (remplace le manifeste) ──
+function WhatsNew({onClose,uiLang}){
+  const fr=uiLang!=="en";
+  const items = fr ? [
+    ["🎵 Générateur de mélodie (nouveau)","Crée des mélodies variées — 24 styles/pays (metal, jazz, flamenco, néoclassique…), vrais instruments, piano-roll éditable, export WAV pour Suno."],
+    ["🥁 Beats variés + changements de tempo","Chaque génération donne un beat différent (kicks, relances, fills), avec option de sections lentes/rapides dans le WAV exporté."],
+    ["🎚️ Prompts de style plus riches","Le style est écrit en tournure fluide, groupée, et piloté par tes sliders d'émotion."],
+    ["🎤 Voix : mix guttural + clean","Nouveau sélecteur de voix, cris optimisés (MAJ + voyelles étirées) et tonalités en descriptif que Suno lit mieux."],
+    ["🎸 Nouveaux styles pour des mix","Prog rock 70s, jazz fusion, post-rock, synthwave, future rave, techno… à mélanger avec ton metal."],
+    ["💾 Ton travail est sauvegardé","Plus rien ne s'efface au refresh : sélections, sliders, émotions, paroles et prompts sont gardés."],
+  ] : [
+    ["🎵 Melody generator (new)","Create varied melodies — 24 styles/regions (metal, jazz, flamenco, neoclassical…), real instruments, editable piano-roll, WAV export for Suno."],
+    ["🥁 Varied beats + tempo changes","Every generation gives a different beat (kicks, fills), with optional slow/fast tempo sections in the exported WAV."],
+    ["🎚️ Richer style prompts","The style is written as a flowing, grouped prompt, driven by your emotion sliders."],
+    ["🎤 Vocals: harsh + clean mix","New vocal selector, optimized screams (CAPS + stretched vowels) and descriptive tonalities Suno reads better."],
+    ["🎸 New styles to mix","70s prog rock, jazz fusion, post-rock, synthwave, future rave, techno… to blend with your metal."],
+    ["💾 Your work is saved","Nothing resets on refresh anymore: selections, sliders, emotions, lyrics and prompts are kept."],
+  ];
+  return (
+    <div style={{position:"fixed",inset:0,background:"#000000ee",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}}>
+      <div style={{maxWidth:"580px",width:"100%",background:"linear-gradient(180deg,#120000,#0a0a0b)",border:"1px solid #5a0000",borderRadius:"14px",padding:"28px 24px",boxShadow:"0 0 50px #000",margin:"auto"}}>
+        <div style={{textAlign:"center",fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.72rem",letterSpacing:"4px",color:RED,marginBottom:"6px"}}>{fr?"NOUVEAUTÉS":"WHAT'S NEW"}</div>
+        <div className="forge-title" style={{textAlign:"center",fontSize:"1.6rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Grosse mise à jour 🤘":"Big update 🤘"}</div>
+        <div style={{display:"flex",flexDirection:"column",gap:"9px",marginBottom:"20px"}}>
+          {items.map((p,i)=>(<div key={i} style={{background:"#0d0000",border:"1px solid #2a0000",borderRadius:"8px",padding:"10px 12px"}}>
+            <div style={{color:"#ff9090",fontWeight:800,fontSize:"0.8rem"}}>{p[0]}</div>
+            <div style={{color:"#999",fontSize:"0.72rem",marginTop:"3px",lineHeight:1.5}}>{p[1]}</div>
+          </div>))}
+        </div>
+        <button onClick={onClose} style={{width:"100%",padding:"14px",background:RED,border:"none",borderRadius:"8px",color:"#fff",fontWeight:900,fontSize:"0.9rem",letterSpacing:"2px",textTransform:"uppercase",cursor:"pointer"}}>{fr?"C'est parti !":"Let's go!"}</button>
+        <div style={{textAlign:"center",fontSize:"0.55rem",color:"#555",marginTop:"10px"}}>MMF Techni-Solutions</div>
+      </div>
+    </div>
+  );
+}
+
 // ── GALERIE : embed d'un lien soumis (Spotify / YouTube / SoundCloud), sinon bouton "Écouter" ──
 function galleryEmbed(url){
   try{
@@ -1102,8 +1164,13 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [musicLeft,setMusicLeft]=useState(null);
   useEffect(()=>{
     if(user?.email){
-      supabase.from('users').select('tier,prompts_used').eq('email',user.email).single()
-        .then(({data})=>{setUserTier(data?.tier||"free");setPromptCount(data?.prompts_used||0);});
+      supabase.from('users').select('tier,prompts_used,tier_expires_at').eq('email',user.email).single()
+        .then(({data})=>{
+          let tr=data?.tier||"free";
+          // accès promo expiré → retour gratuit (le vrai abonnement Stripe n'a jamais de date d'expiration)
+          if(data?.tier_expires_at && new Date(data.tier_expires_at).getTime() < Date.now()) tr="free";
+          setUserTier(tr);setPromptCount(data?.prompts_used||0);
+        });
     } else {
       // invité ou déconnexion → on remet le tier gratuit (sinon accès illimité collé)
       setUserTier("free");
@@ -1176,6 +1243,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [lyricsNarrator,setLyricsNarrator]=useState(SV.lyricsNarrator ?? "first");
   const [lyricsTense,setLyricsTense]=useState(SV.lyricsTense ?? "present");
   const [vocalMix,setVocalMix]=useState(SV.vocalMix ?? "harsh");   // harsh | mix | clean — mixe guttural et chant clair
+  const [duet,setDuet]=useState(SV.duet ?? false);   // protocole duo male/female (God Mode 3 ancrages)
   const [bannedWords,setBannedWords]=useState(SV.bannedWords ?? "");
   const [blockRhythm,setBlockRhythm]=useState(SV.blockRhythm ?? {});
   const [globalRhythm,tGlobalRhythm]=useSet([],"globalRhythm");
@@ -1190,8 +1258,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [emotions,setEmotions]=useState(SV.emotions ?? {});
   const [advanced,setAdvanced]=useState(false);
   const [showManifesto,setShowManifesto]=useState(false);
-  useEffect(()=>{try{if(!localStorage.getItem('mp_manifesto_seen'))setShowManifesto(true);}catch(e){}},[]);
-  const closeManifesto=()=>{try{localStorage.setItem('mp_manifesto_seen','1');}catch(e){}setShowManifesto(false);};
+  useEffect(()=>{try{if(!localStorage.getItem('mpf_news_202607')){setShowManifesto(true);localStorage.setItem('mp_manifesto_seen','1');}}catch(e){}},[]);
+  const closeManifesto=()=>{try{localStorage.setItem('mpf_news_202607','1');}catch(e){}setShowManifesto(false);};
   const [groove,setGroove]=useState(SV.groove ?? 6);
   const [chaos,setChaos]=useState(SV.chaos ?? 7);
   const [melody,setMelody]=useState(SV.melody ?? 3);
@@ -1258,7 +1326,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [lyricsErr,setLyricsErr]=useState("");
   const [history,setHistory]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_history")||"[]")}catch{return[]}});
   // Sauvegarde continue de l'etat (persistance au refresh)
-  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({heavy,groove,chaos,melody,bpm,emotions,vocalMix,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[heavy,groove,chaos,melody,bpm,emotions,vocalMix,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
+  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
+  const resetAll=()=>{ try{ localStorage.removeItem('mpf_state'); Object.keys(localStorage).filter(k=>k.startsWith('mpf_sel_')).forEach(k=>localStorage.removeItem(k)); localStorage.removeItem('mpf_history'); }catch(e){} location.reload(); };
   const saveToHistory=p=>{
     if(!isPro)return;
     const e={date:new Date().toLocaleDateString("fr-CA"),prompt:p,id:Date.now()};
@@ -1343,6 +1412,11 @@ ${lyricsAngle?`ANGLE: ${lyricsAngle}`:`CREATIVE ANGLE: ${creativeSeed}`}
 ${keywords?`MUST USE: ${keywords}.`:""}
 ${vocalMix==="mix"?"VOCALS: Mix harsh growls and clean singing. Clean sections must be melodic, catchy, singable with open sustained vowels; harsh sections stay aggressive and percussive. OUTPUT FORMAT (critical): put the vocal style INSIDE the section header with a pipe, e.g. [Chorus | clean singing] or [Verse | harsh growls]. NEVER use parentheses for vocal style — in Suno, ( ) are SUNG as backing vocals and [ ] are instructions.":vocalMix==="clean"?"VOCALS: All clean melodic singing — soaring, catchy, singable, open vowels. Section headers stay simple, e.g. [Chorus].":""}
 ${vocalMix!=="clean"?"SCREAMS: on the hardest lines (breakdowns, scream sections), put 1-3 KEY words in ALL CAPS and STRETCH the vowels for impact (e.g. AAAAAH, RAAAAH, DOWWWN) — never whole lines in caps.":""}
+${duet?`DUET PROTOCOL (critical — keeps two stable voices in Suno):
+- FIRST LINE of the output must be exactly: [Duet: male and female]
+- Every section header must carry a singer label with a pipe, e.g. [Verse | Male], [Chorus | Both], [Bridge | Female]. Alternate the lead singer across sections so both voices get full sections; use [Both] on the biggest choruses.
+- Keep each singer's identity CONSISTENT the whole song (don't reassign a voice mid-section). Write COMPLETE lines under each labeled section — never leave a labeled singer empty.
+- A call-and-response line inside one section can prefix the switching voice inline, e.g. Male: ... / Female: ... — but the primary control is the section header label.`:""}
 STRUCTURE:\n${blockInstr}
 RULES:
 - NEVER: darkness, blood, pain, rise, fall, burning, ashes, chains, void, shadows, broken, shattered
@@ -1388,7 +1462,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
     <>
       <LandingPage onEnter={()=>setView("app")} uiLang={uiLang} setUiLang={setUiLang} email={user?.email}/>
       <CookieBanner uiLang={uiLang} onPrivacy={()=>setLegalDoc("privacy")}/>
-      {showManifesto&&<Manifesto onClose={closeManifesto} uiLang={uiLang}/>}
+      {showManifesto&&<WhatsNew onClose={closeManifesto} uiLang={uiLang}/>}
       <SiteFooter onOpen={setLegalDoc} uiLang={uiLang}/>
       <LegalModal doc={legalDoc} onClose={()=>setLegalDoc(null)} uiLang={uiLang}/>
     </>
@@ -1408,7 +1482,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       <style>{css}</style>
       {showPaywall&&<PaywallModal onClose={()=>setShowPaywall(false)} email={user?.email} uiLang={uiLang}/>}
       <CookieBanner uiLang={uiLang} onPrivacy={()=>setLegalDoc("privacy")}/>
-      {showManifesto&&<Manifesto onClose={closeManifesto} uiLang={uiLang}/>}
+      {showManifesto&&<WhatsNew onClose={closeManifesto} uiLang={uiLang}/>}
 
       {warnLogout&&(
         <div style={{position:"fixed",top:0,left:0,right:0,background:"#1a0000",borderBottom:`1px solid ${RED}`,padding:"8px",textAlign:"center",zIndex:500,fontSize:"0.65rem",color:"#ff9090"}}>
@@ -1428,6 +1502,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <span>{limit.prompts===Infinity?(uiLang==="fr"?"Illimité":"Unlimited"):<><b style={{color:Math.max(0,limit.prompts-promptCount)>0?"#4caf50":RED}}>{Math.max(0,limit.prompts-promptCount)}</b> {uiLang==="fr"?"essais gratuits":"free trials left"}</>} · <span onClick={()=>setShowPaywall(true)} style={{color:RED,textDecoration:"none",fontWeight:700,cursor:"pointer"}}>{t.plans}</span></span>
           <div style={{display:"flex",gap:"6px",alignItems:"center"}}>
             {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#1a0000":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"3px",color:uiLang===l?RED:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{l.toUpperCase()}</button>)}
+            <button onClick={()=>{if(window.confirm(L("Réinitialiser tous les réglages et vider la sauvegarde ? Cette action recharge la page.","Reset all settings and clear saved state? This reloads the page."))) resetAll();}} title={L("Réinitialiser l'app (vide la sauvegarde)","Reset app (clears saved state)")} style={{background:"none",border:"1px solid #333",borderRadius:"3px",color:"#555",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{L("RÉINIT.","RESET")}</button>
             <UserChip user={user} uiLang={uiLang} tierBadge={tierBadge} tierColor={tierColor} isElite={isElite} onLogout={onLogout} onRequestAuth={onRequestAuth}/>
           </div>
         </div>
@@ -1726,6 +1801,11 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           </div>
           {vocalMix==="mix"&&<div style={{color:"#666",fontSize:"0.62rem",marginTop:"6px",lineHeight:1.4}}>{L("Refrains, ponts, intro/outro en chant clair · couplets, breakdowns en guttural — chaque section est taguée pour Suno.","Choruses, bridges, intro/outro clean-sung · verses, breakdowns harsh — each section tagged for Suno.")}</div>}
           {vocalMix!=="harsh"&&phoneticRec?.enabled&&<div style={{color:"#8a6a2a",fontSize:"0.6rem",marginTop:"5px"}}>{L("Note : la déformation phonétique harsh est désactivée en mode Mix/Clair.","Note: harsh phonetic deformation is off in Mix/Clean mode.")}</div>}
+          <label style={{display:"flex",alignItems:"center",gap:"8px",cursor:"pointer",fontSize:"0.68rem",color:duet?"#ff9a9a":"#888",marginTop:"10px",paddingTop:"9px",borderTop:"1px solid #1c1c1c"}}>
+            <input type="checkbox" checked={duet} onChange={e=>setDuet(e.target.checked)} style={{accentColor:"#ff2e2e"}}/>
+            {L("Duo homme / femme (voix stables)","Duet male / female (stable voices)")}
+          </label>
+          {duet&&<div style={{color:"#666",fontSize:"0.62rem",marginTop:"6px",lineHeight:1.4}}>{L("Deux chanteurs distincts et constants. Chaque section est étiquetée [Male] / [Female] / [Both], plus l'en-tête [Duet: male and female] — Suno garde les deux voix stables.","Two distinct, consistent singers. Every section labeled [Male] / [Female] / [Both], plus a [Duet: male and female] header — keeps both voices stable in Suno.")}</div>}
         </div>
         {phoneticRec?.enabled&&<div style={{display:"flex",alignItems:"center",gap:"10px",background:"#0a0600",border:"1px solid #3a2a00",borderRadius:"6px",padding:"9px 12px",marginBottom:"10px"}}>
           <label style={{display:"flex",alignItems:"center",gap:"8px",cursor:"pointer",fontSize:"0.68rem",color:"#d8d86a",fontWeight:700,letterSpacing:"1px"}}>

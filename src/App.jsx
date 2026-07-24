@@ -335,7 +335,7 @@ function mergeStructLyrics(struct, lyrics){
   const isTag=l=>/^\s*\[[^\]]+\]\s*(\([^)]*\)\s*)?$/.test(l);   // accepte [Chorus] et [Chorus] (clean singing)
   const lsecs=[]; let cur=null;
   for(const l of lyrics.split(/\r?\n/)){
-    if(isTag(l)){ cur={name:l.replace(/^\s*\[/,'').replace(/\].*$/,'').split(',')[0].split(/[0-9]/)[0].trim().toLowerCase(), body:[]}; lsecs.push(cur); }
+    if(isTag(l)){ cur={name:l.replace(/^\s*\[/,'').replace(/\].*$/,'').split('|')[0].split(',')[0].split(/[0-9]/)[0].trim().toLowerCase(), body:[]}; lsecs.push(cur); }
     else if(cur){ cur.body.push(l); }
   }
   const used=new Array(lsecs.length).fill(false);
@@ -344,7 +344,7 @@ function mergeStructLyrics(struct, lyrics){
     if(isTag(sl) && out.length) out.push('');
     out.push(sl);
     if(isTag(sl)){
-      const name=sl.replace(/^\s*\[/,'').replace(/\].*$/,'').split(',')[0].split(/[0-9]/)[0].trim().toLowerCase();
+      const name=sl.replace(/^\s*\[/,'').replace(/\].*$/,'').split('|')[0].split(',')[0].split(/[0-9]/)[0].trim().toLowerCase();
       if(!name||/bpm/.test(name)) continue;
       const idx=lsecs.findIndex((s,i)=>!used[i]&&s.name===name);
       if(idx>=0){ used[idx]=true; const body=lsecs[idx].body.join('\n').replace(/^\n+|\n+$/g,''); if(body) out.push(body); }
@@ -1315,8 +1315,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(b==="outro")return"[Outro] — 2-3 final devastating lines";
       return`[${b}] — appropriate metal content`;
       })();
-      if(vocalMix==="mix") return _s+(CLEAN_BLK.has(b)?"  (vocal: clean singing)":"  (vocal: harsh growls)");
-      if(vocalMix==="clean") return _s+"  (vocal: clean singing)";
+      if(vocalMix==="mix") return _s+(CLEAN_BLK.has(b)?"  → CLEAN singing":"  → HARSH growls");
+      if(vocalMix==="clean") return _s+"  → CLEAN singing";
       return _s;
     }).filter(Boolean).join("\n");
     const seeds=["Focus on physical sensations and body horror.","Use industrial machine metaphors.","Write from the perspective of the void.","Use geological destruction metaphors.","Focus on psychological collapse.","Use drowning and suffocation metaphors.","Architecture collapsing as metaphor.","Cosmic entity dying."];
@@ -1330,7 +1330,8 @@ THEMES: ${[...themes].join(", ")||"death, chaos, darkness"}.
 ATMOSPHERE: ${[...latmo].join(", ")||"dark, menacing"}.
 ${lyricsAngle?`ANGLE: ${lyricsAngle}`:`CREATIVE ANGLE: ${creativeSeed}`}
 ${keywords?`MUST USE: ${keywords}.`:""}
-${vocalMix==="mix"?"VOCALS: Mix harsh growls and clean singing. Clean sections must be melodic, catchy, singable with open sustained vowels; harsh sections stay aggressive and percussive. OUTPUT FORMAT (critical): keep every section header as a PURE tag alone on its own line, e.g. [Chorus] — put the vocal style as a parenthetical on the NEXT line: (clean singing) or (harsh growls). NEVER put a second bracket or extra text on the header line.":vocalMix==="clean"?"VOCALS: All clean melodic singing — soaring, catchy, singable, open vowels. Keep each section header as a pure tag alone on its line, e.g. [Chorus].":""}
+${vocalMix==="mix"?"VOCALS: Mix harsh growls and clean singing. Clean sections must be melodic, catchy, singable with open sustained vowels; harsh sections stay aggressive and percussive. OUTPUT FORMAT (critical): put the vocal style INSIDE the section header with a pipe, e.g. [Chorus | clean singing] or [Verse | harsh growls]. NEVER use parentheses for vocal style — in Suno, ( ) are SUNG as backing vocals and [ ] are instructions.":vocalMix==="clean"?"VOCALS: All clean melodic singing — soaring, catchy, singable, open vowels. Section headers stay simple, e.g. [Chorus].":""}
+${vocalMix!=="clean"?"SCREAMS: on the hardest lines (breakdowns, scream sections), put 1-3 KEY words in ALL CAPS and STRETCH the vowels for impact (e.g. AAAAAH, RAAAAH, DOWWWN) — never whole lines in caps.":""}
 STRUCTURE:\n${blockInstr}
 RULES:
 - NEVER: darkness, blood, pain, rise, fall, burning, ashes, chains, void, shadows, broken, shattered

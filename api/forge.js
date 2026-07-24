@@ -267,8 +267,11 @@ export default function handler(req, res) {
   const instrumentsClause = dedup([...guitar.slice(0, 2), (scaleTag || ''), ...drums.slice(0, 2), ...leadInst.slice(0, 3), ...bassInst.slice(0, 1)].filter(Boolean)).join(', ');
 
   const _tun = tuning[0] || autoTuning || '';
-  const _modes = String(scaleTag).match(/phrygian dominant|harmonic minor|melodic minor|phrygian|dorian|aeolian|mixolydian|ionian|locrian|lydian|minor/g) || [];
-  const _tonality = _modes.length ? [...new Set(_modes)].slice(0, 3).join('/') + ' tonalities' : '';
+  // Modes → DESCRIPTIF (Suno lit mal les noms de modes ; le descriptif marche mieux — cf. guide God Mode)
+  const MODE_DESC = { 'phrygian dominant':'dark exotic Middle-Eastern flavor', 'phrygian':'dark Spanish flamenco tension', 'harmonic minor':'neoclassical dramatic minor', 'melodic minor':'sophisticated jazzy minor', 'dorian':'jazzy soulful minor', 'aeolian':'natural melancholic minor', 'locrian':'unstable dissonant tension', 'lydian':'dreamy floating bright', 'mixolydian':'bluesy dominant groove', 'ionian':'bright major', 'minor':'dark minor' };
+  const _found = String(scaleTag).match(/phrygian dominant|harmonic minor|melodic minor|phrygian|dorian|aeolian|mixolydian|ionian|locrian|lydian|minor/g) || [];
+  const _uniqModes = [...new Set(_found)].slice(0, 2);
+  const _tonality = _uniqModes.length ? _uniqModes.map(m => MODE_DESC[m] || m).join(', ') : '';
   const tuningToneClause = dedup([_tun, _tonality].filter(Boolean)).join(', ');
 
   const moodClause = dedup([...mood.slice(0, 3), ...emotionTags]).join(', ');

@@ -215,6 +215,32 @@ function spiceDrum(dp, aggr){
 }
 // Multiplicateur de tempo par type de beat (si l'option est activée) → sections lentes/rapides pour de vrai
 const TEMPO_BY_DRUM={half_time:0.8,halftime2:0.8,halfgroove:0.85,doom:0.7,funeraldoom:0.65,breakdown:0.85,stomp:0.85,slam:0.9,marching:0.85,blast_beat:1.25,gravity:1.3,bombblast:1.3,blast_china:1.25,double_kick:1.12,straight_dk:1.15,gallop:1.12,thrash:1.1,skank:1.18,driving:1.12};
+// VARIÉTÉ DE RIFF — génère une séquence de notes différente à chaque génération, mais TOUJOURS
+// dans la gamme et le contour du style (jamais deux riffs identiques, jamais hors-clé).
+function varyNoteSeq(base, style){
+  if(!base||!base.length) return base;
+  const scale=[...new Set(base.map(n=>((n%12)+12)%12))].sort((a,b)=>a-b);   // vocabulaire de notes du style
+  const lo=Math.min(...base), hi=Math.max(...base);
+  const pool=[];
+  for(let oct=Math.floor(lo/12); oct<=Math.ceil(hi/12)+1; oct++)
+    for(const pc of scale){ const v=oct*12+pc; if(v>=lo-2 && v<=hi+2) pool.push(v); }
+  pool.sort((a,b)=>a-b);
+  if(pool.length<2) return base;
+  const idxOf=v=>{ let best=0,bd=1e9; for(let i=0;i<pool.length;i++){const d=Math.abs(pool[i]-v); if(d<bd){bd=d;best=i;}} return best; };
+  const out=new Array(base.length);
+  let motif=null,mpos=0;
+  for(let i=0;i<base.length;i++){
+    const baseIdx=idxOf(base[i]);
+    let idx;
+    if(motif){ idx=Math.max(0,Math.min(pool.length-1, motif.base+motif.shape[mpos])); mpos++; if(mpos>=motif.shape.length)motif=null; }
+    else if(Math.random()<0.55) idx=baseIdx;                                  // garde la note de base (contour du style)
+    else { const step=(Math.random()<0.7?1:2)*(Math.random()<0.5?1:-1); idx=Math.max(0,Math.min(pool.length-1, baseIdx+step)); }
+    if(!motif && Math.random()<0.15){ const len=2+Math.floor(Math.random()*2),shape=[0]; for(let k=1;k<len;k++)shape.push(shape[k-1]+(Math.random()<0.6?1:-1)); motif={base:idx,shape}; mpos=1; }
+    out[i]=pool[idx];
+  }
+  out[0]=base[0];                                                            // ancre le 1er temps (souvent la fondamentale)
+  return out;
+}
 function buildArrangement(p){
   const st=STRUCTURES[p.structure]||STRUCTURES.loop;
   const meta=STYLE_META[p.style]||{lvl:'mod',meters:M44};
@@ -469,7 +495,7 @@ export default function handler(req, res){
     bass: BASS_PAT[style],
     drum: customDrum || DRUM_PAT[drumKey],
     custom: !!customDrum,
-    noteSeq: NOTE_SEQ[style],
+    noteSeq: varyNoteSeq(NOTE_SEQ[style], style),   // riff varié à chaque génération (en gamme)
     tempoVar: !!(auto ? (b.tempoVar||b.promptText&&/tempo change|change de tempo|dynamic tempo|accel|ritard|slow to fast|fast to slow/i.test(b.promptText)) : b.tempoVar),
   };
 

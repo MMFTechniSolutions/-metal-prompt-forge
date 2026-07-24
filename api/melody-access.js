@@ -1,16 +1,22 @@
 // /api/melody-access.js — Contrôle d'accès au générateur de mélodie.
 // Réservé aux ABONNÉS PAYANTS. Un seul abonnement : la règle est « tout sauf free ».
-// Vérifie le token Supabase du client et lit le tier côté serveur (anti-triche),
-// même méthode que /api/lyria.
+// + Liste blanche PROPRIÉTAIRE : certains emails (toi) ont toujours accès, même sans abonnement.
+// Vérifie le token Supabase du client et lit le tier côté serveur (anti-triche), comme /api/lyria.
 //
-// ⚙️ Variables d'env (déjà présentes pour Lyria) :
+// ⚙️ Variables d'env :
 //   SUPABASE_URL                = https://xxxx.supabase.co
 //   SUPABASE_SERVICE_ROLE_KEY   = clé service_role (SECRÈTE, jamais côté client)
+//   OWNER_EMAILS (optionnel)    = emails toujours autorisés, séparés par des virgules
+//                                 (défaut : rzlajoie@gmail.com)
 
 import { createClient } from '@supabase/supabase-js';
 
+// Emails propriétaires : accès garanti quel que soit le tier (pour tester sans s'abonner).
+const OWNER_EMAILS = (process.env.OWNER_EMAILS || 'rzlajoie@gmail.com')
+  .toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+
 // Un compte a accès dès qu'il a un abonnement, càd un tier qui n'est PAS gratuit.
-// (Robuste au renommage/simplification des plans : pas de liste en dur.)
+// (Robuste au renommage/simplification des plans : pas de liste de plans en dur.)
 function isPaid(tier) {
   const t = (tier || '').toString().trim().toLowerCase();
   return t !== '' && t !== 'free';
@@ -33,6 +39,11 @@ export default async function handler(req, res) {
   const { data: ud, error: authErr } = await sb.auth.getUser(token);
   if (authErr || !ud?.user?.email) return res.status(401).json({ allowed: false, error: 'Session invalide.' });
   const email = ud.user.email;
+
+  // 1b) Propriétaire → accès garanti, même sans abonnement.
+  if (OWNER_EMAILS.includes(email.toLowerCase())) {
+    return res.status(200).json({ allowed: true, tier: 'owner' });
+  }
 
   // 2) TIER — lu côté serveur (le client ne peut pas le falsifier)
   const { data: row, error: rErr } = await sb.from('users').select('tier').eq('email', email).single();

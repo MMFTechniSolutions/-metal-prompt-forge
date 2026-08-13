@@ -1,7 +1,7 @@
 // /api/profile.js — Auto-config genre (recette secrète côté serveur).
 // Le client envoie juste un nom de genre, reçoit des valeurs concrètes (BPM, drums, voix, sliders, structure).
 // La logique (profils par genre + structure semi-aléatoire) n'est PAS exposée au navigateur.
-
+import { GENRE_PROFILES } from './_genreProfiles.js';
 const _ri = n => Math.floor(Math.random() * n);
 const _rand = (a, b) => a + _ri(b - a + 1);
 const _pick = (arr, n) => { const c = [...arr]; const o = []; for (let i = 0; i < n && c.length; i++) o.push(c.splice(_ri(c.length), 1)[0]); return o; };
@@ -36,7 +36,14 @@ export default function handler(req, res) {
   let b = req.method === 'POST' ? req.body : (req.query || {});
   if (typeof b === 'string') { try { b = JSON.parse(b); } catch { b = {}; } }
   b = b || {};
-  const pr = genreProfile(b.genre || '');
+const key = String(b.genre || '').toLowerCase().trim();
+  const custom = GENRE_PROFILES[key];
+  const _band = v => [Math.max(1, v - 1), Math.min(10, v + 1)];
+  const pr = custom ? {
+    bpm: custom.bpm, drums: custom.drums, vocals: custom.vocals, mood: custom.mood,
+    heavy: _band(custom.heavy), groove: _band(custom.groove),
+    chaos: _band(custom.chaos), melody: _band(custom.melody),
+  } : genreProfile(b.genre || '');
   res.status(200).json({
     bpm: _rand(pr.bpm[0], pr.bpm[1]),
     drums: _pick(pr.drums, 1 + _ri(2)),
@@ -47,5 +54,8 @@ export default function handler(req, res) {
     chaos: _rand(pr.chaos[0], pr.chaos[1]),
     melody: _rand(pr.melody[0], pr.melody[1]),
     structs: randStructure(),
+    tuning: custom ? custom.tuning : [],
+    guitar: custom ? _pick(custom.guitar, 1 + _ri(2)) : [],
+    exclude: custom ? custom.exclude : [],
   });
 }

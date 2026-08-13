@@ -77,16 +77,13 @@ const GENRES_NEW = ["technical death metal","blackened deathcore","melodic death
 // Genres groupés par ÉPOQUE (arbre généalogique du metal) — styles seulement, tier conservé
 const GENRE_FAMILIES = [
   {name:"Années 60-70 (Racines)", nameEn:"60s-70s (Roots)", icon:"",genres:[
-    {g:"hard rock",req:"free"},{g:"heavy metal",req:"free"},{g:"punk rock",req:"free"},{g:"proto-metal",req:"forge"},
-    {g:"acid rock",req:"forge"},{g:"southern rock",req:"forge"},{g:"occult rock",req:"forge"},{g:"krautrock",req:"forge"},{g:"blues rock",req:"forge"},
+    {g:"hard rock",req:"free"},{g:"heavy metal",req:"free"},{g:"punk rock",req:"free"},{g:"proto-metal",req:"forge"},{g:"blues rock",req:"forge"},
     {g:"progressive rock",req:"forge"},{g:"psychedelic rock",req:"forge"},{g:"70s progressive rock",req:"forge"},
   ]},
   {name:"Années 80", nameEn:"80s", icon:"",genres:[
     {g:"traditional heavy metal",req:"forge"},{g:"nwobhm",req:"forge"},{g:"speed metal",req:"forge"},{g:"power metal",req:"forge"},{g:"glam metal",req:"forge"},
     {g:"thrash metal",req:"forge"},{g:"hardcore punk",req:"forge"},{g:"crossover thrash",req:"forge"},{g:"d-beat",req:"forge"},
     {g:"death metal",req:"free"},{g:"black metal",req:"forge"},{g:"doom metal",req:"forge"},{g:"grindcore",req:"forge"},
-    {g:"bay area thrash",req:"forge"},{g:"teutonic thrash",req:"forge"},{g:"epic doom metal",req:"forge"},{g:"first wave black metal",req:"forge"},{g:"speed thrash",req:"forge"},{g:"gothic rock",req:"forge"},{g:"industrial rock",req:"forge"},
-    {g:"youth crew hardcore",req:"forge"},{g:"nyhc",req:"forge"},{g:"straight edge hardcore",req:"forge"},{g:"thrashcore",req:"forge"},{g:"oi!",req:"forge"},
   ]},
   {name:"Années 90", nameEn:"90s", icon:"", genres:[
     {g:"groove metal",req:"free"},{g:"metalcore",req:"free"},{g:"nu-metal",req:"forge"},{g:"rapcore",req:"forge"},{g:"alternative metal",req:"forge"},{g:"powerviolence",req:"forge"},
@@ -94,35 +91,26 @@ const GENRE_FAMILIES = [
     {g:"blackened death metal",req:"forge"},{g:"atmospheric black metal",req:"forge"},{g:"funeral doom",req:"forge"},{g:"sludge metal",req:"forge"},{g:"post-metal",req:"forge"},{g:"progressive metal",req:"forge"},
     {g:"deathgrind",req:"forge"},{g:"brutal death metal",req:"forge"},{g:"drone metal",req:"elite"},
     {g:"folk metal",req:"forge"},{g:"viking metal",req:"forge"},{g:"gothic metal",req:"forge"},{g:"stoner metal",req:"forge"},
-    {g:"old school death metal",req:"free"},{g:"death-doom",req:"forge"},{g:"raw black metal",req:"forge"},{g:"symphonic black metal",req:"forge"},{g:"melodic black metal",req:"forge"},{g:"pagan metal",req:"forge"},{g:"gothic doom",req:"forge"},{g:"stoner doom",req:"forge"},{g:"melodic hardcore",req:"forge"},
-    {g:"chaotic hardcore",req:"forge"},{g:"screamo",req:"forge"},{g:"emoviolence",req:"forge"},{g:"tough guy hardcore",req:"forge"},{g:"crust punk",req:"forge"},
   ]},
   {name:"Années 2000", nameEn:"2000s", icon:"", genres:[
     {g:"deathcore",req:"free"},{g:"melodic deathcore",req:"forge"},{g:"melodic metalcore",req:"forge"},{g:"post-hardcore",req:"forge"},
     {g:"blackened deathcore",req:"forge"},
     {g:"slam metal",req:"forge"},{g:"dissonant death metal",req:"forge"},{g:"avant-garde metal",req:"forge"},
     {g:"atmospheric sludge metal",req:"forge"},{g:"depressive black metal",req:"elite"},
-    {g:"technical brutal death metal",req:"forge"},{g:"cavernous death metal",req:"forge"},{g:"war metal",req:"forge"},{g:"metallic hardcore",req:"forge"},{g:"cybergrind",req:"forge"},{g:"nu metalcore",req:"forge"},{g:"deathrock",req:"forge"},
-    {g:"easycore",req:"forge"},{g:"mosh metal",req:"forge"},{g:"grindviolence",req:"forge"},
   ]},
   {name:"Années 2010", nameEn:"2010s", icon:"", genres:[
     {g:"djent",req:"forge"},{g:"modern metalcore",req:"forge"},
     {g:"progressive metalcore",req:"forge"},{g:"electronicore",req:"forge"},{g:"arena metalcore",req:"forge"},{g:"atmospheric metalcore",req:"forge"},
     {g:"post-black metal",req:"forge"},{g:"blackgaze",req:"forge"},{g:"technical deathcore",req:"forge"},
-    {g:"downtempo deathcore",req:"free"},{g:"beatdown deathcore",req:"forge"},{g:"thrash revival",req:"forge"},{g:"trad doom revival",req:"forge"},{g:"blackened hardcore",req:"forge"},{g:"dissonant black metal",req:"forge"},
-    {g:"modern hardcore",req:"free"},{g:"downtempo hardcore",req:"forge"},{g:"beatdown revival",req:"forge"},
   ]},
   {name:"Années 2020", nameEn:"2020s", icon:"", genres:[
     {g:"synth metalcore",req:"forge"},
     {g:"ambient metalcore",req:"forge"},{g:"pop metalcore",req:"forge"},{g:"progressive post-hardcore",req:"forge"},{g:"modern alternative metal",req:"forge"},
-    {g:"trap metal",req:"forge"},{g:"rage metalcore",req:"forge"},{g:"nu-deathcore",req:"forge"},{g:"hyperpop metalcore",req:"forge"},{g:"dark hardcore",req:"forge"},{g:"neo-crust",req:"forge"},{g:"cinematic deathcore",req:"forge"},
-    {g:"hardcore revival",req:"forge"},{g:"rap hardcore",req:"forge"},
   ]},
   {name:"Fusion & Hors-metal (mix)", nameEn:"Fusion & Crossover (mix)", icon:"", genres:[
     {g:"progressive rock",req:"forge"},{g:"70s progressive rock",req:"forge"},{g:"psychedelic rock",req:"forge"},{g:"jazz fusion",req:"forge"},{g:"post-rock",req:"forge"},{g:"post-punk",req:"forge"},{g:"shoegaze",req:"forge"},
     {g:"cinematic orchestral",req:"forge"},{g:"neoclassical",req:"forge"},{g:"ambient",req:"forge"},{g:"dark ambient",req:"forge"},{g:"trip-hop",req:"forge"},
     {g:"synthwave",req:"forge"},{g:"darksynth",req:"forge"},{g:"future rave",req:"forge"},{g:"dark cinematic techno",req:"forge"},{g:"industrial techno",req:"forge"},{g:"trance",req:"forge"},{g:"idm",req:"forge"},{g:"drum and bass",req:"forge"},
-    {g:"dungeon synth",req:"forge"},{g:"witch house",req:"forge"},{g:"breakcore",req:"forge"},{g:"phonk",req:"forge"},{g:"noise",req:"forge"},{g:"drill",req:"forge"},
   ]},
 ];
 
@@ -1294,11 +1282,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       const d=await r.json();
       setBPM(d.bpm);setDrums(d.drums);setVocals(d.vocals);setMood(d.mood);
       setStructs(d.structs);setLblocks(d.structs);
-     
-      setHeavy(d.heavy);setGroove(d.groove);setChaos(d.chaos);setMelody(d.melody);setHeavy(d.heavy);setGroove(d.groove);setChaos(d.chaos);setMelody(d.melody);
-      if(d.tuning&&d.tuning.length)setTuning(d.tuning);
-      if(d.guitar&&d.guitar.length)setGuitar(d.guitar);
-      if(d.exclude&&d.exclude.length)setExclCustom(d.exclude.join(', '));
+      setHeavy(d.heavy);setGroove(d.groove);setChaos(d.chaos);setMelody(d.melody);
     }catch(e){/* pas de profil dispo (ex: localhost) — on laisse les choix actuels */}
   };
   const onGenrePick=(g)=>{const adding=!genres.has(g);tGenre(g);if(adding)autoFillGenre(g);};

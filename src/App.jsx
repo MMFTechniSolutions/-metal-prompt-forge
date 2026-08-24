@@ -307,6 +307,68 @@ function seedEmotionsFromMood(moods, pool){
   return out;
 }
 
+// ── Base THÈMES + ATMOSPHÈRE (paroles) dérivée du style réel du groupe ──
+const MOOD_THEME={
+  "intense and aggressive":["violence et brutalité","vengeance","serment et vengeance jurée"],
+  "crushing and heavy":["guerre et destruction","violence et brutalité","tempête et cataclysme"],
+  "sinister and dark":["démons et obscurité","damnation et enfer","rituel et sacrifice"],
+  "dark and menacing":["démons et obscurité","horreur cosmique","hantise et fantômes"],
+  "chaotic and frantic":["chaos intérieur","apocalypse","folie et délire"],
+  "raw and abrasive":["violence et brutalité","résistance et rébellion"],
+  "dissonant":["aliénation et solitude","folie et délire","abîme et néant"],
+  "melodic and atmospheric":["aliénation et solitude","étoiles et cosmos","glace et désolation"],
+  "epic":["conquête et gloire","mythes et légendes","révolte contre les dieux"],
+  "majestic and grandiose":["conquête et gloire","mythes et légendes"],
+  "triumphant and radiant":["conquête et gloire","le feu intérieur","extase et illumination"],
+  "melancholic and doux-amer":["amour perdu","aliénation et solitude","mémoire et héritage"],
+  "mélancolique et doux-amer":["amour perdu","aliénation et solitude","mémoire et héritage"],
+  "tender and haunting":["amour perdu","mémoire et héritage","hantise et fantômes"],
+  "bittersweet and nostalgic":["mémoire et héritage","amour perdu"],
+  "dreamy and ethereal":["étoiles et cosmos","transcendance spirituelle","extase et illumination"],
+  "serene and expansive":["nature et éléments","transcendance spirituelle"],
+  "luminous and shimmering":["espoir dans les ténèbres","étoiles et cosmos","extase et illumination"],
+  "warm and hopeful":["espoir dans les ténèbres","renaissance et renouveau","rédemption et pardon"],
+  "euphoric and energetic":["liberté et évasion","le feu intérieur"],
+  "groovy and headbang-worthy":["résistance et rébellion","le feu intérieur"],
+  "festif et rassembleur":["fraternité et loyauté","liberté et évasion"],
+  "defiant":["résistance et rébellion","révolte contre les dieux","serment et vengeance jurée"],
+};
+const MOOD_ATMO={
+  "intense and aggressive":["direct et violent","cri de rage"],
+  "crushing and heavy":["sombre et menaçant","direct et violent"],
+  "sinister and dark":["sombre et menaçant","hypnotique et rituel"],
+  "dark and menacing":["sombre et menaçant","prophétique et solennel"],
+  "chaotic and frantic":["cri de rage","direct et violent"],
+  "raw and abrasive":["direct et violent","sauvage et primal"],
+  "dissonant":["philosophique","froid et clinique"],
+  "melodic and atmospheric":["poétique et métaphorique","onirique et éthéré"],
+  "epic":["épique et héroïque","grandiose et cinématique"],
+  "majestic and grandiose":["épique et héroïque","grandiose et cinématique"],
+  "triumphant and radiant":["hymne de victoire","épique et héroïque"],
+  "melancholic and doux-amer":["mélancolique et doux-amer","poétique et métaphorique"],
+  "mélancolique et doux-amer":["mélancolique et doux-amer","poétique et métaphorique"],
+  "tender and haunting":["mélancolique et doux-amer","intime et confessionnel"],
+  "bittersweet and nostalgic":["mélancolique et doux-amer","intime et confessionnel"],
+  "dreamy and ethereal":["onirique et éthéré","contemplatif et lumineux"],
+  "serene and expansive":["contemplatif et lumineux","onirique et éthéré"],
+  "luminous and shimmering":["contemplatif et lumineux","grandiose et cinématique"],
+  "warm and hopeful":["contemplatif et lumineux","intime et confessionnel"],
+  "euphoric and energetic":["hymne de victoire","festif et rassembleur"],
+  "groovy and headbang-worthy":["direct et violent","festif et rassembleur"],
+  "festif et rassembleur":["festif et rassembleur","hymne de victoire"],
+  "defiant":["cri de rage","direct et violent"],
+};
+function seedThemesFromMood(moods){
+  const themes=[], atmo=[];
+  (moods||[]).forEach(m=>{
+    const k=String(m).toLowerCase();
+    (MOOD_THEME[k]||[]).forEach(v=>{ if(!themes.includes(v)) themes.push(v); });
+    (MOOD_ATMO[k]||[]).forEach(v=>{ if(!atmo.includes(v)) atmo.push(v); });
+  });
+  if(!themes.length && !atmo.length) return null;
+  return { themes: themes.slice(0,3), atmo: atmo.slice(0,2) };
+}
+
 const EXCL_GENRES = ["pop","jazz","classical","country","r&b","hip hop","electronic","edm","ambient","folk","reggae","latin","disco","funk","soul","gospel","blues","indie pop","synthpop","new age"];
 const EXCL_VOCALS = ["clean vocals","autotune","pitch correction","electronic vocals","vocoder","falsetto","soft vocals","whisper vocals","pop vocals","processed vocals","digital vocal fx"];
 const EXCL_PROD   = ["polished production","crisp mix","over-produced","digital production","perfect timing","quantized drums","sterile mix","radio mix"];
@@ -328,14 +390,18 @@ const PRESETS = {
 };
 const THEMES = ["mort et décomposition","apocalypse","chaos intérieur","guerre et destruction","trahison","démons et obscurité","résistance et rébellion","nihilisme","vengeance","aliénation et solitude","horreur cosmique","violence et brutalité",
   // thèmes lumière
-  "renaissance et renouveau","espoir dans les ténèbres","fraternité et loyauté","nature et éléments","conquête et gloire","mythes et légendes","amour perdu","transcendance spirituelle","liberté et évasion","mémoire et héritage","étoiles et cosmos","le feu intérieur"];
+  "renaissance et renouveau","espoir dans les ténèbres","fraternité et loyauté","nature et éléments","conquête et gloire","mythes et légendes","amour perdu","transcendance spirituelle","liberté et évasion","mémoire et héritage","étoiles et cosmos","le feu intérieur",
+  "rituel et sacrifice","damnation et enfer","folie et délire","tempête et cataclysme","hantise et fantômes","révolte contre les dieux","abîme et néant","machine et dystopie","glace et désolation","rédemption et pardon","extase et illumination","serment et vengeance jurée"];
 const LYRIC_ATMO = ["sombre et menaçant","poétique et métaphorique","direct et violent","philosophique","narratif comme une histoire","cri de rage",
   // atmosphères lumière
-  "épique et héroïque","mélancolique et doux-amer","contemplatif et lumineux","festif et rassembleur","onirique et éthéré","hymne de victoire"];
+  "épique et héroïque","mélancolique et doux-amer","contemplatif et lumineux","festif et rassembleur","onirique et éthéré","hymne de victoire",
+  "hypnotique et rituel","froid et clinique","grandiose et cinématique","intime et confessionnel","prophétique et solennel","sauvage et primal"];
 const THEME_TR = {"mort et décomposition":"death and decay","apocalypse":"apocalypse","chaos intérieur":"inner chaos","guerre et destruction":"war and destruction","trahison":"betrayal","démons et obscurité":"demons and darkness","résistance et rébellion":"resistance and rebellion","nihilisme":"nihilism","vengeance":"vengeance","aliénation et solitude":"alienation and solitude","horreur cosmique":"cosmic horror","violence et brutalité":"violence and brutality",
-  "renaissance et renouveau":"rebirth and renewal","espoir dans les ténèbres":"hope in darkness","fraternité et loyauté":"brotherhood and loyalty","nature et éléments":"nature and the elements","conquête et gloire":"conquest and glory","mythes et légendes":"myths and legends","amour perdu":"lost love","transcendance spirituelle":"spiritual transcendence","liberté et évasion":"freedom and escape","mémoire et héritage":"memory and legacy","étoiles et cosmos":"stars and cosmos","le feu intérieur":"the fire within"};
+  "renaissance et renouveau":"rebirth and renewal","espoir dans les ténèbres":"hope in darkness","fraternité et loyauté":"brotherhood and loyalty","nature et éléments":"nature and the elements","conquête et gloire":"conquest and glory","mythes et légendes":"myths and legends","amour perdu":"lost love","transcendance spirituelle":"spiritual transcendence","liberté et évasion":"freedom and escape","mémoire et héritage":"memory and legacy","étoiles et cosmos":"stars and cosmos","le feu intérieur":"the fire within",
+  "rituel et sacrifice":"ritual and sacrifice","damnation et enfer":"damnation and hell","folie et délire":"madness and delirium","tempête et cataclysme":"storm and cataclysm","hantise et fantômes":"haunting and ghosts","révolte contre les dieux":"revolt against the gods","abîme et néant":"abyss and void","machine et dystopie":"machines and dystopia","glace et désolation":"ice and desolation","rédemption et pardon":"redemption and forgiveness","extase et illumination":"ecstasy and enlightenment","serment et vengeance jurée":"oath and sworn vengeance"};
 const ATMO_TR = {"sombre et menaçant":"dark and menacing","poétique et métaphorique":"poetic and metaphorical","direct et violent":"direct and violent","philosophique":"philosophical","narratif comme une histoire":"narrative like a story","cri de rage":"cry of rage",
-  "épique et héroïque":"epic and heroic","mélancolique et doux-amer":"melancholic and bittersweet","contemplatif et lumineux":"contemplative and luminous","festif et rassembleur":"festive and rousing","onirique et éthéré":"dreamlike and ethereal","hymne de victoire":"victory anthem"};
+  "épique et héroïque":"epic and heroic","mélancolique et doux-amer":"melancholic and bittersweet","contemplatif et lumineux":"contemplative and luminous","festif et rassembleur":"festive and rousing","onirique et éthéré":"dreamlike and ethereal","hymne de victoire":"victory anthem",
+  "hypnotique et rituel":"hypnotic and ritualistic","froid et clinique":"cold and clinical","grandiose et cinématique":"grandiose and cinematic","intime et confessionnel":"intimate and confessional","prophétique et solennel":"prophetic and solemn","sauvage et primal":"savage and primal"};
 const LYRIC_LANGS = [
   {v:"en",l:"English"},{v:"fr",l:"Français"},{v:"de",l:"Deutsch"},
   {v:"es",l:"Español"},{v:"sv",l:"Svenska"},{v:"fi",l:"Suomi"},
@@ -1314,8 +1380,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [orgVoc,tOrgVoc,setOrgVoc]=useSet([],"orgVoc");
   const [orgGtr,tOrgGtr,setOrgGtr]=useSet([],"orgGtr");
   const [structs,tStruct,setStructs]=useSet([],"structs");
-  const [themes,tTheme]=useSet(["mort et décomposition"],"themes");
-  const [latmo,tLatmo]=useSet(["sombre et menaçant"],"latmo");
+  const [themes,tTheme,setThemes]=useSet(["mort et décomposition"],"themes");
+  const [latmo,tLatmo,setLatmo]=useSet(["sombre et menaçant"],"latmo");
   const [lblocks,tLblock,setLblocks]=useSet(["verse","chorus","breakdown"],"lblocks");
   const [lang,tLang]=useSet(["en"],"lang");
   const [lyricsHistory,setLyricsHistory]=useState([]);
@@ -1389,7 +1455,9 @@ export default function App({ user, onLogout, onRequestAuth }) {
       const d=await r.json();
       if(!r.ok||!d.genre){setReverseMsg({ok:false});return;}
       if(!genres.has(d.genre))tGenre(d.genre);   // ajoute le sous-genre comme tag
-      await autoFillGenre(d.genre,{seedEmo:true});  // applique BPM/drums/voix/sliders + base d'emotions selon le style reel
+      const _prof=await autoFillGenre(d.genre,{seedEmo:true});  // applique BPM/drums/voix/sliders + base d'emotions selon le style reel
+      const _ta=seedThemesFromMood((_prof&&_prof.mood)||[]);   // + thème principal & atmosphère (paroles) selon le style
+      if(_ta){ setThemes(_ta.themes); setLatmo(_ta.atmo); }
       setReverseMsg({ok:true,genre:d.genre,label:d.label||d.genre,confidence:d.confidence,matched:d.matched});
     }catch(e){setReverseMsg({ok:false});}
     finally{setReverseLoading(false);}

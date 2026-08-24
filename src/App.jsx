@@ -264,6 +264,49 @@ function seedEmotionsFromName(name, pool){
   return out;
 }
 
+// ── Base d'émotions dérivée du STYLE RÉEL du groupe (moods du genre détecté) ──
+const MOOD_EMO={
+  "bittersweet and nostalgic":[["melancholy",70],["hope",30]],
+  "chaotic and frantic":[["madness",70],["rage",45]],
+  "crushing and heavy":[["rage",60],["dread",50]],
+  "dark and menacing":[["dread",70],["coldness",40]],
+  "defiant":[["defiance",85]],
+  "dissonant":[["madness",55],["dread",40]],
+  "dreamy and ethereal":[["transcendence",60],["wonder",50]],
+  "epic":[["triumph",70],["transcendence",40]],
+  "euphoric and energetic":[["joy",70],["triumph",40]],
+  "festif et rassembleur":[["joy",70],["unity",60]],
+  "groovy and headbang-worthy":[["defiance",55],["joy",40]],
+  "intense and aggressive":[["rage",80],["defiance",40]],
+  "luminous and shimmering":[["radiance",70],["wonder",40]],
+  "majestic and grandiose":[["triumph",60],["reverence",50]],
+  "melancholic and doux-amer":[["melancholy",80],["despair",30]],
+  "m\u00e9lancolique et doux-amer":[["melancholy",80],["despair",30]],
+  "melodic and atmospheric":[["melancholy",45],["wonder",40]],
+  "raw and abrasive":[["rage",60],["defiance",40]],
+  "serene and expansive":[["serenity",75],["transcendence",40]],
+  "sinister and dark":[["dread",60],["coldness",50],["profanation",30]],
+  "tender and haunting":[["grace",60],["melancholy",50]],
+  "triumphant and radiant":[["triumph",80],["radiance",50]],
+  "warm and hopeful":[["warmth",70],["hope",55]],
+};
+function seedEmotionsFromMood(moods, pool){
+  const allow=new Set((pool&&pool.length?pool:EMOTIONS).map(e=>e.id||e));
+  const acc={};
+  (moods||[]).forEach((m,idx)=>{
+    const list=MOOD_EMO[String(m).toLowerCase()]; if(!list) return;
+    const decay=idx===0?1:0.7;                       // le 1er mood domine
+    list.forEach(([id,w],j)=>{ if(!allow.has(id)) return; acc[id]=Math.max(acc[id]||0, w*decay*(j===0?1:0.9)); });
+  });
+  const ids=Object.keys(acc);
+  if(!ids.length) return null;                        // aucun mood mappé -> repli sur le nom
+  const max=Math.max(...ids.map(i=>acc[i]));
+  const q=v=>Math.max(0,Math.min(100,Math.round(v/5)*5));
+  const out={};
+  ids.forEach(id=>{ const v=q(acc[id]/max*95); if(v>0) out[id]=v; }); // dominante normalisee ~95
+  return out;
+}
+
 const EXCL_GENRES = ["pop","jazz","classical","country","r&b","hip hop","electronic","edm","ambient","folk","reggae","latin","disco","funk","soul","gospel","blues","indie pop","synthpop","new age"];
 const EXCL_VOCALS = ["clean vocals","autotune","pitch correction","electronic vocals","vocoder","falsetto","soft vocals","whisper vocals","pop vocals","processed vocals","digital vocal fx"];
 const EXCL_PROD   = ["polished production","crisp mix","over-produced","digital production","perfect timing","quantized drums","sterile mix","radio mix"];
@@ -1313,17 +1356,23 @@ export default function App({ user, onLogout, onRequestAuth }) {
     if(p.tuning)setTuning(p.tuning);
   };
   // Clic sur un genre → agencement probable + variété semi-aléatoire (anti-redondance)
-  const autoFillGenre=async(g)=>{
+  const autoFillGenre=async(g,opts={})=>{
     try{
       const r=await fetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({genre:g})});
       const d=await r.json();
       setBPM(d.bpm);setDrums(d.drums);setVocals(d.vocals);setMood(d.mood);
+      if(opts.seedEmo){
+        const _lim=Math.min(EMOTIONS.length,(IS_LOCAL?EMOTIONS.length:(EMO_LIMIT[userTier]||2)));
+        const _seed=seedEmotionsFromMood(d.mood, EMOTIONS.slice(0,_lim));
+        if(_seed) setEmotions(_seed);                // base selon le style reel du groupe
+      }
       setStructs(d.structs);setLblocks(d.structs);
      
       setHeavy(d.heavy);setGroove(d.groove);setChaos(d.chaos);setMelody(d.melody);setHeavy(d.heavy);setGroove(d.groove);setChaos(d.chaos);setMelody(d.melody);
       if(d.tuning&&d.tuning.length)setTuning(d.tuning);
       if(d.guitar&&d.guitar.length)setGuitar(d.guitar);
       if(d.exclude&&d.exclude.length)setExclCustom(d.exclude.join(', '));
+      return d;
     }catch(e){/* pas de profil dispo (ex: localhost) — on laisse les choix actuels */}
   };
   const onGenrePick=(g)=>{const adding=!genres.has(g);tGenre(g);if(adding)autoFillGenre(g);};
@@ -1340,7 +1389,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       const d=await r.json();
       if(!r.ok||!d.genre){setReverseMsg({ok:false});return;}
       if(!genres.has(d.genre))tGenre(d.genre);   // ajoute le sous-genre comme tag
-      await autoFillGenre(d.genre);              // applique BPM/drums/voix/sliders/accordage
+      await autoFillGenre(d.genre,{seedEmo:true});  // applique BPM/drums/voix/sliders + base d'emotions selon le style reel
       setReverseMsg({ok:true,genre:d.genre,label:d.label||d.genre,confidence:d.confidence,matched:d.matched});
     }catch(e){setReverseMsg({ok:false});}
     finally{setReverseLoading(false);}

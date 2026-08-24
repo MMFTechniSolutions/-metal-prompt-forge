@@ -218,6 +218,8 @@ const ORG_DRUMS  = ["live drums","natural drum room","overhead mics","snare blee
 const ORG_VOCALS = ["raw vocal take","no autotune","natural vocal imperfections","throat vocals","physical vocal strain","analog vocal chain","close mic'd vocals","wet room reverb","vocal breathiness"];
 const ORG_GUITAR = ["tube amp recording","cabinet mic'd","natural pick attack","slight string buzz","analog distortion","tube saturation","live room guitar","natural feedback","amp hum"];
 const ORG_AVOID  = ["perfect production","polished mix","crisp","digital","quantized","pitch corrected","over-produced","clean mix"];
+// DEV : sur localhost, tout est débloqué pour tester (inerte en prod, jamais sur localhost en ligne)
+const IS_LOCAL = typeof window!=="undefined" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
 // Émotions — méta d'affichage seulement (la recette émotion->tags vit dans /api/forge, secrète)
 const EMOTIONS=[
   {id:'rage',label:'Rage',labelEn:'Rage',icon:'',c:'#ff2e2e'},
@@ -243,6 +245,25 @@ const EMOTIONS=[
   {id:'radiance',label:'Lumière',labelEn:'Radiance',icon:'',c:'#fff0a0'},
 ];
 const EMO_LIMIT={free:2,forge:20,pro:20,elite:20,eliteplus:20};
+
+// ── Base d'émotions dérivée du nom de groupe (déterministe : même nom → même base) ──
+function seedEmotionsFromName(name, pool){
+  const ids=(pool&&pool.length?pool:EMOTIONS).map(e=>e.id||e);
+  if(!ids.length) return {};
+  let h=2166136261; const str=(name||'').toLowerCase();
+  for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); }
+  let a=h>>>0;
+  const rnd=()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+  const sh=[...ids];
+  for(let i=sh.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [sh[i],sh[j]]=[sh[j],sh[i]]; }
+  const q=v=>Math.max(0,Math.min(100,Math.round(v/5)*5));
+  const out={};
+  out[sh[0]]=q(70+rnd()*30);                       // dominante 70–100
+  if(sh[1]) out[sh[1]]=q(35+rnd()*30);             // secondaire 35–65
+  if(sh[2]&&rnd()<0.6) out[sh[2]]=q(20+rnd()*30);  // teinte optionnelle 20–50
+  return out;
+}
+
 const EXCL_GENRES = ["pop","jazz","classical","country","r&b","hip hop","electronic","edm","ambient","folk","reggae","latin","disco","funk","soul","gospel","blues","indie pop","synthpop","new age"];
 const EXCL_VOCALS = ["clean vocals","autotune","pitch correction","electronic vocals","vocoder","falsetto","soft vocals","whisper vocals","pop vocals","processed vocals","digital vocal fx"];
 const EXCL_PROD   = ["polished production","crisp mix","over-produced","digital production","perfect timing","quantized drums","sterile mix","radio mix"];
@@ -1195,7 +1216,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const limit=LIMITS[userTier]||LIMITS.free;
   const tierColor=TIERS[userTier]?.color||"#444";
   const tierBadge=TIERS[userTier]?.badge||null;
-  const canAccess=req=>(!req||req==="free")?true:TIER_RANK[userTier]>=1;
+  const canAccess=req=>IS_LOCAL||(!req||req==="free")?true:TIER_RANK[userTier]>=1;
 
   // useSet avec persistance optionnelle (garde les selections au refresh)
   const useSet=(init=[], key=null)=>{
@@ -1215,6 +1236,10 @@ export default function App({ user, onLogout, onRequestAuth }) {
 
   const [genres,tGenre,setGenres]=useSet([],"genres");
   const [genreFilter,setGenreFilter]=useState("");
+  // ── REVERSAL : nom de groupe → style (le nom sert d'intrant seulement, jamais écrit dans le prompt) ──
+  const [reverseInput,setReverseInput]=useState("");
+  const [reverseLoading,setReverseLoading]=useState(false);
+  const [reverseMsg,setReverseMsg]=useState(null); // {ok, genre, label, confidence, matched}
   const [openFam,setOpenFam]=useState({});
   const [vocFilter,setVocFilter]=useState("");
   const [openVocEra,setOpenVocEra]=useState({});
@@ -1302,6 +1327,24 @@ export default function App({ user, onLogout, onRequestAuth }) {
     }catch(e){/* pas de profil dispo (ex: localhost) — on laisse les choix actuels */}
   };
   const onGenrePick=(g)=>{const adding=!genres.has(g);tGenre(g);if(adding)autoFillGenre(g);};
+  // ── REVERSAL : tape un nom de groupe → détecte le sous-genre → applique le profil complet ──
+  const reverseBand=async()=>{
+    if(!canAccess("pro")){setShowPaywall(true);return;}
+    const band=reverseInput.trim();
+    if(!band||reverseLoading)return;
+    setReverseLoading(true);setReverseMsg(null);
+    const _emoLim=Math.min(EMOTIONS.length,(IS_LOCAL?EMOTIONS.length:(EMO_LIMIT[userTier]||2)));
+    setEmotions(seedEmotionsFromName(band, EMOTIONS.slice(0,_emoLim)));  // base d'émotions liée au nom
+    try{
+      const r=await fetch('/api/reverse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({band})});
+      const d=await r.json();
+      if(!r.ok||!d.genre){setReverseMsg({ok:false});return;}
+      if(!genres.has(d.genre))tGenre(d.genre);   // ajoute le sous-genre comme tag
+      await autoFillGenre(d.genre);              // applique BPM/drums/voix/sliders/accordage
+      setReverseMsg({ok:true,genre:d.genre,label:d.label||d.genre,confidence:d.confidence,matched:d.matched});
+    }catch(e){setReverseMsg({ok:false});}
+    finally{setReverseLoading(false);}
+  };
   // ── MON SOUND (custom model perso, localStorage) ──
   const [sounds,setSounds]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_sounds")||"[]")}catch{return[]}});
   const persistSounds=arr=>{setSounds(arr);try{localStorage.setItem("mpf_sounds",JSON.stringify(arr))}catch{}};
@@ -1539,6 +1582,18 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* GENRE */}
       {tab==="genre"&&<div style={S.page}>
         <div style={S.card}>
+          <div style={S.ctitle}>{L("Groupe → style","Band → style")}{!canAccess("pro")?" 🔒":""}</div>
+          <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"9px",lineHeight:1.5}}>{L("Tape le nom d'un groupe : on détecte son sous-genre et on applique tout (BPM, drums, voix, accordage, sliders). Le nom sert seulement à trouver le style — il n'est jamais écrit dans ton prompt.","Type a band name: we detect its sub-genre and apply everything (BPM, drums, vocals, tuning, sliders). The name only picks the style — it's never written into your prompt.")}</div>
+          <div style={{display:"flex",gap:"7px"}}>
+            <input value={reverseInput} onChange={e=>setReverseInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')reverseBand();}} placeholder={L("Nom du groupe…","Band name…")} style={{flex:1,background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem"}}/>
+            <button onClick={reverseBand} disabled={reverseLoading} style={{background:"#1a0000",border:`1px solid ${RED}`,borderRadius:"6px",color:RED,fontSize:"0.68rem",fontWeight:800,padding:"8px 14px",cursor:reverseLoading?"default":"pointer",whiteSpace:"nowrap",opacity:reverseLoading?0.6:1}}>{reverseLoading?L("Analyse…","Analyzing…"):L("Détecter","Detect")}</button>
+          </div>
+          {reverseMsg&&(reverseMsg.ok
+            ? <div style={{fontSize:"0.66rem",color:"#7bd88f",marginTop:"9px",lineHeight:1.5}}>✓ {L("Style appliqué","Style applied")} : <b style={{color:"#a8f0b8"}}>{reverseMsg.label}</b>{reverseMsg.matched?<span style={{color:"#555"}}> · {L("preset sur-mesure","tuned preset")}</span>:null}{reverseMsg.confidence==="low"?<span style={{color:"#c9a227"}}> · {L("estimation approximative","rough guess")}</span>:null}</div>
+            : <div style={{fontSize:"0.66rem",color:"#c98",marginTop:"9px",lineHeight:1.5}}>{L("Groupe non reconnu — essaie l'orthographe exacte, ou choisis un genre plus bas.","Band not recognized — try the exact spelling, or pick a genre below.")}</div>
+          )}
+        </div>
+        <div style={S.card}>
           <div style={S.ctitle}>{L("Presets rapides","Quick presets")}</div>
           <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"9px",lineHeight:1.5}}>{L("Un clic = config optimisée pour Suno (genre, BPM, drums, voix…)","One click = Suno-optimized setup (genre, BPM, drums, vocals…)")}</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>
@@ -1592,11 +1647,11 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <div style={S.card}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
             <div style={{...S.ctitle,marginBottom:0}}>{L("Émotions","Emotions")}</div>
-            <span style={{fontSize:"0.55rem",color:"#666"}}>{Math.min(EMOTIONS.length,EMO_LIMIT[userTier]||2)}/{EMOTIONS.length} {L("débloquées","unlocked")}</span>
+            <span style={{fontSize:"0.55rem",color:"#666"}}>{Math.min(EMOTIONS.length,(IS_LOCAL?EMOTIONS.length:(EMO_LIMIT[userTier]||2)))}/{EMOTIONS.length} {L("débloquées","unlocked")}</span>
           </div>
           <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"10px",lineHeight:1.5}}>{L("Dose les émotions — MetalPrompt injecte les bons tags. La plus forte domine le morceau.","Dial emotions — MetalPrompt injects the matching tags. The strongest one dominates.")}</div>
           {EMOTIONS.map((e,i)=>{
-            const lim=Math.min(EMOTIONS.length,EMO_LIMIT[userTier]||2);const locked=i>=lim;const v=emotions[e.id]||0;
+            const lim=Math.min(EMOTIONS.length,(IS_LOCAL?EMOTIONS.length:(EMO_LIMIT[userTier]||2)));const locked=i>=lim;const v=emotions[e.id]||0;
             if(locked) return (<div key={e.id} onClick={()=>setShowPaywall(true)} style={{display:"flex",alignItems:"center",gap:"8px",padding:"5px 0",opacity:0.4,cursor:"pointer"}}>
               <span style={{fontSize:"0.72rem",width:"120px"}}>🔒 {e.icon} {L(e.label,e.labelEn||e.label)}</span>
               <span style={{fontSize:"0.55rem",color:RED,fontWeight:700}}>{L("Tier supérieur","Upgrade")}</span>

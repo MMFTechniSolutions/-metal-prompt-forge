@@ -1524,6 +1524,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       org:isPro?[...orgRec,...orgDrm,...orgVoc,...orgGtr]:[],
       excl:isElite?{g:[...exclGenre],v:[...exclVocal],p:[...exclProd],i:[...exclInst],c:exclCustom}:null,
       structs:autoStructs,blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions,tier:userTier,
+      eras:GENRE_FAMILIES.filter(f=>f.genres.some(x=>genres.has(x.g))).map(f=>f.nameEn),   // couche Époque → /api/forge
     };
     let data;
     try{
@@ -1599,6 +1600,8 @@ RULES:
 - FORBIDDEN WORDS: ${allBanned.slice(0,25).join(", ")||"none"}
 - Each section = completely different metaphors
 - Breakdown lines = under 6 words each
+- 6-10 syllables per line (Suno rushes or truncates longer lines); keep syllable counts similar within a section
+- Chorus repeated 3 times MAXIMUM in the whole song; each chorus repeat can vary 1 line
 - Be SPECIFIC and CONCRETE, not vague
 OUTPUT: ONLY raw lyrics. Zero commentary.`;
     try {
@@ -2321,6 +2324,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{fontSize:"0.82rem",color:"#444"}}>{t.noPrompt}</div>
         </div>}
         {styleTxt&&<>
+          <div style={{fontSize:"0.62rem",color:"#8a7a4a",background:"#14110a",border:"1px solid #2a2410",borderRadius:"8px",padding:"7px 10px",marginBottom:"8px"}}>{L("Suno est aléatoire par design : génère 2-3 fois le même prompt avant de conclure qu'il ne marche pas.","Suno is random by design: run the same prompt 2-3 times before deciding it doesn't work.")}</div>
           {/* COMPACT TOGGLE + CONFLICTS */}
           <div style={{...S.card,display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",borderColor:"#2a2a2a"}}>
             <div>
@@ -2346,6 +2350,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <span style={{color:"#ffcc00",fontWeight:800}}>{L("Modèle Suno recommandé","Recommended Suno model")} :</span>{" "}
               <span style={{color:"#7fdd7f",fontWeight:700}}>{modelRec.best}</span> · <span style={{color:"#d8d86a"}}>{modelRec.good}</span> · <span style={{color:"#cc8866"}}>{modelRec.weak}</span>
               <div style={{color:"#888",marginTop:"3px"}}>{modelRec.why} · {L("teste les 3 au goût","try all 3 to taste")}</div>
+              {modelRec.note&&<div style={{color:"#666",marginTop:"3px",fontSize:"0.72rem"}}>{modelRec.note}</div>}
             </div>}
             <div style={{background:"#0a0a0a",border:"1px solid #3a0000",borderRadius:"6px",padding:"10px",position:"relative"}}>
               <CopyBtn getText={()=>styleShown}/>

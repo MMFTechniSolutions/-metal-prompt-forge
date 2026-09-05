@@ -90,6 +90,11 @@ export default function handler(req, res) {
   const excl = b.excl || null;
   const allExclude = excl ? [...(excl.g || []), ...(excl.v || []), ...(excl.p || []), ...(excl.i || []), ...String(excl.c || '').split(',').map(s => s.trim()).filter(Boolean)] : [];
   const structs = A('structs');
+  // Époque (couche 3 du style stack) : le client envoie les familles d'époque des genres choisis
+  const ERA_TAG = { '60s-70s':'1970s analog tape production', '80s':'1980s production', '90s':'1990s production', '2000s':'2000s production', '2010s':'2010s modern production', '2020s':'2020s modern production' };
+  const _eras = A('eras').map(x => String(x));
+  const _eraKey = Object.keys(ERA_TAG).find(k => _eras.some(e => e.startsWith(k)));
+  const eraTag = _eraKey ? ERA_TAG[_eraKey] : '';
   const blockRhythm = b.blockRhythm || {};
   const heavy = +b.heavy || 5, groove = +b.groove || 5, chaos = +b.chaos || 5, melody = +b.melody || 5;
   const bpm = Math.max(60, Math.min(280, +b.bpm || 180));
@@ -97,7 +102,8 @@ export default function handler(req, res) {
   const L = (fr, en) => lang === 'fr' ? fr : en;
 
   const rFor = k => blockRhythm[k] ? ', ' + blockRhythm[k] : '';
-  const tempoWord = bpm >= 210 ? 'blistering fast tempo' : bpm >= 170 ? 'fast tempo' : bpm >= 120 ? 'mid-tempo' : bpm >= 90 ? 'slow groovy tempo' : 'slow doom tempo';
+  const tempoWord = ''; // v5.5 : plus de mot vague de tempo, le BPM chiffré suffit
+  const _tempoWordOld = bpm >= 210 ? 'blistering fast tempo' : bpm >= 170 ? 'fast tempo' : bpm >= 120 ? 'mid-tempo' : bpm >= 90 ? 'slow groovy tempo' : 'slow doom tempo';
   // ENCYCLOPÉDIE → calibration par genre (temps de mesure, gamme/mode, production, tuning par défaut) — secret serveur
   const _gtxt = genres.map(x => String(x).toLowerCase()).join(' ');
   const _rs = Math.random();
@@ -121,7 +127,10 @@ export default function handler(req, res) {
     [/epic.?doom/, {ts:'4/4', scale:'grandiose tritone epic melodies', prod:'thick warm operatic space', tuning:'C standard'}],
     [/doom/, {ts:(_rs<0.5?'6/8':'4/4'), scale:'tritone bluesy slow riffs', prod:'thick warm vintage saturation', tuning:'C standard'}],
     [/grind/, {ts:'4/4', scale:'chaotic buzzing chromatic microsong', prod:'raw chaotic blast mix', tuning:'C standard'}],
-    [/folk|viking|pagan|celtic/, {ts:(_rs<0.5?'6/8':'4/4'), scale:'folk dance melodies, fiddle and tin whistle leads over riffs', prod:'organic folk-metal mix, acoustic instruments upfront', tuning:'standard'}],
+    [/viking|pagan|nordic/, {ts:(_rs<0.5?'6/8':'4/4'), scale:'nyckelharpa and hurdy-gurdy drone under galloping riffs, tagelharpa melody, war-drum march, gang chants', prod:'organic pagan-metal mix, acoustic folk instruments upfront, hall reverb', tuning:'standard'}],
+    [/celtic|irish/, {ts:(_rs<0.5?'6/8':'4/4'), scale:'fiddle and tin whistle jig melodies over riffs, uilleann pipes, bodhrán 6/8 dance rhythm', prod:'organic celtic-metal mix, acoustic instruments upfront', tuning:'standard'}],
+    [/oriental|middle.?eastern|arabic/, {ts:'4/4', scale:'oud and darbuka over phrygian dominant riffs, quarter-tone ornamented lead, hand claps', prod:'organic oriental-metal mix, acoustic percussion upfront', tuning:'D standard'}],
+    [/folk/, {ts:(_rs<0.5?'6/8':'4/4'), scale:'folk dance melodies, fiddle and accordion leads over riffs, acoustic guitar strumming, stomping 6/8 rhythm', prod:'organic folk-metal mix, acoustic instruments upfront', tuning:'standard'}],
     [/gothic/, {ts:'4/4', scale:'melancholic minor with dramatic strings', prod:'acoustic-to-saturated, beauty-and-the-beast vocals', tuning:'standard'}],
     [/symphonic/, {ts:'4/4', scale:'classical leitmotivs and choral ruptures', prod:'full orchestra over double kick', tuning:'standard'}],
     [/neoclassical/, {ts:'4/4', scale:'harmonic minor, diminished-7 arpeggios, sweep picking, pedal point', prod:'virtuosic baroque shred', tuning:'standard'}],
@@ -143,13 +152,14 @@ export default function handler(req, res) {
   // Recommandation de modèle Suno par genre (mieux / bon / moins bon)
   let modelRec;
   if (/raw|kvlt|old.?school|grind|crust|d.?beat|war metal|primitive/.test(_gtxt))
-    modelRec = { best:'v4.5', good:'v4', weak:'v5', why: L('pour le grain cru — v5 lisse trop la crasse','for raw grit — v5 over-polishes') };
+    modelRec = { best:'v4.5', good:'v5.5', weak:'v5', why: L('pour le grain cru — v5/v5.5 lissent la crasse (si v4.5 encore offert)','for raw grit — v5/v5.5 over-polish (if v4.5 still offered)') };
   else if (/black|funeral|atmospheric|blackgaze|post-?metal|sludge|doom/.test(_gtxt))
-    modelRec = { best:'v4.5', good:'v5', weak:'v4', why: L('grain + atmosphère','grit + atmosphere') };
+    modelRec = { best:'v5.5', good:'v4.5', weak:'v5', why: L('atmosphère + personnalisation (My Taste)','atmosphere + personalization (My Taste)') };
   else if (/djent|prog|tech|symphonic|metalcore|deathcore|power|melodic|industrial/.test(_gtxt))
-    modelRec = { best:'v5', good:'v4.5', weak:'v4', why: L('clarté et séparation modernes','modern clarity and separation') };
+    modelRec = { best:'v5.5', good:'v5', weak:'v4.5', why: L('clarté et séparation modernes','modern clarity and separation') };
   else
-    modelRec = { best:'v5', good:'v4.5', weak:'v4', why: L('qualité globale','best overall quality') };
+    modelRec = { best:'v5.5', good:'v5', weak:'v4.5', why: L('qualité globale','best overall quality') };
+  modelRec.note = L('v5.5 = modèle courant (mars 2026). Prochain modèle annoncé sans date — les anciens seront retirés.', 'v5.5 = current model (Mar 2026). Next model announced, no date — older ones will be retired.');
   // Recommandation phonétique (voir /api/_lib/phoneticize.js) — validé 2026-07-04 :
   // déformer l'orthographe empêche Suno de sur-articuler les vocaux harsh.
   let phonetic = { enabled: false, intensity: null, why: null };
@@ -227,6 +237,12 @@ export default function handler(req, res) {
   }
 
   const bpmTag = bpm + ' BPM';
+  const _brid = g => String(g).trim() + '-influenced';   // bridge de fusion (guide 2026-07-28) : « black metal » → « black metal-influenced »
+  // Clé explicite (guide v5.5 : tonalité en tag plain, ex. "E minor") — dérivée du tuning
+  const _tunTxt = String(tuning[0] || autoTuning || '').toLowerCase();
+  const _root = (_tunTxt.match(/(?:drop|^)\s*([a-g]#?)\b/) || _tunTxt.match(/\b([a-g]#?)\s*standard/) || [])[1];
+  const _major = /ionian|lydian|mixolydian|major/.test(String(_db.scale || '')) && !/minor/.test(String(_db.scale || ''));
+  const keyTag = _root ? _root.toUpperCase() + (_major ? ' major' : ' minor') : ((!_tunTxt || /^standard$/.test(_tunTxt.trim())) ? 'E minor' : '');
   // Vocal en premier (validé 2026-07-04) : Suno pèse plus fort le début du
   // Style — pour les vocaux harsh, les consignes vocales OUVRENT le prompt.
   // dedup garde la première occurrence, donc pas de doublon plus loin.
@@ -234,18 +250,18 @@ export default function handler(req, res) {
   const harshVox = /growl|scream|guttural|shriek|harsh|pig squeal|fry|roar|rasp/.test(_vTxt0) || phonetic.enabled;
   const voxLead = harshVox ? [...vocals.slice(0, 3), ...vrange.slice(0, 1)] : [];
   // rhythmTags injectés tôt (priorité recette) — le budget coupe la fin, pas eux
-  const fullTagsRaw = dedup([...voxLead, ...genres, bpmTag, tempoWord, ...rhythmTags, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...prod.slice(0, 2), ...allOrganic.slice(0, 4), ...globalRhythm]);
+  const fullTagsRaw = dedup([...genres.slice(0, 1), ...voxLead, ...genres.slice(1), bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...rhythmTags, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...(keyTag?[keyTag]:[]), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...(prod.length ? prod.slice(0, 2) : ['very loud drums and guitars, aggressive mix']), ...allOrganic.slice(0, 4), ...globalRhythm]);
   // Budget : au-delà de ~480 car., Suno dilue/ignore — on coupe par la fin
   const STYLE_BUDGET = 480;
   const fullTags = [...fullTagsRaw];
   while (fullTags.length > 8 && fullTags.join(', ').length > STYLE_BUDGET) fullTags.pop();
-  const compactCore = dedup([...voxLead.slice(0, 2), ...genres.slice(0, 2), bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1), ...rhythmTags.slice(0, 1)]);
+  const compactCore = dedup([...genres.slice(0, 1), ...voxLead.slice(0, 2), ...genres.slice(1, 2).map(_brid), bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1), ...rhythmTags.slice(0, 1)]);
   const overflow = fullTags.filter(x => !compactCore.includes(x));
   // ── PROMPT "RICHE" (tournure fluide groupée par « ; », optimisée Suno v4.5+) ──
   // Genre-fusion ; dynamiques/structure ; voix ; instruments/riffs ; accordage+tonalités ; mood+émotions ; tempo/changements
   const _lc = x => String(x).toLowerCase();
   const _gl = dedup(genres.map(x => String(x).trim())).filter(Boolean);
-  const genreClause = _gl.length >= 2 ? (_gl[0] + ' meets ' + _gl.slice(1, 3).join(' and ')) : (_gl[0] || 'metal');
+  const genreClause = _gl.length >= 2 ? (_gl[0] + ', ' + _gl.slice(1, 3).map(_brid).join(', ')) : (_gl[0] || 'metal');
 
   const _hasAtmos = melody >= 6 || structs.some(s => /atmospheric|interlude|intro|clean/.test(s)) || allOrganic.some(o => /acoustic|clean|ambient/.test(_lc(o)));
   const _hasHeavy = heavy >= 6 || drums.some(d => /blast|double/.test(_lc(d))) || structs.some(s => /breakdown|blast|drop|halftime/.test(s));
@@ -264,7 +280,12 @@ export default function handler(req, res) {
     } else vocalsClause = dedup([...vocals.slice(0, 3), ...vrange.slice(0, 1)]).join(', ');
   } else if (harshVox) vocalsClause = 'aggressive harsh vocals';
 
-  const instrumentsClause = dedup([...guitar.slice(0, 2), (scaleTag || ''), ...drums.slice(0, 2), ...leadInst.slice(0, 3), ...bassInst.slice(0, 1)].filter(Boolean)).join(', ');
+  // Genres "world" : faible confiance Suno → l'anchor instrumental (scaleTag) passe AVANT les guitares (guide AI Unfiltered 2026-07-06)
+  const _worldGenre = /folk|viking|pagan|nordic|celtic|irish|oriental|middle.?eastern|arabic/.test(_gtxt);
+  // Guide 2026-07-28 : 5-8 tags = sweet spot, >10 la fin est dépriorisée → clauses resserrées
+  const instrumentsClause = dedup(_worldGenre
+    ? [(scaleTag || ''), ...guitar.slice(0, 1), ...drums.slice(0, 1), ...leadInst.slice(0, 2), ...bassInst.slice(0, 1)]
+    : [...guitar.slice(0, 1), (scaleTag || ''), ...drums.slice(0, 1), ...leadInst.slice(0, 2), ...bassInst.slice(0, 1)]).filter(Boolean).join(', ');
 
   const _tun = tuning[0] || autoTuning || '';
   // Modes → DESCRIPTIF (Suno lit mal les noms de modes ; le descriptif marche mieux — cf. guide God Mode)
@@ -272,20 +293,20 @@ export default function handler(req, res) {
   const _found = String(scaleTag).match(/phrygian dominant|harmonic minor|melodic minor|phrygian|dorian|aeolian|mixolydian|ionian|locrian|lydian|minor/g) || [];
   const _uniqModes = [...new Set(_found)].slice(0, 2);
   const _tonality = _uniqModes.length ? _uniqModes.map(m => MODE_DESC[m] || m).join(', ') : '';
-  const tuningToneClause = dedup([_tun, _tonality].filter(Boolean)).join(', ');
+  const tuningToneClause = dedup([_tun, keyTag, _tonality, eraTag].filter(Boolean)).join(', ');
 
-  const moodClause = dedup([...mood.slice(0, 3), ...emotionTags]).join(', ');
+  const moodClause = dedup([...mood.slice(0, 2), ...emotionTags.slice(0, 2)]).join(', ');
 
   const _rhythmDyn = [];
   if (chaos >= 6 || /prog|math|djent|tech|post/.test(_gtxt)) _rhythmDyn.push('frequent time-signature changes');
-  _rhythmDyn.push('soft-to-heavy builds and sudden drops');
+  if (_hasHeavy && _hasAtmos) _rhythmDyn.push('soft-to-heavy builds and sudden drops');   // seulement si la dynamique existe vraiment
   const rhythmDynClause = dedup([bpmTag, tempoWord, ...rhythmTags.slice(0, 1), ..._rhythmDyn]).join(', ');
 
   const richClauses = [genreClause, dynamicsClause, vocalsClause, instrumentsClause, tuningToneClause, moodClause, ...secret.slice(0, 1), rhythmDynClause].filter(x => x && String(x).trim());
-  const RICH_BUDGET = 1000;   // v4.5+ tolère ~1000 car. ; on coupe des clauses par la fin si trop long (jamais le genre/mood)
+  const RICH_BUDGET = 600;   // guide : au-delà, les derniers tags sont dépriorisés (limite dure Suno = 1000)   // v4.5+ tolère ~1000 car. ; on coupe des clauses par la fin si trop long (jamais le genre/mood)
   let styleStr = richClauses.join('; ');
   while (richClauses.length > 4 && styleStr.length > RICH_BUDGET) { richClauses.splice(richClauses.length - 2, 1); styleStr = richClauses.join('; '); }
-  const styleStrC = compactCore.join(', ');   // version compacte inchangée (fallback court)
+  const styleStrC = compactCore.slice(0, 10).join(', ');   // guide : >10 tags, la fin est ignorée   // version compacte inchangée (fallback court)
   // T11 — prompts secondaires : COVER (sous-genre dominant) + EXTEND (callback cohérent)
   const _g1 = genres[0] || 'metal';
   const _g2 = genres[1] || null;
@@ -317,11 +338,12 @@ export default function handler(req, res) {
   if ((guitar.length + extraInst.length) > 4) conf.push(L('Beaucoup d\'instruments — Suno gère mieux 3-4 max.', 'Many instruments — Suno handles 3-4 best.'));
 
   conf.push(...emoConf);
+  if (_worldGenre) conf.push(L('Genre folk/world : Suno a peu de données — garde les instruments précis dans le prompt et régénère 2-3 fois.', 'Folk/world genre: Suno has little training data — keep the specific instruments in the prompt and regenerate 2-3 times.'));
   // #8/T12 — Exclude AUTO CONTEXTUEL : exclut le non-metal SAUF ce que le genre choisi utilise
-  const NON_METAL = ['pop','EDM','dance pop','synthpop','autotune','happy upbeat','country','reggaeton','disco','jazz','R&B','soul ballad','acoustic pop','lo-fi beats','easy listening','elevator music','kids music','cheerful'];
+  const NON_METAL = ['pop','EDM','autotune','country','jazz','acoustic pop'];   // court (guide : négatifs vagues sous-performent — le positif fait le travail)
   const ALLOW = [
     {re:/symphonic|orchestral|epic/, keep:['orchestral','strings','choir','classical']},
-    {re:/folk|pagan|viking|celtic/, keep:['flute','acoustic','folk','violin','accordion']},
+    {re:/folk|pagan|viking|celtic|nordic|oriental|middle.?eastern|arabic/, keep:['flute','acoustic','folk','violin','accordion']},
     {re:/avant|jazz|experimental|prog|fusion/, keep:['jazz','saxophone','clean','classical']},
     {re:/gothic|doom|funeral/, keep:['piano','organ','strings','clean']},
     {re:/industrial|cyber|electronic/, keep:['edm','electronic','synth','synthpop']},
@@ -329,9 +351,9 @@ export default function handler(req, res) {
   ];
   const keep = new Set();
   ALLOW.forEach(m => { if (m.re.test(_gtxt)) m.keep.forEach(k => keep.add(k.toLowerCase())); });
-  const baseExcl = /rap|nu.?metal/.test(_gtxt) ? NON_METAL : [...NON_METAL, 'hip hop beat', 'trap beat'];
+  const baseExcl = /rap|nu.?metal/.test(_gtxt) ? NON_METAL : [...NON_METAL, 'hip hop'];
   const autoExcl = baseExcl.filter(x => ![...keep].some(k => x.toLowerCase().includes(k)));
-  const excStr = dedup([...allExclude, ...autoExcl]).join(', ');
+  const excStr = dedup([...allExclude, ...autoExcl]).slice(0, 8).join(', ');
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)
   const NAME = { intro: 'Intro', buildup: 'Build-up', verse: 'Verse', prechorus: 'Pre-Chorus', chorus: 'Chorus', breakdown: 'Breakdown', halftime: 'Half-Time', blastsection: 'Blast Section', drop: 'Drop', solo: 'Guitar Solo', interlude: 'Interlude', atmosphericbreak: 'Atmospheric Break', spokenword: 'Spoken Word', gangchant: 'Gang Chant', scream: 'Scream Section', riffbreak: 'Riff Break', bridge: 'Bridge', outro: 'Outro' };
@@ -357,9 +379,9 @@ export default function handler(req, res) {
   };
   const blockTag = k => '[' + NAME[k] + ', ' + DESC[k] + rFor(k) + ']';
   const blocksClean = structs.map(x => NAME[x] ? blockTag(x) : '').filter(Boolean);
-  const structStr = ['[' + bpmTag + ', ' + timeSig + ']', ...blocksClean].join('\n');
+  const structStr = blocksClean.join('\n');   // v5.5 : crochets = sections seulement, BPM/mesure restent dans Style
   const overflowLine = overflow.length ? '[' + overflow.join(', ') + ']' : '';
-  const structStrC = ['[' + bpmTag + ', ' + timeSig + ']', overflowLine, ...blocksClean].filter(Boolean).join('\n');
+  const structStrC = [overflowLine, ...blocksClean].filter(Boolean).join('\n');
   const structNotesTxt = ''; // notes par section maintenant DANS la structure (entre crochets)
 
   const heavyD = heavy >= 8 ? 'extremely heavy and crushing' : heavy >= 5 ? 'heavy and punishing' : 'moderately heavy';

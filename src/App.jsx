@@ -1349,6 +1349,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [reverseInput,setReverseInput]=useState("");
   const [reverseLoading,setReverseLoading]=useState(false);
   const [reverseMsg,setReverseMsg]=useState(null); // {ok, genre, label, confidence, matched}
+  const [signature,setSignature]=useState([]);   // anchors sonores du reverse (→ /api/forge)
   const [openFam,setOpenFam]=useState({});
   const [vocFilter,setVocFilter]=useState("");
   const [openVocEra,setOpenVocEra]=useState({});
@@ -1455,10 +1456,12 @@ export default function App({ user, onLogout, onRequestAuth }) {
       const d=await r.json();
       if(!r.ok||!d.genre){setReverseMsg({ok:false});return;}
       if(!genres.has(d.genre))tGenre(d.genre);   // ajoute le sous-genre comme tag
+      if(d.flavor&&!genres.has(d.flavor))tGenre(d.flavor);   // 2e genre = couleur (fusion « flavor-influenced » côté forge)
+      setSignature(Array.isArray(d.signature)?d.signature:[]);
       const _prof=await autoFillGenre(d.genre,{seedEmo:true});  // applique BPM/drums/voix/sliders + base d'emotions selon le style reel
       const _ta=seedThemesFromMood((_prof&&_prof.mood)||[]);   // + thème principal & atmosphère (paroles) selon le style
       if(_ta){ setThemes(_ta.themes); setLatmo(_ta.atmo); }
-      setReverseMsg({ok:true,genre:d.genre,label:d.label||d.genre,confidence:d.confidence,matched:d.matched});
+      setReverseMsg({ok:true,genre:d.genre,label:(d.label||d.genre)+(d.flavor?' + '+d.flavor:''),confidence:d.confidence,matched:d.matched,signature:d.signature||[]});
     }catch(e){setReverseMsg({ok:false});}
     finally{setReverseLoading(false);}
   };
@@ -1525,6 +1528,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       excl:isElite?{g:[...exclGenre],v:[...exclVocal],p:[...exclProd],i:[...exclInst],c:exclCustom}:null,
       structs:autoStructs,blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions,tier:userTier,
       eras:GENRE_FAMILIES.filter(f=>f.genres.some(x=>genres.has(x.g))).map(f=>f.nameEn),   // couche Époque → /api/forge
+      signature,   // anchors sonores du reverse (vides si pas de reverse)
     };
     let data;
     try{
@@ -1709,7 +1713,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             <button onClick={reverseBand} disabled={reverseLoading} style={{background:"#1a0000",border:`1px solid ${RED}`,borderRadius:"6px",color:RED,fontSize:"0.68rem",fontWeight:800,padding:"8px 14px",cursor:reverseLoading?"default":"pointer",whiteSpace:"nowrap",opacity:reverseLoading?0.6:1}}>{reverseLoading?L("Analyse…","Analyzing…"):L("Détecter","Detect")}</button>
           </div>
           {reverseMsg&&(reverseMsg.ok
-            ? <div style={{fontSize:"0.66rem",color:"#7bd88f",marginTop:"9px",lineHeight:1.5}}>✓ {L("Style appliqué","Style applied")} : <b style={{color:"#a8f0b8"}}>{reverseMsg.label}</b>{reverseMsg.matched?<span style={{color:"#555"}}> · {L("preset sur-mesure","tuned preset")}</span>:null}{reverseMsg.confidence==="low"?<span style={{color:"#c9a227"}}> · {L("estimation approximative","rough guess")}</span>:null}</div>
+            ? <div style={{fontSize:"0.66rem",color:"#7bd88f",marginTop:"9px",lineHeight:1.5}}>✓ {L("Style appliqué","Style applied")} : <b style={{color:"#a8f0b8"}}>{reverseMsg.label}</b>{reverseMsg.matched?<span style={{color:"#555"}}> · {L("preset sur-mesure","tuned preset")}</span>:null}{reverseMsg.confidence==="low"?<span style={{color:"#c9a227"}}> · {L("estimation approximative","rough guess")}</span>:null}{reverseMsg.signature&&reverseMsg.signature.length?<div style={{color:"#8a9",marginTop:"3px"}}>{L("Signature","Signature")} : {reverseMsg.signature.join(" · ")} <span onClick={()=>{setSignature([]);setReverseMsg(m=>({...m,signature:[]}));}} style={{color:"#666",cursor:"pointer",marginLeft:"6px"}}>✕</span></div>:null}</div>
             : <div style={{fontSize:"0.66rem",color:"#c98",marginTop:"9px",lineHeight:1.5}}>{L("Groupe non reconnu — essaie l'orthographe exacte, ou choisis un genre plus bas.","Band not recognized — try the exact spelling, or pick a genre below.")}</div>
           )}
         </div>

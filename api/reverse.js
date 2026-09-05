@@ -15,9 +15,13 @@ ${CURATED.join(', ')}.
 
 If none of the curated names fits, return the most accurate standard metal/rock/hardcore sub-genre name (English, lowercase), e.g. "melodic death metal", "power metal", "djent", "groove metal", "nu-metal", "progressive metal", "sludge metal", "metalcore", "deathcore", "thrash metal", "black metal", "doom metal".
 
+Also capture what makes the band's sound DISTINCT beyond the main sub-genre:
+- "flavor": a SECOND genre that colors the sound (e.g. "folk metal", "70s progressive rock", "blackgaze", "jazz fusion"), or "" if the band is a pure example of its genre.
+- "signature": 2-4 short sonic anchors a music model can render — instruments, techniques, production, dynamics (e.g. "acoustic guitar interludes", "mellotron", "clean-to-growl dynamics", "twin-guitar harmonies", "lo-fi tape production"). Lowercase, comma-free, no band/album/song names.
+
 Rules:
-- Respond with STRICT JSON only, no prose, no markdown: {"genre":"<sub-genre>","label":"<short human label>","confidence":"high|medium|low"}
-- "genre" must be a genre name only — NEVER an artist/band/album/song name.
+- Respond with STRICT JSON only, no prose, no markdown: {"genre":"<sub-genre>","flavor":"<second genre or empty>","signature":["<anchor>","<anchor>"],"label":"<short human label>","confidence":"high|medium|low"}
+- "genre" and "flavor" must be genre names only — NEVER an artist/band/album/song name.
 - If the band shifted styles across its career, pick the sound it is most known for.
 - If you do not recognize the name at all, return {"genre":"","label":"","confidence":"low"}.`;
 
@@ -44,7 +48,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 120,
+        max_tokens: 220,
         system: SYSTEM,
         messages: [{ role: 'user', content: `Band/artist name: ${band}` }],
       }),
@@ -64,8 +68,14 @@ export default async function handler(req, res) {
     if (genre && genre === band.toLowerCase()) genre = '';
 
     const matched = !!genre && !!GENRE_PROFILES[genre];
+    let flavor = String(out.flavor || '').toLowerCase().trim().slice(0, 40);
+    if (flavor === band.toLowerCase() || flavor === genre) flavor = '';
+    const _bl = band.toLowerCase();
+    const signature = (Array.isArray(out.signature) ? out.signature : [])
+      .map(x => String(x).toLowerCase().replace(/,/g, ' ').trim().slice(0, 40))
+      .filter(x => x && !x.includes(_bl)).slice(0, 4);
     return res.status(200).json({
-      genre,
+      genre, flavor, signature,
       label: String(out.label || genre || '').slice(0, 60),
       confidence: ['high', 'medium', 'low'].includes(out.confidence) ? out.confidence : (genre ? 'medium' : 'low'),
       matched, // true = profil sur-mesure (préréglage curé) ; false = profil générique

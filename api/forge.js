@@ -90,6 +90,7 @@ export default function handler(req, res) {
   const excl = b.excl || null;
   const allExclude = excl ? [...(excl.g || []), ...(excl.v || []), ...(excl.p || []), ...(excl.i || []), ...String(excl.c || '').split(',').map(s => s.trim()).filter(Boolean)] : [];
   const structs = A('structs');
+  const signature = A('signature').map(x => String(x).trim()).filter(Boolean).slice(0, 4);   // anchors sonores du « reverse » (groupe → style)
   // Époque (couche 3 du style stack) : le client envoie les familles d'époque des genres choisis
   const ERA_TAG = { '60s-70s':'1970s analog tape production', '80s':'1980s production', '90s':'1990s production', '2000s':'2000s production', '2010s':'2010s modern production', '2020s':'2020s modern production' };
   const _eras = A('eras').map(x => String(x));
@@ -250,12 +251,12 @@ export default function handler(req, res) {
   const harshVox = /growl|scream|guttural|shriek|harsh|pig squeal|fry|roar|rasp/.test(_vTxt0) || phonetic.enabled;
   const voxLead = harshVox ? [...vocals.slice(0, 3), ...vrange.slice(0, 1)] : [];
   // rhythmTags injectés tôt (priorité recette) — le budget coupe la fin, pas eux
-  const fullTagsRaw = dedup([...genres.slice(0, 1), ...voxLead, ...genres.slice(1), bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...rhythmTags, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...(keyTag?[keyTag]:[]), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...(prod.length ? prod.slice(0, 2) : ['very loud drums and guitars, aggressive mix']), ...allOrganic.slice(0, 4), ...globalRhythm]);
+  const fullTagsRaw = dedup([...genres.slice(0, 1), ...voxLead, ...genres.slice(1), ...signature, bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...rhythmTags, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...(keyTag?[keyTag]:[]), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...(prod.length ? prod.slice(0, 2) : ['very loud drums and guitars, aggressive mix']), ...allOrganic.slice(0, 4), ...globalRhythm]);
   // Budget : au-delà de ~480 car., Suno dilue/ignore — on coupe par la fin
   const STYLE_BUDGET = 480;
   const fullTags = [...fullTagsRaw];
   while (fullTags.length > 8 && fullTags.join(', ').length > STYLE_BUDGET) fullTags.pop();
-  const compactCore = dedup([...genres.slice(0, 1), ...voxLead.slice(0, 2), ...genres.slice(1, 2).map(_brid), bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1), ...rhythmTags.slice(0, 1)]);
+  const compactCore = dedup([...genres.slice(0, 1), ...voxLead.slice(0, 2), ...genres.slice(1, 2).map(_brid), ...signature.slice(0, 2), bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1), ...rhythmTags.slice(0, 1)]);
   const overflow = fullTags.filter(x => !compactCore.includes(x));
   // ── PROMPT "RICHE" (tournure fluide groupée par « ; », optimisée Suno v4.5+) ──
   // Genre-fusion ; dynamiques/structure ; voix ; instruments/riffs ; accordage+tonalités ; mood+émotions ; tempo/changements
@@ -284,8 +285,8 @@ export default function handler(req, res) {
   const _worldGenre = /folk|viking|pagan|nordic|celtic|irish|oriental|middle.?eastern|arabic/.test(_gtxt);
   // Guide 2026-07-28 : 5-8 tags = sweet spot, >10 la fin est dépriorisée → clauses resserrées
   const instrumentsClause = dedup(_worldGenre
-    ? [(scaleTag || ''), ...guitar.slice(0, 1), ...drums.slice(0, 1), ...leadInst.slice(0, 2), ...bassInst.slice(0, 1)]
-    : [...guitar.slice(0, 1), (scaleTag || ''), ...drums.slice(0, 1), ...leadInst.slice(0, 2), ...bassInst.slice(0, 1)]).filter(Boolean).join(', ');
+    ? [...signature, (scaleTag || ''), ...guitar.slice(0, 1), ...drums.slice(0, 1), ...leadInst.slice(0, 2), ...bassInst.slice(0, 1)]
+    : [...signature, ...guitar.slice(0, 1), (scaleTag || ''), ...drums.slice(0, 1), ...leadInst.slice(0, 2), ...bassInst.slice(0, 1)]).filter(Boolean).join(', ');
 
   const _tun = tuning[0] || autoTuning || '';
   // Modes → DESCRIPTIF (Suno lit mal les noms de modes ; le descriptif marche mieux — cf. guide God Mode)

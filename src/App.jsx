@@ -11,7 +11,7 @@ const T = {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
     tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",galerie:"Gallery",riff:"Riff",master:"Master",aimusic:"AI Music",history:"History"},
     generate:"FORGE",generating:"FORGING...",
-    step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (max ~120 chars)',
+    step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (limit 1000 chars · sweet spot ≤ 600)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
     step3t:"STEP 3 — Production notes (DO NOT paste in Suno)",step3d:"Keep these for yourself — Suno would sing them as lyrics.",
     step4t:"STEP 4 — Exclude tags",step4d:"Add AFTER your style tags with minus sign: deathcore, -pop, -clean vocals",
@@ -23,7 +23,7 @@ const T = {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
     tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",galerie:"Galerie",riff:"Riff",master:"Master",aimusic:"Musique IA",history:"Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
-    step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (max ~120 car.)',
+    step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (limite 1000 car. · idéal ≤ 600)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
     step3t:"ÉTAPE 3 — Notes de prod (NE PAS coller dans Suno)",step3d:"Garde ces notes pour toi — Suno les chanterait comme des paroles.",
     step4t:"ÉTAPE 4 — Tags d'exclusion",step4d:"Ajoute APRÈS tes style tags avec un signe moins : deathcore, -pop, -voix claires",
@@ -2371,7 +2371,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <CopyBtn getText={()=>styleShown}/>
               <div style={{color:"#ff9090",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{styleShown}</div>
             </div>
-            <div style={{fontSize:"0.58rem",marginTop:"7px",textAlign:"right",fontWeight:700,color:styleShown.length<=120?"#4caf50":styleShown.length<=180?"#cc9900":"#ff5555"}}>{styleShown.length} {L("car.","chars")} · {styleShown.length<=120?L("idéal Suno ","ideal for Suno "):styleShown.length<=180?L("un peu long","a bit long"):L("trop long — Suno risque d'ignorer le tempo/détails","too long — Suno may drop tempo/details")}</div>
+            <div style={{fontSize:"0.58rem",marginTop:"7px",textAlign:"right",fontWeight:700,color:styleShown.length<=600?"#4caf50":styleShown.length<=800?"#cc9900":"#ff5555"}}>{styleShown.length} {L("car.","chars")} · {styleShown.length<=600?L("idéal Suno v5.5 ","ideal for Suno v5.5 "):styleShown.length<=800?L("un peu long — les derniers tags pèsent moins","a bit long — last tags weigh less"):L("trop long — Suno risque d'ignorer le tempo/détails","too long — Suno may drop tempo/details")}</div>
           </div>
           {/* COVER + EXTEND (T11) */}
           {coverTxt&&<div style={{...S.card,borderColor:"#9b59b633",background:"#0a0510"}}>

@@ -1518,6 +1518,15 @@ export default function App({ user, onLogout, onRequestAuth }) {
     try{localStorage.setItem("mpf_history",JSON.stringify(u))}catch{}
   };
 
+  const meterCard=(
+        <Collapse title={L("Métriques mixtes (séquence)","Mixed meters (sequence)")} n={METER_LIST.length} selCount={meters.length}>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginBottom:"8px"}}>
+            {METER_LIST.map(m=>{const i=meters.indexOf(m);return <span key={m} onClick={()=>tMeter(m)} title={METER_HINT[m]} style={S.tag(i>=0,false)}>{i>=0?<b style={{color:"#fff",marginRight:"4px"}}>{i+1}</b>:null}{m}</span>;})}
+          </div>
+          {meters.length>0&&<div style={{fontSize:"0.62rem",color:"#c9a227",marginBottom:"6px",fontFamily:"monospace"}}>→ mixed meter {meters.join(" - ")} <span onClick={()=>setMeters([])} style={{color:"#666",cursor:"pointer",marginLeft:"6px"}}>✕</span></div>}
+          <div style={{fontSize:"0.58rem",color:"#333",marginTop:"4px",lineHeight:1.6}}>{L("→ Clique dans l'ordre voulu (max 5). La séquence est placée EN TÊTE du Style : Suno la lit comme un feel prog/avant-garde qui teinte tout le morceau.","→ Click in the order you want (max 5). The sequence goes at the TOP of the Style: Suno reads it as a prog/avant-garde feel that colors the whole track.")}</div>
+        </Collapse>
+  );
   // ── GENERATE ──
   const generate=async()=>{
     if(!user){onRequestAuth&&onRequestAuth();return;}          // compte requis pour générer (même gratuit)
@@ -1709,6 +1718,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* GENRE */}
       {tab==="genre"&&<div style={S.page}>
+        {meterCard}
         <div style={S.card}>
           <div style={S.ctitle}>{L("Groupe → style","Band → style")}{!canAccess("pro")?" 🔒":""}</div>
           <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"9px",lineHeight:1.5}}>{L("Tape le nom d'un groupe : on détecte son sous-genre et on applique tout (BPM, drums, voix, accordage, sliders). Le nom sert seulement à trouver le style — il n'est jamais écrit dans ton prompt.","Type a band name: we detect its sub-genre and apply everything (BPM, drums, vocals, tuning, sliders). The name only picks the style — it's never written into your prompt.")}</div>
@@ -1912,13 +1922,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* STRUCTURE */}
       {tab==="structure"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
-        <Collapse title={L("Métriques mixtes (séquence)","Mixed meters (sequence)")} n={METER_LIST.length} selCount={meters.length}>
-          <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginBottom:"8px"}}>
-            {METER_LIST.map(m=>{const i=meters.indexOf(m);return <span key={m} onClick={()=>tMeter(m)} title={METER_HINT[m]} style={S.tag(i>=0,false)}>{i>=0?<b style={{color:"#fff",marginRight:"4px"}}>{i+1}</b>:null}{m}</span>;})}
-          </div>
-          {meters.length>0&&<div style={{fontSize:"0.62rem",color:"#c9a227",marginBottom:"6px",fontFamily:"monospace"}}>→ mixed meter {meters.join(" - ")} <span onClick={()=>setMeters([])} style={{color:"#666",cursor:"pointer",marginLeft:"6px"}}>✕</span></div>}
-          <div style={{fontSize:"0.58rem",color:"#333",marginTop:"4px",lineHeight:1.6}}>{L("→ Clique dans l'ordre voulu (max 5). La séquence est placée EN TÊTE du Style : Suno la lit comme un feel prog/avant-garde qui teinte tout le morceau.","→ Click in the order you want (max 5). The sequence goes at the TOP of the Style: Suno reads it as a prog/avant-garde feel that colors the whole track.")}</div>
-        </Collapse>
+        {meterCard}
         <Collapse title={L("Feeling rythmique global","Global rhythmic feel")} n={GLOBAL_RHYTHMS.length} selCount={globalRhythm.size}>
           <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginBottom:"8px"}}>
             {GLOBAL_RHYTHMS.map(r=><span key={r} onClick={()=>tGlobalRhythm(r)} style={S.tag(globalRhythm.has(r),false)}>{r}</span>)}

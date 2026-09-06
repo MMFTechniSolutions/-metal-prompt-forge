@@ -436,6 +436,8 @@ const STRUCT_BLOCKS = [
   {k:"bridge",icon:"",name:"Bridge",desc:"Section contrastée, tension dramatique",descEn:"Contrasting section, dramatic tension"},
   {k:"outro",icon:"",name:"Outro",desc:"Fin explosive ou fade chaotique",descEn:"Explosive ending or chaotic fade"},
 ];
+const METER_LIST = ["4/4","6/8","12/8","5/4","5/8","7/4","7/8","9/8","11/8","13/8","15/8"];
+const METER_HINT = {"4/4":"2+2 · heavy/thrash/death","6/8":"3+3 · doom, ballades","12/8":"shuffle lourd","5/4":"3+2 · Tool, jazz-rock","5/8":"3+2 croches · mathcore, tech death","7/4":"4+3 · groove flottant","7/8":"2+2+3 · prog, fusion","9/8":"2+2+2+3 · balkan/prog","11/8":"3+3+3+2 · math, Meshuggah","13/8":"cellules 2+3 · mathcore, djent","15/8":"cellules 2+3 · prog moderne"};
 const GLOBAL_RHYTHMS = ["polyrhythmic","odd time signatures","progressive rhythms","syncopated rhythms","math metal feel","triplet feel","djent syncopation","shifting time signatures","asymmetric rhythms"];
 const BLOCK_RHYTHMS = [
   {v:"straight driving rhythm",l:"Straight"},{v:"half-time feel",l:"Half-Time"},
@@ -1394,6 +1396,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [bannedWords,setBannedWords]=useState(SV.bannedWords ?? "");
   const [blockRhythm,setBlockRhythm]=useState(SV.blockRhythm ?? {});
   const [globalRhythm,tGlobalRhythm]=useSet([],"globalRhythm");
+  const [meters,setMeters]=useState([]);   // séquence ORDONNÉE de métriques (→ tête du Style)
+  const tMeter=m=>setMeters(a=>a.includes(m)?a.filter(x=>x!==m):(a.length>=5?a:[...a,m]));
   const setBlockR=(k,v)=>setBlockRhythm(p=>({...p,[k]:v}));
   const clearBlockR=k=>setBlockRhythm(p=>{const n={...p};delete n[k];return n;});
   const [exclGenre,tExclGenre,setExclGenre]=useSet([],"exclGenre");
@@ -1522,7 +1526,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
     const autoStructs = structs.size ? [...structs] : ['intro','verse','chorus','breakdown','verse','chorus','outro'];
     if(!structs.size){setStructs(autoStructs);setLblocks(autoStructs);}
     const body={
-      genres:[...genres],drums:[...drums],vocals:[...vocals],guitar:[...guitar],tuning:[...tuning],mood:[...mood],prod:[...prod],globalRhythm:[...globalRhythm],vrange:[...vrange],
+      genres:[...genres],drums:[...drums],vocals:[...vocals],guitar:[...guitar],tuning:[...tuning],mood:[...mood],prod:[...prod],globalRhythm:[...globalRhythm],meters,vrange:[...vrange],
       bassStyle:[...bassStyle],bassTech:[...bassTech],bassTone:[...bassTone],bassTuning:[...bassTuning],bassProd:[...bassProd],sax:[...sax],brass:[...brass],keys:[...keys],strings:[...strings],
       org:isPro?[...orgRec,...orgDrm,...orgVoc,...orgGtr]:[],
       excl:isElite?{g:[...exclGenre],v:[...exclVocal],p:[...exclProd],i:[...exclInst],c:exclCustom}:null,
@@ -1908,6 +1912,13 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* STRUCTURE */}
       {tab==="structure"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
+        <Collapse title={L("Métriques mixtes (séquence)","Mixed meters (sequence)")} n={METER_LIST.length} selCount={meters.length}>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginBottom:"8px"}}>
+            {METER_LIST.map(m=>{const i=meters.indexOf(m);return <span key={m} onClick={()=>tMeter(m)} title={METER_HINT[m]} style={S.tag(i>=0,false)}>{i>=0?<b style={{color:"#fff",marginRight:"4px"}}>{i+1}</b>:null}{m}</span>;})}
+          </div>
+          {meters.length>0&&<div style={{fontSize:"0.62rem",color:"#c9a227",marginBottom:"6px",fontFamily:"monospace"}}>→ mixed meter {meters.join(" - ")} <span onClick={()=>setMeters([])} style={{color:"#666",cursor:"pointer",marginLeft:"6px"}}>✕</span></div>}
+          <div style={{fontSize:"0.58rem",color:"#333",marginTop:"4px",lineHeight:1.6}}>{L("→ Clique dans l'ordre voulu (max 5). La séquence est placée EN TÊTE du Style : Suno la lit comme un feel prog/avant-garde qui teinte tout le morceau.","→ Click in the order you want (max 5). The sequence goes at the TOP of the Style: Suno reads it as a prog/avant-garde feel that colors the whole track.")}</div>
+        </Collapse>
         <Collapse title={L("Feeling rythmique global","Global rhythmic feel")} n={GLOBAL_RHYTHMS.length} selCount={globalRhythm.size}>
           <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginBottom:"8px"}}>
             {GLOBAL_RHYTHMS.map(r=><span key={r} onClick={()=>tGlobalRhythm(r)} style={S.tag(globalRhythm.has(r),false)}>{r}</span>)}

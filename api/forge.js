@@ -90,6 +90,15 @@ export default function handler(req, res) {
   const excl = b.excl || null;
   const allExclude = excl ? [...(excl.g || []), ...(excl.v || []), ...(excl.p || []), ...(excl.i || []), ...String(excl.c || '').split(',').map(s => s.trim()).filter(Boolean)] : [];
   const structs = A('structs');
+  // ── MÉTRIQUES MIXTES (validé par François 2026-09-06 : une séquence de mesures EN TÊTE du Style teinte tout le morceau) ──
+  // Table : chiffrage → découpage type (metal & jazz fusion)
+  const METERS = {
+    '4/4':'4/4 (2+2 backbeat)', '6/8':'6/8 (3+3 triplet feel)', '12/8':'12/8 (heavy shuffle)',
+    '5/4':'5/4 (3+2)', '5/8':'5/8 (3+2 stabs)', '7/4':'7/4 (4+3 floating)', '7/8':'7/8 (2+2+3)',
+    '9/8':'9/8 (2+2+2+3 balkan)', '11/8':'11/8 (3+3+3+2)', '13/8':'13/8 (2+3 cells)', '15/8':'15/8 (2+3 cells)',
+  };
+  const meters = A('meters').map(x => String(x).trim()).filter(x => METERS[x]).slice(0, 5);
+  const meterLead = meters.length >= 2 ? 'mixed meter ' + meters.map(m => METERS[m]).join(' - ') : meters.length === 1 ? METERS[meters[0]] + ' time' : '';
   const signature = A('signature').map(x => String(x).trim()).filter(Boolean).slice(0, 4);   // anchors sonores du « reverse » (groupe → style)
   // Époque (couche 3 du style stack) : le client envoie les familles d'époque des genres choisis
   const ERA_TAG = { '60s-70s':'1970s analog tape production', '80s':'1980s production', '90s':'1990s production', '2000s':'2000s production', '2010s':'2010s modern production', '2020s':'2020s modern production' };
@@ -251,12 +260,12 @@ export default function handler(req, res) {
   const harshVox = /growl|scream|guttural|shriek|harsh|pig squeal|fry|roar|rasp/.test(_vTxt0) || phonetic.enabled;
   const voxLead = harshVox ? [...vocals.slice(0, 3), ...vrange.slice(0, 1)] : [];
   // rhythmTags injectés tôt (priorité recette) — le budget coupe la fin, pas eux
-  const fullTagsRaw = dedup([...genres.slice(0, 1), ...voxLead, ...genres.slice(1), ...signature, bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...rhythmTags, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...(keyTag?[keyTag]:[]), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...(prod.length ? prod.slice(0, 2) : ['very loud drums and guitars, aggressive mix']), ...allOrganic.slice(0, 4), ...globalRhythm]);
+  const fullTagsRaw = dedup([...(meterLead?[meterLead, bpmTag]:[]), ...genres.slice(0, 1), ...voxLead, ...genres.slice(1), ...signature, bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...rhythmTags, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...(keyTag?[keyTag]:[]), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...(prod.length ? prod.slice(0, 2) : ['very loud drums and guitars, aggressive mix']), ...allOrganic.slice(0, 4), ...globalRhythm]);
   // Budget : au-delà de ~480 car., Suno dilue/ignore — on coupe par la fin
   const STYLE_BUDGET = 480;
   const fullTags = [...fullTagsRaw];
   while (fullTags.length > 8 && fullTags.join(', ').length > STYLE_BUDGET) fullTags.pop();
-  const compactCore = dedup([...genres.slice(0, 1), ...voxLead.slice(0, 2), ...genres.slice(1, 2).map(_brid), ...signature.slice(0, 2), bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1), ...rhythmTags.slice(0, 1)]);
+  const compactCore = dedup([...(meterLead?[meterLead, bpmTag]:[]), ...genres.slice(0, 1), ...voxLead.slice(0, 2), ...genres.slice(1, 2).map(_brid), ...signature.slice(0, 2), bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1), ...rhythmTags.slice(0, 1)]);
   const overflow = fullTags.filter(x => !compactCore.includes(x));
   // ── PROMPT "RICHE" (tournure fluide groupée par « ; », optimisée Suno v4.5+) ──
   // Genre-fusion ; dynamiques/structure ; voix ; instruments/riffs ; accordage+tonalités ; mood+émotions ; tempo/changements
@@ -301,9 +310,9 @@ export default function handler(req, res) {
   const _rhythmDyn = [];
   if (chaos >= 6 || /prog|math|djent|tech|post/.test(_gtxt)) _rhythmDyn.push('frequent time-signature changes');
   if (_hasHeavy && _hasAtmos) _rhythmDyn.push('soft-to-heavy builds and sudden drops');   // seulement si la dynamique existe vraiment
-  const rhythmDynClause = dedup([bpmTag, tempoWord, ...rhythmTags.slice(0, 1), ..._rhythmDyn]).join(', ');
+  const rhythmDynClause = dedup([...(meterLead?[]:[bpmTag]), tempoWord, ...rhythmTags.slice(0, 1), ..._rhythmDyn]).join(', ');   // BPM déjà en tête si métriques
 
-  const richClauses = [genreClause, dynamicsClause, vocalsClause, instrumentsClause, tuningToneClause, moodClause, ...secret.slice(0, 1), rhythmDynClause].filter(x => x && String(x).trim());
+  const richClauses = [...(meterLead?[meterLead + ', ' + bpmTag]:[]), genreClause, dynamicsClause, vocalsClause, instrumentsClause, tuningToneClause, moodClause, ...secret.slice(0, 1), rhythmDynClause].filter(x => x && String(x).trim());
   const RICH_BUDGET = 600;   // guide : au-delà, les derniers tags sont dépriorisés (limite dure Suno = 1000)   // v4.5+ tolère ~1000 car. ; on coupe des clauses par la fin si trop long (jamais le genre/mood)
   let styleStr = richClauses.join('; ');
   while (richClauses.length > 4 && styleStr.length > RICH_BUDGET) { richClauses.splice(richClauses.length - 2, 1); styleStr = richClauses.join('; '); }

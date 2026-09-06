@@ -98,6 +98,12 @@
       <div class="cg"><label>Style / Pays (touche guitare)</label>
         <select id="region">
           <option value="none">Aucun (suit la famille)</option>
+          <optgroup label="Chanté / commercial (hit)">
+            <option value="hit_chorus">🎤 Hit — refrain (pop-metal, accrocheur)</option>
+            <option value="hit_verse">🎤 Hit — couplet (retenu, prépare le refrain)</option>
+            <option value="hit_ballad">🎤 Ballade power (lente, lyrique)</option>
+            <option value="hit_anthem">🎤 Anthem stade (gang, notes longues)</option>
+          </optgroup>
           <option value="american">Américain — gros solo</option>
           <option value="neoclassical">Néoclassique (Europe)</option>
           <option value="shred">Shred technique</option>
@@ -223,6 +229,11 @@ const FAMILY_FEEL={
 // run = longs traits (runs de solo) · arp = les sauts atterrissent sur des notes d'accord (arpèges).
 const REGIONS={
   none:{},
+  // ── CHANTÉ / HIT : moteur dédié (hook répété, conjoint, question-réponse, tessiture voix) ──
+  hit_chorus:{scales:['major','aeolian','mixolydian','penta_maj'],vocal:true,dens:0.62,leapMax:4,hook:'AABA',peak:0.7,longEnd:true,synco:0.35},
+  hit_verse: {scales:['aeolian','dorian','major','penta_min'],vocal:true,dens:0.55,leapMax:3,hook:'AAAB',peak:0.5,longEnd:false,synco:0.45,lowReg:true},
+  hit_ballad:{scales:['major','aeolian','dorian'],vocal:true,dens:0.38,leapMax:5,hook:'ABAB',peak:0.75,longEnd:true,synco:0.15},
+  hit_anthem:{scales:['major','mixolydian','penta_maj','aeolian'],vocal:true,dens:0.3,leapMax:4,hook:'AABA',peak:0.6,longEnd:true,synco:0.1,anthem:true},
   american:{scales:['penta_min','blues','aeolian','mixolydian'],dens:0.8,smooth:0.4,leap:0.5,octUp:1,run:true},   // gros solo US
   neoclassical:{scales:['harmonic_minor','phrygian_dom','melodic_minor'],dens:0.85,smooth:0.35,leap:0.6,octUp:1,arp:true,run:true}, // Europe classique/néo
   shred:{scales:['harmonic_minor','phrygian','melodic_minor','penta_min'],dens:0.9,smooth:0.3,leap:0.5,octUp:1,run:true,arp:true}, // shred technique
@@ -442,6 +453,7 @@ function generate(){
   $('scaleName').textContent=SCALE_LABEL[scaleKey]+' · '+NAMES[rootPc()]+(region()!=='none'?' · '+region():'');
   buildLadder(reg.octUp||0);
   steps=bars()*48;                               // 48 pas/mesure (binaire + triolets)
+  if(reg.vocal){ generateVocal(reg); return; }   // mode Chanté / Hit → moteur dédié
   const feel=FAMILY_FEEL[family()];
   const dens=(reg.dens!=null?reg.dens:density());
   const sm=(reg.smooth!=null?reg.smooth:smooth());
@@ -496,6 +508,95 @@ function generate(){
   });
   renderRoll();
   status('Mélodie générée · '+onsets.length+' notes · '+SCALE_LABEL[scaleKey],false);
+}
+
+// ═══════════════ MOTEUR CHANTÉ / HIT ═══════════════
+// Règles des mélodies qui « restent dans la tête » :
+//  - tessiture ≤ 1 octave + tierce (voix), départ sur note d'accord, fin sur la tonique
+//  - conjoint dominant, sauts ≤ 4te puis retour par degré conjoint (règle du contrepoint pop)
+//  - HOOK : une cellule d'1 mesure (A) rejouée (A A' B A) — la répétition fait le hit
+//  - question (phrase 1 finit ouverte : 2/5/7) → réponse (phrase 2 finit sur la tonique)
+//  - notes d'accord sur les temps forts, note longue en fin de phrase, sommet vers 60-75 %
+function generateVocal(reg){
+  const pc=rootPc();
+  const nb=bars();
+  mel=new Array(steps).fill(null);
+  // tessiture vocale : on prend une fenêtre de ~10 degrés (≈ octave + tierce) dans le ladder, plutôt grave pour le couplet
+  const win=Math.min(ladder.length, reg.lowReg?8:10);
+  const lo=reg.lowReg?0:Math.max(0,Math.floor((ladder.length-win)/2));
+  const L=ladder.slice(lo,lo+win);
+  const deg=m=>(((m-pc)%12)+12)%12;
+  const sc=SCALES[scaleKey];
+  const stable=[sc[0],sc[2]!=null?sc[2]:sc[1],sc[4]!=null?sc[4]:sc[3]];
+  const isChord=i=>stable.includes(deg(L[i]));
+  const isRoot=i=>deg(L[i])===0;
+  const openTones=[sc[1],sc[4]!=null?sc[4]:sc[3],sc[sc.length-1]];   // 2, 5, 7 = « question » ouverte
+  const nearest=(i,test)=>{let b=i,bd=99;for(let k=0;k<L.length;k++){if(test(k)){const d=Math.abs(k-i);if(d<bd){bd=d;b=k;}}}return b;};
+  // ── rythme d'une cellule (1 mesure = 4 temps) : chanté = croches/noires, une syncope max, note longue possible ──
+  const cellRhythm=(isEnd)=>{
+    const bag=reg.anthem?['half','quarter','quarter','half','dotted']:['eighths','quarter','eighths','e_ss','dotted','quarter','eighths'];
+    const on=[];let bt=0;
+    while(bt<4){
+      if(isEnd&&bt>=2&&reg.longEnd){on.push(bt*PPB);break;}                       // fin de phrase : note tenue
+      let pat=RPAT[pick(bag)]||RPAT.quarter;
+      if(bt>0&&Math.random()<reg.synco)pat=RPAT.synco;                             // une syncope de temps en temps
+      if(Math.random()>0.55+0.45*reg.dens&&bt>0){bt++;continue;}                  // respiration
+      pat.t.forEach(o=>on.push(bt*PPB+o));
+      bt+=pat.hold?2:1;
+    }
+    return on.filter((v,i,a)=>a.indexOf(v)===i&&v<48).sort((a,b)=>a-b);
+  };
+  // ── contour d'une cellule : marche conjointe + 1 saut max, retour conjoint après saut ──
+  const cellPitches=(n,startIdx,peakBias)=>{
+    const out=[];let i=startIdx,lastLeap=0;
+    for(let k=0;k<n;k++){
+      if(k>0){
+        let dir=(Math.random()<peakBias?1:-1);
+        let dist=1;
+        if(lastLeap===0&&Math.random()<0.22){dist=2+Math.floor(Math.random()*(reg.leapMax-1));lastLeap=dir;}   // saut
+        else if(lastLeap!==0){dir=-lastLeap;dist=1;lastLeap=0;}                                           // retour conjoint
+        else if(Math.random()<0.18)dist=0;                                                                 // note répétée (très chanté)
+        i=Math.max(0,Math.min(L.length-1,i+dir*dist));
+        if(i===0||i===L.length-1)lastLeap=0;
+      }
+      out.push(i);
+    }
+    return out;
+  };
+  // ── plan : hook A, variante A' (même rythme, 1-2 notes changées), contraste B ──
+  const plan=(reg.hook||'AABA').split('');
+  const cells={};
+  const rhA=cellRhythm(false);
+  const startA=nearest(Math.floor(L.length*0.4),isChord);
+  cells.A={r:rhA,p:cellPitches(rhA.length,startA,0.6)};
+  cells["A'"]={r:rhA.slice(),p:cells.A.p.map((v,k)=>(k>0&&Math.random()<0.3)?Math.max(0,Math.min(L.length-1,v+(Math.random()<0.5?1:-1))):v)};
+  const rhB=cellRhythm(false);
+  const peakIdx=Math.min(L.length-1,Math.floor(L.length*0.85));
+  cells.B={r:rhB,p:cellPitches(rhB.length,nearest(peakIdx,isChord),0.35)};   // B = sommet puis redescente
+  // ── assemblage sur nb mesures : on boucle le plan, phrases de 2 mesures (question/réponse) ──
+  let bar=0;
+  while(bar<nb){
+    const sym=plan[bar%plan.length];
+    const c=(sym==='A'&&bar%4===1&&cells["A'"])?cells["A'"]:(cells[sym]||cells.A);
+    const isPhraseEnd=(bar%2===1)||bar===nb-1;
+    const isFinal=bar===nb-1;
+    const r=isPhraseEnd?cellRhythm(true):c.r;
+    const p=c.p.slice(0,r.length);
+    while(p.length<r.length)p.push(p[p.length-1]);
+    // temps forts (1 et 3) → notes d'accord ; fin de phrase → question (ouverte) ou réponse (tonique)
+    r.forEach((off,k)=>{
+      let i=p[k];
+      if(off%(PPB*2)===0&&!isChord(i)&&Math.random()<0.7)i=nearest(i,isChord);
+      if(k===r.length-1&&isPhraseEnd){
+        i=isFinal||(bar%4===3)?nearest(i,isRoot):nearest(i,j=>openTones.includes(deg(L[j])));
+      }
+      mel[bar*48+off]=L[i];
+    });
+    bar++;
+  }
+  renderRoll();
+  const n=mel.filter(x=>x!=null).length;
+  status('Mélodie chantée générée · '+n+' notes · hook '+(reg.hook||'AABA')+' · '+SCALE_LABEL[scaleKey],false);
 }
 
 // ═══════════════ PIANO-ROLL (édition note par note) ═══════════════

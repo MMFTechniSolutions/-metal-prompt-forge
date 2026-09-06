@@ -1154,25 +1154,23 @@ function Manifesto({onClose,uiLang}){
 function WhatsNew({onClose,uiLang}){
   const fr=uiLang!=="en";
   const items = fr ? [
-    ["🎵 Générateur de mélodie (nouveau)","Crée des mélodies variées — 24 styles/pays (metal, jazz, flamenco, néoclassique…), vrais instruments, piano-roll éditable, export WAV pour Suno."],
-    ["🥁 Beats variés + changements de tempo","Chaque génération donne un beat différent (kicks, relances, fills), avec option de sections lentes/rapides dans le WAV exporté."],
-    ["🎚️ Prompts de style plus riches","Le style est écrit en tournure fluide, groupée, et piloté par tes sliders d'émotion."],
-    ["🎤 Voix : mix guttural + clean","Nouveau sélecteur de voix, cris optimisés (MAJ + voyelles étirées) et tonalités en descriptif que Suno lit mieux."],
-    ["🎸 Nouveaux styles pour des mix","Prog rock 70s, jazz fusion, post-rock, synthwave, future rave, techno… à mélanger avec ton metal."],
-    ["💾 Ton travail est sauvegardé","Plus rien ne s'efface au refresh : sélections, sliders, émotions, paroles et prompts sont gardés."],
+    ["🎼 Métriques mixtes (nouveau)","Onglet Genre (et Structure en mode Avancé) : clique tes chiffrages dans l'ordre — 7/8, 4/4, 9/8, 5/4… La séquence est placée EN TÊTE du Style et Suno la lit comme un feel prog/avant-garde qui teinte tout le morceau."],
+    ["🔍 Reverse plus fin","Entre un nom de groupe : on détecte maintenant le genre principal + le 2e genre qui colore le son (ex. folk, prog 70s) + 2-4 signatures sonores (interludes acoustiques, mellotron, clean-to-growl…)."],
+    ["🧠 Recette alignée sur Suno v5.5","Genre en position 1, fusion « X-influenced » au lieu de 2 genres nus, époque de production (70s analog → 2020s modern), clé explicite (ex. D minor), prompt plus court (idéal ≤ 600 car.) — Suno pèse les premiers tags."],
+    ["🎤 Paroles","6-10 syllabes par ligne, refrain 3× max — Suno ne rush plus les lignes trop longues."],
+    ["🎲 Rappel","Suno est aléatoire par design : génère 2-3 fois le même prompt avant de conclure."],
   ] : [
-    ["🎵 Melody generator (new)","Create varied melodies — 24 styles/regions (metal, jazz, flamenco, neoclassical…), real instruments, editable piano-roll, WAV export for Suno."],
-    ["🥁 Varied beats + tempo changes","Every generation gives a different beat (kicks, fills), with optional slow/fast tempo sections in the exported WAV."],
-    ["🎚️ Richer style prompts","The style is written as a flowing, grouped prompt, driven by your emotion sliders."],
-    ["🎤 Vocals: harsh + clean mix","New vocal selector, optimized screams (CAPS + stretched vowels) and descriptive tonalities Suno reads better."],
-    ["🎸 New styles to mix","70s prog rock, jazz fusion, post-rock, synthwave, future rave, techno… to blend with your metal."],
-    ["💾 Your work is saved","Nothing resets on refresh anymore: selections, sliders, emotions, lyrics and prompts are kept."],
+    ["🎼 Mixed meters (new)","Genre tab (and Structure in Advanced mode): click your time signatures in order — 7/8, 4/4, 9/8, 5/4… The sequence goes at the TOP of the Style and Suno reads it as a prog/avant-garde feel that colors the whole track."],
+    ["🔍 Sharper reverse","Type a band name: we now detect the main genre + the second genre coloring the sound (e.g. folk, 70s prog) + 2-4 sonic signatures (acoustic interludes, mellotron, clean-to-growl…)."],
+    ["🧠 Recipe aligned with Suno v5.5","Genre in position 1, « X-influenced » fusion instead of two bare genres, production era (70s analog → 2020s modern), explicit key (e.g. D minor), shorter prompt (sweet spot ≤ 600 chars) — Suno weighs the first tags most."],
+    ["🎤 Lyrics","6-10 syllables per line, chorus 3× max — Suno stops rushing long lines."],
+    ["🎲 Reminder","Suno is random by design: run the same prompt 2-3 times before judging."],
   ];
   return (
     <div style={{position:"fixed",inset:0,background:"#000000ee",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}}>
       <div style={{maxWidth:"580px",width:"100%",background:"linear-gradient(180deg,#120000,#0a0a0b)",border:"1px solid #5a0000",borderRadius:"14px",padding:"28px 24px",boxShadow:"0 0 50px #000",margin:"auto"}}>
         <div style={{textAlign:"center",fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.72rem",letterSpacing:"4px",color:RED,marginBottom:"6px"}}>{fr?"NOUVEAUTÉS":"WHAT'S NEW"}</div>
-        <div className="forge-title" style={{textAlign:"center",fontSize:"1.6rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Grosse mise à jour 🤘":"Big update 🤘"}</div>
+        <div className="forge-title" style={{textAlign:"center",fontSize:"1.6rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Mise à jour septembre 🤘":"September update 🤘"}</div>
         <div style={{display:"flex",flexDirection:"column",gap:"9px",marginBottom:"20px"}}>
           {items.map((p,i)=>(<div key={i} style={{background:"#0d0000",border:"1px solid #2a0000",borderRadius:"8px",padding:"10px 12px"}}>
             <div style={{color:"#ff9090",fontWeight:800,fontSize:"0.8rem"}}>{p[0]}</div>
@@ -1409,8 +1407,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [emotions,setEmotions]=useState(SV.emotions ?? {});
   const [advanced,setAdvanced]=useState(false);
   const [showManifesto,setShowManifesto]=useState(false);
-  useEffect(()=>{try{if(!localStorage.getItem('mpf_news_202607')){setShowManifesto(true);localStorage.setItem('mp_manifesto_seen','1');}}catch(e){}},[]);
-  const closeManifesto=()=>{try{localStorage.setItem('mpf_news_202607','1');}catch(e){}setShowManifesto(false);};
+  useEffect(()=>{try{if(!localStorage.getItem('mpf_news_202609')){setShowManifesto(true);localStorage.setItem('mp_manifesto_seen','1');}}catch(e){}},[]);
+  const closeManifesto=()=>{try{localStorage.setItem('mpf_news_202609','1');}catch(e){}setShowManifesto(false);};
   const [groove,setGroove]=useState(SV.groove ?? 6);
   const [chaos,setChaos]=useState(SV.chaos ?? 7);
   const [melody,setMelody]=useState(SV.melody ?? 3);

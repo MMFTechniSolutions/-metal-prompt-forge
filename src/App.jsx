@@ -9,7 +9,7 @@ const CARD = "#141414";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",galerie:"Gallery",riff:"Riff",master:"Master",aimusic:"AI Music",history:"History"},
+    tabs:{genre:"Genre",melodie:"🎤 Melody",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",galerie:"Gallery",riff:"Riff",master:"Master",aimusic:"AI Music",history:"History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (limit 1000 chars · sweet spot ≤ 600)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -21,7 +21,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",galerie:"Galerie",riff:"Riff",master:"Master",aimusic:"Musique IA",history:"Historique"},
+    tabs:{genre:"Genre",melodie:"🎤 Mélodie",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",galerie:"Galerie",riff:"Riff",master:"Master",aimusic:"Musique IA",history:"Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (limite 1000 car. · idéal ≤ 600)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -470,7 +470,7 @@ const _pick=(arr,n)=>{const c=[...arr];const o=[];for(let i=0;i<n&&c.length;i++)
 // genreProfile + randStructure DÉPLACÉS côté serveur (/api/profile) — recette protégée
 const TIER_RANK = {free:0,forge:1,pro:2,elite:3,eliteplus:4};
 const LIMITS = {free:{prompts:3,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity},eliteplus:{prompts:Infinity,lyrics:Infinity}};
-const TAB_REQ = {genre:"free",drums:"free",vocals:"free",guitar:"forge",bass:"forge",instru:"forge",structure:"forge",paroles:"pro",organic:"pro",exclude:"forge",output:"free",history:"pro"};
+const TAB_REQ = {genre:"free",melodie:"elite",drums:"free",vocals:"free",guitar:"forge",bass:"forge",instru:"forge",structure:"forge",paroles:"pro",organic:"pro",exclude:"forge",output:"free",history:"pro"};
 
 // Fusionne la structure enrichie + les paroles générées : chaque section reçoit ses paroles SOUS son tag (prêt à coller dans Suno)
 function mergeStructLyrics(struct, lyrics){
@@ -731,6 +731,11 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
           {uiLang==="fr"?"LANCER L'APP":"LAUNCH APP"}
         </button>
         <div style={{fontSize:"0.6rem",color:"#444",marginTop:"10px"}}>{uiLang==="fr"?"Gratuit · 3 prompts offerts · Aucune carte requise":"Free · 3 prompts included · No card required"}</div>
+        <div style={{maxWidth:"560px",margin:"28px auto 0",background:"linear-gradient(135deg,#1a0a00,#0f0f0f)",border:"1px solid #ff660055",borderRadius:"12px",padding:"18px 20px",textAlign:"left",boxShadow:"0 0 30px #ff660022"}}>
+          <div style={{fontSize:"0.55rem",color:"#ff8844",letterSpacing:"3px",textTransform:"uppercase",fontWeight:800,marginBottom:"6px"}}>{L("NOUVEAU · L'OUTIL QUE PERSONNE D'AUTRE N'A","NEW · THE TOOL NOBODY ELSE HAS")}</div>
+          <div className="forge-title" style={{fontSize:"1.35rem",color:"#fff",letterSpacing:"2px",marginBottom:"6px"}}>{L("🎤 GÉNÉRATEUR DE MÉLODIES CHANTÉES","🎤 SINGABLE MELODY GENERATOR")}</div>
+          <div style={{fontSize:"0.74rem",color:"#bbb",lineHeight:1.75}}>{L("Des refrains qui restent dans la tête, version metal : 26 thèmes (hit, metalcore, melodeath, power, doom, thrash gang, nu-metal…), 47 gammes, vrais instruments et voix de chœur. Tu écoutes, tu retouches note par note, tu exportes le WAV et Suno chante TA mélodie.","Choruses that stick, metal edition: 26 themes (hit, metalcore, melodeath, power, doom, thrash gang, nu-metal…), 47 scales, real instruments and choir voices. Listen, tweak note by note, export the WAV and Suno sings YOUR melody.")}</div>
+        </div>
       </div>
 
       {/* MISSION / POURQUOI */}
@@ -747,6 +752,7 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
           <div style={{fontSize:"0.72rem",color:"#555",lineHeight:1.8}}>{uiLang==="fr"?"Suno génère mieux quand les prompts sont précis.":"Suno generates better when prompts are precise."}</div>
         </div>
         {[
+          {icon:"🎤",title:uiLang==="fr"?"Mélodies chantées + riffs + mastering":"Singable melodies + riffs + mastering",desc:uiLang==="fr"?"Le seul générateur de prompts qui te donne aussi une mélodie de refrain, un riff et un beat à écouter et exporter en WAV pour Suno.":"The only prompt generator that also gives you a chorus melody, a riff and a beat to hear and export as WAV for Suno."},
           {icon:"",title:uiLang==="fr"?"11 onglets de personnalisation":"11 customization tabs",desc:uiLang==="fr"?"Genre, drums, vocals, guitar, basse, structure, paroles, organic, exclude — tout est là.":"Genre, drums, vocals, guitar, bass, structure, lyrics, organic, exclude — all here."},
           {icon:"",title:uiLang==="fr"?"Paroles générées par IA":"AI-generated lyrics",desc:uiLang==="fr"?"Claude compose des paroles metal uniques avec thèmes, atmosphère et anti-répétition.":"Claude composes unique metal lyrics with themes, atmosphere and anti-repetition logic."},
           {icon:"",title:uiLang==="fr"?"Mode Organic / Anti-AI":"Organic / Anti-AI Mode",desc:uiLang==="fr"?"Des tags spéciaux pour rendre tes générations Suno plus humaines.":"Special tags to make your Suno generations sound more human."},
@@ -1154,12 +1160,14 @@ function Manifesto({onClose,uiLang}){
 function WhatsNew({onClose,uiLang}){
   const fr=uiLang!=="en";
   const items = fr ? [
+    ["🎤 Générateur de mélodies chantées (onglet Mélodie)","26 thèmes metal & hit (refrain, metalcore, melodeath, doom, power, thrash gang, nu-metal…), 47 gammes, 10 familles, voix de chœur et vrais instruments. Écoute, édite, exporte le WAV pour Suno."],
     ["🎼 Métriques mixtes (nouveau)","Onglet Genre (et Structure en mode Avancé) : clique tes chiffrages dans l'ordre — 7/8, 4/4, 9/8, 5/4… La séquence est placée EN TÊTE du Style et Suno la lit comme un feel prog/avant-garde qui teinte tout le morceau."],
     ["🔍 Reverse plus fin","Entre un nom de groupe : on détecte maintenant le genre principal + le 2e genre qui colore le son (ex. folk, prog 70s) + 2-4 signatures sonores (interludes acoustiques, mellotron, clean-to-growl…)."],
     ["🧠 Recette alignée sur Suno v5.5","Genre en position 1, fusion « X-influenced » au lieu de 2 genres nus, époque de production (70s analog → 2020s modern), clé explicite (ex. D minor), prompt plus court (idéal ≤ 600 car.) — Suno pèse les premiers tags."],
     ["🎤 Paroles","6-10 syllabes par ligne, refrain 3× max — Suno ne rush plus les lignes trop longues."],
     ["🎲 Rappel","Suno est aléatoire par design : génère 2-3 fois le même prompt avant de conclure."],
   ] : [
+    ["🎤 Singable melody generator (Melody tab)","26 metal & hit themes (chorus, metalcore, melodeath, doom, power, thrash gang, nu-metal…), 47 scales, 10 families, choir voices and real instruments. Listen, edit, export the WAV for Suno."],
     ["🎼 Mixed meters (new)","Genre tab (and Structure in Advanced mode): click your time signatures in order — 7/8, 4/4, 9/8, 5/4… The sequence goes at the TOP of the Style and Suno reads it as a prog/avant-garde feel that colors the whole track."],
     ["🔍 Sharper reverse","Type a band name: we now detect the main genre + the second genre coloring the sound (e.g. folk, 70s prog) + 2-4 sonic signatures (acoustic interludes, mellotron, clean-to-growl…)."],
     ["🧠 Recipe aligned with Suno v5.5","Genre in position 1, « X-influenced » fusion instead of two bare genres, production era (70s analog → 2020s modern), explicit key (e.g. D minor), shorter prompt (sweet spot ≤ 600 chars) — Suno weighs the first tags most."],
@@ -1664,6 +1672,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
   const TABS=[
     {id:"genre",req:"free"},
+    {id:"melodie",req:"elite"},   // générateur de mélodie chantée — en avant-plan
     {id:"drums",req:"free",adv:true},{id:"vocals",req:"free",adv:true},{id:"instrums",req:"forge",adv:true},{id:"structure",req:"forge",adv:true},{id:"organic",req:"pro",adv:true},{id:"exclude",req:"forge",adv:true},
     {id:"paroles",req:"pro"},{id:"output",req:"free"},
     {id:"riff",req:"elite"},{id:"master",req:"elite"},{id:"aimusic",req:"forge"},
@@ -2066,6 +2075,15 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* OUTPUT */}
+      {tab==="melodie"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
+        <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ff2e2e44"}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>{L("GÉNÉRATEUR DE MÉLODIE CHANTÉE","SINGABLE MELODY GENERATOR")}</div>
+          <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("26 thèmes (refrain hit, metalcore, melodeath, doom, power, thrash gang…), 47 gammes, 10 familles, vrais instruments et voix (chœur, ooh, lead). Écoute, édite note par note, exporte un WAV pour Suno.","26 themes (hit chorus, metalcore, melodeath, doom, power, thrash gang…), 47 scales, 10 families, real instruments and voices (choir, ooh, lead). Listen, edit note by note, export a WAV for Suno.")}</div>
+        </div>
+        <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
+          <iframe src={`/melody.html?lang=${uiLang}`} title="Melody Generator" allow="autoplay" style={{width:"100%",height:"82vh",minHeight:"640px",border:"none",display:"block",background:DARK}}/>
+        </div>
+      </div>)}
       {tab==="riff"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ff2e2e44"}}>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>RIFF / BEAT GENERATOR</div>

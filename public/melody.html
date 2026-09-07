@@ -103,6 +103,30 @@
             <option value="hit_verse">🎤 Hit — couplet (retenu, prépare le refrain)</option>
             <option value="hit_ballad">🎤 Ballade power (lente, lyrique)</option>
             <option value="hit_anthem">🎤 Anthem stade (gang, notes longues)</option>
+            <option value="hit_prechorus">🎤 Pré-refrain (monte, tension)</option>
+            <option value="hit_metalcore">🎤 Metalcore — refrain clair (large, lumineux)</option>
+            <option value="hit_poppunk">🎤 Pop-punk / easycore (rapide, sautillant)</option>
+            <option value="hit_emo">🎤 Emo / post-hardcore (plaintif, mineur)</option>
+            <option value="hit_numetal">🎤 Nu-metal — hook (bounce, note répétée)</option>
+            <option value="hit_power">🎤 Power metal — refrain (aigu, héroïque)</option>
+            <option value="hit_hair">🎤 Hair metal 80s (fête, majeur)</option>
+            <option value="hit_gothic">🎤 Gothique / dark pop (lent, sombre, orné)</option>
+            <option value="hit_rapmetal">🎤 Rap-metal — flow (rythmique, monotone)</option>
+            <option value="hit_synthwave">🎤 Synthwave / cyber (hook synth, répétitif)</option>
+            <option value="hit_epic">🎤 Épique / chœur (large, lent, majestueux)</option>
+            <option value="hit_acoustic">🎤 Interlude acoustique (doux, folk)</option>
+          </optgroup>
+          <optgroup label="Chanté / metal pur">
+            <option value="hit_melodeath">🎸 Melodic death — hook clair (Göteborg)</option>
+            <option value="hit_symphonic">🎸 Symphonique — soprano lyrique</option>
+            <option value="hit_doom">🎸 Doom — chant lent et grave</option>
+            <option value="hit_thrash">🎸 Thrash — refrain gang (crié, martelé)</option>
+            <option value="hit_groove">🎸 Groove metal — hook bounce</option>
+            <option value="hit_prog">🎸 Prog metal — chant large (sauts, tension)</option>
+            <option value="hit_viking">🎸 Viking / folk — chant de guerre</option>
+            <option value="hit_blackatmo">🎸 Black atmosphérique — voix planante</option>
+            <option value="hit_stoner">🎸 Stoner / desert — chant bluesy</option>
+            <option value="hit_djent">🎸 Djent — refrain aérien (ambient clean)</option>
           </optgroup>
           <option value="american">Américain — gros solo</option>
           <option value="neoclassical">Néoclassique (Europe)</option>
@@ -234,6 +258,30 @@ const REGIONS={
   hit_verse: {scales:['aeolian','dorian','major','penta_min'],vocal:true,dens:0.55,leapMax:3,hook:'AAAB',peak:0.5,longEnd:false,synco:0.45,lowReg:true},
   hit_ballad:{scales:['major','aeolian','dorian'],vocal:true,dens:0.38,leapMax:5,hook:'ABAB',peak:0.75,longEnd:true,synco:0.15},
   hit_anthem:{scales:['major','mixolydian','penta_maj','aeolian'],vocal:true,dens:0.3,leapMax:4,hook:'AABA',peak:0.6,longEnd:true,synco:0.1,anthem:true},
+  // paramètres optionnels : repeatP (note répétée), leapP (prob. de saut), rise (contour montant), bag (rythmes), win (largeur tessiture), hiReg (registre aigu)
+  hit_prechorus:{scales:['aeolian','major','dorian'],vocal:true,dens:0.6,leapMax:3,hook:'AAAA',peak:0.95,longEnd:false,synco:0.3,rise:true,repeatP:0.35},
+  hit_metalcore:{scales:['major','aeolian','mixolydian'],vocal:true,dens:0.58,leapMax:5,hook:'ABAB',peak:0.7,longEnd:true,synco:0.3,leapP:0.3,win:11},
+  hit_poppunk:{scales:['major','mixolydian','penta_maj'],vocal:true,dens:0.75,leapMax:4,hook:'AABA',peak:0.65,longEnd:false,synco:0.4,bag:['eighths','eighths','e_ss','quarter','ss_e'],repeatP:0.25},
+  hit_emo:{scales:['aeolian','dorian','harmonic_minor'],vocal:true,dens:0.5,leapMax:5,hook:'ABAB',peak:0.75,longEnd:true,synco:0.25,leapP:0.28,win:11},
+  hit_numetal:{scales:['penta_min','aeolian','phrygian','blues'],vocal:true,dens:0.68,leapMax:3,hook:'AAAB',peak:0.5,longEnd:false,synco:0.55,repeatP:0.45,lowReg:true,win:7},
+  hit_power:{scales:['major','harmonic_minor','mixolydian'],vocal:true,dens:0.55,leapMax:5,hook:'AABA',peak:0.75,longEnd:true,synco:0.15,leapP:0.32,hiReg:true,win:12},
+  hit_hair:{scales:['major','mixolydian','penta_maj','blues'],vocal:true,dens:0.6,leapMax:4,hook:'AABA',peak:0.65,longEnd:true,synco:0.35,repeatP:0.22,bag:['eighths','quarter','dotted','e_ss','eighths']},
+  hit_gothic:{scales:['aeolian','harmonic_minor','phrygian','dorian'],vocal:true,dens:0.4,leapMax:3,hook:'ABAB',peak:0.6,longEnd:true,synco:0.15,repeatP:0.2,bag:['quarter','half','dotted','eighths','quarter'],lowReg:true,win:9},
+  hit_rapmetal:{scales:['penta_min','blues','phrygian'],vocal:true,dens:0.85,leapMax:2,hook:'AAAB',peak:0.4,longEnd:false,synco:0.6,repeatP:0.65,leapP:0.08,lowReg:true,win:5,bag:['eighths','sixteenths','e_ss','ss_e','synco','ss_e2']},
+  hit_synthwave:{scales:['aeolian','dorian','penta_min','major'],vocal:true,dens:0.7,leapMax:3,hook:'AAAA',peak:0.5,longEnd:false,synco:0.3,repeatP:0.4,bag:['eighths','eighths','quarter','dotted']},
+  hit_epic:{scales:['major','aeolian','lydian','mixolydian'],vocal:true,dens:0.28,leapMax:5,hook:'ABAB',peak:0.7,longEnd:true,synco:0.05,anthem:true,leapP:0.3,win:12,hiReg:true},
+  hit_acoustic:{scales:['major','dorian','mixolydian','penta_maj'],vocal:true,dens:0.5,leapMax:3,hook:'ABAB',peak:0.6,longEnd:true,synco:0.2,repeatP:0.15,bag:['eighths','quarter','dotted','triplet','eighths']},
+  // ── CHANTÉ / METAL PUR ──
+  hit_melodeath:{scales:['aeolian','harmonic_minor','dorian'],vocal:true,dens:0.62,leapMax:4,hook:'AABA',peak:0.7,longEnd:true,synco:0.25,leapP:0.25,win:11},
+  hit_symphonic:{scales:['harmonic_minor','aeolian','major','melodic_minor'],vocal:true,dens:0.45,leapMax:6,hook:'ABAB',peak:0.8,longEnd:true,synco:0.1,leapP:0.35,hiReg:true,win:13,bag:['quarter','half','dotted','eighths','triplet']},
+  hit_doom:{scales:['aeolian','phrygian','dorian','penta_min'],vocal:true,dens:0.3,leapMax:3,hook:'AABA',peak:0.55,longEnd:true,synco:0.05,repeatP:0.3,lowReg:true,win:7,bag:['half','quarter','half','dotted','quarter']},
+  hit_thrash:{scales:['penta_min','aeolian','phrygian','blues'],vocal:true,dens:0.8,leapMax:2,hook:'AAAB',peak:0.45,longEnd:false,synco:0.35,repeatP:0.6,leapP:0.1,lowReg:true,win:5,bag:['eighths','eighths','e_ss','quarter','ss_e']},
+  hit_groove:{scales:['penta_min','blues','phrygian_dom','aeolian'],vocal:true,dens:0.65,leapMax:3,hook:'AAAB',peak:0.5,longEnd:false,synco:0.5,repeatP:0.4,lowReg:true,win:7,bag:['eighths','e_ss','synco','ss_e2','quarter','dotted']},
+  hit_prog:{scales:['dorian','lydian','melodic_minor','aeolian','harmonic_minor'],vocal:true,dens:0.55,leapMax:6,hook:'ABAB',peak:0.7,longEnd:true,synco:0.4,leapP:0.35,win:13,bag:['eighths','quarter','triplet','dotted','synco','e_ss']},
+  hit_viking:{scales:['aeolian','dorian','mixolydian','penta_min'],vocal:true,dens:0.4,leapMax:4,hook:'AABA',peak:0.6,longEnd:true,synco:0.1,repeatP:0.3,anthem:true,bag:['quarter','half','dotted','quarter','eighths'],win:8},
+  hit_blackatmo:{scales:['aeolian','phrygian','dorian','lydian'],vocal:true,dens:0.25,leapMax:5,hook:'ABAB',peak:0.75,longEnd:true,synco:0.05,leapP:0.3,hiReg:true,win:11,bag:['half','half','quarter','dotted']},
+  hit_stoner:{scales:['blues','penta_min','dorian','mixolydian'],vocal:true,dens:0.5,leapMax:4,hook:'AABA',peak:0.55,longEnd:true,synco:0.35,repeatP:0.3,lowReg:true,win:8,bag:['eighths','quarter','triplet','dotted','trip_rest']},
+  hit_djent:{scales:['major','lydian','dorian','aeolian'],vocal:true,dens:0.4,leapMax:5,hook:'ABAB',peak:0.7,longEnd:true,synco:0.35,leapP:0.28,hiReg:true,win:11,bag:['half','dotted','quarter','synco','eighths']},
   american:{scales:['penta_min','blues','aeolian','mixolydian'],dens:0.8,smooth:0.4,leap:0.5,octUp:1,run:true},   // gros solo US
   neoclassical:{scales:['harmonic_minor','phrygian_dom','melodic_minor'],dens:0.85,smooth:0.35,leap:0.6,octUp:1,arp:true,run:true}, // Europe classique/néo
   shred:{scales:['harmonic_minor','phrygian','melodic_minor','penta_min'],dens:0.9,smooth:0.3,leap:0.5,octUp:1,run:true,arp:true}, // shred technique
@@ -522,8 +570,8 @@ function generateVocal(reg){
   const nb=bars();
   mel=new Array(steps).fill(null);
   // tessiture vocale : on prend une fenêtre de ~10 degrés (≈ octave + tierce) dans le ladder, plutôt grave pour le couplet
-  const win=Math.min(ladder.length, reg.lowReg?8:10);
-  const lo=reg.lowReg?0:Math.max(0,Math.floor((ladder.length-win)/2));
+  const win=Math.min(ladder.length, reg.win||(reg.lowReg?8:10));
+  const lo=reg.lowReg?0:reg.hiReg?Math.max(0,ladder.length-win):Math.max(0,Math.floor((ladder.length-win)/2));
   const L=ladder.slice(lo,lo+win);
   const deg=m=>(((m-pc)%12)+12)%12;
   const sc=SCALES[scaleKey];
@@ -534,7 +582,7 @@ function generateVocal(reg){
   const nearest=(i,test)=>{let b=i,bd=99;for(let k=0;k<L.length;k++){if(test(k)){const d=Math.abs(k-i);if(d<bd){bd=d;b=k;}}}return b;};
   // ── rythme d'une cellule (1 mesure = 4 temps) : chanté = croches/noires, une syncope max, note longue possible ──
   const cellRhythm=(isEnd)=>{
-    const bag=reg.anthem?['half','quarter','quarter','half','dotted']:['eighths','quarter','eighths','e_ss','dotted','quarter','eighths'];
+    const bag=reg.bag||(reg.anthem?['half','quarter','quarter','half','dotted']:['eighths','quarter','eighths','e_ss','dotted','quarter','eighths']);
     const on=[];let bt=0;
     while(bt<4){
       if(isEnd&&bt>=2&&reg.longEnd){on.push(bt*PPB);break;}                       // fin de phrase : note tenue
@@ -553,9 +601,10 @@ function generateVocal(reg){
       if(k>0){
         let dir=(Math.random()<peakBias?1:-1);
         let dist=1;
-        if(lastLeap===0&&Math.random()<0.22){dist=2+Math.floor(Math.random()*(reg.leapMax-1));lastLeap=dir;}   // saut
+        if(reg.rise&&Math.random()<0.75)dir=1;                                                                 // pré-refrain : ça monte
+        if(lastLeap===0&&Math.random()<(reg.leapP!=null?reg.leapP:0.22)){dist=2+Math.floor(Math.random()*(reg.leapMax-1));lastLeap=dir;}   // saut
         else if(lastLeap!==0){dir=-lastLeap;dist=1;lastLeap=0;}                                           // retour conjoint
-        else if(Math.random()<0.18)dist=0;                                                                 // note répétée (très chanté)
+        else if(Math.random()<(reg.repeatP!=null?reg.repeatP:0.18))dist=0;                                 // note répétée (très chanté)
         i=Math.max(0,Math.min(L.length-1,i+dir*dist));
         if(i===0||i===L.length-1)lastLeap=0;
       }
@@ -567,7 +616,7 @@ function generateVocal(reg){
   const plan=(reg.hook||'AABA').split('');
   const cells={};
   const rhA=cellRhythm(false);
-  const startA=nearest(Math.floor(L.length*0.4),isChord);
+  const startA=nearest(Math.floor(L.length*(reg.rise?0.15:0.4)),isChord);
   cells.A={r:rhA,p:cellPitches(rhA.length,startA,0.6)};
   cells["A'"]={r:rhA.slice(),p:cells.A.p.map((v,k)=>(k>0&&Math.random()<0.3)?Math.max(0,Math.min(L.length-1,v+(Math.random()<0.5?1:-1))):v)};
   const rhB=cellRhythm(false);

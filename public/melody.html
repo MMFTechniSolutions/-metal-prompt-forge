@@ -88,6 +88,12 @@
           <option value="jazz">Jazz</option>
           <option value="classique">Classique / néoclassique</option>
           <option value="rock">Rock / Groove / Blues</option>
+          <option value="pop">Pop / commercial</option>
+          <option value="folk">Folk / world</option>
+          <option value="oriental">Oriental / Balkan</option>
+          <option value="cinematic">Cinématique / épique</option>
+          <option value="electro">Électro / synthwave</option>
+          <option value="darkjazz">Dark jazz / noir</option>
         </select></div>
       <div class="cg"><label>Gamme</label><select id="scale"></select></div>
       <div class="cg"><label>Tonalité</label><select id="root"></select></div>
@@ -174,6 +180,12 @@
         </select></div>
       <div class="cg"><label>Instrument (réel)</label>
         <select id="inst">
+          <optgroup label="Voix">
+            <option value="choir_aahs">Chœur « Aah »</option>
+            <option value="voice_oohs">Voix « Ooh »</option>
+            <option value="synth_voice">Voix synthé (éthérée)</option>
+            <option value="lead_voice">Lead voix (solo)</option>
+          </optgroup>
           <option value="guitar_clean">Guitare élec. claire</option>
           <option value="guitar_ac">Guitare acoustique</option>
           <option value="guitar_nylon">Guitare nylon</option>
@@ -234,19 +246,32 @@ const SCALES={
   spanish_8:[0,1,3,4,5,6,8,10], lydian_dom:[0,2,4,6,7,9,10], altered:[0,1,3,4,6,8,10],
   octatonic:[0,2,3,5,6,8,9,11], augmented:[0,3,4,7,8,11], prometheus:[0,2,4,6,9,10],
   egyptian:[0,2,5,7,10], hirajoshi:[0,2,3,7,8], in_sen:[0,1,5,7,10], iwato:[0,1,5,6,10], kumoi:[0,2,3,7,9],
+  // ajouts 2026-09-07
+  harmonic_major:[0,2,4,5,7,8,11], bebop_major:[0,2,4,5,7,8,9,11], major_blues:[0,2,3,4,7,9],
+  persian:[0,1,4,5,6,8,11], arabian:[0,2,4,5,6,8,10], half_whole:[0,1,3,4,6,7,9,10], tritone:[0,1,4,6,7,10],
+  dorian_b2:[0,1,3,5,7,9,10], lydian_aug:[0,2,4,6,8,9,11], locrian_nat6:[0,1,3,5,6,9,10], phrygian_nat6:[0,1,3,5,7,9,10],
+  yo:[0,2,5,7,9], pelog:[0,1,3,7,8], ryukyu:[0,4,5,7,11],
 };
-const SCALE_LABEL={major:'Majeur',aeolian:'Mineur naturel',dorian:'Dorien',phrygian:'Phrygien',phrygian_dom:'Phrygien dominant',mixolydian:'Mixolydien',lydian:'Lydien',locrian:'Locrien',harmonic_minor:'Mineur harmonique',melodic_minor:'Mineur mélodique',penta_min:'Pentatonique mineure',penta_maj:'Pentatonique majeure',blues:'Blues',bebop_dom:'Bebop dominant',hungarian_min:'Hongroise mineure',whole_tone:'Tons entiers',double_harmonic:'Byzantine (double harmonique)',hungarian_major:'Hongroise majeure',ukrainian_dorian:'Dorien ukrainien',neapolitan_minor:'Napolitaine mineure',neapolitan_major:'Napolitaine majeure',enigmatic:'Énigmatique',spanish_8:'Espagnole 8 tons',lydian_dom:'Lydien dominant',altered:'Altérée (super-locrien)',octatonic:'Octatonique (diminuée)',augmented:'Augmentée',prometheus:'Prométhée',egyptian:'Égyptienne',hirajoshi:'Hirajoshi (japon)',in_sen:'In-Sen (japon)',iwato:'Iwato (japon)',kumoi:'Kumoi (japon)'};
+const SCALE_LABEL={harmonic_major:'Majeur harmonique',bebop_major:'Bebop majeur',major_blues:'Blues majeur',persian:'Persan',arabian:'Arabe (tons entiers b5)',half_whole:'Demi-ton / ton (dominante)',tritone:'Tritonique (Petrouchka)',dorian_b2:'Dorien b2 (javanais)',lydian_aug:'Lydien augmenté',locrian_nat6:'Locrien nat.6',phrygian_nat6:'Phrygien nat.6',yo:'Yo (Japon, pentatonique)',pelog:'Pelog (Bali)',ryukyu:'Ryukyu (Okinawa)',major:'Majeur',aeolian:'Mineur naturel',dorian:'Dorien',phrygian:'Phrygien',phrygian_dom:'Phrygien dominant',mixolydian:'Mixolydien',lydian:'Lydien',locrian:'Locrien',harmonic_minor:'Mineur harmonique',melodic_minor:'Mineur mélodique',penta_min:'Pentatonique mineure',penta_maj:'Pentatonique majeure',blues:'Blues',bebop_dom:'Bebop dominant',hungarian_min:'Hongroise mineure',whole_tone:'Tons entiers',double_harmonic:'Byzantine (double harmonique)',hungarian_major:'Hongroise majeure',ukrainian_dorian:'Dorien ukrainien',neapolitan_minor:'Napolitaine mineure',neapolitan_major:'Napolitaine majeure',enigmatic:'Énigmatique',spanish_8:'Espagnole 8 tons',lydian_dom:'Lydien dominant',altered:'Altérée (super-locrien)',octatonic:'Octatonique (diminuée)',augmented:'Augmentée',prometheus:'Prométhée',egyptian:'Égyptienne',hirajoshi:'Hirajoshi (japon)',in_sen:'In-Sen (japon)',iwato:'Iwato (japon)',kumoi:'Kumoi (japon)'};
 const FAMILIES={
   metal:{scales:['phrygian','phrygian_dom','aeolian','harmonic_minor','locrian','hungarian_min']},
   jazz:{scales:['dorian','mixolydian','melodic_minor','bebop_dom','lydian','whole_tone']},
   classique:{scales:['major','harmonic_minor','melodic_minor','aeolian','phrygian_dom']},
   rock:{scales:['penta_min','blues','mixolydian','dorian','penta_maj','aeolian']},
+  pop:{scales:['major','aeolian','mixolydian','penta_maj','dorian','major_blues']},
+  folk:{scales:['dorian','mixolydian','major','penta_maj','aeolian','yo']},
+  oriental:{scales:['phrygian_dom','double_harmonic','hungarian_min','persian','arabian','spanish_8']},
+  cinematic:{scales:['aeolian','harmonic_minor','lydian','major','harmonic_major','lydian_aug']},
+  electro:{scales:['aeolian','dorian','penta_min','phrygian','major','half_whole']},
+  darkjazz:{scales:['melodic_minor','altered','half_whole','locrian_nat6','dorian_b2','tritone']},
 };
 const FAMILY_FEEL={
   metal:{leap:0.35,syncop:0.20},
   jazz:{leap:0.50,syncop:0.55},
   classique:{leap:0.26,syncop:0.12},
   rock:{leap:0.40,syncop:0.35},
+  pop:{leap:0.25,syncop:0.30}, folk:{leap:0.30,syncop:0.20}, oriental:{leap:0.35,syncop:0.30},
+  cinematic:{leap:0.35,syncop:0.10}, electro:{leap:0.30,syncop:0.40}, darkjazz:{leap:0.45,syncop:0.50},
 };
 // « Touche des pays / styles guitare » — façonne la mélodie (gammes + densité + sauts + registre + runs/arpèges).
 // dens = densité de notes · smooth = fluide↔sauts · leap = tendance aux sauts · octUp = registre plus aigu ·
@@ -426,6 +451,10 @@ const INSTBANK={
   koto:{file:'1070_FluidR3_GM_sf2_file',vol:0.8},
   banjo:{file:'1050_FluidR3_GM_sf2_file',vol:0.8},
   musicbox:{file:'0100_FluidR3_GM_sf2_file',vol:0.85},
+  choir_aahs:{file:'0520_FluidR3_GM_sf2_file',vol:0.8},
+  voice_oohs:{file:'0530_FluidR3_GM_sf2_file',vol:0.8},
+  synth_voice:{file:'0540_FluidR3_GM_sf2_file',vol:0.75},
+  lead_voice:{file:'0850_FluidR3_GM_sf2_file',vol:0.7},
 };
 let wafPlayer=null,wafCtx=null;const wafTone={};
 function loadScript(url){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=url;s.async=true;s.onload=()=>res();s.onerror=()=>rej(new Error('load'));document.head.appendChild(s);});}
@@ -479,7 +508,10 @@ function populateRoots(){const s=$('root');s.innerHTML='';for(let pc=0;pc<12;pc+
 function populateScales(){
   const s=$('scale');s.innerHTML='';
   const o0=document.createElement('option');o0.value='auto';o0.textContent='Auto (aléatoire dans la famille)';s.appendChild(o0);
-  FAMILIES[family()].scales.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=SCALE_LABEL[k];s.appendChild(o);});
+  const fam=FAMILIES[family()].scales;
+  const g1=document.createElement('optgroup');g1.label='Famille';fam.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=SCALE_LABEL[k];g1.appendChild(o);});s.appendChild(g1);
+  const g2=document.createElement('optgroup');g2.label='Toutes les gammes ('+Object.keys(SCALES).length+')';
+  Object.keys(SCALES).filter(k=>!fam.includes(k)).sort((a,b)=>(SCALE_LABEL[a]||a).localeCompare(SCALE_LABEL[b]||b,'fr')).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=SCALE_LABEL[k]||k;g2.appendChild(o);});s.appendChild(g2);
   s.value='auto';
 }
 function buildLadder(octBias){

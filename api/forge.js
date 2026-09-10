@@ -117,6 +117,7 @@ export default function handler(req, res) {
   const _tempoWordOld = bpm >= 210 ? 'blistering fast tempo' : bpm >= 170 ? 'fast tempo' : bpm >= 120 ? 'mid-tempo' : bpm >= 90 ? 'slow groovy tempo' : 'slow doom tempo';
   // ENCYCLOPÉDIE → calibration par genre (temps de mesure, gamme/mode, production, tuning par défaut) — secret serveur
   const _gtxt = genres.map(x => String(x).toLowerCase()).join(' ');
+  const _worldGenreEarly = /folk|viking|pagan|nordic|celtic|irish|oriental|middle.?eastern|arabic/.test(_gtxt);
   const _rs = Math.random();
   const GENRE_DB = [
     [/djent/, {ts:(_rs<0.5?'7/8':'4/4'), scale:'polymetric minor-2nd and tritone riffs', prod:'surgical mix, ultra-fast noise gate, scooped 400Hz', tuning:'Drop A 8-string'}],
@@ -162,15 +163,35 @@ export default function handler(req, res) {
   const autoTuning = _db.tuning || '';
   // Recommandation de modèle Suno par genre (mieux / bon / moins bon)
   let modelRec;
-  if (/raw|kvlt|old.?school|grind|crust|d.?beat|war metal|primitive/.test(_gtxt))
-    modelRec = { best:'v4.5', good:'v5.5', weak:'v5', why: L('pour le grain cru — v5/v5.5 lissent la crasse (si v4.5 encore offert)','for raw grit — v5/v5.5 over-polish (if v4.5 still offered)') };
-  else if (/black|funeral|atmospheric|blackgaze|post-?metal|sludge|doom/.test(_gtxt))
-    modelRec = { best:'v5.5', good:'v4.5', weak:'v5', why: L('atmosphère + personnalisation (My Taste)','atmosphere + personalization (My Taste)') };
+  // Suno v6 (9 sept. 2026) : v6 / v6-wild / v6-mini — TOUS les modèles précédents (v5.5, v5, v4.5) sont retirés.
+  if (/raw|kvlt|old.?school|grind|crust|d.?beat|war metal|primitive|dsbm|lo.?fi/.test(_gtxt))
+    modelRec = { best:'v6-wild', good:'v6', weak:'v6-mini', why: L('sorties moins prévisibles = le grain cru et l\'imperfection', 'less predictable output = raw grit and imperfection') };
+  else if (/avant|experimental|dissonant|math|noise/.test(_gtxt))
+    modelRec = { best:'v6-wild', good:'v6', weak:'v6-mini', why: L('variation recherchée sur les genres tordus', 'wanted variance on the weird genres') };
   else if (/djent|prog|tech|symphonic|metalcore|deathcore|power|melodic|industrial/.test(_gtxt))
-    modelRec = { best:'v5.5', good:'v5', weak:'v4.5', why: L('clarté et séparation modernes','modern clarity and separation') };
+    modelRec = { best:'v6', good:'v6-wild', weak:'v6-mini', why: L('précision et mix poli — v6 est le modèle fiable', 'precision and polished mix — v6 is the reliable one') };
   else
-    modelRec = { best:'v5.5', good:'v5', weak:'v4.5', why: L('qualité globale','best overall quality') };
-  modelRec.note = L('v5.5 = modèle courant (mars 2026). Prochain modèle annoncé sans date — les anciens seront retirés.', 'v5.5 = current model (Mar 2026). Next model announced, no date — older ones will be retired.');
+    modelRec = { best:'v6', good:'v6-wild', weak:'v6-mini', why: L('qualité globale', 'best overall quality') };
+  modelRec.note = L('v6 = modèle courant (9 sept. 2026). v6-wild : plus varié. v6-mini : plus rapide, offert à tous. Les anciens modèles sont retirés.', 'v6 = current model (Sept 9, 2026). v6-wild: more varied. v6-mini: faster, free tier. Older models are retired.');
+
+  // ── RÉGLAGES DU MODE AVANCÉ v6 (Weirdness / Style Influence / Variety) ──
+  // Plages issues des guides : Weirdness 25-40 sûr / 45-55 neutre / 60-75 aventureux ;
+  // Style Influence 65-85 = tenir la voie du genre ; Variety 0 = cohérence maximale.
+  const _clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(v)));
+  const _weird = _clamp(30 + chaos * 4.5, 25, 78);                        // slider Chaos de l'app → Weirdness
+  let _styleInf = _clamp(72 + (_worldGenreEarly ? 8 : 0) - (genres.length > 1 ? 6 : 0), 55, 88);
+  const _variety = genres.length > 1 || chaos >= 8 ? 25 : 0;              // fusion/chaos = un peu de variance, sinon 0
+  const sliderRec = {
+    weirdness: _weird,
+    styleInfluence: _styleInf,
+    variety: _variety,
+    maxMode: structs.length >= 6,                                          // morceau long/structuré → Max Mode
+    vocalGender: /female|soprano|femme/i.test(vocals.concat(vrange).join(' ')) ? 'female'
+               : /male|baritone|tenor|homme/i.test(vocals.concat(vrange).join(' ')) ? 'male' : 'auto',
+    why: L(
+      'Weirdness ' + _weird + ' (ton curseur Chaos) · Style Influence ' + _styleInf + ' (tenir la voie du genre) · Variety ' + _variety + (structs.length >= 6 ? ' · Max Mode ON (morceau long)' : ''),
+      'Weirdness ' + _weird + ' (your Chaos slider) · Style Influence ' + _styleInf + ' (hold the genre lane) · Variety ' + _variety + (structs.length >= 6 ? ' · Max Mode ON (long song)' : '')),
+  };
   // Recommandation phonétique (voir /api/_lib/phoneticize.js) — validé 2026-07-04 :
   // déformer l'orthographe empêche Suno de sur-articuler les vocaux harsh.
   let phonetic = { enabled: false, intensity: null, why: null };
@@ -320,7 +341,7 @@ export default function handler(req, res) {
   } else if (harshVox) vocalsClause = 'raw distorted harsh vocals';
 
   // Genres "world" : faible confiance Suno → l'anchor instrumental (scaleTag) passe AVANT les guitares (guide AI Unfiltered 2026-07-06)
-  const _worldGenre = /folk|viking|pagan|nordic|celtic|irish|oriental|middle.?eastern|arabic/.test(_gtxt);
+  const _worldGenre = _worldGenreEarly;
   // Guide 2026-07-28 : 5-8 tags = sweet spot, >10 la fin est dépriorisée → clauses resserrées
   const instrumentsClause = dedup(_worldGenre
     ? [...signature, (scaleTag || ''), ...guitar.slice(0, 1), ...drums.slice(0, 1), ...leadInst.slice(0, 2), ...bassInst.slice(0, 1)]
@@ -378,6 +399,18 @@ export default function handler(req, res) {
       : dedup([_g1, 'heavier and more extreme', bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1), ...leadInst.slice(0,1)]);
   const coverStr = scrubList(coverCore).join(', ');
   const _climax = chaos >= 7 ? 'blast beat outro' : groove >= 7 ? 'crushing breakdown climax' : melody >= 7 ? 'melodic guitar solo climax' : 'final breakdown';
+  // v6 : édition partielle en langage naturel (sans tout regénérer) — instructions prêtes à coller
+  const _voxE = (vocals[0] || 'harsh vocals');
+  const _leadE = leadInst[0] || (guitar.includes('sweep picking solos') ? 'sweep-picking guitar' : 'lead guitar');
+  const editPrompts = [];
+  if (structs.includes('breakdown')) editPrompts.push('make the breakdown half-time and heavier, add shouted gang vocals and pounding floor toms');
+  if (structs.includes('chorus')) editPrompts.push('rewrite the chorus with a bigger hook: double-tracked ' + _voxE + ', wider guitars, keep the same lyrics');
+  if (structs.includes('solo') || melody >= 6) editPrompts.push('replace the solo with a longer ' + _leadE + ' solo, keep the backing riff identical');
+  editPrompts.push('keep everything, just change the drums to ' + (drums[0] || 'blast beats') + ' in the second half');
+  editPrompts.push('make the mix rawer and less polished, more amp room and less compression');
+  if (eraTag) editPrompts.push('remix it with ' + eraTag + ', same arrangement');
+  const editStr = editPrompts.slice(0, 5).join('\n');
+
   const extendStr = 'continue with the same vibe and energy, keep ' + bpmTag + ' and ' + _g1 + (leadInst.length ? ', keep the ' + leadInst[0] : '') + ', stay consistent in tempo and instrumentation, build into a ' + _climax;
 
   // ── détecteur de conflits ──
@@ -456,5 +489,5 @@ export default function handler(req, res) {
     '\n\n=== STRUCTURE (-> top of Lyrics) ===\n' + structStr +
     '\n\n=== PRODUCTION NOTES (keep for yourself) ===\n' + heavyD + '. ' + grooveD + '. ' + chaosD + '. ' + melodyD + '. ' + bpmTag + '.' + organicBlock;
 
-  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, timeSig, modelRec, phonetic, rhythmStructTags });
+  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, editStr, editPrompts: editPrompts.slice(0, 5), sliderRec, timeSig, modelRec, phonetic, rhythmStructTags });
 }

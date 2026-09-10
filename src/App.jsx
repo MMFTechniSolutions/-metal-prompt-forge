@@ -1160,6 +1160,9 @@ function Manifesto({onClose,uiLang}){
 function WhatsNew({onClose,uiLang}){
   const fr=uiLang!=="en";
   const items = fr ? [
+    ["⚡ Suno v6 — recette mise à jour","v6 est sorti le 9 sept. et remplace tous les anciens modèles. La recette a été refaite : émotions traduites en termes de production (fini les adjectifs qui lissent le mix), style en 4-6 blocs sans mots vides, garde-fous anti-contradiction (doom à 175 BPM, prod 80s + son moderne), balises de paroles en [Section: description]."],
+    ["🎛️ Réglages Mode Avancé calculés","Weirdness, Style Influence, Variety, Max Mode et genre vocal — calculés d'après tes choix et affichés dans l'onglet Output. Plus besoin de deviner."],
+    ["✂️ Prompts d'édition (nouveau v6)","v6 modifie une section sans tout regénérer. On te prépare 5 instructions prêtes à coller : « make the breakdown half-time and heavier… »."],
     ["🎤 Générateur de mélodies chantées (onglet Mélodie)","26 thèmes metal & hit (refrain, metalcore, melodeath, doom, power, thrash gang, nu-metal…), 47 gammes, 10 familles, voix de chœur et vrais instruments. Écoute, édite, exporte le WAV pour Suno."],
     ["🎼 Métriques mixtes (nouveau)","Onglet Genre (et Structure en mode Avancé) : clique tes chiffrages dans l'ordre — 7/8, 4/4, 9/8, 5/4… La séquence est placée EN TÊTE du Style et Suno la lit comme un feel prog/avant-garde qui teinte tout le morceau."],
     ["🔍 Reverse plus fin","Entre un nom de groupe : on détecte maintenant le genre principal + le 2e genre qui colore le son (ex. folk, prog 70s) + 2-4 signatures sonores (interludes acoustiques, mellotron, clean-to-growl…)."],
@@ -1167,6 +1170,9 @@ function WhatsNew({onClose,uiLang}){
     ["🎤 Paroles","6-10 syllabes par ligne, refrain 3× max — Suno ne rush plus les lignes trop longues."],
     ["🎲 Rappel","Suno est aléatoire par design : génère 2-3 fois le même prompt avant de conclure."],
   ] : [
+    ["⚡ Suno v6 — recipe updated","v6 shipped Sept 9 and replaces every older model. The recipe was rebuilt: emotions mapped to production terms (no more mood adjectives that flatten the mix), style in 4-6 blocks with no filler words, contradiction guards (doom at 175 BPM, 80s production + modern tone), lyric tags as [Section: description]."],
+    ["🎛️ Advanced Mode settings, computed","Weirdness, Style Influence, Variety, Max Mode and vocal gender — computed from your choices and shown in the Output tab. No more guessing."],
+    ["✂️ Edit prompts (new in v6)","v6 edits one section without regenerating everything. We prepare 5 paste-ready instructions: \"make the breakdown half-time and heavier…\"."],
     ["🎤 Singable melody generator (Melody tab)","26 metal & hit themes (chorus, metalcore, melodeath, doom, power, thrash gang, nu-metal…), 47 scales, 10 families, choir voices and real instruments. Listen, edit, export the WAV for Suno."],
     ["🎼 Mixed meters (new)","Genre tab (and Structure in Advanced mode): click your time signatures in order — 7/8, 4/4, 9/8, 5/4… The sequence goes at the TOP of the Style and Suno reads it as a prog/avant-garde feel that colors the whole track."],
     ["🔍 Sharper reverse","Type a band name: we now detect the main genre + the second genre coloring the sound (e.g. folk, 70s prog) + 2-4 sonic signatures (acoustic interludes, mellotron, clean-to-growl…)."],
@@ -1178,7 +1184,7 @@ function WhatsNew({onClose,uiLang}){
     <div style={{position:"fixed",inset:0,background:"#000000ee",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}}>
       <div style={{maxWidth:"580px",width:"100%",background:"linear-gradient(180deg,#120000,#0a0a0b)",border:"1px solid #5a0000",borderRadius:"14px",padding:"28px 24px",boxShadow:"0 0 50px #000",margin:"auto"}}>
         <div style={{textAlign:"center",fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.72rem",letterSpacing:"4px",color:RED,marginBottom:"6px"}}>{fr?"NOUVEAUTÉS":"WHAT'S NEW"}</div>
-        <div className="forge-title" style={{textAlign:"center",fontSize:"1.6rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Mise à jour septembre 🤘":"September update 🤘"}</div>
+        <div className="forge-title" style={{textAlign:"center",fontSize:"1.6rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Suno v6 est là 🤘":"Suno v6 is here 🤘"}</div>
         <div style={{display:"flex",flexDirection:"column",gap:"9px",marginBottom:"20px"}}>
           {items.map((p,i)=>(<div key={i} style={{background:"#0d0000",border:"1px solid #2a0000",borderRadius:"8px",padding:"10px 12px"}}>
             <div style={{color:"#ff9090",fontWeight:800,fontSize:"0.8rem"}}>{p[0]}</div>
@@ -1415,8 +1421,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [emotions,setEmotions]=useState(SV.emotions ?? {});
   const [advanced,setAdvanced]=useState(false);
   const [showManifesto,setShowManifesto]=useState(false);
-  useEffect(()=>{try{if(!localStorage.getItem('mpf_news_202609')){setShowManifesto(true);localStorage.setItem('mp_manifesto_seen','1');}}catch(e){}},[]);
-  const closeManifesto=()=>{try{localStorage.setItem('mpf_news_202609','1');}catch(e){}setShowManifesto(false);};
+  useEffect(()=>{try{if(!localStorage.getItem('mpf_news_202609b')){setShowManifesto(true);localStorage.setItem('mp_manifesto_seen','1');}}catch(e){}},[]);
+  const closeManifesto=()=>{try{localStorage.setItem('mpf_news_202609b','1');}catch(e){}setShowManifesto(false);};
   const [groove,setGroove]=useState(SV.groove ?? 6);
   const [chaos,setChaos]=useState(SV.chaos ?? 7);
   const [melody,setMelody]=useState(SV.melody ?? 3);
@@ -1497,6 +1503,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [fullTxt,setFullTxt]=useState(SV.fullTxt ?? "");
   const [styleTxtC,setStyleTxtC]=useState(SV.styleTxtC ?? "");
   const [coverTxt,setCoverTxt]=useState(SV.coverTxt ?? "");
+  const [editTxt,setEditTxt]=useState(SV.editTxt ?? "");        // v6 : prompts d'édition partielle
+  const [sliderRec,setSliderRec]=useState(SV.sliderRec ?? null);  // v6 : Weirdness / Style Influence / Variety
   const [extendTxt,setExtendTxt]=useState(SV.extendTxt ?? "");
   const [modelRec,setModelRec]=useState(SV.modelRec ?? null);
   const [structTxtC,setStructTxtC]=useState(SV.structTxtC ?? "");
@@ -1515,7 +1523,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [lyricsErr,setLyricsErr]=useState("");
   const [history,setHistory]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_history")||"[]")}catch{return[]}});
   // Sauvegarde continue de l'etat (persistance au refresh)
-  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
+  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
   const resetAll=()=>{ try{ localStorage.removeItem('mpf_state'); Object.keys(localStorage).filter(k=>k.startsWith('mpf_sel_')).forEach(k=>localStorage.removeItem(k)); localStorage.removeItem('mpf_history'); }catch(e){} location.reload(); };
   const saveToHistory=p=>{
     if(!isPro)return;
@@ -1556,7 +1564,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(!r.ok)throw new Error('forge');
     }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie ":"Generation error, try again "); return; }
     setConflicts(data.conflicts||[]);
-    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);
+    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setEditTxt(data.editStr||"");setSliderRec(data.sliderRec||null);setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);
     const nc=promptCount+1;setPromptCount(nc);
     if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
     saveToHistory(data.styleStr);
@@ -2405,6 +2413,25 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             <div style={{background:"#0a0a0a",border:"1px solid #2a1a3a",borderRadius:"6px",padding:"10px",position:"relative"}}>
               <CopyBtn getText={()=>coverTxt}/>
               <div style={{color:"#c9a0ff",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{coverTxt}</div>
+            </div>
+          </div>}
+          {sliderRec&&<div style={{...S.card,borderColor:"#ffaa0044",background:"#100c02"}}>
+            <div style={{...S.outLbl,color:"#ffbb33",marginBottom:"6px"}}>{L("Réglages Mode Avancé (Suno v6)","Advanced Mode settings (Suno v6)")}</div>
+            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"9px",lineHeight:1.5}}>{L("Dans Suno → Create → Advanced. Ces valeurs sont calculées d'après tes choix.","In Suno → Create → Advanced. These values are computed from your choices.")}</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
+              {[[L("Weirdness","Weirdness"),sliderRec.weirdness+"%"],[L("Style Influence","Style Influence"),sliderRec.styleInfluence+"%"],[L("Variety","Variety"),sliderRec.variety+"%"],...(sliderRec.maxMode?[[L("Max Mode","Max Mode"),"ON"]]:[]),...(sliderRec.vocalGender!=="auto"?[[L("Voix","Vocals"),sliderRec.vocalGender]]:[])].map(([k,v])=>(
+                <div key={k} style={{background:"#0a0a0a",border:"1px solid #3a2a05",borderRadius:"6px",padding:"7px 12px",textAlign:"center",minWidth:"84px"}}>
+                  <div style={{fontSize:"0.5rem",color:"#886",letterSpacing:"1px",textTransform:"uppercase"}}>{k}</div>
+                  <div style={{fontSize:"1rem",fontWeight:900,color:"#ffbb33"}}>{v}</div>
+                </div>))}
+            </div>
+          </div>}
+          {editTxt&&<div style={{...S.card,borderColor:"#33aa5533",background:"#04100a"}}>
+            <div style={{...S.outLbl,color:"#5fd98a",marginBottom:"6px"}}>{L("Prompts d'ÉDITION (nouveauté v6)","EDIT prompts (new in v6)")}</div>
+            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"8px",lineHeight:1.5}}>{L("v6 édite une section précise sans tout regénérer. Colle une de ces lignes dans l'édition Suno de ta chanson.","v6 edits one section without regenerating everything. Paste one of these lines into Suno's edit box on your song.")}</div>
+            <div style={{background:"#0a0a0a",border:"1px solid #10381f",borderRadius:"6px",padding:"10px",position:"relative"}}>
+              <CopyBtn getText={()=>editTxt}/>
+              <div style={{color:"#8fe0aa",fontSize:"0.76rem",lineHeight:1.9,paddingRight:"50px",fontFamily:"monospace",whiteSpace:"pre-wrap"}}>{editTxt}</div>
             </div>
           </div>}
           {extendTxt&&<div style={{...S.card,borderColor:"#00aaaa33",background:"#03100f"}}>

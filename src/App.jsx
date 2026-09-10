@@ -577,6 +577,10 @@ function FeelRow({name,cur,children}) {
   );
 }
 
+function CopyBtnInline({getText}) {
+  const [txt,setTxt]=useState("COPY");
+  return <button onClick={()=>navigator.clipboard.writeText(getText()).then(()=>{setTxt("✅");setTimeout(()=>setTxt("COPY"),1500)}).catch(()=>setTxt("ERR"))} style={{flexShrink:0,background:"#141414",border:"1px solid #2a2a2a",borderRadius:"5px",padding:"3px 8px",fontSize:"0.55rem",color:"#888",cursor:"pointer",textTransform:"uppercase",letterSpacing:"1px"}}>{txt}</button>;
+}
 function CopyBtn({getText}) {
   const [txt,setTxt]=useState("COPY");
   return <button style={S.copyBtn} onClick={()=>navigator.clipboard.writeText(getText()).then(()=>{setTxt("✅");setTimeout(()=>setTxt("COPY"),1500)}).catch(()=>setTxt("ERR"))}>{txt}</button>;
@@ -1506,7 +1510,9 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [editTxt,setEditTxt]=useState(SV.editTxt ?? "");        // v6 : prompts d'édition partielle
   const [sliderRec,setSliderRec]=useState(SV.sliderRec ?? null);
   const [critic,setCritic]=useState(SV.critic ?? null);   // passe de critique auto-notée
-  const [meterInfo,setMeterInfo]=useState(SV.meterInfo ?? null);   // {lead, auto} — séquence déduite du genre  // v6 : Weirdness / Style Influence / Variety
+  const [meterInfo,setMeterInfo]=useState(SV.meterInfo ?? null);   // {lead, auto} — séquence déduite du genre
+  const [editList,setEditList]=useState(SV.editList ?? []);        // [{section, prompt}] — une ligne = un copier séparé
+  const [editOpen,setEditOpen]=useState(false);                    // replié par défaut : ça ne doit PAS ressembler à un bloc à coller  // v6 : Weirdness / Style Influence / Variety
   const [extendTxt,setExtendTxt]=useState(SV.extendTxt ?? "");
   const [modelRec,setModelRec]=useState(SV.modelRec ?? null);
   const [structTxtC,setStructTxtC]=useState(SV.structTxtC ?? "");
@@ -1525,7 +1531,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [lyricsErr,setLyricsErr]=useState("");
   const [history,setHistory]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_history")||"[]")}catch{return[]}});
   // Sauvegarde continue de l'etat (persistance au refresh)
-  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
+  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({editList,meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[editList,meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
   const resetAll=()=>{ try{ localStorage.removeItem('mpf_state'); Object.keys(localStorage).filter(k=>k.startsWith('mpf_sel_')).forEach(k=>localStorage.removeItem(k)); localStorage.removeItem('mpf_history'); }catch(e){} location.reload(); };
   const saveToHistory=p=>{
     if(!isPro)return;
@@ -1586,7 +1592,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(!r.ok)throw new Error('forge');
     }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie ":"Generation error, try again "); return; }
     setConflicts(data.conflicts||[]);
-    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setEditTxt(data.editStr||"");setSliderRec(data.sliderRec||null);setCritic(data.critic||null);setMeterInfo(data.meterLead?{lead:data.meterLead,auto:!!data.meterAuto}:null);setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);
+    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setEditTxt(data.editStr||"");setEditList(Array.isArray(data.editPrompts)?data.editPrompts:[]);setEditOpen(false);setSliderRec(data.sliderRec||null);setCritic(data.critic||null);setMeterInfo(data.meterLead?{lead:data.meterLead,auto:!!data.meterAuto}:null);setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);
     const nc=promptCount+1;setPromptCount(nc);
     if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
     saveToHistory(data.styleStr);
@@ -2508,16 +2514,23 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.72rem",lineHeight:1.8,color:"#aa7755",paddingRight:"50px"}}>{structNotes}</pre>
             </div>
           </div>}
-          {editTxt&&<div style={{...S.card,borderColor:"#aa333344",background:"#140505",marginTop:"14px"}}>
-            <div style={{fontSize:"0.66rem",fontWeight:900,color:"#ff7777",lineHeight:1.6}}>{L("⚠ Ces lignes ne vont PAS dans « Styles » ni dans les paroles. Elles servent APRÈS, sur une chanson déjà générée.","⚠ These lines do NOT go in \"Styles\" or in the lyrics. They are used AFTER, on a song you already generated.")}</div>
-          </div>}
-          {editTxt&&<div style={{...S.card,borderColor:"#33aa5533",background:"#04100a"}}>
-            <div style={{...S.outLbl,color:"#5fd98a",marginBottom:"6px"}}>{L("ÉTAPE 5 — Retoucher une section (après génération)","STEP 5 — Fix one section (after generating)")}</div>
-            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"8px",lineHeight:1.5}}>{L("Sur ta chanson dans Suno : ouvre le Song Editor → clique la section voulue sur la timeline → « Replace Section » → colle la ligne correspondante dans la boîte de prompt. (Pour rallonger : le « + » à droite de la piste.)","On your song in Suno: open the Song Editor → click the section on the timeline → \"Replace Section\" → paste the matching line into the prompt box. (To lengthen: the \"+\" at the far right of the track.)")}</div>
-            <div style={{background:"#0a0a0a",border:"1px solid #10381f",borderRadius:"6px",padding:"10px",position:"relative"}}>
-              <CopyBtn getText={()=>editTxt}/>
-              <div style={{color:"#8fe0aa",fontSize:"0.76rem",lineHeight:1.9,paddingRight:"50px",fontFamily:"monospace",whiteSpace:"pre-wrap"}}>{editTxt}</div>
+          {editList.length>0&&<div style={{...S.card,borderColor:"#2a2a2a",background:"#0a0a0b",marginTop:"14px"}}>
+            <div onClick={()=>setEditOpen(o=>!o)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",userSelect:"none"}}>
+              <div>
+                <div style={{...S.outLbl,color:"#8a8a8a",marginBottom:"2px"}}>{L("Plus tard — retoucher une section","Later — fix one section")}</div>
+                <div style={{fontSize:"0.6rem",color:"#555"}}>{L("À utiliser APRÈS, sur une chanson déjà générée. Rien à coller ici.","For AFTER, on a song you already generated. Nothing to paste here.")}</div>
+              </div>
+              <span style={{color:"#666",fontSize:"0.9rem"}}>{editOpen?"▾":"▸"}</span>
             </div>
+            {editOpen&&<div style={{marginTop:"11px",borderTop:"1px solid #1c1c1c",paddingTop:"10px"}}>
+              <div style={{fontSize:"0.62rem",color:"#8a9",lineHeight:1.65,marginBottom:"10px"}}>{L("Dans Suno, ouvre ta chanson → Song Editor → clique la section sur la timeline → « Replace Section » → colle la ligne de cette section dans la boîte de prompt.","In Suno, open your song → Song Editor → click the section on the timeline → \"Replace Section\" → paste that section\'s line into the prompt box.")}</div>
+              {editList.map((e,i2)=>(
+                <div key={i2} style={{display:"flex",gap:"9px",alignItems:"flex-start",padding:"7px 0",borderTop:i2?"1px solid #161616":"none"}}>
+                  <span style={{fontSize:"0.62rem",fontWeight:900,color:"#5fd98a",flexShrink:0,minWidth:"92px",paddingTop:"2px"}}>{e.section}</span>
+                  <span style={{fontSize:"0.7rem",color:"#999",lineHeight:1.5,flex:1}}>{e.prompt}</span>
+                  <CopyBtnInline getText={()=>e.prompt}/>
+                </div>))}
+            </div>}
           </div>}
           {/* STEP 4 */}
           {excludeTxt&&<div style={{...S.card,borderColor:"#5a220022",background:"#080500"}}>

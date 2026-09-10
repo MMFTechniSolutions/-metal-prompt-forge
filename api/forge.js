@@ -169,7 +169,7 @@ export default function handler(req, res) {
     'djent':                ['8-string palm-muted polymetric chugs', 'ultra-tight noise gate between notes', 'ambient clean lead over the groove'],
     'progressive-metal':    ['odd-time riff cycles resolving on 4/4', 'clean-to-distorted dynamic shifts', 'lead bass counter-melody'],
     'mathcore':             ['abrupt start-stop riff cuts', 'atonal dissonant chord stabs', 'panic-chord screams'],
-    'groove-metal':         ['syncopated mid-tempo chugging', 'pinch harmonics on the accents', 'colossal punchy snare'],
+    'groove-metal':         ['syncopated mid-tempo chugging', 'pinch harmonics on the accents', 'American pentatonic blues-rock shred solos', 'colossal punchy snare'],
     'nu-metal':             ['bouncy down-tuned 7-string riffing', 'sung-to-screamed vocal switching', 'turntable scratches and samples'],
     'industrial-metal':     ['mechanical programmed drum loops', 'processed robotic vocal layer', 'cold synth pad under the riff'],
     'doom-metal':           ['slow tritone riffing dragging behind the beat', 'vintage fuzz tone', 'mournful clean vocals'],
@@ -242,7 +242,25 @@ export default function handler(req, res) {
     'avant-garde-metal':   ['free jazz', 'contemporary classical'],
     'drone-metal':         ['dark ambient'],
   };
-  const blendAuto = (genres.length === 1 && _sidEarly && GENRE_BLEND[_sidEarly]) ? GENRE_BLEND[_sidEarly].slice(0, 2) : [];   // anchors sonores du « reverse » (groupe → style)
+  // L'ÉPOQUE change le mélange, pas juste la production : le groove metal de 1990 garde des leads
+  // glam et power metal, celui de 2005 est passé au hardcore et à l'industriel. Même genre, autre son.
+  const BLEND_BY_ERA = {
+    'groove-metal':   { '80s':['glam metal','power metal'], '90s':['glam metal','southern rock'], '2000s':['metalcore','southern rock'], '2010s':['metalcore','djent'], '2020s':['metalcore','djent'] },
+    'thrash-metal':   { '80s':['NWOBHM','hardcore punk'], '90s':['groove metal'], '2010s':['crossover thrash'], '2020s':['crossover thrash'] },
+    'heavy-metal':    { '60s-70s':['blues rock','psychedelic rock'], '80s':['NWOBHM','glam metal'] },
+    'death-metal':    { '80s':['thrash metal'], '90s':['thrash metal'], '2010s':['dissonant death metal'], '2020s':['dissonant death metal'] },
+    'black-metal':    { '80s':['punk rock','thrash metal'], '90s':['punk rock'], '2010s':['post-rock'], '2020s':['post-rock'] },
+    'metalcore':      { '2000s':['melodic death metal','hardcore punk'], '2010s':['post-rock','pop'], '2020s':['nu-metal','pop'] },
+    'deathcore':      { '2000s':['beatdown hardcore','death metal'], '2010s':['djent','death metal'], '2020s':['symphonic metal','blackened death metal'] },
+    'nu-metal':       { '90s':['hip hop','funk'], '2000s':['alternative rock','hip hop'], '2020s':['trap','shoegaze'] },
+    'doom-metal':     { '60s-70s':['blues rock','psychedelic rock'], '80s':['NWOBHM'], '2010s':['post-rock'] },
+    'power-metal':    { '80s':['NWOBHM','neoclassical'], '2000s':['symphonic metal','neoclassical'] },
+    'post-hardcore':  { '90s':['emo','noise rock'], '2000s':['emo','pop punk'] },
+    'industrial-metal':{ '90s':['EBM','groove metal'], '2010s':['electronic body music','djent'] },
+  };
+  const _eraKeyEarly = ['60s-70s','80s','90s','2000s','2010s','2020s'].find(k => A('eras').some(e => String(e).startsWith(k)));
+  const _blendEra = (_sidEarly && _eraKeyEarly && BLEND_BY_ERA[_sidEarly] && BLEND_BY_ERA[_sidEarly][_eraKeyEarly]) ? BLEND_BY_ERA[_sidEarly][_eraKeyEarly] : null;
+  const blendAuto = genres.length === 1 ? (_blendEra || (_sidEarly && GENRE_BLEND[_sidEarly]) || []).slice(0, 2) : [];   // anchors sonores du « reverse » (groupe → style)
   // Époque (couche 3 du style stack) : le client envoie les familles d'époque des genres choisis
   const ERA_TAG = { '60s-70s':'1970s analog tape production', '80s':'1980s production', '90s':'1990s production', '2000s':'2000s production', '2010s':'2010s modern production', '2020s':'2020s modern production' };
   const _eras = A('eras').map(x => String(x));

@@ -41,20 +41,22 @@
   <p>If your Suno metal tracks come out flat, weak, or obviously "AI", the problem is almost always the <strong>prompt</strong>. Suno is very sensitive to wording. This is the complete, no-fluff guide to writing metal prompts that actually hit — deathcore, metalcore, djent, groove, thrash, death and black metal.</p>
   <a class="cta" href="https://metalprompt.com/">🤘 Forge metal prompts free →</a>
 
-  <h2>1. Keep the Style field short (~120 characters)</h2>
-  <p>The Suno "Style of Music" field works best with about <strong>10–12 tags max</strong>. Past that, Suno "checks out" and ignores details like tempo. Lead with the most important info:</p>
+  <h2>1. Keep the Style field tight (aim for 600 characters, not 1000)</h2>
+  <p>The Suno "Style of Music" field accepts up to 1000 characters, but the sweet spot is <strong>5–8 blocks of description</strong>, around 600. Past that the last tags get deprioritized and details like tempo slip. Lead with the most important info — Suno weighs the beginning of the field most heavily:</p>
   <ul>
     <li><strong>Genre first</strong> (1–2 max): <code>deathcore</code>, <code>djent</code>, <code>groove metal</code></li>
-    <li><strong>Tempo early</strong>: <code>180 BPM, fast tempo</code> — putting BPM near the front makes Suno respect it.</li>
+    <li><strong>Tempo as a number, early</strong>: <code>180 BPM</code> — a figure, not a vague word like "fast tempo" that Suno has to guess at.</li>
     <li>Then drums, vocals, guitar tone, mood — comma-separated, never full sentences.</li>
   </ul>
 
   <h2>2. The winning tag order</h2>
-  <p><code>[Genre] · [Tempo/BPM] · [Drums] · [Vocals] · [Guitar tone] · [Mood]</code></p>
-  <p>Example: <code>deathcore, 180 BPM, blast beats, guttural growls, drop B tuning, crushing and heavy</code>. Tight, ordered, under 120 characters.</p>
+  <p><code>[Sub-genre / time signatures] ; [Textures &amp; instruments] ; [Vocal style] ; [Mix &amp; tonality]</code></p>
+  <p>Drop the empty words. <code>epic</code>, <code>brutal</code>, <code>heavy</code>, <code>intense</code>, <code>aggressive</code> describe no actual sound — Suno averages them into a bland commercial mix. Write <code>fast blast beats, dissonant minor chugs, raw distorted shout</code> instead.</p>
+  <p>Example: <code>deathcore, 180 BPM; chugging riffs, phrygian breakdowns, blast beats; guttural growls; Drop A, A minor, modern polished mix</code>.</p>
+  <p>Pick the tuning your sub-genre actually uses — Drop A or Drop B for deathcore, Drop C for metalcore, C standard for doom, E standard for thrash. A tuning tag that fights the genre is one of the fastest ways to get a generic result.</p>
 
   <h2>3. Use structure tags in the Lyrics box</h2>
-  <p>Section tags like <code>[Verse]</code>, <code>[Chorus]</code>, <code>[Breakdown]</code> go at the <strong>top of the Lyrics field</strong>, not the Style field. Suno reads them as instructions, and verse/chorus are the most reliably respected. A <code>[Breakdown, half-time feel]</code> tag gives you a near-guaranteed rhythm change.</p>
+  <p>Section tags like <code>[Verse]</code>, <code>[Chorus]</code>, <code>[Breakdown]</code> go at the <strong>top of the Lyrics field</strong>, not the Style field. Use a <strong>colon</strong> inside the brackets — <code>[Intro: down-tuned crushing riff]</code>, never a comma, or Suno sings the instruction out loud. Never put a section after <code>[Outro]</code>, and close on <code>[End]</code>. Suno reads them as instructions, and verse/chorus are the most reliably respected. A <code>[Breakdown, half-time feel]</code> tag gives you a near-guaranteed rhythm change.</p>
 
   <h2>4. Kill the "plastic AI" sound (organic tags)</h2>
   <p>To make Suno metal sound human, add organic tags and avoid "polished" ones:</p>
@@ -64,13 +66,15 @@
   </ul>
 
   <h2>5. Exclude what you don't want</h2>
-  <p>In the Style field, prefix tags with a minus to tell Suno what to avoid: <code>deathcore, -pop, -clean vocals, -piano</code>. This stops a piano from crashing your deathcore.</p>
+  <p>Use the dedicated <strong>Exclude Styles</strong> field rather than stuffing negatives into the Style field: <code>pop, clean vocals, piano</code>. Keep it to a handful — vague negatives underperform, and a positive replacement ("very loud drums and guitars, aggressive mix") does more work than a long list of things to avoid.</p>
 
-  <h2>6. The advanced sliders (More Options)</h2>
+  <h2>6. The advanced sliders (v6 Advanced Mode)</h2>
   <ul>
-    <li><strong>Style Influence: 70–90%</strong> — high, so Suno respects your precise tags.</li>
-    <li><strong>Weirdness: 40–60%</strong> — creative but coherent. Higher = chaos.</li>
+    <li><strong>Style Influence: 65–85%</strong> — high, so Suno holds the genre lane. Lower it only if your description is being followed too rigidly.</li>
+    <li><strong>Weirdness: 25–40 safe, 45–55 neutral, 60–75 adventurous</strong> — lower it when the hook needs stability, raise it when results feel generic.</li>
+    <li><strong>Variety: 0</strong> for maximum consistency between the two versions v6 generates; raise it to explore a fusion.</li>
     <li><strong>Audio Influence: 55–75%</strong> — when you upload a reference (like a riff WAV), higher sticks closer to it.</li>
+    <li><strong>Max Mode: ON</strong> for long, multi-section songs.</li>
   </ul>
 
   <div class="box">
@@ -82,9 +86,9 @@
   <hr/>
   <h2>Quick reference: prompts by sub-genre</h2>
   <ul>
-    <li><strong>Deathcore:</strong> <code>deathcore, 180 BPM, blast beats, guttural growls, pig squeals, drop B tuning, crushing and heavy</code></li>
+    <li><strong>Deathcore:</strong> <code>deathcore, 180 BPM; chugging riffs, phrygian breakdowns, blast beats; guttural growls, pig squeals; Drop A, A minor, modern polished mix</code></li>
     <li><strong>Djent:</strong> <code>djent, 140 BPM, polyrhythmic drums, 8-string guitar, groovy and headbang-worthy</code></li>
-    <li><strong>Black metal:</strong> <code>black metal, 200 BPM, tremolo picking, blast beats, shrieks, sinister and dark</code></li>
+    <li><strong>Black metal:</strong> <code>black metal, 200 BPM; tremolo picking, blast beats, open chords; piercing shrieks; standard tuning, E minor, lo-fi abrasive mix</code></li>
     <li><strong>Groove metal:</strong> <code>groove metal, 130 BPM, half-time groove, mid-range harsh vocals, chugging riffs</code></li>
   </ul>
   <p>Want these generated automatically, fine-tuned to your settings, with lyrics and a riff to match? <a href="https://metalprompt.com/">Forge them on MetalPrompt</a> — free to start. 🤘</p>

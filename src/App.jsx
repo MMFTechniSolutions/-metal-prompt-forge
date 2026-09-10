@@ -706,7 +706,7 @@ function PaywallModal({onClose,email,uiLang}) {
 
 function LandingPage({onEnter,uiLang,setUiLang,email}) {
   const examples=[
-    {tags:"deathcore, blast beats, pig squeals, drop B tuning, 180 BPM",genre:"DEATHCORE",color:"#ff2e2e"},
+    {tags:"deathcore, 180 BPM; chugging riffs, blast beats; guttural growls, pig squeals; Drop A, A minor",genre:"DEATHCORE",color:"#ff2e2e"},
     {tags:"djent, polyrhythmic drums, 7-string guitar, groovy and headbang-worthy, 140 BPM",genre:"DJENT",color:"#ff6600"},
     {tags:"black metal, tremolo picking, blast beats, sinister and dark, 200 BPM",genre:"BLACK METAL",color:"#aa00ff"},
   ];
@@ -1166,7 +1166,7 @@ function WhatsNew({onClose,uiLang}){
     ["🎤 Générateur de mélodies chantées (onglet Mélodie)","26 thèmes metal & hit (refrain, metalcore, melodeath, doom, power, thrash gang, nu-metal…), 47 gammes, 10 familles, voix de chœur et vrais instruments. Écoute, édite, exporte le WAV pour Suno."],
     ["🎼 Métriques mixtes (nouveau)","Onglet Genre (et Structure en mode Avancé) : clique tes chiffrages dans l'ordre — 7/8, 4/4, 9/8, 5/4… La séquence est placée EN TÊTE du Style et Suno la lit comme un feel prog/avant-garde qui teinte tout le morceau."],
     ["🔍 Reverse plus fin","Entre un nom de groupe : on détecte maintenant le genre principal + le 2e genre qui colore le son (ex. folk, prog 70s) + 2-4 signatures sonores (interludes acoustiques, mellotron, clean-to-growl…)."],
-    ["🧠 Recette alignée sur Suno v5.5","Genre en position 1, fusion « X-influenced » au lieu de 2 genres nus, époque de production (70s analog → 2020s modern), clé explicite (ex. D minor), prompt plus court (idéal ≤ 600 car.) — Suno pèse les premiers tags."],
+    ["🧠 Recette alignée sur Suno v6","Genre en position 1, fusion « X-influenced » au lieu de 2 genres nus, époque de production (70s analog → 2020s modern), clé explicite (ex. D minor), prompt plus court (idéal ≤ 600 car.) — Suno pèse les premiers tags."],
     ["🎤 Paroles","6-10 syllabes par ligne, refrain 3× max — Suno ne rush plus les lignes trop longues."],
     ["🎲 Rappel","Suno est aléatoire par design : génère 2-3 fois le même prompt avant de conclure."],
   ] : [
@@ -1176,7 +1176,7 @@ function WhatsNew({onClose,uiLang}){
     ["🎤 Singable melody generator (Melody tab)","26 metal & hit themes (chorus, metalcore, melodeath, doom, power, thrash gang, nu-metal…), 47 scales, 10 families, choir voices and real instruments. Listen, edit, export the WAV for Suno."],
     ["🎼 Mixed meters (new)","Genre tab (and Structure in Advanced mode): click your time signatures in order — 7/8, 4/4, 9/8, 5/4… The sequence goes at the TOP of the Style and Suno reads it as a prog/avant-garde feel that colors the whole track."],
     ["🔍 Sharper reverse","Type a band name: we now detect the main genre + the second genre coloring the sound (e.g. folk, 70s prog) + 2-4 sonic signatures (acoustic interludes, mellotron, clean-to-growl…)."],
-    ["🧠 Recipe aligned with Suno v5.5","Genre in position 1, « X-influenced » fusion instead of two bare genres, production era (70s analog → 2020s modern), explicit key (e.g. D minor), shorter prompt (sweet spot ≤ 600 chars) — Suno weighs the first tags most."],
+    ["🧠 Recipe aligned with Suno v6","Genre in position 1, « X-influenced » fusion instead of two bare genres, production era (70s analog → 2020s modern), explicit key (e.g. D minor), shorter prompt (sweet spot ≤ 600 chars) — Suno weighs the first tags most."],
     ["🎤 Lyrics","6-10 syllables per line, chorus 3× max — Suno stops rushing long lines."],
     ["🎲 Reminder","Suno is random by design: run the same prompt 2-3 times before judging."],
   ];
@@ -1378,12 +1378,12 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [vrange,tVrange,setVrange]=useSet([],"vrange");
   const [vfx,tVfx,setVfx]=useSet([],"vfx");
   const [guitar,tGuitar,setGuitar]=useSet(["chugging riffs","palm muting"],"guitar");
-  const [tuning,tTuning,setTuning]=useSet(["drop B tuning"],"tuning");
+  const [tuning,tTuning,setTuning]=useSet([],"tuning");        // vide = accordage déduit du genre (sinon Drop B se collait partout)
   const [gprod,tGprod]=useSet(["heavy distortion","layered guitar tracks"],"gprod");
   const [bassStyle,tBassStyle]=useSet(["fingerstyle bass"],"bassStyle");
   const [bassTech,tBassTech]=useSet([],"bassTech");
   const [bassTone,tBassTone]=useSet(["distorted bass"],"bassTone");
-  const [bassTuning,tBassTuning]=useSet(["bass drop B"],"bassTuning");
+  const [bassTuning,tBassTuning]=useSet([],"bassTuning");      // idem
   const [bassProd,tBassProd]=useSet(["sub-bass boosted"],"bassProd");
   const [sax,tSax]=useSet([],"sax");
   const [brass,tBrass]=useSet([],"brass");
@@ -1633,7 +1633,7 @@ RULES:
 - FORBIDDEN WORDS: ${allBanned.slice(0,25).join(", ")||"none"}
 - Each section = completely different metaphors
 - Breakdown lines = under 6 words each
-- SECTION TAG SYNTAX (critical): inside brackets, separate the section name from its description with a COLON, never a comma — [Intro: heavy drop B crushing riff], NOT [Intro, crushing riff]. With a comma Suno sings the instruction out loud.
+- SECTION TAG SYNTAX (critical): inside brackets, separate the section name from its description with a COLON, never a comma — [Intro: down-tuned crushing riff], NOT [Intro, crushing riff]. With a comma Suno sings the instruction out loud.
 - LINEAR ORDER (critical): never write a [Verse] or [Chorus] after the [Outro]. The outro is the last section, and the very last line of the output must be the tag [End] on its own line.
 - Gang chants: ALL CAPS, short, ending with an exclamation mark, written directly under their tag.
 - 6-10 syllables per line (Suno rushes or truncates longer lines); keep syllable counts similar within a section
@@ -2195,21 +2195,23 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <div style={{fontSize:"0.74rem",color:"#aaa",lineHeight:1.55,marginTop:"3px"}}>{p.d}</div>
             </div>
           ))}
-          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("En haut du prompt : le modèle Suno recommandé (v4.5 = brut/heavy, v5 = poli). Teste les deux.","At the top of the prompt: the recommended Suno model (v4.5 = raw/heavy, v5 = polished). Try both.")}</div>
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("En haut du prompt : le modèle Suno recommandé (v6 = fiable et poli, v6-wild = plus varié et cru, v6-mini = rapide/gratuit). Teste-en deux.","At the top of the prompt: the recommended Suno model (v6 = reliable and polished, v6-wild = more varied and raw, v6-mini = fast/free). Try two of them.")}</div>
         </div>
 
         {/* REGLAGES SUNO */}
         <div style={S.card}>
-          <div style={S.ctitle}>{L("3 · Réglages Suno (More Options)","3 · Suno settings (More Options)")}</div>
-          <div style={{fontSize:"0.72rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("Dans Suno, ouvre « More Options ». Réglages conseillés pour le metal :","In Suno, open « More Options ». Recommended settings for metal:")}</div>
+          <div style={S.ctitle}>{L("3 · Réglages Suno v6 (Advanced)","3 · Suno v6 settings (Advanced)")}</div>
+          <div style={{fontSize:"0.72rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("Dans Suno v6 → Create → Advanced. L'onglet Output te donne déjà ces valeurs calculées d'après tes choix ; voici les plages générales :","In Suno v6 → Create → Advanced. The Output tab already gives you these values computed from your choices; here are the general ranges:")}</div>
           {[
-            {n:"Weirdness",v:"40-60%",d:L("Garde ça cohérent. Plus haut = chaos / expérimental.","Keep it coherent. Higher = chaos / experimental.")},
-            {n:"Style Influence",v:"70-90%",d:L("HAUT — pour que Suno respecte tes tags MetalPrompt précis.","HIGH — so Suno respects your precise MetalPrompt tags.")},
+            {n:"Weirdness",v:"25-40 / 45-55 / 60-75",d:L("Bas = hook stable. 50 = neutre. Haut = choix inattendus. Monte-le si les résultats sonnent génériques.","Low = stable hook. 50 = neutral. High = unexpected choices. Raise it if results sound generic.")},
+            {n:"Style Influence",v:"65-85%",d:L("HAUT — pour que Suno tienne la voie du genre. Baisse-le si le prompt est suivi trop rigidement.","HIGH — so Suno holds the genre lane. Lower it if the prompt is followed too rigidly.")},
+            {n:"Variety",v:"0-25%",d:L("Nouveau en v6. 0 = cohérence maximale entre les 2 versions générées. Monte-le pour explorer une fusion.","New in v6. 0 = maximum consistency across the 2 generated versions. Raise it to explore a fusion.")},
+            {n:"Max Mode",v:"ON si long",d:L("Garde la cohérence sur les morceaux longs (6+ sections).","Keeps consistency on long songs (6+ sections).")},
             {n:"Audio Influence",v:"55-75%",d:L("Apparaît avec un upload. Plus haut = colle à ta référence (ex. ton WAV du Riff Generator).","Appears with an upload. Higher = sticks to your reference (e.g. your Riff Generator WAV).")},
             {n:"Vocal Gender",v:"Male",d:L("Male pour la plupart du metal (Female pour certains styles).","Male for most metal (Female for some styles).")},
-            {n:"Exclude styles",v:"<->",d:L("Recopie tes tags de l'onglet Exclude (pop, clean vocals…).","Copy your tags from the Exclude tab (pop, clean vocals…).")},
-          ].map((r,i)=>(
-            <div key={r.n} style={{padding:"8px 0",borderBottom:i<4?"1px solid #1a1a1a":"none"}}>
+            {n:"Exclude Styles",v:"<->",d:L("Recopie tes tags de l'onglet Exclude (pop, clean vocals…). Reste court : seules les exclusions nettes marchent.","Copy your tags from the Exclude tab (pop, clean vocals…). Keep it short: only clear exclusions work.")},
+          ].map((r,i,ar)=>(
+            <div key={r.n} style={{padding:"8px 0",borderBottom:i<ar.length-1?"1px solid #1a1a1a":"none"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:"8px"}}>
                 <span style={{fontSize:"0.8rem",fontWeight:800,color:"#e0e0e0"}}>{r.n}</span>
                 <span style={{fontSize:"0.74rem",fontWeight:900,color:RED,fontFamily:"monospace"}}>{r.v}</span>
@@ -2404,7 +2406,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <CopyBtn getText={()=>styleShown}/>
               <div style={{color:"#ff9090",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{styleShown}</div>
             </div>
-            <div style={{fontSize:"0.58rem",marginTop:"7px",textAlign:"right",fontWeight:700,color:styleShown.length<=600?"#4caf50":styleShown.length<=800?"#cc9900":"#ff5555"}}>{styleShown.length} {L("car.","chars")} · {styleShown.length<=600?L("idéal Suno v5.5 ","ideal for Suno v5.5 "):styleShown.length<=800?L("un peu long — les derniers tags pèsent moins","a bit long — last tags weigh less"):L("trop long — Suno risque d'ignorer le tempo/détails","too long — Suno may drop tempo/details")}</div>
+            <div style={{fontSize:"0.58rem",marginTop:"7px",textAlign:"right",fontWeight:700,color:styleShown.length<=600?"#4caf50":styleShown.length<=800?"#cc9900":"#ff5555"}}>{styleShown.length} {L("car.","chars")} · {styleShown.length<=600?L("idéal Suno v6 ","ideal for Suno v6 "):styleShown.length<=800?L("un peu long — les derniers tags pèsent moins","a bit long — last tags weigh less"):L("trop long — Suno risque d'ignorer le tempo/détails","too long — Suno may drop tempo/details")}</div>
           </div>
           {/* COVER + EXTEND (T11) */}
           {coverTxt&&<div style={{...S.card,borderColor:"#9b59b633",background:"#0a0510"}}>

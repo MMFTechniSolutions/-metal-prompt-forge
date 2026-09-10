@@ -112,7 +112,7 @@ export default function handler(req, res) {
   const lang = b.lang || 'en';
   const L = (fr, en) => lang === 'fr' ? fr : en;
 
-  const rFor = k => blockRhythm[k] ? ', ' + String(blockRhythm[k]).replace(/[\[\]:]/g, '') : '';
+  const rFor = k => blockRhythm[k] ? ' | ' + String(blockRhythm[k]).replace(/[\[\]|:]/g, '') : '';
   const tempoWord = ''; // v5.5 : plus de mot vague de tempo, le BPM chiffré suffit
   const _tempoWordOld = bpm >= 210 ? 'blistering fast tempo' : bpm >= 170 ? 'fast tempo' : bpm >= 120 ? 'mid-tempo' : bpm >= 90 ? 'slow groovy tempo' : 'slow doom tempo';
   // ENCYCLOPÉDIE → calibration par genre (temps de mesure, gamme/mode, production, tuning par défaut) — secret serveur
@@ -174,24 +174,6 @@ export default function handler(req, res) {
     modelRec = { best:'v6', good:'v6-wild', weak:'v6-mini', why: L('qualité globale', 'best overall quality') };
   modelRec.note = L('v6 = modèle courant (9 sept. 2026). v6-wild : plus varié. v6-mini : plus rapide, offert à tous. Les anciens modèles sont retirés.', 'v6 = current model (Sept 9, 2026). v6-wild: more varied. v6-mini: faster, free tier. Older models are retired.');
 
-  // ── RÉGLAGES DU MODE AVANCÉ v6 (Weirdness / Style Influence / Variety) ──
-  // Plages issues des guides : Weirdness 25-40 sûr / 45-55 neutre / 60-75 aventureux ;
-  // Style Influence 65-85 = tenir la voie du genre ; Variety 0 = cohérence maximale.
-  const _clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(v)));
-  const _weird = _clamp(30 + chaos * 4.5, 25, 78);                        // slider Chaos de l'app → Weirdness
-  let _styleInf = _clamp(72 + (_worldGenreEarly ? 8 : 0) - (genres.length > 1 ? 6 : 0), 55, 88);
-  const _variety = genres.length > 1 || chaos >= 8 ? 25 : 0;              // fusion/chaos = un peu de variance, sinon 0
-  const sliderRec = {
-    weirdness: _weird,
-    styleInfluence: _styleInf,
-    variety: _variety,
-    maxMode: structs.length >= 6,                                          // morceau long/structuré → Max Mode
-    vocalGender: /female|soprano|femme/i.test(vocals.concat(vrange).join(' ')) ? 'female'
-               : /male|baritone|tenor|homme/i.test(vocals.concat(vrange).join(' ')) ? 'male' : 'auto',
-    why: L(
-      'Weirdness ' + _weird + ' (ton curseur Chaos) · Style Influence ' + _styleInf + ' (tenir la voie du genre) · Variety ' + _variety + (structs.length >= 6 ? ' · Max Mode ON (morceau long)' : ''),
-      'Weirdness ' + _weird + ' (your Chaos slider) · Style Influence ' + _styleInf + ' (hold the genre lane) · Variety ' + _variety + (structs.length >= 6 ? ' · Max Mode ON (long song)' : '')),
-  };
   // Recommandation phonétique (voir /api/_lib/phoneticize.js) — validé 2026-07-04 :
   // déformer l'orthographe empêche Suno de sur-articuler les vocaux harsh.
   let phonetic = { enabled: false, intensity: null, why: null };
@@ -453,8 +435,11 @@ export default function handler(req, res) {
     bridge: chaos >= 7 ? 'shifting time signature, dissonant chords' : 'clean guitar, building drums',
     outro: chaos >= 7 ? 'blast beats, fading feedback' : 'final breakdown, ringing feedback',
   };
-  // v6 : deux-points OBLIGATOIRES dans les crochets — avec une virgule Suno chante l'indication
-  const blockTag = k => '[' + NAME[k] + ': ' + DESC[k] + rFor(k) + ']';
+  // Séparateur = PIPE (vérifié 2026-09-10) : les guides de métatags et un test jour-1 de v6
+  // confirment « [Bridge | whispered French bridge] ». La virgule provoque un « instructional
+  // collapse » (tous les éléments au même niveau) et peut être chantée. Le reste de l'app
+  // (vocalMix, duo) utilisait déjà le pipe — on garde UNE seule syntaxe.
+  const blockTag = k => '[' + NAME[k] + ' | ' + DESC[k] + rFor(k) + ']';
   // v6 : ordre linéaire — rien après l'outro, et on ferme sur [End]
   const _hasOutro = structs.includes('outro');
   const _structsOrdered = [...structs.filter(x => x !== 'outro'), ...(_hasOutro ? ['outro'] : [])];
@@ -465,6 +450,38 @@ export default function handler(req, res) {
   const overflowLine = overflow.length ? '[' + overflow.join(', ') + ']' : '';
   const structStrC = [overflowLine, ...blocksClean].filter(Boolean).join('\n');
   const structNotesTxt = ''; // notes par section maintenant DANS la structure (entre crochets)
+
+  // ── RÉGLAGES « More Options » de Suno v6 ──
+  // Calé sur le VRAI panneau (capture 2026-09-10) : Exclude Styles, Vocal Gender (Male/Female),
+  // Duration (Custom/Auto), Max Mode (Off/On), Weirdness %, Style Influence %, Audio Influence %,
+  // Variety (label Low/Medium/High — PAS un pourcentage), Personalize/My Taste (Off/On).
+  const _clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(v)));
+  const _weird = _clamp(30 + chaos * 4.5, 25, 78);                      // curseur Chaos de l'app -> Weirdness
+  const _nConf = conf.length;
+  // Style Influence : la doc Suno ne donne aucune plage (juste Loose <-> Strong, défaut 50).
+  // Règle retenue : un prompt SANS contradiction supporte l'adhérence max ; chaque conflit détecté
+  // laisse un peu de marge à Suno pour arbitrer plutôt que de rendre la contradiction telle quelle.
+  const _styleInf = _clamp(100 - _nConf * 8 - (genres.length > 1 ? 5 : 0), 60, 100);
+  const _varietyLbl = (genres.length > 1 || chaos >= 8) ? 'Medium' : 'Low';
+  const _vTxtAll = vocals.concat(vrange).join(' ');
+  const sliderRec = {
+    weirdness: _weird,
+    styleInfluence: _styleInf,
+    variety: _varietyLbl,                                              // label, pas un %
+    audioInfluence: 65,                                                // n'apparaît qu'avec une source audio (upload OU Cover)
+    maxMode: structs.length >= 6,
+    duration: structs.length >= 6 ? 'Custom' : 'Auto',
+    personalize: false,                                                // My Taste OFF quand on teste un prompt
+    vocalGender: /female|soprano|femme/i.test(_vTxtAll) ? 'Female'
+               : /male|baritone|tenor|homme|growl|guttural/i.test(_vTxtAll) ? 'Male' : '—',
+    why: L(
+      _nConf ? _nConf + ' conflit' + (_nConf > 1 ? 's' : '') + ' détecté' + (_nConf > 1 ? 's' : '') + ' → Style Influence baissé pour laisser Suno arbitrer.'
+             : 'Prompt sans contradiction → Style Influence poussé au maximum.',
+      _nConf ? _nConf + ' conflict' + (_nConf > 1 ? 's' : '') + ' detected → Style Influence lowered so Suno can resolve it.'
+             : 'No contradiction in the prompt → Style Influence pushed to the max.'),
+    audioNote: L('Audio Influence n\'apparaît qu\'avec une source audio : un WAV téléversé (Riff / Mélodie) OU un Cover. Haut = garde la mélodie et le rythme de la source ; bas = Suno réinterprète. En Cover avec un prompt modifié, baisse-le à 30-50 pour que le nouveau style prenne le dessus.',
+                 'Audio Influence only appears with an audio source: an uploaded WAV (Riff / Melody) OR a Cover. High = keeps the source melody and rhythm; low = Suno reinterprets. On a Cover with a changed prompt, drop it to 30-50 so the new style wins.'),
+  };
 
   // v6 — Song Editor : on sélectionne UNE section sur la timeline puis « Replace Section »,
   // et la boîte de prompt réécrit cette section-là. Les instructions sont donc ciblées par section.

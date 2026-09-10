@@ -1633,7 +1633,7 @@ RULES:
 - FORBIDDEN WORDS: ${allBanned.slice(0,25).join(", ")||"none"}
 - Each section = completely different metaphors
 - Breakdown lines = under 6 words each
-- SECTION TAG SYNTAX (critical): inside brackets, separate the section name from its description with a COLON, never a comma — [Intro: down-tuned crushing riff], NOT [Intro, crushing riff]. With a comma Suno sings the instruction out loud.
+- SECTION TAG SYNTAX (critical): inside brackets, separate elements with a PIPE, never a comma — [Intro | down-tuned crushing riff], NOT [Intro, crushing riff]. Commas flatten the instruction and can get sung out loud. Keep each tag to 3-5 pipe-separated elements maximum.
 - LINEAR ORDER (critical): never write a [Verse] or [Chorus] after the [Outro]. The outro is the last section, and the very last line of the output must be the tag [End] on its own line.
 - Gang chants: ALL CAPS, short, ending with an exclamation mark, written directly under their tag.
 - 6-10 syllables per line (Suno rushes or truncates longer lines); keep syllable counts similar within a section
@@ -2418,23 +2418,15 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
           </div>}
           {sliderRec&&<div style={{...S.card,borderColor:"#ffaa0044",background:"#100c02"}}>
-            <div style={{...S.outLbl,color:"#ffbb33",marginBottom:"6px"}}>{L("Réglages Mode Avancé (Suno v6)","Advanced Mode settings (Suno v6)")}</div>
-            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"9px",lineHeight:1.5}}>{L("Dans Suno → Create → Advanced. Ces valeurs sont calculées d'après tes choix.","In Suno → Create → Advanced. These values are computed from your choices.")}</div>
-            <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
-              {[[L("Weirdness","Weirdness"),sliderRec.weirdness+"%"],[L("Style Influence","Style Influence"),sliderRec.styleInfluence+"%"],[L("Variety","Variety"),sliderRec.variety+"%"],...(sliderRec.maxMode?[[L("Max Mode","Max Mode"),"ON"]]:[]),...(sliderRec.vocalGender!=="auto"?[[L("Voix","Vocals"),sliderRec.vocalGender]]:[])].map(([k,v])=>(
-                <div key={k} style={{background:"#0a0a0a",border:"1px solid #3a2a05",borderRadius:"6px",padding:"7px 12px",textAlign:"center",minWidth:"84px"}}>
-                  <div style={{fontSize:"0.5rem",color:"#886",letterSpacing:"1px",textTransform:"uppercase"}}>{k}</div>
-                  <div style={{fontSize:"1rem",fontWeight:900,color:"#ffbb33"}}>{v}</div>
-                </div>))}
-            </div>
-          </div>}
-          {editTxt&&<div style={{...S.card,borderColor:"#33aa5533",background:"#04100a"}}>
-            <div style={{...S.outLbl,color:"#5fd98a",marginBottom:"6px"}}>{L("Prompts d'ÉDITION (nouveauté v6)","EDIT prompts (new in v6)")}</div>
-            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"8px",lineHeight:1.5}}>{L("Sur ta chanson dans Suno : ouvre le Song Editor → clique la section voulue sur la timeline → « Replace Section » → colle la ligne correspondante dans la boîte de prompt. (Pour rallonger : le « + » à droite de la piste.)","On your song in Suno: open the Song Editor → click the section on the timeline → \"Replace Section\" → paste the matching line into the prompt box. (To lengthen: the \"+\" at the far right of the track.)")}</div>
-            <div style={{background:"#0a0a0a",border:"1px solid #10381f",borderRadius:"6px",padding:"10px",position:"relative"}}>
-              <CopyBtn getText={()=>editTxt}/>
-              <div style={{color:"#8fe0aa",fontSize:"0.76rem",lineHeight:1.9,paddingRight:"50px",fontFamily:"monospace",whiteSpace:"pre-wrap"}}>{editTxt}</div>
-            </div>
+            <div style={{...S.outLbl,color:"#ffbb33",marginBottom:"6px"}}>{L("Réglages « More Options » (Suno v6)","\"More Options\" settings (Suno v6)")}</div>
+            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"9px",lineHeight:1.5}}>{L("Dans Suno → Create → Custom → More Options. Recopie ces valeurs de haut en bas.","In Suno → Create → Custom → More Options. Copy these values top to bottom.")}</div>
+            {[["Vocal Gender",sliderRec.vocalGender],["Duration",sliderRec.duration],["Max Mode",sliderRec.maxMode?"On":"Off"],["Weirdness",sliderRec.weirdness+"%"],["Style Influence",sliderRec.styleInfluence+"%"],["Audio Influence",sliderRec.audioInfluence+"%"],["Variety",sliderRec.variety],["Personalize (My Taste)",sliderRec.personalize?"On":"Off"]].map(([k,v],i2)=>(
+              <div key={k} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",padding:"6px 2px",borderBottom:i2<7?"1px solid #1e1a0a":"none"}}>
+                <span style={{fontSize:"0.72rem",color:"#bbb"}}>{k}</span>
+                <span style={{fontSize:"0.85rem",fontWeight:900,color:"#ffbb33",fontFamily:"monospace"}}>{v}</span>
+              </div>))}
+            <div style={{fontSize:"0.58rem",color:"#776",marginTop:"9px",lineHeight:1.6}}>{sliderRec.why}</div>
+            <div style={{fontSize:"0.58rem",color:"#665",marginTop:"4px",lineHeight:1.6}}>{sliderRec.audioNote}</div>
           </div>}
           {extendTxt&&<div style={{...S.card,borderColor:"#00aaaa33",background:"#03100f"}}>
             <div style={{...S.outLbl,color:"#33ccbb",marginBottom:"6px"}}>{L("Prompt EXTEND (rallonge)","EXTEND prompt (lengthen)")}</div>
@@ -2471,6 +2463,17 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.72rem",lineHeight:1.8,color:"#aa7755",paddingRight:"50px"}}>{structNotes}</pre>
             </div>
           </div>}
+          {editTxt&&<div style={{...S.card,borderColor:"#aa333344",background:"#140505",marginTop:"14px"}}>
+            <div style={{fontSize:"0.66rem",fontWeight:900,color:"#ff7777",lineHeight:1.6}}>{L("⚠ Ces lignes ne vont PAS dans « Styles » ni dans les paroles. Elles servent APRÈS, sur une chanson déjà générée.","⚠ These lines do NOT go in \"Styles\" or in the lyrics. They are used AFTER, on a song you already generated.")}</div>
+          </div>}
+          {editTxt&&<div style={{...S.card,borderColor:"#33aa5533",background:"#04100a"}}>
+            <div style={{...S.outLbl,color:"#5fd98a",marginBottom:"6px"}}>{L("ÉTAPE 5 — Retoucher une section (après génération)","STEP 5 — Fix one section (after generating)")}</div>
+            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"8px",lineHeight:1.5}}>{L("Sur ta chanson dans Suno : ouvre le Song Editor → clique la section voulue sur la timeline → « Replace Section » → colle la ligne correspondante dans la boîte de prompt. (Pour rallonger : le « + » à droite de la piste.)","On your song in Suno: open the Song Editor → click the section on the timeline → \"Replace Section\" → paste the matching line into the prompt box. (To lengthen: the \"+\" at the far right of the track.)")}</div>
+            <div style={{background:"#0a0a0a",border:"1px solid #10381f",borderRadius:"6px",padding:"10px",position:"relative"}}>
+              <CopyBtn getText={()=>editTxt}/>
+              <div style={{color:"#8fe0aa",fontSize:"0.76rem",lineHeight:1.9,paddingRight:"50px",fontFamily:"monospace",whiteSpace:"pre-wrap"}}>{editTxt}</div>
+            </div>
+          </div>}
           {/* STEP 4 */}
           {excludeTxt&&<div style={{...S.card,borderColor:"#5a220022",background:"#080500"}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
@@ -2479,8 +2482,9 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
             <div style={{fontSize:"0.63rem",color:"#a86",marginBottom:"10px",lineHeight:1.6}}>{t.step4d}</div>
             <div style={{background:"#0a0a0a",border:"1px solid #3a1500",borderRadius:"6px",padding:"10px",position:"relative"}}>
-              <CopyBtn getText={()=>excludeTxt.split(", ").map(x=>"-"+x).join(", ")}/>
-              <div style={{color:"#ff8844",fontSize:"0.78rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{excludeTxt.split(", ").map(x=>"-"+x).join(", ")}</div>
+              <CopyBtn getText={()=>excludeTxt}/>
+              <div style={{color:"#ff8844",fontSize:"0.78rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{excludeTxt}</div>
+              <div style={{fontSize:"0.55rem",color:"#665",marginTop:"6px",paddingRight:"50px"}}>{L("Colle tel quel dans le champ « Exclude Styles » — Suno ajoute lui-même le « - » à l'affichage.","Paste as-is into the \"Exclude Styles\" field — Suno adds the \"-\" on display itself.")}</div>
             </div>
           </div>}
           <div style={{...S.card,borderColor:"#1a3a1a",textAlign:"center"}}>

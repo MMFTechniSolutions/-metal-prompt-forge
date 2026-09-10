@@ -2420,7 +2420,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {sliderRec&&<div style={{...S.card,borderColor:"#ffaa0044",background:"#100c02"}}>
             <div style={{...S.outLbl,color:"#ffbb33",marginBottom:"6px"}}>{L("Réglages « More Options » (Suno v6)","\"More Options\" settings (Suno v6)")}</div>
             <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"9px",lineHeight:1.5}}>{L("Dans Suno → Create → Custom → More Options. Recopie ces valeurs de haut en bas.","In Suno → Create → Custom → More Options. Copy these values top to bottom.")}</div>
-            {[["Vocal Gender",sliderRec.vocalGender],["Duration",sliderRec.duration],["Max Mode",sliderRec.maxMode?"On":"Off"],["Weirdness",sliderRec.weirdness+"%"],["Style Influence",sliderRec.styleInfluence+"%"],["Audio Influence",sliderRec.audioInfluence+"%"],["Variety",sliderRec.variety],["Personalize (My Taste)",sliderRec.personalize?"On":"Off"]].map(([k,v],i2)=>(
+            {[["Vocal Gender",sliderRec.vocalGender],["Duration",sliderRec.duration],["Max Mode",sliderRec.maxMode?"On":"Off"],["Weirdness",sliderRec.weirdness+"%"],["Style Influence",sliderRec.styleInfluence+"%"],["Audio Influence",sliderRec.audioInfluence+"% "+L("(si source)","(if source)")],["Variety",sliderRec.variety],["Personalize (My Taste)",sliderRec.personalize?"On":"Off"]].map(([k,v],i2)=>(
               <div key={k} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",padding:"6px 2px",borderBottom:i2<7?"1px solid #1e1a0a":"none"}}>
                 <span style={{fontSize:"0.72rem",color:"#bbb"}}>{k}</span>
                 <span style={{fontSize:"0.85rem",fontWeight:900,color:"#ffbb33",fontFamily:"monospace"}}>{v}</span>

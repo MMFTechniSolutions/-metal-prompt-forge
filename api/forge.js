@@ -479,8 +479,9 @@ export default function handler(req, res) {
     maxMode: structs.length >= 6,
     duration: structs.length >= 6 ? 'Custom' : 'Auto',
     personalize: false,                                                // My Taste OFF quand on teste un prompt
-    vocalGender: /female|soprano|femme/i.test(_vTxtAll) ? 'Female'
-               : /male|baritone|tenor|homme|growl|guttural/i.test(_vTxtAll) ? 'Male' : '—',
+    vocalGender: /female|soprano|femme|mezzo/i.test(_vTxtAll) ? 'Female'
+               : /male|baritone|tenor|homme|growl|guttural|shriek|scream|roar/i.test(_vTxtAll) ? 'Male'
+               : L('laisse vide', 'leave unset'),
     why: L(
       (_nConf ? _nConf + ' conflit' + (_nConf > 1 ? 's' : '') + ' détecté' + (_nConf > 1 ? 's' : '') + ' → Style Influence baissé pour laisser Suno arbitrer.'
               : 'Prompt sans contradiction → Style Influence poussé au maximum.') + ' Variety « ' + _varietyLbl + ' » : mets-le à 0 quand tu testes une modif de prompt, pour que les 2 prises soient comparables.',

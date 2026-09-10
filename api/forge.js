@@ -344,8 +344,10 @@ export default function handler(req, res) {
   // v6 : époque vintage + low end moderne = contradiction → on retire les tags modernes
   const _dropModern = t => _vintageEra && /modern|surgical|digital|triggered|bone-crushing low end|ultra-fast noise gate|polished/i.test(String(t));
   if (_vintageEra && (secret.some(_dropModern) || /modern|triggered|surgical/i.test(genreProdTag)))
-    conf.push(L('Production ' + eraTag + ' + son moderne : incompatible — les tags modernes sont retirés.', 'Production ' + eraTag + ' + modern tone: incompatible — modern tags removed.'));
-  const _secretClean = scrubList(secret.filter(x => !_dropModern(x)));
+    conf.push(L('Production ' + eraTag + ' + son moderne : incompatible — remplacé par l\'équivalent d\'époque.', 'Production ' + eraTag + ' + modern tone: incompatible — swapped for the period equivalent.'));
+  // v6 : en époque vintage on ÉCHANGE le son moderne contre son équivalent d'époque (on ne perd pas le slider Lourdeur)
+  const VINTAGE_SWAP = { 'bone-crushing low end': 'thick saturated analog low end', 'locked-in and surgical': 'tight live-room performance' };
+  const _secretClean = scrubList(secret.map(x => _dropModern(x) ? (VINTAGE_SWAP[String(x)] || '') : x).filter(Boolean));
   const _prodClean = scrubList([...(genreProdTag && !_dropModern(genreProdTag) ? [genreProdTag] : []), ...prod.slice(0, 2)]);
   // ORDRE SPEC v6 : [sous-genre/métriques] ; [textures & instruments] ; [voix] ; [mixage & tonalité] — 6 blocs max
   const _b1 = dedup([meterLead, genreClause, bpmTag].filter(Boolean)).join(', ');

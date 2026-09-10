@@ -137,7 +137,112 @@ export default function handler(req, res) {
                   : _mList.length === 1 ? 'in ' + METERS[_mList[0]]
                   : '';
   const meterAuto = !!_autoSeq;
-  const signature = A('signature').map(x => String(x).trim()).filter(Boolean).slice(0, 4);   // anchors sonores du « reverse » (groupe → style)
+  let signature = A('signature').map(x => String(x).trim()).filter(Boolean).slice(0, 4);
+  // ── SIGNATURES PAR SOUS-GENRE ──
+  // Calibrées sur ce que font réellement les groupes de référence de chaque style, mais écrites
+  // en pure description sonore : AUCUN nom de groupe ne sort jamais d'ici (règle Suno, et de toute
+  // façon il les rejette). Sert quand l'utilisateur coche un genre au lieu de passer par /api/reverse,
+  // qui lui fournit déjà une signature. Une signature venue du reverse a toujours priorité.
+  const GENRE_SIGNATURE = {
+    'deathcore':            ['open-note breakdowns with bass drops', 'pig squeal and low false-chord alternation', 'triggered click kick'],
+    'melodic-deathcore':    ['harmonized minor leads over breakdowns', 'clean-to-growl chorus lift', 'triggered click kick'],
+    'technical-deathcore':  ['sweep-picked arpeggio runs between chugs', 'off-grid syncopated breakdowns'],
+    'death-metal':          ['tremolo-picked chromatic riffing', 'low false-chord growls', 'blast beats with ride bell'],
+    'melodic-death':        ['twin-guitar harmonies in thirds', 'mid-range rasp over melodic riffing', 'd-beat into blast transitions'],
+    'tech-death':           ['fretless bass fills upfront in the mix', 'dissonant arpeggio sweeps', 'hyperspeed gravity blasts'],
+    'brutal-death':         ['slam riffs at the bridge pickup', 'inhaled tunnel-throat gutturals', 'snare-heavy triggered blasts'],
+    'slam-metal':           ['half-time slam breakdowns', 'inhaled gutturals', 'pinch-harmonic squeals on the low string'],
+    'dissonant-death':      ['atonal chord voicings sliding out of tune', 'cavernous reverb on everything', 'unresolved tritone stacks'],
+    'black-metal':          ['tremolo picking over blast beats', 'thin trebly guitar with no low end', 'shrieked rasps buried in the mix'],
+    'atmospheric-black':    ['tremolo wall of guitars under long reverb', 'distant buried shrieks', 'slow crescendo over blast beats'],
+    'symphonic-black':      ['orchestral strings doubling the tremolo line', 'theatrical shrieks', 'choir pad under blast beats'],
+    'dsbm':                 ['hypnotic repeating tremolo loop', 'raw lo-fi tape hiss', 'anguished distant screams'],
+    'blackgaze':            ['shoegaze reverb over tremolo picking', 'major-key open chords with add9', 'buried screams under the guitars'],
+    'thrash-metal':         ['fast downpicked palm-muted riffing', 'gallop rhythms', 'shouted mid-range vocals', 'scooped-mid guitar tone'],
+    'crossover-thrash':     ['punk d-beat under thrash riffing', 'gang shout choruses', 'mosh-call breakdowns'],
+    'heavy-metal':          ['twin-guitar harmonies in thirds', 'gallop rhythm on the low string', 'soaring clean high vocals'],
+    'nwobhm':               ['twin-guitar harmony leads', 'gallop rhythms', 'vintage tube amp break-up'],
+    'power-metal':          ['continuous double kick under harmonized leads', 'soaring high clean vocals', 'anthemic layered choruses'],
+    'metalcore':            ['aeolian melodic riff into open-note breakdown', 'harsh verse to clean sung chorus', 'guitars panned hard'],
+    'melodic-metalcore':    ['harmonized octave leads over chugs', 'harsh-to-clean chorus lift', 'crushed parallel drum compression'],
+    'progressive-metalcore':['ambient clean guitar over odd-time chugs', 'harsh verse to soaring clean chorus', 'polyrhythmic breakdowns'],
+    'djent':                ['8-string palm-muted polymetric chugs', 'ultra-tight noise gate between notes', 'ambient clean lead over the groove'],
+    'progressive-metal':    ['odd-time riff cycles resolving on 4/4', 'clean-to-distorted dynamic shifts', 'lead bass counter-melody'],
+    'mathcore':             ['abrupt start-stop riff cuts', 'atonal dissonant chord stabs', 'panic-chord screams'],
+    'groove-metal':         ['syncopated mid-tempo chugging', 'pinch harmonics on the accents', 'colossal punchy snare'],
+    'nu-metal':             ['bouncy down-tuned 7-string riffing', 'sung-to-screamed vocal switching', 'turntable scratches and samples'],
+    'industrial-metal':     ['mechanical programmed drum loops', 'processed robotic vocal layer', 'cold synth pad under the riff'],
+    'doom-metal':           ['slow tritone riffing dragging behind the beat', 'vintage fuzz tone', 'mournful clean vocals'],
+    'epic-doom':            ['grandiose slow riffing', 'operatic clean vocals', 'thick warm vintage saturation'],
+    'funeral-doom':         ['glacially slow chords with long decay', 'funeral organ pad', 'subterranean growls'],
+    'sludge-metal':         ['feedback-drenched slow riffing', 'shrieked raw vocals', 'dirty saturated bass'],
+    'stoner-metal':         ['fuzzed-out bluesy riffing', 'warm analog low-mids', 'laid-back behind-the-beat drums'],
+    'post-metal':           ['long crescendo from clean arpeggios to wall of distortion', 'sparse distant vocals', 'ride-heavy dynamic drumming'],
+    'folk-metal':           ['fiddle and tin whistle doubling the riff', 'gang chant choruses', 'stomping 6/8 dance rhythm'],
+    'gothic-metal':         ['female clean and male growl trading lines', 'church organ pad', 'melancholic minor string arrangement'],
+    'symphonic-metal':      ['full orchestra doubling the guitars', 'operatic soprano lead', 'choir on the chorus'],
+    'grindcore':            ['sub-minute song bursts', 'alternating shrieks and gutturals', 'raw blown-out blast beats'],
+    'hardcore-punk':        ['two-step d-beat drive', 'shouted gang vocals', 'raw live-room production'],
+    'beatdown-hardcore':    ['half-time stomp breakdowns', 'shouted tough-guy vocals', 'floor-tom heavy drumming'],
+    'post-hardcore':        ['clean-to-screamed dynamic shifts', 'delay-drenched clean guitar', 'melodic bass carrying the verse'],
+  };
+  if (!signature.length && _sidEarly && GENRE_SIGNATURE[_sidEarly]) signature = GENRE_SIGNATURE[_sidEarly].slice(0, 3);
+
+  // ── INFLUENCES HISTORIQUES PAR SOUS-GENRE ──
+  // C'est le MÉLANGE qui fait qu'un morceau « sonne comme » quelque chose, pas le sous-genre seul :
+  // le groove metal sans ses racines glam et southern rock reste générique. Suno fait déjà ça
+  // spontanément (« thrash metal with groove-metal and southern-rock inflections » dans sa réécriture).
+  // Ce sont des GENRES, jamais des noms de groupes. Appliqué seulement si un seul genre est coché.
+  const GENRE_BLEND = {
+    'groove-metal':        ['glam metal', 'southern rock'],
+    'thrash-metal':        ['hardcore punk', 'NWOBHM'],
+    'crossover-thrash':    ['hardcore punk'],
+    'speed-metal':         ['NWOBHM'],
+    'death-metal':         ['thrash metal'],
+    'melodic-death':       ['NWOBHM'],
+    'tech-death':          ['jazz fusion'],
+    'brutal-death':        ['hardcore punk'],
+    'deathcore':           ['beatdown hardcore', 'death metal'],
+    'melodic-deathcore':   ['melodic death metal'],
+    'black-metal':         ['punk rock'],
+    'atmospheric-black':   ['post-rock'],
+    'blackgaze':           ['shoegaze'],
+    'symphonic-black':     ['film score orchestration'],
+    'dsbm':                ['post-punk'],
+    'metalcore':           ['melodic death metal', 'hardcore punk'],
+    'melodic-metalcore':   ['melodic death metal'],
+    'progressive-metalcore':['post-rock'],
+    'djent':               ['progressive rock', 'jazz fusion'],
+    'progressive-metal':   ['70s progressive rock'],
+    'mathcore':            ['hardcore punk', 'free jazz'],
+    'nu-metal':            ['hip hop', 'funk'],
+    'rapcore':             ['hip hop'],
+    'industrial-metal':    ['EBM', 'electronic body music'],
+    'doom-metal':          ['blues rock'],
+    'epic-doom':           ['NWOBHM'],
+    'funeral-doom':        ['dark ambient'],
+    'stoner-metal':        ['70s psychedelic blues rock'],
+    'sludge-metal':        ['hardcore punk', 'doom metal'],
+    'atmospheric-sludge':  ['post-rock'],
+    'post-metal':          ['post-rock'],
+    'folk-metal':          ['traditional folk'],
+    'gothic-metal':        ['gothic rock', 'darkwave'],
+    'symphonic-metal':     ['classical orchestration'],
+    'power-metal':         ['NWOBHM', 'neoclassical'],
+    'neoclassical':        ['baroque classical'],
+    'grindcore':           ['crust punk'],
+    'deathgrind':          ['crust punk'],
+    'powerviolence':       ['hardcore punk'],
+    'hardcore-punk':       ['punk rock'],
+    'beatdown-hardcore':   ['groove metal'],
+    'post-hardcore':       ['emo'],
+    'heavy-metal':         ['blues rock'],
+    'glam-metal':          ['hard rock'],
+    'alternative-metal':   ['grunge'],
+    'avant-garde-metal':   ['free jazz', 'contemporary classical'],
+    'drone-metal':         ['dark ambient'],
+  };
+  const blendAuto = (genres.length === 1 && _sidEarly && GENRE_BLEND[_sidEarly]) ? GENRE_BLEND[_sidEarly].slice(0, 2) : [];   // anchors sonores du « reverse » (groupe → style)
   // Époque (couche 3 du style stack) : le client envoie les familles d'époque des genres choisis
   const ERA_TAG = { '60s-70s':'1970s analog tape production', '80s':'1980s production', '90s':'1990s production', '2000s':'2000s production', '2010s':'2010s modern production', '2020s':'2020s modern production' };
   const _eras = A('eras').map(x => String(x));
@@ -330,7 +435,7 @@ export default function handler(req, res) {
   const harshVox = /growl|scream|guttural|shriek|harsh|pig squeal|fry|roar|rasp/.test(_vTxt0) || phonetic.enabled;
   const voxLead = harshVox ? [...vocals.slice(0, 3), ...vrange.slice(0, 1)] : [];
   // rhythmTags injectés tôt (priorité recette) — le budget coupe la fin, pas eux
-  const fullTagsRaw = dedup([...(meterLead?[meterLead, bpmTag]:[]), ...genresSafe.slice(0, 1), ...voxLead, ...genresSafe.slice(1), ...signature, bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...rhythmTags, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...(keyTag?[keyTag]:[]), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...(prod.length ? prod.slice(0, 2) : ['very loud drums and guitars, aggressive mix']), ...allOrganic.slice(0, 4), ...globalRhythm]);
+  const fullTagsRaw = dedup([...(meterLead?[meterLead, bpmTag]:[]), ...genresSafe.slice(0, 1), ...voxLead, ...genresSafe.slice(1), ...blendAuto.map(_brid), ...signature, bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...rhythmTags, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...(keyTag?[keyTag]:[]), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...(prod.length ? prod.slice(0, 2) : ['very loud drums and guitars, aggressive mix']), ...allOrganic.slice(0, 4), ...globalRhythm]);
   // Budget : au-delà de ~480 car., Suno dilue/ignore — on coupe par la fin
   const STYLE_BUDGET = 480;
   const fullTags = scrubList(fullTagsRaw);
@@ -341,7 +446,9 @@ export default function handler(req, res) {
   // Genre-fusion ; dynamiques/structure ; voix ; instruments/riffs ; accordage+tonalités ; mood+émotions ; tempo/changements
   const _lc = x => String(x).toLowerCase();
   const _gl = dedup(genresSafe.map(x => String(x).trim())).filter(Boolean);
-  const genreClause = _gl.length >= 2 ? (_gl[0] + ', ' + _gl.slice(1, 3).map(_brid).join(', ')) : (_gl[0] || 'metal');
+  const genreClause = _gl.length >= 2 ? (_gl[0] + ', ' + _gl.slice(1, 3).map(_brid).join(', '))
+                    : blendAuto.length ? (_gl[0] || 'metal') + ' with ' + _joinMeters(blendAuto) + ' inflections'
+                    : (_gl[0] || 'metal');
 
   const _hasAtmos = melody >= 6 || structs.some(s => /atmospheric|interlude|intro|clean/.test(s)) || allOrganic.some(o => /acoustic|clean|ambient/.test(_lc(o)));
   const _hasHeavy = heavy >= 6 || drums.some(d => /blast|double/.test(_lc(d))) || structs.some(s => /breakdown|blast|drop|halftime/.test(s));
@@ -598,5 +705,5 @@ export default function handler(req, res) {
     '\n\n=== STRUCTURE (-> top of Lyrics) ===\n' + structStr +
     '\n\n=== PRODUCTION NOTES (keep for yourself) ===\n' + heavyD + '. ' + grooveD + '. ' + chaosD + '. ' + melodyD + '. ' + bpmTag + '.' + organicBlock;
 
-  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, critic, meterLead, meterAuto, coverStr, extendStr, editStr, editPrompts, sliderRec, timeSig, modelRec, phonetic, rhythmStructTags });
+  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, critic, blendAuto, meterLead, meterAuto, coverStr, extendStr, editStr, editPrompts, sliderRec, timeSig, modelRec, phonetic, rhythmStructTags });
 }

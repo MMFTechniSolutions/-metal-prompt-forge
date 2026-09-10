@@ -1551,7 +1551,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
             {METER_LIST.map(m=>{const i=meters.indexOf(m);return <span key={m} onClick={()=>tMeter(m)} title={METER_HINT[m]} style={S.tag(i>=0,false)}>{i>=0?<b style={{color:"#fff",marginRight:"4px"}}>{i+1}</b>:null}{m}</span>;})}
           </div>
           {meters.length>0
-            ?<div style={{fontSize:"0.62rem",color:"#c9a227",marginBottom:"6px",fontFamily:"monospace"}}>→ mixed meter {meters.join(" - ")} <span onClick={()=>setMeters([])} style={{color:"#666",cursor:"pointer",marginLeft:"6px"}}>✕</span></div>
+            ?<div style={{fontSize:"0.62rem",color:"#c9a227",marginBottom:"6px",fontFamily:"monospace"}}>→ in alternating {meters.join(" + ")} <span onClick={()=>setMeters([])} style={{color:"#666",cursor:"pointer",marginLeft:"6px"}}>✕</span></div>
             :meterInfo&&meterInfo.auto
               ?<div style={{fontSize:"0.62rem",color:"#7fbf7f",marginBottom:"6px",fontFamily:"monospace"}}>{L("Auto (genre) → ","Auto (genre) → ")}{meterInfo.lead}</div>
               :<div style={{fontSize:"0.6rem",color:"#5a7a5a",marginBottom:"6px"}}>{L("Rien de coché = séquence déduite du genre après génération (prog, math, djent, doom, folk… ; thrash, deathcore et black restent en 4/4).","Nothing selected = sequence derived from the genre after generating (prog, math, djent, doom, folk…; thrash, deathcore and black stay in 4/4).")}</div>}
@@ -2227,7 +2227,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {[
             {n:"Weirdness",v:"25-40 / 45-55 / 60-75",d:L("Bas = hook stable. 50 = neutre. Haut = choix inattendus. Monte-le si les résultats sonnent génériques.","Low = stable hook. 50 = neutral. High = unexpected choices. Raise it if results sound generic.")},
             {n:"Style Influence",v:"65-85%",d:L("HAUT — pour que Suno tienne la voie du genre. Baisse-le si le prompt est suivi trop rigidement.","HIGH — so Suno holds the genre lane. Lower it if the prompt is followed too rigidly.")},
-            {n:"Variety",v:"0 · Normal · High · Extra · Max",d:L("Nouveau en v6, ce n'est pas un %. 0 = les 2 prises se ressemblent au max — à utiliser quand tu testes une modif de prompt. Monte-le pour explorer.","New in v6, not a %. 0 = the 2 takes stay as close as possible — use it when testing a prompt change. Raise it to explore.")},
+            {n:"Variety",v:"0 · Normal · High · Extra · Max",d:L("Ce n'est pas un %. C'est la licence de RÉÉCRITURE que tu donnes à Suno : en High il reformule ton prompt au complet (tu le vois sous la génération). Reste bas pour que tes tags soient respectés.","Not a %. It is the REWRITE licence you give Suno: on High it reformulates your whole prompt (you can see it under the generation). Keep it low so your tags are respected.")},
             {n:"Max Mode",v:"ON si long",d:L("Garde la cohérence sur les morceaux longs (6+ sections).","Keeps consistency on long songs (6+ sections).")},
             {n:"Audio Influence",v:"55-75%",d:L("Apparaît avec un upload. Plus haut = colle à ta référence (ex. ton WAV du Riff Generator).","Appears with an upload. Higher = sticks to your reference (e.g. your Riff Generator WAV).")},
             {n:"Vocal Gender",v:"Male",d:L("Male pour la plupart du metal (Female pour certains styles).","Male for most metal (Female for some styles).")},

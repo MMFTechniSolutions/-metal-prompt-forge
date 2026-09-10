@@ -94,45 +94,47 @@ export default function handler(req, res) {
   // Table : chiffrage → découpage type (metal & jazz fusion)
   // Texte nu, sans parenthèses : non documentées dans le champ Style, et le test manuel donne mieux sans.
   const METERS = {
-    '4/4':'4/4 2+2 backbeat', '6/8':'6/8 3+3 triplet feel', '12/8':'12/8 heavy shuffle',
-    '5/4':'5/4 3+2', '5/8':'5/8 3+2 stabs', '7/4':'7/4 4+3 floating', '7/8':'7/8 2+2+3',
-    '9/8':'9/8 2+2+2+3 balkan', '11/8':'11/8 3+3+3+2', '13/8':'13/8 2+3 cells', '15/8':'15/8 2+3 cells',
+    '3/4':'3/4 (waltz feel)', '4/4':'4/4 (2+2)', '6/8':'6/8 (3+3 triplet feel)', '12/8':'12/8 (heavy shuffle)',
+    '5/4':'5/4 (3+2)', '5/8':'5/8 (3+2 stabs)', '7/4':'7/4 (4+3 floating)', '7/8':'7/8 (2+2+3)',
+    '9/8':'9/8 (2+2+2+3 balkan)', '11/8':'11/8 (3+3+3+2)', '13/8':'13/8 (2+3 cells)', '15/8':'15/8 (2+3 cells)',
   };
+  const _joinMeters = a => a.length <= 1 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
   const meters = A('meters').map(x => String(x).trim()).filter(x => METERS[x]).slice(0, 5);
   // ── SÉQUENCE AUTO PAR GENRE ──
   // Tirets, pas de virgules ni de parenthèses : la séquence reste UN item pondéré que Suno lit
   // comme une progression (avec des virgules il en choisirait un seul). Validé par François.
   // Seuls les genres qui utilisent VRAIMENT des mesures impaires en ont une — un thrash reste en 4/4.
   const METER_SEQ = {
-    'progressive-metal':   '7/8 2+2+3 - 4/4 2+2 - 5/4 3+2 - 9/8 2+2+2+3 balkan',
-    'progressive-metalcore':'7/8 2+2+3 - 4/4 2+2 - 5/4 3+2',
-    'progressive-post-hardcore':'7/8 2+2+3 - 4/4 2+2 - 6/8 3+3',
-    'mathcore':            '11/8 3+3+3+2 - 4/4 2+2 - 7/8 2+2+3 - 5/8 3+2 stabs',
-    'djent':               '4/4 2+2 - 7/8 2+2+3 - 11/8 3+3+3+2 polymetric over 4/4',
-    'tech-death':          '7/8 2+2+3 - 4/4 2+2 - 5/8 3+2 - 9/8 2+2+2+3',
-    'dissonant-death':     '5/4 3+2 - 7/8 2+2+3 - 4/4 2+2',
-    'avant-garde-metal':   '5/4 3+2 - 7/8 2+2+3 - 13/8 2+3 cells - 4/4 2+2',
-    'post-metal':          '4/4 2+2 - 6/8 3+3 - 7/4 4+3 floating',
-    'atmospheric-sludge':  '4/4 2+2 - 6/8 3+3 - 12/8 heavy shuffle',
-    'sludge-metal':        '4/4 2+2 - 6/8 3+3 - 12/8 heavy shuffle',
-    'doom-metal':          '12/8 heavy shuffle - 6/8 3+3 - 4/4 half-time',
-    'epic-doom':           '12/8 heavy shuffle - 6/8 3+3 - 4/4 half-time',
-    'funeral-doom':        '12/8 heavy shuffle - 6/8 3+3 - 4/4 half-time',
-    'drone-metal':         '12/8 heavy shuffle - free-form drone',
-    'folk-metal':          '6/8 3+3 - 4/4 2+2 - 12/8 heavy shuffle',
-    'gothic-metal':        '6/8 3+3 - 4/4 2+2',
-    'symphonic-metal':     '4/4 2+2 - 6/8 3+3 - 3/4 waltz feel',
-    'neoclassical':        '4/4 2+2 - 6/8 3+3 - 3/4 waltz feel',
-    'atmospheric-black':   '4/4 2+2 - 6/8 3+3',
-    'blackgaze':           '4/4 2+2 - 6/8 3+3',
-    'jazz-fusion':         '7/4 4+3 floating - 5/4 3+2 - 9/8 2+2+2+3 balkan - 4/4 backbeat',
+    'progressive-metal':   ['7/8','4/4','5/4','9/8'],
+    'progressive-metalcore':['7/8','4/4','5/4'],
+    'progressive-post-hardcore':['7/8','4/4','6/8'],
+    'mathcore':            ['11/8','4/4','7/8','5/8'],
+    'djent':               ['4/4','7/8','11/8'],
+    'tech-death':          ['7/8','4/4','5/8','9/8'],
+    'dissonant-death':     ['5/4','7/8','4/4'],
+    'avant-garde-metal':   ['5/4','7/8','13/8','4/4'],
+    'post-metal':          ['4/4','6/8','7/4'],
+    'atmospheric-sludge':  ['4/4','6/8','12/8'],
+    'sludge-metal':        ['4/4','6/8','12/8'],
+    'doom-metal':          ['12/8','6/8','4/4'],
+    'epic-doom':           ['12/8','6/8','4/4'],
+    'funeral-doom':        ['12/8','6/8','4/4'],
+    'drone-metal':         ['12/8'],
+    'folk-metal':          ['6/8','4/4','12/8'],
+    'gothic-metal':        ['6/8','4/4'],
+    'symphonic-metal':     ['4/4','6/8','3/4'],
+    'neoclassical':        ['4/4','6/8','3/4'],
+    'atmospheric-black':   ['4/4','6/8'],
+    'blackgaze':           ['4/4','6/8'],
+    'jazz-fusion':         ['7/4','5/4','9/8','4/4'],
   };
   const _gtxtEarly = genres.map(x => String(x).toLowerCase()).join(' ');
   const _sidEarly = (STYLE_ID_MAP.find(([re]) => re.test(_gtxtEarly)) || [])[1];
-  const _autoSeq = (!meters.length && _sidEarly && METER_SEQ[_sidEarly]) ? METER_SEQ[_sidEarly] : '';
-  const meterLead = meters.length >= 2 ? 'mixed meter ' + meters.map(m => METERS[m]).join(' - ')
-                  : meters.length === 1 ? METERS[meters[0]] + ' time'
-                  : _autoSeq ? 'mixed meter ' + _autoSeq
+  const _autoSeq = (!meters.length && _sidEarly && METER_SEQ[_sidEarly]) ? METER_SEQ[_sidEarly] : null;
+  const _mList = meters.length ? meters : (_autoSeq || []);
+  // Formulation calquée sur la réécriture de Suno lui-même : « in alternating 7/8 (2+2+3) and 5/4 (3+2) »
+  const meterLead = _mList.length >= 2 ? 'in alternating ' + _joinMeters(_mList.map(m => METERS[m]).filter(Boolean))
+                  : _mList.length === 1 ? 'in ' + METERS[_mList[0]]
                   : '';
   const meterAuto = !!_autoSeq;
   const signature = A('signature').map(x => String(x).trim()).filter(Boolean).slice(0, 4);   // anchors sonores du « reverse » (groupe → style)
@@ -502,10 +504,10 @@ export default function handler(req, res) {
   const _styleInf = _clamp(100 - _nConf * 8 - (genres.length > 1 ? 5 : 0), 60, 100);
   // Variety : échelle réelle du panneau = 0 / Normal / High / Extra / Max (ce n'est pas un %).
   // 0 = les deux prises se ressemblent au maximum, utile quand on teste une modif de prompt.
-  const _varietyLbl = chaos >= 9 ? 'Extra'
-                    : (chaos >= 7 || genres.length > 1) ? 'High'
-                    : chaos >= 4 ? 'Normal'
-                    : '0';
+  // Variety, d'après la doc Suno, « ajuste et met à jour tes prompts de style » : c'est la licence de
+  // RÉÉCRITURE que tu donnes à Suno. Observé en High : il reformule tout le prompt en prose.
+  // Notre prompt est précis par construction → on reste bas, sauf demande explicite d'exploration.
+  const _varietyLbl = chaos >= 9 ? 'High' : chaos >= 6 ? 'Normal' : '0';
   const _vTxtAll = vocals.concat(vrange).join(' ');
   const sliderRec = {
     weirdness: _weird,
@@ -520,9 +522,9 @@ export default function handler(req, res) {
                : L('laisse vide', 'leave unset'),
     why: L(
       (_nConf ? _nConf + ' conflit' + (_nConf > 1 ? 's' : '') + ' détecté' + (_nConf > 1 ? 's' : '') + ' → Style Influence baissé pour laisser Suno arbitrer.'
-              : 'Prompt sans contradiction → Style Influence poussé au maximum.') + ' Variety « ' + _varietyLbl + ' » : mets-le à 0 quand tu testes une modif de prompt, pour que les 2 prises soient comparables.',
+              : 'Prompt sans contradiction → Style Influence poussé au maximum.') + ' Variety « ' + _varietyLbl + ' » = la licence de réécriture que tu donnes à Suno : en High il reformule ton prompt au complet. Reste bas pour que TES tags soient respectés.',
       (_nConf ? _nConf + ' conflict' + (_nConf > 1 ? 's' : '') + ' detected → Style Influence lowered so Suno can resolve it.'
-              : 'No contradiction in the prompt → Style Influence pushed to the max.') + ' Variety "' + _varietyLbl + '": set it to 0 when testing a prompt change, so the 2 takes stay comparable.'),
+              : 'No contradiction in the prompt → Style Influence pushed to the max.') + ' Variety "' + _varietyLbl + '" = how much rewriting you allow Suno: on High it reformulates your whole prompt. Keep it low so YOUR tags are respected.'),
     audioNote: L('Audio Influence n\'apparaît qu\'avec une source audio : un WAV téléversé (Riff / Mélodie) OU un Cover. Haut = garde la mélodie et le rythme de la source ; bas = Suno réinterprète. En Cover avec un prompt modifié, baisse-le à 30-50 pour que le nouveau style prenne le dessus.',
                  'Audio Influence only appears with an audio source: an uploaded WAV (Riff / Melody) OR a Cover. High = keeps the source melody and rhythm; low = Suno reinterprets. On a Cover with a changed prompt, drop it to 30-50 so the new style wins.'),
   };

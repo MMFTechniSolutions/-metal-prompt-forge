@@ -728,7 +728,12 @@ function stopPlay(){
 }
 
 // ── OFFLINE RENDER ──
+const _CURVE_CACHE={};
 function makeCurve(amt){
+  const _k=Math.round(amt*1000);if(_CURVE_CACHE[_k])return _CURVE_CACHE[_k];
+  return _CURVE_CACHE[_k]=_makeCurve(amt);
+}
+function _makeCurve(amt){
   const n=512,c=new Float32Array(n),k=amt*300;
   for(let i=0;i<n;i++){const x=(i*2)/n-1;c[i]=((Math.PI+k)*x)/(Math.PI+k*Math.abs(x));}
   return c;
@@ -754,7 +759,7 @@ async function renderAndDownload(p, stem){
   const totalSamples=Math.ceil((_acc+0.5)*sr);
 
   document.getElementById('dotRec').className='dot rec';
-  document.getElementById('txtRec').textContent=T(`Render ${dur}s en cours… (~${Math.max(1,Math.round(dur/4))}s, l'onglet peut figer)`,`Rendering ${dur}s… (~${Math.max(1,Math.round(dur/4))}s, tab may freeze)`);
+  document.getElementById('txtRec').textContent=T(`Render ${dur}s en cours…`,`Rendering ${dur}s…`);
   ['btnRender','btnRenderBeat','btnRenderMelody','btnRenderSong'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true;});
 
   const off=new OfflineAudioContext(2,totalSamples,sr);
@@ -775,6 +780,30 @@ async function renderAndDownload(p, stem){
   const isGuitarLead=(p.lead==='guitarelec'||p.lead==='guitarclass');
   const leadFontTone=(p.lead&&p.lead!=='none'&&p.leadRhy&&!isGuitarLead)?await ensureLeadFont(p.lead):null;  // vrais samples (sax/violon/cuivres)
   const LEAD=!!(p.lead&&p.lead!=='none'&&p.leadRhy);let leadI=0;
+  // ── Bus d'EQ partagés (perf) : avant, 7 filtres guitare + 3 basse étaient recréés à CHAQUE note.
+  //    Réglages identiques note après note et EQ = traitement linéaire → un seul jeu sur un bus.
+  const _mkGtrEQ = () => {
+    const hp=off.createBiquadFilter(),body=off.createBiquadFilter(),scoop=off.createBiquadFilter(),pres=off.createBiquadFilter(),lp1=off.createBiquadFilter(),lp2=off.createBiquadFilter(),air=off.createBiquadFilter();
+    hp.type='highpass';hp.frequency.value=95;hp.Q.value=0.7;
+    body.type='peaking';body.frequency.value=230;body.Q.value=1;body.gain.value=4;
+    scoop.type='peaking';scoop.frequency.value=750;scoop.Q.value=1.1;scoop.gain.value=-5;
+    pres.type='peaking';pres.frequency.value=3100;pres.Q.value=1.2;pres.gain.value=5;
+    lp1.type='lowpass';lp1.frequency.value=7800;lp1.Q.value=0.7;
+    lp2.type='lowpass';lp2.frequency.value=8200;lp2.Q.value=0.7;
+    air.type='highshelf';air.frequency.value=9000;air.gain.value=4;
+    hp.connect(body);body.connect(scoop);scoop.connect(pres);pres.connect(lp1);lp1.connect(lp2);lp2.connect(air);air.connect(master);
+    return hp;   // entrée du bus
+  };
+  const _mkBassEQ = () => {
+    const lo=off.createBiquadFilter(),pres=off.createBiquadFilter(),hi=off.createBiquadFilter();
+    lo.type='lowshelf';lo.frequency.value=120;lo.gain.value=5;
+    pres.type='peaking';pres.frequency.value=2200;pres.Q.value=1;pres.gain.value=6;
+    hi.type='lowpass';hi.frequency.value=4000;
+    lo.connect(pres);pres.connect(hi);hi.connect(master);
+    return lo;
+  };
+  const GTR_BUS = _mkGtrEQ(), BASS_BUS = _mkBassEQ();
+  const _gtrCurve = makeCurve(Math.min(1,p.dist/100*1.35)), _bassCurve = makeCurve(.55);
   const _od=genDrumData(sr);
   const obuf={kick:toDrumBuf(off,_od.kick),snare:toDrumBuf(off,_od.snare),hihat:toDrumBuf(off,_od.hihat)};
   const playOff=(buf,t,g)=>{const s=off.createBufferSource();s.buffer=buf;const gn=off.createGain();gn.gain.value=g;s.connect(gn);gn.connect(master);s.start(t);};
@@ -790,24 +819,16 @@ async function renderAndDownload(p, stem){
         const freq=semiHz(rootHz,semi+interval);
         const o1=off.createOscillator(),o2=off.createOscillator();
         const d=off.createWaveShaper();
-        const hp=off.createBiquadFilter(),body=off.createBiquadFilter(),scoop=off.createBiquadFilter(),pres=off.createBiquadFilter(),lp1=off.createBiquadFilter(),lp2=off.createBiquadFilter(),air=off.createBiquadFilter();
         const g=off.createGain();
         o1.type='sawtooth';o1.frequency.value=freq;
         o2.type='sawtooth';o2.frequency.value=freq*0.996;
-        d.curve=makeCurve(Math.min(1,p.dist/100*1.35));d.oversample='4x';
-        hp.type='highpass';hp.frequency.value=95;hp.Q.value=0.7;
-        body.type='peaking';body.frequency.value=230;body.Q.value=1;body.gain.value=4;
-        scoop.type='peaking';scoop.frequency.value=750;scoop.Q.value=1.1;scoop.gain.value=-5;
-        pres.type='peaking';pres.frequency.value=3100;pres.Q.value=1.2;pres.gain.value=5;
-        lp1.type='lowpass';lp1.frequency.value=7800;lp1.Q.value=0.7;
-        lp2.type='lowpass';lp2.frequency.value=8200;lp2.Q.value=0.7;
-        air.type='highshelf';air.frequency.value=9000;air.gain.value=4;
+        d.curve=_gtrCurve;d.oversample='4x';   // distorsion gardée PAR NOTE (non linéaire = c'est le grain)
         const amp=fi===0?.4:.24;
         g.gain.setValueAtTime(0,t);
         g.gain.linearRampToValueAtTime(amp,t+.003);
         g.gain.exponentialRampToValueAtTime(amp*0.55,t+stepDur*.35);
         g.gain.exponentialRampToValueAtTime(.001,t+stepDur*.82);
-        o1.connect(d);o2.connect(d);d.connect(hp);hp.connect(body);body.connect(scoop);scoop.connect(pres);pres.connect(lp1);lp1.connect(lp2);lp2.connect(air);air.connect(g);g.connect(master);
+        o1.connect(d);o2.connect(d);d.connect(g);g.connect(GTR_BUS);   // EQ ampli = bus partagé
         o1.start(t);o1.stop(t+stepDur+.05);
         o2.start(t);o2.stop(t+stepDur+.05);
       });
@@ -815,15 +836,12 @@ async function renderAndDownload(p, stem){
     if(stem!=='melody' && a.bass[i]){
       const bh=semiHz(bassHz,a.trans[i]);
       const o=off.createOscillator(),o2=off.createOscillator();
-      const d=off.createWaveShaper(),lo=off.createBiquadFilter(),pres=off.createBiquadFilter(),hi=off.createBiquadFilter(),g=off.createGain();
+      const d=off.createWaveShaper(),g=off.createGain();
       o.type='sawtooth';o.frequency.value=bh;
       o2.type='square';o2.frequency.value=bh*0.5;
-      d.curve=makeCurve(.55);d.oversample='2x';
-      lo.type='lowshelf';lo.frequency.value=120;lo.gain.value=5;
-      pres.type='peaking';pres.frequency.value=2200;pres.Q.value=1;pres.gain.value=6;
-      hi.type='lowpass';hi.frequency.value=4000;
+      d.curve=_bassCurve;d.oversample='2x';
       g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.42,t+.006);g.gain.exponentialRampToValueAtTime(.001,t+stepDur*.85);
-      o.connect(d);o2.connect(d);d.connect(lo);lo.connect(pres);pres.connect(hi);hi.connect(g);g.connect(master);
+      o.connect(d);o2.connect(d);d.connect(g);g.connect(BASS_BUS);   // EQ basse = bus partagé
       o.start(t);o.stop(t+stepDur+.05);o2.start(t);o2.stop(t+stepDur+.05);
     }
     if(stem!=='melody'){

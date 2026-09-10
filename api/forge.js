@@ -2,6 +2,7 @@
 // Le client envoie les sélections brutes, le serveur renvoie le prompt déjà calculé.
 
 import { TIME_SIGNATURES_BY_STYLE } from './_lib/timeSignaturesByStyle.js';
+import { cleanDescriptors } from './_lib/nameGuard.js';
 
 // Mapping regex genre → clé du module temps de mesure (ordre = priorité :
 // les spécifiques AVANT les génériques)
@@ -137,7 +138,8 @@ export default function handler(req, res) {
                   : _mList.length === 1 ? 'in ' + METERS[_mList[0]]
                   : '';
   const meterAuto = !!_autoSeq;
-  let signature = A('signature').map(x => String(x).trim()).filter(Boolean).slice(0, 4);
+  // Défense en profondeur : le client peut renvoyer une signature d'une session précédente.
+  let signature = cleanDescriptors(A('signature').map(x => String(x).trim())).slice(0, 4);
   // ── SIGNATURES PAR SOUS-GENRE ──
   // Calibrées sur ce que font réellement les groupes de référence de chaque style, mais écrites
   // en pure description sonore : AUCUN nom de groupe ne sort jamais d'ici (règle Suno, et de toute

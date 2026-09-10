@@ -4,6 +4,7 @@
 // IMPORTANT : le nom du groupe n'est JAMAIS réécrit dans le prompt final (règles Suno/ElevenLabs).
 // Il sert uniquement d'intrant pour déduire le style.
 import { GENRE_PROFILES } from './_genreProfiles.js';
+import { cleanDescriptors } from './_lib/nameGuard.js';
 
 const CURATED = Object.keys(GENRE_PROFILES);
 
@@ -17,7 +18,9 @@ If none of the curated names fits, return the most accurate standard metal/rock/
 
 Also capture what makes the band's sound DISTINCT beyond the main sub-genre:
 - "flavor": a SECOND genre that colors the sound (e.g. "folk metal", "70s progressive rock", "blackgaze", "jazz fusion"), or "" if the band is a pure example of its genre.
-- "signature": 2-4 short sonic anchors a music model can render — instruments, techniques, production, dynamics (e.g. "acoustic guitar interludes", "mellotron", "clean-to-growl dynamics", "twin-guitar harmonies", "lo-fi tape production"). Lowercase, comma-free, no band/album/song names.
+- "signature": 2-4 short sonic anchors a music model can render — instruments, techniques, production, dynamics. Lowercase, comma-free.
+  ABSOLUTE RULE: never name a person or a band, and never use possessives or comparisons ("X's vocals", "X-style", "like X", "in the vein of X"). Describe the SOUND itself.
+  For the singer, describe the mechanics — register, rasp, attack, phrasing, effects — e.g. "mid-range rasped shouts with bluesy swagger and ragged upper-register screams".
 
 Rules:
 - Respond with STRICT JSON only, no prose, no markdown: {"genre":"<sub-genre>","flavor":"<second genre or empty>","signature":["<anchor>","<anchor>"],"label":"<short human label>","confidence":"high|medium|low"}
@@ -68,12 +71,15 @@ export default async function handler(req, res) {
     if (genre && genre === band.toLowerCase()) genre = '';
 
     const matched = !!genre && !!GENRE_PROFILES[genre];
-    let flavor = String(out.flavor || '').toLowerCase().trim().slice(0, 40);
-    if (flavor === band.toLowerCase() || flavor === genre) flavor = '';
     const _bl = band.toLowerCase();
-    const signature = (Array.isArray(out.signature) ? out.signature : [])
-      .map(x => String(x).toLowerCase().replace(/,/g, ' ').trim().slice(0, 40))
-      .filter(x => x && !x.includes(_bl)).slice(0, 4);
+    let flavor = String(out.flavor || '').toLowerCase().trim().slice(0, 40);
+    if (flavor === _bl || flavor === genre || !cleanDescriptors([flavor], [_bl]).length) flavor = '';
+    // Garde-fou : le modèle glisse parfois un nom de personne malgré la consigne
+    // (cas réel 2026-09-10 : « phil anselmo's aggressive vocals »). On filtre en sortie.
+    const signature = cleanDescriptors(
+      (Array.isArray(out.signature) ? out.signature : []).map(x => String(x).toLowerCase().replace(/,/g, ' ').trim().slice(0, 60)),
+      [_bl]
+    ).slice(0, 4);
     return res.status(200).json({
       genre, flavor, signature,
       label: String(out.label || genre || '').slice(0, 60),

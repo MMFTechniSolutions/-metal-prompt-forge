@@ -2205,7 +2205,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {[
             {n:"Weirdness",v:"25-40 / 45-55 / 60-75",d:L("Bas = hook stable. 50 = neutre. Haut = choix inattendus. Monte-le si les résultats sonnent génériques.","Low = stable hook. 50 = neutral. High = unexpected choices. Raise it if results sound generic.")},
             {n:"Style Influence",v:"65-85%",d:L("HAUT — pour que Suno tienne la voie du genre. Baisse-le si le prompt est suivi trop rigidement.","HIGH — so Suno holds the genre lane. Lower it if the prompt is followed too rigidly.")},
-            {n:"Variety",v:"0-25%",d:L("Nouveau en v6. 0 = cohérence maximale entre les 2 versions générées. Monte-le pour explorer une fusion.","New in v6. 0 = maximum consistency across the 2 generated versions. Raise it to explore a fusion.")},
+            {n:"Variety",v:"0 · Normal · High · Extra · Max",d:L("Nouveau en v6, ce n'est pas un %. 0 = les 2 prises se ressemblent au max — à utiliser quand tu testes une modif de prompt. Monte-le pour explorer.","New in v6, not a %. 0 = the 2 takes stay as close as possible — use it when testing a prompt change. Raise it to explore.")},
             {n:"Max Mode",v:"ON si long",d:L("Garde la cohérence sur les morceaux longs (6+ sections).","Keeps consistency on long songs (6+ sections).")},
             {n:"Audio Influence",v:"55-75%",d:L("Apparaît avec un upload. Plus haut = colle à ta référence (ex. ton WAV du Riff Generator).","Appears with an upload. Higher = sticks to your reference (e.g. your Riff Generator WAV).")},
             {n:"Vocal Gender",v:"Male",d:L("Male pour la plupart du metal (Female pour certains styles).","Male for most metal (Female for some styles).")},

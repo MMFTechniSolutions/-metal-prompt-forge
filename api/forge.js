@@ -464,7 +464,12 @@ export default function handler(req, res) {
   // Règle retenue : un prompt SANS contradiction supporte l'adhérence max ; chaque conflit détecté
   // laisse un peu de marge à Suno pour arbitrer plutôt que de rendre la contradiction telle quelle.
   const _styleInf = _clamp(100 - _nConf * 8 - (genres.length > 1 ? 5 : 0), 60, 100);
-  const _varietyLbl = (genres.length > 1 || chaos >= 8) ? 'Medium' : 'Low';
+  // Variety : échelle réelle du panneau = 0 / Normal / High / Extra / Max (ce n'est pas un %).
+  // 0 = les deux prises se ressemblent au maximum, utile quand on teste une modif de prompt.
+  const _varietyLbl = chaos >= 9 ? 'Extra'
+                    : (chaos >= 7 || genres.length > 1) ? 'High'
+                    : chaos >= 4 ? 'Normal'
+                    : '0';
   const _vTxtAll = vocals.concat(vrange).join(' ');
   const sliderRec = {
     weirdness: _weird,
@@ -477,10 +482,10 @@ export default function handler(req, res) {
     vocalGender: /female|soprano|femme/i.test(_vTxtAll) ? 'Female'
                : /male|baritone|tenor|homme|growl|guttural/i.test(_vTxtAll) ? 'Male' : '—',
     why: L(
-      _nConf ? _nConf + ' conflit' + (_nConf > 1 ? 's' : '') + ' détecté' + (_nConf > 1 ? 's' : '') + ' → Style Influence baissé pour laisser Suno arbitrer.'
-             : 'Prompt sans contradiction → Style Influence poussé au maximum.',
-      _nConf ? _nConf + ' conflict' + (_nConf > 1 ? 's' : '') + ' detected → Style Influence lowered so Suno can resolve it.'
-             : 'No contradiction in the prompt → Style Influence pushed to the max.'),
+      (_nConf ? _nConf + ' conflit' + (_nConf > 1 ? 's' : '') + ' détecté' + (_nConf > 1 ? 's' : '') + ' → Style Influence baissé pour laisser Suno arbitrer.'
+              : 'Prompt sans contradiction → Style Influence poussé au maximum.') + ' Variety « ' + _varietyLbl + ' » : mets-le à 0 quand tu testes une modif de prompt, pour que les 2 prises soient comparables.',
+      (_nConf ? _nConf + ' conflict' + (_nConf > 1 ? 's' : '') + ' detected → Style Influence lowered so Suno can resolve it.'
+              : 'No contradiction in the prompt → Style Influence pushed to the max.') + ' Variety "' + _varietyLbl + '": set it to 0 when testing a prompt change, so the 2 takes stay comparable.'),
     audioNote: L('Audio Influence n\'apparaît qu\'avec une source audio : un WAV téléversé (Riff / Mélodie) OU un Cover. Haut = garde la mélodie et le rythme de la source ; bas = Suno réinterprète. En Cover avec un prompt modifié, baisse-le à 30-50 pour que le nouveau style prenne le dessus.',
                  'Audio Influence only appears with an audio source: an uploaded WAV (Riff / Melody) OR a Cover. High = keeps the source melody and rhythm; low = Suno reinterprets. On a Cover with a changed prompt, drop it to 30-50 so the new style wins.'),
   };

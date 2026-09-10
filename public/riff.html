@@ -537,7 +537,12 @@ function parseMidiToDrum(buf){
 let seqs=[],isPlaying=false,currentPat=null,animF=null,analyser=null;
 
 // ===== Vrais samples de batterie : rendus une fois (sub+click+corps+bruit+saturation), joués comme un sampler =====
+const _DRUM_CACHE={};
 function genDrumData(sr){
+  if(_DRUM_CACHE[sr])return _DRUM_CACHE[sr];
+  return _DRUM_CACHE[sr]=_genDrumData(sr);
+}
+function _genDrumData(sr){
   const env=(t,tau)=>Math.exp(-t/tau);
   // KICK ~0.34s : pitch-drop sub + corps + click de batte + transient bruit, saturé
   const kl=Math.ceil(.34*sr), kick=new Float32Array(kl);
@@ -749,7 +754,7 @@ async function renderAndDownload(p, stem){
   const totalSamples=Math.ceil((_acc+0.5)*sr);
 
   document.getElementById('dotRec').className='dot rec';
-  document.getElementById('txtRec').textContent=T(`Render ${dur}s en cours…`,`Rendering ${dur}s…`);
+  document.getElementById('txtRec').textContent=T(`Render ${dur}s en cours… (~${Math.max(1,Math.round(dur/4))}s, l'onglet peut figer)`,`Rendering ${dur}s… (~${Math.max(1,Math.round(dur/4))}s, tab may freeze)`);
   ['btnRender','btnRenderBeat','btnRenderMelody','btnRenderSong'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true;});
 
   const off=new OfflineAudioContext(2,totalSamples,sr);
@@ -760,7 +765,7 @@ async function renderAndDownload(p, stem){
   const outGain=off.createGain();outGain.gain.value=0.82;
   // Soft-clip final (tanh) : arrondit les pointes au lieu d'un écrêtage dur "qui griche"
   const soft=off.createWaveShaper();
-  {const N=2048,c=new Float32Array(N),k=1.5;for(let i=0;i<N;i++){const x=(i/(N-1))*2-1;c[i]=Math.tanh(k*x)/Math.tanh(k);}soft.curve=c;soft.oversample='4x';}
+  {const N=2048,c=new Float32Array(N),k=1.5;for(let i=0;i<N;i++){const x=(i/(N-1))*2-1;c[i]=Math.tanh(k*x)/Math.tanh(k);}soft.curve=c;soft.oversample='2x';}   // 2x = même rendu à l'oreille, ~2× plus rapide
   master.connect(comp);comp.connect(outGain);outGain.connect(soft);soft.connect(off.destination);
 
   const rootHz=noteFreqHz(p.root);
@@ -863,6 +868,7 @@ async function renderAndDownload(p, stem){
   },200);
 
   let rendered;
+  await new Promise(r=>setTimeout(r,30));   // laisse le navigateur afficher le message avant de bloquer
   try{rendered=await off.startRendering();}
   catch(e){clearInterval(ticker);document.getElementById('txtRec').textContent=T('Erreur: ','Error: ')+e.message;['btnRender','btnRenderBeat','btnRenderMelody','btnRenderSong'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=false;});return;}
   clearInterval(ticker);

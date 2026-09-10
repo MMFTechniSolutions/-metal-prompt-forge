@@ -11,7 +11,7 @@ const T = {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
     tabs:{genre:"Genre",melodie:"🎤 Melody",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",galerie:"Gallery",riff:"Riff",master:"Master",aimusic:"AI Music",history:"History"},
     generate:"FORGE",generating:"FORGING...",
-    step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → paste in "Style of Music" (limit 1000 chars · sweet spot ≤ 600)',
+    step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → CLEAR the "Style of Music" field, then paste (limit 1000 chars · sweet spot ≤ 600)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
     step3t:"STEP 3 — Production notes (DO NOT paste in Suno)",step3d:"Keep these for yourself — Suno would sing them as lyrics.",
     step4t:"STEP 4 — Exclude tags",step4d:"Add AFTER your style tags with minus sign: deathcore, -pop, -clean vocals",
@@ -23,7 +23,7 @@ const T = {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
     tabs:{genre:"Genre",melodie:"🎤 Mélodie",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",galerie:"Galerie",riff:"Riff",master:"Master",aimusic:"Musique IA",history:"Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
-    step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → colle dans "Style of Music" (limite 1000 car. · idéal ≤ 600)',
+    step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → VIDE le champ "Style of Music" puis colle (limite 1000 car. · idéal ≤ 600)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
     step3t:"ÉTAPE 3 — Notes de prod (NE PAS coller dans Suno)",step3d:"Garde ces notes pour toi — Suno les chanterait comme des paroles.",
     step4t:"ÉTAPE 4 — Tags d'exclusion",step4d:"Ajoute APRÈS tes style tags avec un signe moins : deathcore, -pop, -voix claires",
@@ -1505,7 +1505,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [coverTxt,setCoverTxt]=useState(SV.coverTxt ?? "");
   const [editTxt,setEditTxt]=useState(SV.editTxt ?? "");        // v6 : prompts d'édition partielle
   const [sliderRec,setSliderRec]=useState(SV.sliderRec ?? null);
-  const [critic,setCritic]=useState(SV.critic ?? null);   // passe de critique auto-notée  // v6 : Weirdness / Style Influence / Variety
+  const [critic,setCritic]=useState(SV.critic ?? null);   // passe de critique auto-notée
+  const [meterInfo,setMeterInfo]=useState(SV.meterInfo ?? null);   // {lead, auto} — séquence déduite du genre  // v6 : Weirdness / Style Influence / Variety
   const [extendTxt,setExtendTxt]=useState(SV.extendTxt ?? "");
   const [modelRec,setModelRec]=useState(SV.modelRec ?? null);
   const [structTxtC,setStructTxtC]=useState(SV.structTxtC ?? "");
@@ -1524,7 +1525,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [lyricsErr,setLyricsErr]=useState("");
   const [history,setHistory]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_history")||"[]")}catch{return[]}});
   // Sauvegarde continue de l'etat (persistance au refresh)
-  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
+  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
   const resetAll=()=>{ try{ localStorage.removeItem('mpf_state'); Object.keys(localStorage).filter(k=>k.startsWith('mpf_sel_')).forEach(k=>localStorage.removeItem(k)); localStorage.removeItem('mpf_history'); }catch(e){} location.reload(); };
   const saveToHistory=p=>{
     if(!isPro)return;
@@ -1533,6 +1534,17 @@ export default function App({ user, onLogout, onRequestAuth }) {
     try{localStorage.setItem("mpf_history",JSON.stringify(u))}catch{}
   };
 
+  // Correctifs de la passe de critique : on répare À LA SOURCE au lieu d'afficher le problème.
+  const applyFix=async(fix)=>{
+    if(fix==='trimGenres'){ const keep=[...genres].slice(0,2); setGenres(new Set(keep)); return; }
+    if(fix==='raiseEmo'){
+      const ids=Object.keys(emotions||{}); if(!ids.length)return;
+      const top=ids.reduce((a,b)=>(+emotions[b]||0)>(+emotions[a]||0)?b:a);
+      setEmotions(p=>({...p,[top]:Math.max(65,+p[top]||0)})); return;
+    }
+    if(fix==='autoStruct'){ const d=['intro','verse','chorus','breakdown','verse','chorus','outro']; setStructs(new Set(d)); setLblocks(d); return; }
+    if(fix==='fillGenre'){ const g=[...genres][0]; if(g) await autoFillGenre(g,{seedEmo:false}); return; }
+  };
   const meterCard=(
         <Collapse title={L("Métriques mixtes (séquence)","Mixed meters (sequence)")} n={METER_LIST.length} selCount={meters.length}>
           <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginBottom:"8px"}}>
@@ -1540,7 +1552,9 @@ export default function App({ user, onLogout, onRequestAuth }) {
           </div>
           {meters.length>0
             ?<div style={{fontSize:"0.62rem",color:"#c9a227",marginBottom:"6px",fontFamily:"monospace"}}>→ mixed meter {meters.join(" - ")} <span onClick={()=>setMeters([])} style={{color:"#666",cursor:"pointer",marginLeft:"6px"}}>✕</span></div>
-            :<div style={{fontSize:"0.6rem",color:"#5a7a5a",marginBottom:"6px"}}>{L("Rien de coché = séquence déduite automatiquement du genre (prog, math, djent, doom, folk… ; les genres droits comme thrash ou deathcore restent en 4/4).","Nothing selected = sequence derived automatically from the genre (prog, math, djent, doom, folk…; straight genres like thrash or deathcore stay in 4/4).")}</div>}
+            :meterInfo&&meterInfo.auto
+              ?<div style={{fontSize:"0.62rem",color:"#7fbf7f",marginBottom:"6px",fontFamily:"monospace"}}>{L("Auto (genre) → ","Auto (genre) → ")}{meterInfo.lead}</div>
+              :<div style={{fontSize:"0.6rem",color:"#5a7a5a",marginBottom:"6px"}}>{L("Rien de coché = séquence déduite du genre après génération (prog, math, djent, doom, folk… ; thrash, deathcore et black restent en 4/4).","Nothing selected = sequence derived from the genre after generating (prog, math, djent, doom, folk…; thrash, deathcore and black stay in 4/4).")}</div>}
           <div style={{fontSize:"0.58rem",color:"#333",marginTop:"4px",lineHeight:1.6}}>{L("→ Clique dans l'ordre voulu (max 5). La séquence est placée EN TÊTE du Style : Suno la lit comme un feel prog/avant-garde qui teinte tout le morceau.","→ Click in the order you want (max 5). The sequence goes at the TOP of the Style: Suno reads it as a prog/avant-garde feel that colors the whole track.")}</div>
         </Collapse>
   );
@@ -1548,6 +1562,11 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const generate=async()=>{
     if(!user){onRequestAuth&&onRequestAuth();return;}          // compte requis pour générer (même gratuit)
     if(promptCount>=limit.prompts){setView("landing");return;}
+    // Nettoyage : on efface TOUTES les sorties précédentes avant de regénérer, sinon un champ absent
+    // de la nouvelle réponse laisse l'ancienne valeur affichée (et on croit que ça n'a pas marché).
+    setStyleTxt("");setStyleTxtC("");setStructTxt("");setStructTxtC("");setStructNotes("");setExcludeTxt("");
+    setFullTxt("");setCoverTxt("");setExtendTxt("");setEditTxt("");setSliderRec(null);setCritic(null);
+    setMeterInfo(null);setConflicts([]);setModelRec(null);setPhoneticRec(null);
     // #9 — structure auto si rien choisi (semi-aléatoire, cohérente Paroles+Style)
     const autoStructs = structs.size ? [...structs] : ['intro','verse','chorus','breakdown','verse','chorus','outro'];
     if(!structs.size){setStructs(autoStructs);setLblocks(autoStructs);}
@@ -1567,7 +1586,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(!r.ok)throw new Error('forge');
     }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie ":"Generation error, try again "); return; }
     setConflicts(data.conflicts||[]);
-    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setEditTxt(data.editStr||"");setSliderRec(data.sliderRec||null);setCritic(data.critic||null);setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);
+    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setEditTxt(data.editStr||"");setSliderRec(data.sliderRec||null);setCritic(data.critic||null);setMeterInfo(data.meterLead?{lead:data.meterLead,auto:!!data.meterAuto}:null);setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);
     const nc=promptCount+1;setPromptCount(nc);
     if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
     saveToHistory(data.styleStr);
@@ -2393,7 +2412,11 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               {critic.issues.map((it,i)=>(
                 <div key={i} onClick={()=>it.tab&&setTab(it.tab)} style={{display:"flex",gap:"9px",alignItems:"baseline",padding:"5px 0",cursor:it.tab?"pointer":"default"}}>
                   <span style={{fontSize:"0.62rem",fontWeight:900,color:"#ff8844",fontFamily:"monospace",flexShrink:0,minWidth:"26px"}}>−{it.pts}</span>
-                  <span style={{fontSize:"0.7rem",color:"#aaa",lineHeight:1.55}}>{it.msg}{it.tab&&<span style={{color:"#5a8ad8",marginLeft:"5px"}}>{L("→ corriger","→ fix")}</span>}</span>
+                  <span style={{fontSize:"0.7rem",color:"#aaa",lineHeight:1.55}}>{it.msg}
+                    {it.fix
+                      ?<button onClick={e=>{e.stopPropagation();applyFix(it.fix);}} style={{marginLeft:"7px",background:"#0d2a14",border:"1px solid #2f7a45",borderRadius:"5px",color:"#7fe0a0",fontSize:"0.6rem",fontWeight:800,padding:"2px 8px",cursor:"pointer"}}>{L("Corriger","Fix")}</button>
+                      :it.tab?<span style={{color:"#5a8ad8",marginLeft:"5px"}}>{L("→ voir","→ open")}</span>:null}
+                  </span>
                 </div>))}
             </div>}
           </div>}

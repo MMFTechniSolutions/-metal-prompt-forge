@@ -569,19 +569,19 @@ export default function handler(req, res) {
   // Chaque manque coûte des points ET vient avec le geste correctif exact (onglet + action).
   const _nTags = styleStr.split(', ').filter(Boolean).length;
   const issues = [];
-  const _ko = (pts, fr, en, tab) => issues.push({ pts, msg: L(fr, en), tab });
+  const _ko = (pts, fr, en, tab, fix) => issues.push({ pts, msg: L(fr, en), tab, fix });
   if (conf.length) _ko(conf.length * 6, conf.length + ' contradiction' + (conf.length > 1 ? 's' : '') + ' dans le prompt — vois la liste des conflits juste au-dessus.', conf.length + ' contradiction' + (conf.length > 1 ? 's' : '') + ' in the prompt — see the conflict list above.', null);
   if (genres.length === 0) _ko(20, 'Aucun genre choisi — c\'est le tag qui porte tout le reste.', 'No genre selected — that is the tag everything else hangs on.', 'genre');
-  else if (genres.length > 2) _ko(10, genres.length + ' genres : garde-en 1 ou 2, au-delà Suno mélange au lieu de fusionner.', genres.length + ' genres: keep 1 or 2, beyond that Suno blends instead of fusing.', 'genre');
-  if (!emoDom && Object.keys(emotions).length) _ko(8, 'Aucune émotion au-dessus de 50 % — monte ta dominante, sinon rien ne teinte la production.', 'No emotion above 50% — raise your dominant one or nothing shapes the production.', 'genre');
-  if (!vocals.length && !harshVox) _ko(8, 'Aucun type de voix choisi — Suno improvise, et c\'est souvent du chant clair générique.', 'No vocal type selected — Suno improvises, usually generic clean singing.', 'vocals');
-  if (!drums.length) _ko(6, 'Aucun pattern de batterie — onglet Drums, c\'est ce qui donne le genre au premier coup d\'oreille.', 'No drum pattern — Drums tab; it is what identifies the genre in the first second.', 'drums');
-  if (!guitar.length && !leadInst.length) _ko(6, 'Aucune technique de guitare ni instrument lead — le riff reste vague.', 'No guitar technique or lead instrument — the riff stays vague.', 'instrums');
-  if (structs.length < 3) _ko(8, 'Moins de 3 sections : le morceau va tourner en rond. Onglet Structure.', 'Fewer than 3 sections: the song will loop on itself. Structure tab.', 'structure');
-  if (_nTags < 8) _ko(12, 'Prompt trop maigre (' + _nTags + ' éléments) — ajoute des textures, une production, une tonalité.', 'Prompt too thin (' + _nTags + ' items) — add textures, a production, a tonality.', 'genre');
+  else if (genres.length > 2) _ko(10, genres.length + ' genres : garde-en 1 ou 2, au-delà Suno mélange au lieu de fusionner.', genres.length + ' genres: keep 1 or 2, beyond that Suno blends instead of fusing.', 'genre', 'trimGenres');
+  if (!emoDom && Object.keys(emotions).length) _ko(8, 'Aucune émotion au-dessus de 50 % — monte ta dominante, sinon rien ne teinte la production.', 'No emotion above 50% — raise your dominant one or nothing shapes the production.', 'genre', 'raiseEmo');
+  if (!vocals.length && !harshVox) _ko(8, 'Aucun type de voix choisi — Suno improvise, et c\'est souvent du chant clair générique.', 'No vocal type selected — Suno improvises, usually generic clean singing.', 'vocals', 'fillGenre');
+  if (!drums.length) _ko(6, 'Aucun pattern de batterie — onglet Drums, c\'est ce qui donne le genre au premier coup d\'oreille.', 'No drum pattern — Drums tab; it is what identifies the genre in the first second.', 'drums', 'fillGenre');
+  if (!guitar.length && !leadInst.length) _ko(6, 'Aucune technique de guitare ni instrument lead — le riff reste vague.', 'No guitar technique or lead instrument — the riff stays vague.', 'instrums', 'fillGenre');
+  if (structs.length < 3) _ko(8, 'Moins de 3 sections : le morceau va tourner en rond. Onglet Structure.', 'Fewer than 3 sections: the song will loop on itself. Structure tab.', 'structure', 'autoStruct');
+  if (_nTags < 8) _ko(12, 'Prompt trop maigre (' + _nTags + ' éléments) — ajoute des textures, une production, une tonalité.', 'Prompt too thin (' + _nTags + ' items) — add textures, a production, a tonality.', 'genre', 'fillGenre');
   else if (styleStr.length > 800) _ko(6, 'Prompt long (' + styleStr.length + ' car.) — les derniers éléments pèsent moins.', 'Long prompt (' + styleStr.length + ' chars) — the last items carry less weight.', null);
-  if (_worldGenre && !signature.length && !leadInst.length) _ko(8, 'Genre folk/world sans instrument nommé — Suno n\'a presque pas de données, il va dériver vers du « world music » générique.', 'Folk/world genre with no named instrument — Suno has little data and will drift to generic world music.', 'instrums');
-  if (!tuning.length && !autoTuning) _ko(4, 'Aucun accordage — onglet Genre, il fixe la lourdeur réelle du riff.', 'No tuning — Genre tab; it sets the actual heaviness of the riff.', 'genre');
+  if (_worldGenre && !signature.length && !leadInst.length) _ko(8, 'Genre folk/world sans instrument nommé — Suno n\'a presque pas de données, il va dériver vers du « world music » générique.', 'Folk/world genre with no named instrument — Suno has little data and will drift to generic world music.', 'instrums', 'fillGenre');
+  if (!tuning.length && !autoTuning) _ko(4, 'Aucun accordage — onglet Genre, il fixe la lourdeur réelle du riff.', 'No tuning — Genre tab; it sets the actual heaviness of the riff.', 'genre', 'fillGenre');
   const score = Math.max(0, Math.min(100, 100 - issues.reduce((a, x) => a + x.pts, 0)));
   const grade = score >= 90 ? 'A' : score >= 75 ? 'B' : score >= 60 ? 'C' : 'D';
   const critic = {

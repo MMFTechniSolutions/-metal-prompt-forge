@@ -164,6 +164,20 @@
     <div class="grid4">
       <div class="cg"><label>Tessiture (octaves)</label>
         <select id="range"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select></div>
+      <div class="cg"><label>Mesure</label>
+        <select id="meter">
+          <option value="auto" selected>Auto (selon le style)</option>
+          <option value="4/4">4/4 — binaire</option>
+          <option value="3/4">3/4 — valse</option>
+          <option value="6/8">6/8 — ternaire (3+3)</option>
+          <option value="12/8">12/8 — shuffle lourd</option>
+          <option value="5/4">5/4 — impair (3+2)</option>
+          <option value="7/4">7/4 — ample (4+3)</option>
+          <option value="5/8">5/8 — saccadé (3+2)</option>
+          <option value="7/8">7/8 — prog (2+2+3)</option>
+          <option value="9/8">9/8 — balkan (2+2+2+3)</option>
+          <option value="11/8">11/8 — math (3+3+3+2)</option>
+        </select></div>
       <div class="cg"><label>Longueur</label>
         <select id="bars"><option value="1">1 mesure</option><option value="2" selected>2 mesures</option><option value="4">4 mesures</option><option value="8">8 mesures</option></select></div>
       <div class="cg"><label>Densité <span class="rv" id="densLbl">55%</span></label>
@@ -334,7 +348,37 @@ const REGIONS={
 };
 // ═══ RYTHME — valeurs de notes (double-croche, croche, noire, blanche, triolet) ═══
 // Grille interne = 48 pas/mesure (12 par temps) → supporte le binaire (÷16) ET les triolets (÷12).
-const PPB=12;                 // pas par temps (noire)
+const PPB=12;
+// Mesures : spb = pas par mesure · groups = découpage en pulsations (longueur de chaque groupe, en pas)
+// Une noire = 12 pas, une croche = 6 pas. 7/8 en 2+2+3 croches = groupes de 12,12,18.
+const METERS={
+  '4/4' :{spb:48,groups:[12,12,12,12],       lbl:'4/4 — binaire'},
+  '3/4' :{spb:36,groups:[12,12,12],          lbl:'3/4 — valse'},
+  '6/8' :{spb:36,groups:[18,18],             lbl:'6/8 — ternaire (3+3)'},
+  '12/8':{spb:72,groups:[18,18,18,18],       lbl:'12/8 — shuffle lourd'},
+  '5/4' :{spb:60,groups:[12,12,12,12,12],    lbl:'5/4 — impair (3+2)'},
+  '7/4' :{spb:84,groups:[12,12,12,12,12,12,12],lbl:'7/4 — ample (4+3)'},
+  '5/8' :{spb:30,groups:[18,12],             lbl:'5/8 — saccadé (3+2)'},
+  '7/8' :{spb:42,groups:[12,12,18],          lbl:'7/8 — prog (2+2+3)'},
+  '9/8' :{spb:54,groups:[12,12,12,18],       lbl:'9/8 — balkan (2+2+2+3)'},
+  '11/8':{spb:66,groups:[18,18,18,12],       lbl:'11/8 — math (3+3+3+2)'},
+};
+// Mesure déduite du style choisi quand on est en « auto »
+const METER_BY_REGION={
+  hit_doom:'12/8', doom:'12/8', hit_stoner:'12/8',
+  hit_viking:'6/8', celtic:'6/8', hit_acoustic:'6/8', hit_ballad:'6/8', hit_gothic:'6/8', hit_epic:'6/8',
+  hit_prog:'7/8', hit_djent:'7/8', hit_symphonic:'3/4', neoclassical:'3/4',
+  jazzbop:'5/4', hit_blackatmo:'6/8', balkan:'9/8', gypsy:'9/8', klezmer:'7/8',
+};
+const METER_BY_FAMILY={ darkjazz:'5/4', cinematic:'3/4', oriental:'9/8' };
+function meterKey(){
+  const v=$('meter')?$('meter').value:'auto';
+  if(v&&v!=='auto'&&METERS[v])return v;
+  return METER_BY_REGION[region()]||METER_BY_FAMILY[family()]||'4/4';
+}
+function SPB(){return METERS[meterKey()].spb;}                 // pas par mesure
+function GROUPS(){return METERS[meterKey()].groups;}           // découpage en pulsations
+function beatStarts(){const g=GROUPS(),o=[];let a=0;g.forEach(x=>{o.push(a);a+=x;});return o;}                 // pas par temps (noire)
 const RPAT={
   quarter:{t:[0]},                    // noire
   eighths:{t:[0,6]},                  // 2 croches
@@ -530,9 +574,10 @@ function generate(){
   const pool=(reg.scales&&reg.scales.length)?reg.scales:FAMILIES[family()].scales;
   scaleKey = ($('scale').value==='auto'||!$('scale').value) ? pick(pool) : $('scale').value;
   if(!SCALES[scaleKey]) scaleKey=pool[0]||'aeolian';           // garde-fou : gamme toujours valide
-  $('scaleName').textContent=SCALE_LABEL[scaleKey]+' · '+NAMES[rootPc()]+(region()!=='none'?' · '+region():'');
+  $('scaleName').textContent=SCALE_LABEL[scaleKey]+' · '+NAMES[rootPc()]+' · '+METERS[meterKey()].lbl+(region()!=='none'?' · '+region():'');
   buildLadder(reg.octUp||0);
-  steps=bars()*48;                               // 48 pas/mesure (binaire + triolets)
+  const _spb=SPB(), _starts=beatStarts();
+  steps=bars()*_spb;                             // pas/mesure selon la mesure choisie
   if(reg.vocal){ generateVocal(reg); return; }   // mode Chanté / Hit → moteur dédié
   const feel=FAMILY_FEEL[family()];
   const dens=(reg.dens!=null?reg.dens:density());
@@ -542,15 +587,17 @@ function generate(){
   // 1) RYTHME — un motif de valeurs de notes par temps (croche/noire/blanche/double/triolet)
   const ph=phrase();
   const densProb=0.55+0.45*dens;                  // densité → moins de silences
-  const beats=bars()*4;
   let onsets=[],holdNext=false;
-  for(let bt=0;bt<beats;bt++){
-    if(holdNext){holdNext=false;continue;}        // temps absorbé par une blanche
-    const isBarStart=(bt%4===0);
-    if(!isBarStart && Math.random()>densProb) continue;   // silence sur ce temps
-    const pat=pickBeat(ph,reg);
-    pat.t.forEach(off=>onsets.push(bt*PPB+off));
-    if(pat.hold) holdNext=true;                   // blanche → saute le temps suivant
+  for(let b=0;b<bars();b++){
+    for(let k=0;k<_starts.length;k++){
+      if(holdNext){holdNext=false;continue;}      // pulsation absorbée par une note tenue
+      const isBarStart=(k===0);
+      if(!isBarStart && Math.random()>densProb) continue;
+      const pat=pickBeat(ph,reg);
+      const base=b*_spb+_starts[k], span=GROUPS()[k];
+      pat.t.forEach(off=>{ if(off<span) onsets.push(base+off); });   // on ne déborde pas de la pulsation
+      if(pat.hold) holdNext=true;
+    }
   }
   onsets=onsets.filter((v,i,a)=>a.indexOf(v)===i && v<steps).sort((a,b)=>a-b);
   if(onsets.length<2) onsets=[0,PPB*2];           // garde-fou
@@ -613,18 +660,19 @@ function generateVocal(reg){
   const openTones=[sc[1],sc[4]!=null?sc[4]:sc[3],sc[sc.length-1]];   // 2, 5, 7 = « question » ouverte
   const nearest=(i,test)=>{let b=i,bd=99;for(let k=0;k<L.length;k++){if(test(k)){const d=Math.abs(k-i);if(d<bd){bd=d;b=k;}}}return b;};
   // ── rythme d'une cellule (1 mesure = 4 temps) : chanté = croches/noires, une syncope max, note longue possible ──
+  const _starts=beatStarts(), _grp=GROUPS(), _spb=SPB();
   const cellRhythm=(isEnd)=>{
     const bag=reg.bag||(reg.anthem?['half','quarter','quarter','half','dotted']:['eighths','quarter','eighths','e_ss','dotted','quarter','eighths']);
-    const on=[];let bt=0;
-    while(bt<4){
-      if(isEnd&&bt>=2&&reg.longEnd){on.push(bt*PPB);break;}                       // fin de phrase : note tenue
+    const on=[];let k=0;
+    while(k<_starts.length){
+      if(isEnd&&k>=Math.max(1,_starts.length-2)&&reg.longEnd){on.push(_starts[k]);break;}   // fin de phrase : note tenue
       let pat=RPAT[pick(bag)]||RPAT.quarter;
-      if(bt>0&&Math.random()<reg.synco)pat=RPAT.synco;                             // une syncope de temps en temps
-      if(Math.random()>0.55+0.45*reg.dens&&bt>0){bt++;continue;}                  // respiration
-      pat.t.forEach(o=>on.push(bt*PPB+o));
-      bt+=pat.hold?2:1;
+      if(k>0&&Math.random()<reg.synco)pat=RPAT.synco;
+      if(Math.random()>0.55+0.45*reg.dens&&k>0){k++;continue;}
+      pat.t.forEach(o=>{ if(o<_grp[k]) on.push(_starts[k]+o); });                 // jamais hors de la pulsation
+      k+=pat.hold?2:1;
     }
-    return on.filter((v,i,a)=>a.indexOf(v)===i&&v<48).sort((a,b)=>a-b);
+    return on.filter((v,i,a)=>a.indexOf(v)===i&&v<_spb).sort((a,b)=>a-b);
   };
   // ── contour d'une cellule : marche conjointe + 1 saut max, retour conjoint après saut ──
   const cellPitches=(n,startIdx,peakBias)=>{
@@ -667,11 +715,11 @@ function generateVocal(reg){
     // temps forts (1 et 3) → notes d'accord ; fin de phrase → question (ouverte) ou réponse (tonique)
     r.forEach((off,k)=>{
       let i=p[k];
-      if(off%(PPB*2)===0&&!isChord(i)&&Math.random()<0.7)i=nearest(i,isChord);
+      if(_starts.indexOf(off)>=0&&(_starts.indexOf(off)%2===0)&&!isChord(i)&&Math.random()<0.7)i=nearest(i,isChord);   // note d'accord sur les pulsations fortes
       if(k===r.length-1&&isPhraseEnd){
         i=isFinal||(bar%4===3)?nearest(i,isRoot):nearest(i,j=>openTones.includes(deg(L[j])));
       }
-      mel[bar*48+off]=L[i];
+      mel[bar*_spb+off]=L[i];
     });
     bar++;
   }
@@ -693,7 +741,7 @@ function renderRoll(){
     const lab=document.createElement('div');lab.className='rowlab'+(isRoot?' root':'');lab.textContent=midiName(midi);roll.appendChild(lab);
     for(let c=0;c<steps;c++){
       const cell=document.createElement('div');
-      let cls='rcell';if(isRoot)cls+=' rootrow';if((c+1)%48===0)cls+=' bar';else if((c+1)%12===0)cls+=' beat';
+      let cls='rcell';if(isRoot)cls+=' rootrow';const _sp=SPB();if((c+1)%_sp===0)cls+=' bar';else if(beatStarts().indexOf((c+1)%_sp)>=0)cls+=' beat';
       if(mel[c]===midi){cls+=' on';const deg=(((midi-pc)%12)+12)%12;if(deg===0)cls+=' chord';}
       cell.className=cls;cell.dataset.c=c;cell.dataset.m=midi;
       roll.appendChild(cell);
@@ -710,7 +758,7 @@ $('roll').addEventListener('click',e=>{
 });
 
 // ═══════════════ DURÉE DES NOTES (legato jusqu'à la suivante) ═══════════════
-function noteDur(i,stepDur){let j=i+1;while(j<steps&&mel[j]==null)j++;const gap=(j-i);return Math.min(gap*stepDur*0.98, stepDur*48);}
+function noteDur(i,stepDur){let j=i+1;while(j<steps&&mel[j]==null)j++;const gap=(j-i);return Math.min(gap*stepDur*0.98, stepDur*SPB());}
 // Liste ordonnée des notes avec la fréquence de la précédente (pour le glissando "filant")
 function noteList(stepDur){const out=[];let prevHz=0,prevMidi=null;for(let i=0;i<steps;i++){if(mel[i]==null)continue;const hz=midiHz(mel[i]);out.push({i,midi:mel[i],hz,dur:noteDur(i,stepDur),prevHz,prevMidi});prevHz=hz;prevMidi=mel[i];}return out;}
 
@@ -761,7 +809,7 @@ $('density').addEventListener('input',()=>$('densLbl').textContent=$('density').
 $('smooth').addEventListener('input',()=>{const v=+$('smooth').value;$('smoothLbl').textContent=v>66?'fluide':v>33?'mixte':'sauts';});
 $('bpm').addEventListener('input',()=>$('bpmLbl').textContent=$('bpm').value+' BPM');
 $('family').addEventListener('change',()=>{populateScales();generate();});
-['scale','root','octave','range','bars','phrase','region'].forEach(id=>$(id).addEventListener('change',generate));
+['scale','root','octave','range','bars','phrase','region','meter'].forEach(id=>{const e=$(id);if(e)e.addEventListener('change',generate);});
 $('btnGen').addEventListener('click',generate);
 $('btnPlay').addEventListener('click',()=>{play().catch(e=>{status('⚠ '+e.message,false);});});
 $('btnStop').addEventListener('click',()=>{stopPlay();status('Arrêté',false);});

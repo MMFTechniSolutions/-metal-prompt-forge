@@ -92,13 +92,49 @@ export default function handler(req, res) {
   const structs = A('structs');
   // ── MÉTRIQUES MIXTES (validé par François 2026-09-06 : une séquence de mesures EN TÊTE du Style teinte tout le morceau) ──
   // Table : chiffrage → découpage type (metal & jazz fusion)
+  // Texte nu, sans parenthèses : non documentées dans le champ Style, et le test manuel donne mieux sans.
   const METERS = {
-    '4/4':'4/4 (2+2 backbeat)', '6/8':'6/8 (3+3 triplet feel)', '12/8':'12/8 (heavy shuffle)',
-    '5/4':'5/4 (3+2)', '5/8':'5/8 (3+2 stabs)', '7/4':'7/4 (4+3 floating)', '7/8':'7/8 (2+2+3)',
-    '9/8':'9/8 (2+2+2+3 balkan)', '11/8':'11/8 (3+3+3+2)', '13/8':'13/8 (2+3 cells)', '15/8':'15/8 (2+3 cells)',
+    '4/4':'4/4 2+2 backbeat', '6/8':'6/8 3+3 triplet feel', '12/8':'12/8 heavy shuffle',
+    '5/4':'5/4 3+2', '5/8':'5/8 3+2 stabs', '7/4':'7/4 4+3 floating', '7/8':'7/8 2+2+3',
+    '9/8':'9/8 2+2+2+3 balkan', '11/8':'11/8 3+3+3+2', '13/8':'13/8 2+3 cells', '15/8':'15/8 2+3 cells',
   };
   const meters = A('meters').map(x => String(x).trim()).filter(x => METERS[x]).slice(0, 5);
-  const meterLead = meters.length >= 2 ? 'mixed meter ' + meters.map(m => METERS[m]).join(' - ') : meters.length === 1 ? METERS[meters[0]] + ' time' : '';
+  // ── SÉQUENCE AUTO PAR GENRE ──
+  // Tirets, pas de virgules ni de parenthèses : la séquence reste UN item pondéré que Suno lit
+  // comme une progression (avec des virgules il en choisirait un seul). Validé par François.
+  // Seuls les genres qui utilisent VRAIMENT des mesures impaires en ont une — un thrash reste en 4/4.
+  const METER_SEQ = {
+    'progressive-metal':   '7/8 2+2+3 - 4/4 2+2 - 5/4 3+2 - 9/8 2+2+2+3 balkan',
+    'progressive-metalcore':'7/8 2+2+3 - 4/4 2+2 - 5/4 3+2',
+    'progressive-post-hardcore':'7/8 2+2+3 - 4/4 2+2 - 6/8 3+3',
+    'mathcore':            '11/8 3+3+3+2 - 4/4 2+2 - 7/8 2+2+3 - 5/8 3+2 stabs',
+    'djent':               '4/4 2+2 - 7/8 2+2+3 - 11/8 3+3+3+2 polymetric over 4/4',
+    'tech-death':          '7/8 2+2+3 - 4/4 2+2 - 5/8 3+2 - 9/8 2+2+2+3',
+    'dissonant-death':     '5/4 3+2 - 7/8 2+2+3 - 4/4 2+2',
+    'avant-garde-metal':   '5/4 3+2 - 7/8 2+2+3 - 13/8 2+3 cells - 4/4 2+2',
+    'post-metal':          '4/4 2+2 - 6/8 3+3 - 7/4 4+3 floating',
+    'atmospheric-sludge':  '4/4 2+2 - 6/8 3+3 - 12/8 heavy shuffle',
+    'sludge-metal':        '4/4 2+2 - 6/8 3+3 - 12/8 heavy shuffle',
+    'doom-metal':          '12/8 heavy shuffle - 6/8 3+3 - 4/4 half-time',
+    'epic-doom':           '12/8 heavy shuffle - 6/8 3+3 - 4/4 half-time',
+    'funeral-doom':        '12/8 heavy shuffle - 6/8 3+3 - 4/4 half-time',
+    'drone-metal':         '12/8 heavy shuffle - free-form drone',
+    'folk-metal':          '6/8 3+3 - 4/4 2+2 - 12/8 heavy shuffle',
+    'gothic-metal':        '6/8 3+3 - 4/4 2+2',
+    'symphonic-metal':     '4/4 2+2 - 6/8 3+3 - 3/4 waltz feel',
+    'neoclassical':        '4/4 2+2 - 6/8 3+3 - 3/4 waltz feel',
+    'atmospheric-black':   '4/4 2+2 - 6/8 3+3',
+    'blackgaze':           '4/4 2+2 - 6/8 3+3',
+    'jazz-fusion':         '7/4 4+3 floating - 5/4 3+2 - 9/8 2+2+2+3 balkan - 4/4 backbeat',
+  };
+  const _gtxtEarly = genres.map(x => String(x).toLowerCase()).join(' ');
+  const _sidEarly = (STYLE_ID_MAP.find(([re]) => re.test(_gtxtEarly)) || [])[1];
+  const _autoSeq = (!meters.length && _sidEarly && METER_SEQ[_sidEarly]) ? METER_SEQ[_sidEarly] : '';
+  const meterLead = meters.length >= 2 ? 'mixed meter ' + meters.map(m => METERS[m]).join(' - ')
+                  : meters.length === 1 ? METERS[meters[0]] + ' time'
+                  : _autoSeq ? 'mixed meter ' + _autoSeq
+                  : '';
+  const meterAuto = !!_autoSeq;
   const signature = A('signature').map(x => String(x).trim()).filter(Boolean).slice(0, 4);   // anchors sonores du « reverse » (groupe → style)
   // Époque (couche 3 du style stack) : le client envoie les familles d'époque des genres choisis
   const ERA_TAG = { '60s-70s':'1970s analog tape production', '80s':'1980s production', '90s':'1990s production', '2000s':'2000s production', '2010s':'2010s modern production', '2020s':'2020s modern production' };
@@ -533,5 +569,5 @@ export default function handler(req, res) {
     '\n\n=== STRUCTURE (-> top of Lyrics) ===\n' + structStr +
     '\n\n=== PRODUCTION NOTES (keep for yourself) ===\n' + heavyD + '. ' + grooveD + '. ' + chaosD + '. ' + melodyD + '. ' + bpmTag + '.' + organicBlock;
 
-  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, editStr, editPrompts, sliderRec, timeSig, modelRec, phonetic, rhythmStructTags });
+  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, meterLead, meterAuto, coverStr, extendStr, editStr, editPrompts, sliderRec, timeSig, modelRec, phonetic, rhythmStructTags });
 }

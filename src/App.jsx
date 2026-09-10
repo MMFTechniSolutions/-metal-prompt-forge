@@ -1537,7 +1537,9 @@ export default function App({ user, onLogout, onRequestAuth }) {
           <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginBottom:"8px"}}>
             {METER_LIST.map(m=>{const i=meters.indexOf(m);return <span key={m} onClick={()=>tMeter(m)} title={METER_HINT[m]} style={S.tag(i>=0,false)}>{i>=0?<b style={{color:"#fff",marginRight:"4px"}}>{i+1}</b>:null}{m}</span>;})}
           </div>
-          {meters.length>0&&<div style={{fontSize:"0.62rem",color:"#c9a227",marginBottom:"6px",fontFamily:"monospace"}}>→ mixed meter {meters.join(" - ")} <span onClick={()=>setMeters([])} style={{color:"#666",cursor:"pointer",marginLeft:"6px"}}>✕</span></div>}
+          {meters.length>0
+            ?<div style={{fontSize:"0.62rem",color:"#c9a227",marginBottom:"6px",fontFamily:"monospace"}}>→ mixed meter {meters.join(" - ")} <span onClick={()=>setMeters([])} style={{color:"#666",cursor:"pointer",marginLeft:"6px"}}>✕</span></div>
+            :<div style={{fontSize:"0.6rem",color:"#5a7a5a",marginBottom:"6px"}}>{L("Rien de coché = séquence déduite automatiquement du genre (prog, math, djent, doom, folk… ; les genres droits comme thrash ou deathcore restent en 4/4).","Nothing selected = sequence derived automatically from the genre (prog, math, djent, doom, folk…; straight genres like thrash or deathcore stay in 4/4).")}</div>}
           <div style={{fontSize:"0.58rem",color:"#333",marginTop:"4px",lineHeight:1.6}}>{L("→ Clique dans l'ordre voulu (max 5). La séquence est placée EN TÊTE du Style : Suno la lit comme un feel prog/avant-garde qui teinte tout le morceau.","→ Click in the order you want (max 5). The sequence goes at the TOP of the Style: Suno reads it as a prog/avant-garde feel that colors the whole track.")}</div>
         </Collapse>
   );

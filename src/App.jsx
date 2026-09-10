@@ -1504,7 +1504,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [styleTxtC,setStyleTxtC]=useState(SV.styleTxtC ?? "");
   const [coverTxt,setCoverTxt]=useState(SV.coverTxt ?? "");
   const [editTxt,setEditTxt]=useState(SV.editTxt ?? "");        // v6 : prompts d'édition partielle
-  const [sliderRec,setSliderRec]=useState(SV.sliderRec ?? null);  // v6 : Weirdness / Style Influence / Variety
+  const [sliderRec,setSliderRec]=useState(SV.sliderRec ?? null);
+  const [critic,setCritic]=useState(SV.critic ?? null);   // passe de critique auto-notée  // v6 : Weirdness / Style Influence / Variety
   const [extendTxt,setExtendTxt]=useState(SV.extendTxt ?? "");
   const [modelRec,setModelRec]=useState(SV.modelRec ?? null);
   const [structTxtC,setStructTxtC]=useState(SV.structTxtC ?? "");
@@ -1523,7 +1524,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [lyricsErr,setLyricsErr]=useState("");
   const [history,setHistory]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_history")||"[]")}catch{return[]}});
   // Sauvegarde continue de l'etat (persistance au refresh)
-  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
+  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
   const resetAll=()=>{ try{ localStorage.removeItem('mpf_state'); Object.keys(localStorage).filter(k=>k.startsWith('mpf_sel_')).forEach(k=>localStorage.removeItem(k)); localStorage.removeItem('mpf_history'); }catch(e){} location.reload(); };
   const saveToHistory=p=>{
     if(!isPro)return;
@@ -1566,7 +1567,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(!r.ok)throw new Error('forge');
     }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie ":"Generation error, try again "); return; }
     setConflicts(data.conflicts||[]);
-    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setEditTxt(data.editStr||"");setSliderRec(data.sliderRec||null);setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);
+    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setEditTxt(data.editStr||"");setSliderRec(data.sliderRec||null);setCritic(data.critic||null);setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);
     const nc=promptCount+1;setPromptCount(nc);
     if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
     saveToHistory(data.styleStr);
@@ -2377,6 +2378,25 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>}
         {styleTxt&&<>
           <div style={{fontSize:"0.62rem",color:"#8a7a4a",background:"#14110a",border:"1px solid #2a2410",borderRadius:"8px",padding:"7px 10px",marginBottom:"8px"}}>{L("Suno est aléatoire par design : génère 2-3 fois le même prompt avant de conclure qu'il ne marche pas.","Suno is random by design: run the same prompt 2-3 times before deciding it doesn't work.")}</div>
+          {critic&&<div style={{...S.card,borderColor:critic.score>=90?"#3a7a3a":critic.score>=75?"#7a7a2a":"#7a3a2a",background:critic.score>=90?"#04120a":critic.score>=75?"#121002":"#140803"}}>
+            <div style={{display:"flex",alignItems:"center",gap:"14px"}}>
+              <div style={{width:"58px",height:"58px",borderRadius:"50%",flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",border:`2px solid ${critic.score>=90?"#5fd98a":critic.score>=75?"#d8d86a":"#ff8844"}`}}>
+                <div style={{fontSize:"1.25rem",fontWeight:900,lineHeight:1,color:critic.score>=90?"#5fd98a":critic.score>=75?"#d8d86a":"#ff8844"}}>{critic.grade}</div>
+                <div style={{fontSize:"0.5rem",color:"#777"}}>{critic.score}/100</div>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:"0.55rem",letterSpacing:"2px",textTransform:"uppercase",fontWeight:800,color:"#888"}}>{L("Analyse du prompt","Prompt analysis")}</div>
+                <div style={{fontSize:"0.78rem",color:"#ddd",marginTop:"3px",lineHeight:1.5}}>{critic.verdict}</div>
+              </div>
+            </div>
+            {critic.issues.length>0&&<div style={{marginTop:"11px",borderTop:"1px solid #ffffff11",paddingTop:"9px"}}>
+              {critic.issues.map((it,i)=>(
+                <div key={i} onClick={()=>it.tab&&setTab(it.tab)} style={{display:"flex",gap:"9px",alignItems:"baseline",padding:"5px 0",cursor:it.tab?"pointer":"default"}}>
+                  <span style={{fontSize:"0.62rem",fontWeight:900,color:"#ff8844",fontFamily:"monospace",flexShrink:0,minWidth:"26px"}}>−{it.pts}</span>
+                  <span style={{fontSize:"0.7rem",color:"#aaa",lineHeight:1.55}}>{it.msg}{it.tab&&<span style={{color:"#5a8ad8",marginLeft:"5px"}}>{L("→ corriger","→ fix")}</span>}</span>
+                </div>))}
+            </div>}
+          </div>}
           {/* COMPACT TOGGLE + CONFLICTS */}
           <div style={{...S.card,display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",borderColor:"#2a2a2a"}}>
             <div>

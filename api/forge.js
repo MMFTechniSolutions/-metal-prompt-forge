@@ -360,8 +360,10 @@ export default function handler(req, res) {
   const _b5 = dedup([..._secretClean.slice(0, 1), scrub(dynamicsClause), rhythmDynClause].filter(Boolean)).join(', ');
   const richClauses = [_b1, _b2, _b3, _b4, _b5].filter(x => x && String(x).trim()).slice(0, 6);
   const RICH_BUDGET = 600;   // guide : au-delà, les derniers tags sont dépriorisés (limite dure Suno = 1000)   // v4.5+ tolère ~1000 car. ; on coupe des clauses par la fin si trop long (jamais le genre/mood)
-  let styleStr = richClauses.join('; ');
-  while (richClauses.length > 4 && styleStr.length > RICH_BUDGET) { richClauses.splice(richClauses.length - 2, 1); styleStr = richClauses.join('; '); }
+  // dedup GLOBAL : en liste de virgules, un doublon (ex. le BPM répété) prend du poids pour rien
+  const _flatten = arr => dedup(arr.join(', ').split(/,\s*/).map(x => x.trim()).filter(Boolean)).join(', ');
+  let styleStr = _flatten(richClauses);
+  while (richClauses.length > 4 && styleStr.length > RICH_BUDGET) { richClauses.splice(richClauses.length - 2, 1); styleStr = _flatten(richClauses); }
   const styleStrC = scrubList(compactCore).slice(0, 10).join(', ');   // guide : >10 tags, la fin est ignorée   // version compacte inchangée (fallback court)
   // T11 — prompts secondaires : COVER (sous-genre dominant) + EXTEND (callback cohérent)
   const _g1 = genres[0] || 'metal';

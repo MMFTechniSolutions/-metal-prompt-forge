@@ -105,13 +105,14 @@ export default function handler(req, res) {
   const _eras = A('eras').map(x => String(x));
   const _eraKey = Object.keys(ERA_TAG).find(k => _eras.some(e => e.startsWith(k)));
   const eraTag = _eraKey ? ERA_TAG[_eraKey] : '';
+  const _vintageEra = /^(60s-70s|80s|90s)$/.test(_eraKey || '');
   const blockRhythm = b.blockRhythm || {};
   const heavy = +b.heavy || 5, groove = +b.groove || 5, chaos = +b.chaos || 5, melody = +b.melody || 5;
   const bpm = Math.max(60, Math.min(280, +b.bpm || 180));
   const lang = b.lang || 'en';
   const L = (fr, en) => lang === 'fr' ? fr : en;
 
-  const rFor = k => blockRhythm[k] ? ', ' + blockRhythm[k] : '';
+  const rFor = k => blockRhythm[k] ? ', ' + String(blockRhythm[k]).replace(/[\[\]:]/g, '') : '';
   const tempoWord = ''; // v5.5 : plus de mot vague de tempo, le BPM chiffré suffit
   const _tempoWordOld = bpm >= 210 ? 'blistering fast tempo' : bpm >= 170 ? 'fast tempo' : bpm >= 120 ? 'mid-tempo' : bpm >= 90 ? 'slow groovy tempo' : 'slow doom tempo';
   // ENCYCLOPÉDIE → calibration par genre (temps de mesure, gamme/mode, production, tuning par défaut) — secret serveur
@@ -156,7 +157,7 @@ export default function handler(req, res) {
   let _db = {}; for (const [re, v] of GENRE_DB){ if (re.test(_gtxt)){ _db = v; break; } }
   let timeSig = _db.ts || '4/4';
   if (timeSig === '4/4' && chaos >= 8 && _rs < 0.5) timeSig = _rs < 0.25 ? '7/8' : '5/4';
-  const scaleTag = _db.scale || '';
+  let scaleTag = _db.scale || '';
   const genreProdTag = _db.prod || '';
   const autoTuning = _db.tuning || '';
   // Recommandation de modèle Suno par genre (mieux / bon / moins bon)
@@ -179,6 +180,7 @@ export default function handler(req, res) {
     phonetic = { enabled: true, intensity: 'stretched', why: L('voyelles extra-longues pour shrieks tenus sur tremolo','extra-long vowels for sustained shrieks over tremolo') };
   else if (/death|brutal|sludge/.test(_gtxt))
     phonetic = { enabled: true, intensity: 'normal', why: L('growls sales, pas sur-articulés','dirty growls, not over-enunciated') };
+  const conf = [];   // v6 : déclaré tôt — les garde-fous de conflit écrivent dedans pendant l'assemblage
   const dedup = arr => { const s = new Set(); return arr.filter(x => { const k = String(x).toLowerCase().trim(); if (!x || s.has(k)) return false; s.add(k); return true; }); };
 
   // ── sauce secrète : sliders → tags subtils, fondus dans le lot ──
@@ -194,28 +196,29 @@ export default function handler(req, res) {
   const emotions = (b.emotions && typeof b.emotions === 'object') ? b.emotions : {};
   const EMO_ORDER = ['rage','melancholy','despair','triumph','coldness','defiance','dread','transcendence','madness','profanation','serenity','joy','hope','warmth','wonder','clarity','reverence','unity','grace','radiance'];
   const EMO_LIMIT = { free:2, forge:20, pro:20, elite:20, eliteplus:20 };
+  // v6 (spec 2026-09-10) : chaque émotion injecte des termes de PRODUCTION / jeu / texture vocale.
+  // Les adjectifs abstraits (angry, cold, terrified…) faisaient moyenner Suno vers un mix commercial tiède.
   const EMO = {
-    rage:         { light:['aggressive energy'],            mid:['furious aggression','relentless attack'],   strong:['blind savage fury','berserk intensity','venomous rage'] },
-    melancholy:   { light:['melancholic undertone'],        mid:['melancholic sorrowful melody'],              strong:['crushing sorrow','weeping melodic leads','mournful atmosphere'] },
-    despair:      { light:['bleak undertone'],              mid:['hopeless and bleak'],                        strong:['suffocating despair','hopeless void','crushing emptiness'] },
-    triumph:      { light:['uplifting edge'],               mid:['triumphant victorious'],                     strong:['epic triumphant glory','soaring heroic anthems','victorious grandeur'] },
-    coldness:     { light:['cold atmosphere'],              mid:['icy cold frostbitten'],                      strong:['glacial frostbitten cold','kalt and lifeless','frozen desolation'] },
-    defiance:     { light:['defiant tone'],                 mid:['rebellious anthemic defiance'],              strong:['fist-raising revolt anthem','uncompromising defiance','militant fury'] },
-    dread:        { light:['ominous undertone'],            mid:['ominous looming horror'],                    strong:['paralyzing dread','unheimlich creeping terror','suffocating menace'] },
-    transcendence:{ light:['atmospheric expanse'],          mid:['transcendent cosmic atmosphere'],            strong:['cosmic transcendence','astral vastness','ego-death euphoria'] },
-    madness:      { light:['unstable edge'],                mid:['deranged unhinged'],                         strong:['psychotic madness','schizophrenic chaos','deranged frenzy'] },
-    profanation:  { light:['blasphemous undertone'],        mid:['blasphemous sacrilegious'],                  strong:['blasphemous desecration','sacrilegious ritual','profane blackened ritual'] },
-    // ── ÉMOTIONS LUMIÈRE (miroirs des sombres) ──
-    serenity:     { light:['calm undertone'],               mid:['serene peaceful passages'],                  strong:['deep meditative serenity','weightless calm','still-water tranquility'] },
-    joy:          { light:['bright uplifting edge'],        mid:['joyful energetic melody'],                   strong:['euphoric celebration','radiant joyful anthems','unbridled elation'] },
-    hope:         { light:['hopeful undertone'],            mid:['hopeful rising melody'],                     strong:['soaring hopeful crescendos','light breaking through darkness','hope reborn from ashes'] },
-    warmth:       { light:['warm organic tone'],            mid:['warm embracing atmosphere'],                 strong:['golden enveloping warmth','sunlit analog warmth','comforting embrace'] },
-    wonder:       { light:['sense of wonder'],              mid:['wide-eyed cosmic wonder'],                   strong:['awe-struck celestial wonder','breathtaking vastness','starlit astonishment'] },
-    clarity:      { light:['clear focused tone'],           mid:['lucid crystalline clarity'],                 strong:['crystal-clear transcendent focus','pristine shimmering textures','enlightened calm'] },
-    reverence:    { light:['solemn reverent undertone'],    mid:['sacred ceremonial atmosphere'],              strong:['sacred choral reverence','liturgical grandeur','divine luminous ritual'] },
-    unity:        { light:['anthemic togetherness'],        mid:['unifying gang-vocal brotherhood'],           strong:['arena-wide unity chants','shoulder-to-shoulder anthem','triumphant collective voice'] },
-    grace:        { light:['graceful melodic touch'],       mid:['elegant flowing grace'],                     strong:['weightless ethereal grace','delicate sublime beauty','fragile tenderness'] },
-    radiance:     { light:['luminous shimmer'],             mid:['radiant glowing soundscape'],                strong:['blinding radiant climax','sunburst wall of light','incandescent brilliance'] },
+    rage:         { light:['driving aggressive drumming'],        mid:['fast blast beats, dissonant minor chugs'],              strong:['fast aggressive blast beats, dissonant minor chugs, raw distorted shout'] },
+    melancholy:   { light:['clean arpeggiated guitar'],           mid:['clean arpeggiated guitar, minor key progression'],      strong:['clean arpeggiated guitar, minor key progression, acoustic layering'] },
+    despair:      { light:['slow tempo, weeping guitar bend'],    mid:['slow doom tempo, weeping guitar bend'],                 strong:['slow doom tempo, weeping guitar bend, strained cracked cleans, funeral pace'] },
+    triumph:      { light:['major-third harmonized leads'],       mid:['harmonized twin-guitar leads, wide layered chorus'],    strong:['harmonized twin-guitar leads, gang chorus stack, double kick gallop, wide reverb tail'] },
+    coldness:     { light:['dry drum room'],                      mid:['dry drum room, sterile HM-2 guitar tone'],              strong:['dry drum room, sterile HM-2 guitar tone, cavernous dark reverb'] },
+    defiance:     { light:['driving mid-tempo groove'],           mid:['driving mid-tempo groove, heavy palm-muted riffs'],     strong:['driving mid-tempo groove, heavy palm-muted riffs, shouted cadence'] },
+    dread:        { light:['dissonant tritone chords'],           mid:['dissonant tritone chords, sudden stops'],               strong:['dissonant tritone chords, piercing black metal shrieks, sudden stops'] },
+    transcendence:{ light:['open sustained chords, long reverb'], mid:['tremolo wall of guitars, long plate reverb'],           strong:['tremolo wall of guitars, infinite plate reverb, sustained pad layer, slow crescendo'] },
+    madness:      { light:['irregular accents'],                  mid:['abrupt tempo shifts, atonal pinch harmonics'],          strong:['abrupt tempo shifts, atonal pinch harmonics, panned vocal layers, unstable time feel'] },
+    profanation:  { light:['low chanted layer'],                  mid:['low latin chant layer, church organ drone'],            strong:['low latin chant layer, church organ drone, inverted tritone riffs, tape-saturated mix'] },
+    serenity:     { light:['sustained clean guitar'],             mid:['sustained clean guitar, soft brushed drums'],           strong:['sustained clean guitar, soft brushed drums, airy room reverb, no distortion'] },
+    joy:          { light:['major key progression'],              mid:['major key progression, bright picked leads'],           strong:['major key progression, bright picked leads, upbeat backbeat, hand claps'] },
+    hope:          { light:['rising chord progression'],          mid:['rising chord progression, delayed clean lead'],         strong:['rising chord progression, delayed clean lead, building drum swell, soaring clean vocal'] },
+    warmth:       { light:['analog tape saturation'],             mid:['analog tape saturation, warm low-mids'],                strong:['analog tape saturation, warm low-mids, vintage tube amp tone, close-mic vocals'] },
+    wonder:       { light:['wide stereo pads'],                   mid:['wide stereo pads, glockenspiel accents'],               strong:['wide stereo pads, glockenspiel accents, lydian melodic lead, deep hall reverb'] },
+    clarity:      { light:['tight dry mix'],                      mid:['tight dry mix, articulate picking'],                    strong:['tight dry mix, articulate picking, separated stereo guitars, crisp transient drums'] },
+    reverence:    { light:['choir layer'],                        mid:['choir layer, pipe organ pad'],                          strong:['choir layer, pipe organ pad, cathedral reverb, slow half-time drums'] },
+    unity:        { light:['gang vocal accents'],                 mid:['gang shouted refrain, four-on-the-floor kick'],         strong:['gang shouted refrain, crowd-sized double-tracked chorus, pounding floor toms'] },
+    grace:        { light:['legato clean lead'],                  mid:['legato clean lead, string pad underneath'],             strong:['legato clean lead, string pad underneath, fingerpicked acoustic, soft dynamics'] },
+    radiance:     { light:['bright high-end mix'],                mid:['bright high-end mix, shimmering delay'],                strong:['bright high-end mix, shimmering delay, octave-up lead layer, wide chorus effect'] },
   };
   const EMO_LABEL = { rage:'Rage', melancholy:'Mélancolie', despair:'Désespoir', triumph:'Triomphe', coldness:'Froideur', defiance:'Défiance', dread:'Effroi', transcendence:'Transcendance', madness:'Démence', profanation:'Profanation', serenity:'Sérénité', joy:'Joie', hope:'Espoir', warmth:'Chaleur', wonder:'Émerveillement', clarity:'Clarté', reverence:'Sacré', unity:'Unité', grace:'Grâce', radiance:'Lumière' };
   const emoLimit = EMO_LIMIT[tier] != null ? EMO_LIMIT[tier] : 2;
@@ -223,17 +226,24 @@ export default function handler(req, res) {
     .map((id, i) => ({ id, i, val: Math.max(0, Math.min(100, +emotions[id] || 0)) }))
     .filter(e => e.i < emoLimit && e.val > 0)
     .sort((a, c) => c.val - a.val);
+  // v6 : DOMINANTE UNIQUE. Seule l'émotion la plus haute (> 50) entre dans le prompt —
+  // cumuler des attributs faisait se contredire les consignes et lissait le mix.
+  const EMO_THRESHOLD = 50;
   const emoTags = [], emoLabels = [];
-  emoActive.forEach((e, rank) => {
-    const lvl = e.val > 70 ? 'strong' : e.val >= 40 ? 'mid' : 'light';
-    const pool = (EMO[e.id] || {})[lvl] || [];
-    (rank === 0 ? pool.slice(0, 2) : pool.slice(0, 1)).forEach(t => emoTags.push(t));
-    emoLabels.push(EMO_LABEL[e.id] + ' ' + e.val + '%');
-  });
-  const emotionTags = dedup(emoTags).slice(0, 4);
+  const emoDom = emoActive.length && emoActive[0].val > EMO_THRESHOLD ? emoActive[0] : null;
+  if (emoDom) {
+    const lvl = emoDom.val > 80 ? 'strong' : emoDom.val > 65 ? 'mid' : 'light';
+    ((EMO[emoDom.id] || {})[lvl] || []).forEach(t => emoTags.push(t));
+  }
+  emoActive.forEach(e => emoLabels.push(EMO_LABEL[e.id] + ' ' + e.val + '%' + (emoDom && e.id === emoDom.id ? ' ← dominante' : ' (ignorée)')));
+  // v6 : à tempo rapide, on retire les mentions de lenteur (contradiction de mix/tempo)
+  const _noSlow = t => bpm > 140 ? String(t).replace(/\b(slow doom tempo|funeral pace|slow)\b,?\s*/gi, '').replace(/\s*,\s*,/g, ',').replace(/^[,\s]+|[,\s]+$/g, '') : t;
+  const emotionTags = dedup(emoTags.map(_noSlow).filter(Boolean)).slice(0, 2);
   const OPP = [['triumph','despair'],['triumph','melancholy'],['transcendence','profanation'],['coldness','rage'],['rage','serenity'],['despair','hope'],['coldness','warmth'],['dread','wonder'],['madness','clarity'],['profanation','reverence'],['melancholy','joy']];
   const emoConf = [];
-  OPP.forEach(([a, c]) => { if ((+emotions[a]||0) >= 60 && (+emotions[c]||0) >= 60) emoConf.push(L(EMO_LABEL[a]+' + '+EMO_LABEL[c]+' à fond se contredisent — baisse-en une.', EMO_LABEL[a]+' + '+EMO_LABEL[c]+' both high — they fight, lower one.')); });
+  OPP.forEach(([a, c]) => { if ((+emotions[a]||0) >= 60 && (+emotions[c]||0) >= 60) emoConf.push(L(EMO_LABEL[a]+' + '+EMO_LABEL[c]+' à fond se contredisent — seule la dominante est envoyée à Suno.', EMO_LABEL[a]+' + '+EMO_LABEL[c]+' both high — only the dominant one is sent to Suno.')); });
+  if (emoActive.length && !emoDom) emoConf.push(L('Aucune émotion au-dessus de 50 % — monte la principale pour qu\'elle teinte la production.', 'No emotion above 50% — raise the main one so it shapes the production.'));
+  if (emoActive.length > 1 && emoDom) emoConf.push(L('Émotions secondaires ignorées (dominante unique) : ' + emoActive.slice(1).map(e => EMO_LABEL[e.id]).join(', '), 'Secondary emotions ignored (single dominant): ' + emoActive.slice(1).map(e => EMO_LABEL[e.id]).join(', ')));
 
   // Temps de mesure → DESCRIPTEURS TEXTUELS (validé : Suno ignore les chiffres
   // seuls comme instruction; les descripteurs marchent, les chiffres en hint
@@ -243,9 +253,28 @@ export default function handler(req, res) {
   if (_sid && TIME_SIGNATURES_BY_STYLE[_sid]) {
     const _s = TIME_SIGNATURES_BY_STYLE[_sid].suno;
     rhythmTags = [...(_s.styleTags || []).slice(0, 2), ...(_s.meterHints || []).slice(0, 1)];
+    if (bpm > 140) rhythmTags = rhythmTags.filter(t => !/slow|funeral|half-time|dragging/i.test(String(t)));   // v6 : pas de « slow » à tempo rapide
     rhythmStructTags = (_s.structureTags || []).slice(0, 2);
   }
 
+  // ── v6 : mots vides bannis (ils ne décrivent aucun son → Suno moyenne) ──
+  const BANNED = /\b(epic|brutal|heavy|masterpiece|intense|aggressive|furious)\b/gi;
+  const TECHNICAL = /(palm.?mut|blast|chug|riff|mix|low end|tone|reverb|drum|guitar|bass|vocal|tempo|production|breakdown|groove|kick|snare|tuning|BPM|meter|picking|chord)/i;
+  const scrub = t => {
+    const s0 = String(t || '').trim();
+    if (!s0) return '';
+    if (TECHNICAL.test(s0)) return s0;                                   // descripteur technique → intact
+    BANNED.lastIndex = 0;
+    if (!BANNED.test(s0)) return s0;                                     // rien à nettoyer
+    const r = s0.replace(BANNED, '').replace(/\s+and\s+and\s+/gi, ' and ').replace(/(^|,)\s*and\s+/gi, '$1 ').replace(/\s+and\s*(,|$)/gi, '$1').replace(/\s*,\s*,/g, ',').replace(/^[,\s]+|[,\s]+$/g, '').replace(/\s+/g, ' ');
+    return r.split(/\s+/).filter(Boolean).length >= 2 ? r : '';          // sinon : mot vide → retiré
+  };
+  const scrubList = a => dedup(a.map(scrub).filter(Boolean));
+  // v6 : jamais « doom » nu au-dessus de 140 BPM — on précise progressive, sinon Suno rend un mid-tempo tiède
+  const _doomFast = bpm > 140 && /doom/.test(_gtxt) && !/progressive|avant/.test(_gtxt);
+  const genresSafe = _doomFast ? genres.map(g => /doom/i.test(String(g)) ? 'progressive ' + g : g) : genres;
+  if (_doomFast) conf.push(L('Doom à ' + bpm + ' BPM : contradiction — le prompt dit « progressive doom » pour rester cohérent.', 'Doom at ' + bpm + ' BPM: contradiction — the prompt says "progressive doom" to stay coherent.'));
+  if (bpm > 140) scaleTag = scaleTag.replace(/\bslow\s+/gi, '').replace(/\s+dragging behind the beat/gi, '');
   const bpmTag = bpm + ' BPM';
   const _brid = g => String(g).trim() + '-influenced';   // bridge de fusion (guide 2026-07-28) : « black metal » → « black metal-influenced »
   // Clé explicite (guide v5.5 : tonalité en tag plain, ex. "E minor") — dérivée du tuning
@@ -260,25 +289,25 @@ export default function handler(req, res) {
   const harshVox = /growl|scream|guttural|shriek|harsh|pig squeal|fry|roar|rasp/.test(_vTxt0) || phonetic.enabled;
   const voxLead = harshVox ? [...vocals.slice(0, 3), ...vrange.slice(0, 1)] : [];
   // rhythmTags injectés tôt (priorité recette) — le budget coupe la fin, pas eux
-  const fullTagsRaw = dedup([...(meterLead?[meterLead, bpmTag]:[]), ...genres.slice(0, 1), ...voxLead, ...genres.slice(1), ...signature, bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...rhythmTags, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...(keyTag?[keyTag]:[]), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...(prod.length ? prod.slice(0, 2) : ['very loud drums and guitars, aggressive mix']), ...allOrganic.slice(0, 4), ...globalRhythm]);
+  const fullTagsRaw = dedup([...(meterLead?[meterLead, bpmTag]:[]), ...genresSafe.slice(0, 1), ...voxLead, ...genresSafe.slice(1), ...signature, bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...rhythmTags, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...(keyTag?[keyTag]:[]), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...(prod.length ? prod.slice(0, 2) : ['very loud drums and guitars, aggressive mix']), ...allOrganic.slice(0, 4), ...globalRhythm]);
   // Budget : au-delà de ~480 car., Suno dilue/ignore — on coupe par la fin
   const STYLE_BUDGET = 480;
-  const fullTags = [...fullTagsRaw];
+  const fullTags = scrubList(fullTagsRaw);
   while (fullTags.length > 8 && fullTags.join(', ').length > STYLE_BUDGET) fullTags.pop();
-  const compactCore = dedup([...(meterLead?[meterLead, bpmTag]:[]), ...genres.slice(0, 1), ...voxLead.slice(0, 2), ...genres.slice(1, 2).map(_brid), ...signature.slice(0, 2), bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1), ...rhythmTags.slice(0, 1)]);
+  const compactCore = dedup([...(meterLead?[meterLead, bpmTag]:[]), ...genresSafe.slice(0, 1), ...voxLead.slice(0, 2), ...genresSafe.slice(1, 2).map(_brid), ...signature.slice(0, 2), bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1), ...rhythmTags.slice(0, 1)]);
   const overflow = fullTags.filter(x => !compactCore.includes(x));
   // ── PROMPT "RICHE" (tournure fluide groupée par « ; », optimisée Suno v4.5+) ──
   // Genre-fusion ; dynamiques/structure ; voix ; instruments/riffs ; accordage+tonalités ; mood+émotions ; tempo/changements
   const _lc = x => String(x).toLowerCase();
-  const _gl = dedup(genres.map(x => String(x).trim())).filter(Boolean);
+  const _gl = dedup(genresSafe.map(x => String(x).trim())).filter(Boolean);
   const genreClause = _gl.length >= 2 ? (_gl[0] + ', ' + _gl.slice(1, 3).map(_brid).join(', ')) : (_gl[0] || 'metal');
 
   const _hasAtmos = melody >= 6 || structs.some(s => /atmospheric|interlude|intro|clean/.test(s)) || allOrganic.some(o => /acoustic|clean|ambient/.test(_lc(o)));
   const _hasHeavy = heavy >= 6 || drums.some(d => /blast|double/.test(_lc(d))) || structs.some(s => /breakdown|blast|drop|halftime/.test(s));
   let dynamicsClause = '';
-  if (_hasHeavy && _hasAtmos) dynamicsClause = 'dynamic long-form song shifting between crushing heavy sections and mellow atmospheric passages';
-  else if (_hasHeavy) dynamicsClause = heavy >= 8 ? 'relentless crushing intensity' : 'heavy driving momentum';
-  else if (_hasAtmos) dynamicsClause = 'atmospheric, dynamic and evolving';
+  if (_hasHeavy && _hasAtmos) dynamicsClause = 'dynamic long-form song alternating distorted sections and clean atmospheric passages';
+  else if (_hasHeavy) dynamicsClause = heavy >= 8 ? 'wall-of-distortion sections, pounding low end' : 'driving momentum, palm-muted drive';
+  else if (_hasAtmos) dynamicsClause = 'clean atmospheric passages, evolving arrangement';
 
   const _hasClean = /clean|melodic sing|baritone|choir|spoken|croon/.test(_vTxt0);
   let vocalsClause = '';
@@ -288,7 +317,7 @@ export default function handler(req, res) {
       const _c = dedup(vocals.filter(v => /clean|melodic|baritone|choir|spoken|croon/.test(_lc(v)))).slice(0, 2);
       vocalsClause = (_h.join(', ') || 'harsh vocals') + ' alternating with ' + (_c.join(', ') || 'clean vocals');
     } else vocalsClause = dedup([...vocals.slice(0, 3), ...vrange.slice(0, 1)]).join(', ');
-  } else if (harshVox) vocalsClause = 'aggressive harsh vocals';
+  } else if (harshVox) vocalsClause = 'raw distorted harsh vocals';
 
   // Genres "world" : faible confiance Suno → l'anchor instrumental (scaleTag) passe AVANT les guitares (guide AI Unfiltered 2026-07-06)
   const _worldGenre = /folk|viking|pagan|nordic|celtic|irish|oriental|middle.?eastern|arabic/.test(_gtxt);
@@ -305,18 +334,30 @@ export default function handler(req, res) {
   const _tonality = _uniqModes.length ? _uniqModes.map(m => MODE_DESC[m] || m).join(', ') : '';
   const tuningToneClause = dedup([_tun, keyTag, _tonality, eraTag].filter(Boolean)).join(', ');
 
-  const moodClause = dedup([...mood.slice(0, 2), ...emotionTags.slice(0, 2)]).join(', ');
+  const moodClause = scrubList([...mood.slice(0, 2)]).join(', ');
 
   const _rhythmDyn = [];
   if (chaos >= 6 || /prog|math|djent|tech|post/.test(_gtxt)) _rhythmDyn.push('frequent time-signature changes');
   if (_hasHeavy && _hasAtmos) _rhythmDyn.push('soft-to-heavy builds and sudden drops');   // seulement si la dynamique existe vraiment
   const rhythmDynClause = dedup([...(meterLead?[]:[bpmTag]), tempoWord, ...rhythmTags.slice(0, 1), ..._rhythmDyn]).join(', ');   // BPM déjà en tête si métriques
 
-  const richClauses = [...(meterLead?[meterLead + ', ' + bpmTag]:[]), genreClause, dynamicsClause, vocalsClause, instrumentsClause, tuningToneClause, moodClause, ...secret.slice(0, 1), rhythmDynClause].filter(x => x && String(x).trim());
+  // v6 : époque vintage + low end moderne = contradiction → on retire les tags modernes
+  const _dropModern = t => _vintageEra && /modern|surgical|digital|triggered|bone-crushing low end|ultra-fast noise gate|polished/i.test(String(t));
+  if (_vintageEra && (secret.some(_dropModern) || /modern|triggered|surgical/i.test(genreProdTag)))
+    conf.push(L('Production ' + eraTag + ' + son moderne : incompatible — les tags modernes sont retirés.', 'Production ' + eraTag + ' + modern tone: incompatible — modern tags removed.'));
+  const _secretClean = scrubList(secret.filter(x => !_dropModern(x)));
+  const _prodClean = scrubList([...(genreProdTag && !_dropModern(genreProdTag) ? [genreProdTag] : []), ...prod.slice(0, 2)]);
+  // ORDRE SPEC v6 : [sous-genre/métriques] ; [textures & instruments] ; [voix] ; [mixage & tonalité] — 6 blocs max
+  const _b1 = dedup([meterLead, genreClause, bpmTag].filter(Boolean)).join(', ');
+  const _b2 = scrubList([instrumentsClause, ...emotionTags].filter(Boolean)).join(', ');
+  const _b3 = scrub(vocalsClause);
+  const _b4 = dedup([tuningToneClause, ..._prodClean, moodClause].filter(Boolean)).join(', ');
+  const _b5 = dedup([..._secretClean.slice(0, 1), scrub(dynamicsClause), rhythmDynClause].filter(Boolean)).join(', ');
+  const richClauses = [_b1, _b2, _b3, _b4, _b5].filter(x => x && String(x).trim()).slice(0, 6);
   const RICH_BUDGET = 600;   // guide : au-delà, les derniers tags sont dépriorisés (limite dure Suno = 1000)   // v4.5+ tolère ~1000 car. ; on coupe des clauses par la fin si trop long (jamais le genre/mood)
   let styleStr = richClauses.join('; ');
   while (richClauses.length > 4 && styleStr.length > RICH_BUDGET) { richClauses.splice(richClauses.length - 2, 1); styleStr = richClauses.join('; '); }
-  const styleStrC = compactCore.slice(0, 10).join(', ');   // guide : >10 tags, la fin est ignorée   // version compacte inchangée (fallback court)
+  const styleStrC = scrubList(compactCore).slice(0, 10).join(', ');   // guide : >10 tags, la fin est ignorée   // version compacte inchangée (fallback court)
   // T11 — prompts secondaires : COVER (sous-genre dominant) + EXTEND (callback cohérent)
   const _g1 = genres[0] || 'metal';
   const _g2 = genres[1] || null;
@@ -333,14 +374,13 @@ export default function handler(req, res) {
     : _g2
       ? dedup([_g2, _g1, bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1), ...mood.slice(0,1), ...leadInst.slice(0,1)])
       : dedup([_g1, 'heavier and more extreme', bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1), ...leadInst.slice(0,1)]);
-  const coverStr = coverCore.join(', ');
+  const coverStr = scrubList(coverCore).join(', ');
   const _climax = chaos >= 7 ? 'blast beat outro' : groove >= 7 ? 'crushing breakdown climax' : melody >= 7 ? 'melodic guitar solo climax' : 'final breakdown';
   const extendStr = 'continue with the same vibe and energy, keep ' + bpmTag + ' and ' + _g1 + (leadInst.length ? ', keep the ' + leadInst[0] : '') + ', stay consistent in tempo and instrumentation, build into a ' + _climax;
 
   // ── détecteur de conflits ──
   const lc = x => String(x).toLowerCase();
   const vTxt = vocals.map(lc).join(' ');
-  const conf = [];
   if (/clean|melodic sing|clean sing/.test(vTxt) && /growl|scream|guttural|pig squeal|shriek|harsh/.test(vTxt)) conf.push(L('Voix claires + voix extrêmes ensemble — Suno peut hésiter.', 'Clean + extreme vocals together — Suno may waver.'));
   if (bpm < 110 && drums.some(d => /blast/.test(lc(d)))) conf.push(L('Blast beats avec un BPM bas — monte le tempo pour rester cohérent.', 'Blast beats with a low BPM — raise the tempo to stay consistent.'));
   if (allOrganic.some(o => /imperfect|loose|human|drift|drunk/.test(lc(o)))) conf.push(L('Tag organique de timing lâche actif — enlève-le si tu veux un BPM serré.', 'Loose-timing organic tag active — remove it for a tight BPM.'));
@@ -367,28 +407,37 @@ export default function handler(req, res) {
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)
   const NAME = { intro: 'Intro', buildup: 'Build-up', verse: 'Verse', prechorus: 'Pre-Chorus', chorus: 'Chorus', breakdown: 'Breakdown', halftime: 'Half-Time', blastsection: 'Blast Section', drop: 'Drop', solo: 'Guitar Solo', interlude: 'Interlude', atmosphericbreak: 'Atmospheric Break', spokenword: 'Spoken Word', gangchant: 'Gang Chant', scream: 'Scream Section', riffbreak: 'Riff Break', bridge: 'Bridge', outro: 'Outro' };
+  // v6 : descriptions TECHNIQUES (jeu + production), jamais d'adjectif d'humeur
+  const _tunTag0 = String(tuning[0] || autoTuning || '').replace(/\s+/g, ' ').trim();
+  const _tunTag = /^standard$/i.test(_tunTag0) ? '' : _tunTag0;
   const DESC = {
-    intro: drums.includes('blast beats') ? 'blast beat fury' : 'crushing riff',
-    buildup: (heavy >= 8 ? 'wall of distortion' : 'layered build') + ', no vocals',
-    verse: (vocals.includes('pig squeals') ? 'pig squeal + ' : '') + 'growls over ' + (guitar.includes('chugging riffs') ? 'chugging riffs' : 'heavy riffs'),
-    prechorus: 'rising tension',
-    chorus: groove >= 6 ? 'groovy headbang riff' : 'full assault',
-    breakdown: groove >= 7 ? 'slow groove, gang shouts' : 'brutal mosh',
+    intro: drums.includes('blast beats') ? 'blast beats, tremolo picking' : (_tunTag ? _tunTag + ' crushing riff' : 'palm-muted opening riff'),
+    buildup: (heavy >= 8 ? 'layered wall of distortion' : 'layered build, rising drums') + ', no vocals',
+    verse: (vocals.includes('pig squeals') ? 'pig squeals and ' : '') + 'growls over ' + (guitar.includes('chugging riffs') ? 'chugging riffs' : 'palm-muted riffs'),
+    prechorus: 'rising drum fill, held guitar chord',
+    chorus: groove >= 6 ? 'syncopated groove riff, double-tracked vocals' : 'full band, double kick, wide chorus',
+    breakdown: groove >= 7 ? 'half-time groove, shouted gang vocals' : 'low tuned open-note breakdown, pounding floor toms',
     halftime: 'half-time feel, heavy palm mutes',
-    blastsection: 'pure blast beats',
-    drop: 'silence then devastating riff',
-    solo: guitar.includes('sweep picking solos') ? 'sweep-picking shred' : 'lead riff',
-    interlude: 'instrumental',
-    atmosphericbreak: chaos >= 7 ? 'dissonant, eerie' : 'calm',
-    spokenword: 'spoken vocals only',
-    gangchant: 'gang chant',
-    scream: 'raw scream',
-    riffbreak: 'guitars only',
-    bridge: chaos >= 7 ? 'chaotic' : 'atmospheric',
-    outro: chaos >= 7 ? 'blast frenzy' : 'final breakdown',
+    blastsection: 'blast beats, tremolo guitars',
+    drop: 'full stop, then single low chord',
+    solo: guitar.includes('sweep picking solos') ? 'sweep-picking lead, no vocals' : 'lead guitar solo, no vocals',
+    interlude: 'instrumental, clean guitar',
+    atmosphericbreak: chaos >= 7 ? 'dissonant clean guitar, reverb tail' : 'clean guitar, ambient pad',
+    spokenword: 'spoken vocals only, sparse backing',
+    gangchant: 'shouted group vocals, pounding floor toms',
+    scream: 'single sustained scream, band hit',
+    riffbreak: 'guitars and drums only, no vocals',
+    bridge: chaos >= 7 ? 'shifting time signature, dissonant chords' : 'clean guitar, building drums',
+    outro: chaos >= 7 ? 'blast beats, fading feedback' : 'final breakdown, ringing feedback',
   };
-  const blockTag = k => '[' + NAME[k] + ', ' + DESC[k] + rFor(k) + ']';
-  const blocksClean = structs.map(x => NAME[x] ? blockTag(x) : '').filter(Boolean);
+  // v6 : deux-points OBLIGATOIRES dans les crochets — avec une virgule Suno chante l'indication
+  const blockTag = k => '[' + NAME[k] + ': ' + DESC[k] + rFor(k) + ']';
+  // v6 : ordre linéaire — rien après l'outro, et on ferme sur [End]
+  const _hasOutro = structs.includes('outro');
+  const _structsOrdered = [...structs.filter(x => x !== 'outro'), ...(_hasOutro ? ['outro'] : [])];
+  if (_hasOutro && structs[structs.length - 1] !== 'outro')
+    conf.push(L('Des sections étaient placées après l\'Outro — elles ont été remontées avant (Suno ne chante rien après un outro).', 'Sections were placed after the Outro — moved before it (Suno sings nothing after an outro).'));
+  const blocksClean = [..._structsOrdered.map(x => NAME[x] ? blockTag(x) : '').filter(Boolean), '[End]'];
   const structStr = blocksClean.join('\n');   // v5.5 : crochets = sections seulement, BPM/mesure restent dans Style
   const overflowLine = overflow.length ? '[' + overflow.join(', ') + ']' : '';
   const structStrC = [overflowLine, ...blocksClean].filter(Boolean).join('\n');

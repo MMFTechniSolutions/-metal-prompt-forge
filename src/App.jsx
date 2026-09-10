@@ -1573,7 +1573,9 @@ export default function App({ user, onLogout, onRequestAuth }) {
     const historyWords=lyricsHistory.flatMap(h=>h.match(/\b\w{4,}\b/g)||[]).filter((w,i,a)=>a.indexOf(w)===i).slice(0,40);
     const allBanned=[...new Set([...historyWords,...bannedWords.split(",").map(s=>s.trim()).filter(Boolean)])];
     const CLEAN_BLK=new Set(["chorus","prechorus","bridge","intro","atmosphericbreak","outro"]);
-    const blockInstr=(structs.size?[...structs]:[...lblocks]).map(b=>{
+    const _bl0=(structs.size?[...structs]:[...lblocks]);
+    const _bl=[..._bl0.filter(b=>b!=="outro"),...(_bl0.includes("outro")?["outro"]:[])];   // v6 : rien après l'outro
+    const blockInstr=_bl.map(b=>{
       const _s=(()=>{
       if(b==="verse")return"[Verse 1] and [Verse 2] — 4 lines each, DIFFERENT imagery";
       if(b==="prechorus")return"[Pre-Chorus] — 2 lines, build tension";
@@ -1583,7 +1585,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(b==="blastsection")return"[Blast Section] — 3-4 fragmented chaotic lines";
       if(b==="drop")return"[Drop] — 1-2 lines MAX, devastating";
       if(b==="buildup")return"[Build-up] — 3 escalating lines, last cuts off";
-      if(b==="gangchant")return"[Gang Chant] — 1-3 lines, simple, for crowd shouting";
+      if(b==="gangchant")return"[Gang Chant] — 1-3 lines, simple, for crowd shouting, written in ALL CAPS ending with an exclamation mark (e.g. WE SWORE, WE SWORE, WE WILL NOT STOP!)";
       if(b==="spokenword")return"[Spoken Word] — 4-6 narrative spoken lines";
       if(b==="scream")return"[Scream] — 1-3 raw primal lines";
       if(b==="riffbreak")return"[Riff Break] — write: (instrumental)";
@@ -1623,6 +1625,9 @@ RULES:
 - FORBIDDEN WORDS: ${allBanned.slice(0,25).join(", ")||"none"}
 - Each section = completely different metaphors
 - Breakdown lines = under 6 words each
+- SECTION TAG SYNTAX (critical): inside brackets, separate the section name from its description with a COLON, never a comma — [Intro: heavy drop B crushing riff], NOT [Intro, crushing riff]. With a comma Suno sings the instruction out loud.
+- LINEAR ORDER (critical): never write a [Verse] or [Chorus] after the [Outro]. The outro is the last section, and the very last line of the output must be the tag [End] on its own line.
+- Gang chants: ALL CAPS, short, ending with an exclamation mark, written directly under their tag.
 - 6-10 syllables per line (Suno rushes or truncates longer lines); keep syllable counts similar within a section
 - Chorus repeated 3 times MAXIMUM in the whole song; each chorus repeat can vary 1 line
 - Be SPECIFIC and CONCRETE, not vague

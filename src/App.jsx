@@ -2428,7 +2428,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           </div>}
           {editTxt&&<div style={{...S.card,borderColor:"#33aa5533",background:"#04100a"}}>
             <div style={{...S.outLbl,color:"#5fd98a",marginBottom:"6px"}}>{L("Prompts d'ÉDITION (nouveauté v6)","EDIT prompts (new in v6)")}</div>
-            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"8px",lineHeight:1.5}}>{L("v6 édite une section précise sans tout regénérer. Colle une de ces lignes dans l'édition Suno de ta chanson.","v6 edits one section without regenerating everything. Paste one of these lines into Suno's edit box on your song.")}</div>
+            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"8px",lineHeight:1.5}}>{L("Sur ta chanson dans Suno : ouvre le Song Editor → clique la section voulue sur la timeline → « Replace Section » → colle la ligne correspondante dans la boîte de prompt. (Pour rallonger : le « + » à droite de la piste.)","On your song in Suno: open the Song Editor → click the section on the timeline → \"Replace Section\" → paste the matching line into the prompt box. (To lengthen: the \"+\" at the far right of the track.)")}</div>
             <div style={{background:"#0a0a0a",border:"1px solid #10381f",borderRadius:"6px",padding:"10px",position:"relative"}}>
               <CopyBtn getText={()=>editTxt}/>
               <div style={{color:"#8fe0aa",fontSize:"0.76rem",lineHeight:1.9,paddingRight:"50px",fontFamily:"monospace",whiteSpace:"pre-wrap"}}>{editTxt}</div>

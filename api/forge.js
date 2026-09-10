@@ -399,18 +399,6 @@ export default function handler(req, res) {
       : dedup([_g1, 'heavier and more extreme', bpmTag, tempoWord, ...secret, ...emotionTags.slice(0,1), ...vocals.slice(0,1), ...leadInst.slice(0,1)]);
   const coverStr = scrubList(coverCore).join(', ');
   const _climax = chaos >= 7 ? 'blast beat outro' : groove >= 7 ? 'crushing breakdown climax' : melody >= 7 ? 'melodic guitar solo climax' : 'final breakdown';
-  // v6 : édition partielle en langage naturel (sans tout regénérer) — instructions prêtes à coller
-  const _voxE = (vocals[0] || 'harsh vocals');
-  const _leadE = leadInst[0] || (guitar.includes('sweep picking solos') ? 'sweep-picking guitar' : 'lead guitar');
-  const editPrompts = [];
-  if (structs.includes('breakdown')) editPrompts.push('make the breakdown half-time and heavier, add shouted gang vocals and pounding floor toms');
-  if (structs.includes('chorus')) editPrompts.push('rewrite the chorus with a bigger hook: double-tracked ' + _voxE + ', wider guitars, keep the same lyrics');
-  if (structs.includes('solo') || melody >= 6) editPrompts.push('replace the solo with a longer ' + _leadE + ' solo, keep the backing riff identical');
-  editPrompts.push('keep everything, just change the drums to ' + (drums[0] || 'blast beats') + ' in the second half');
-  editPrompts.push('make the mix rawer and less polished, more amp room and less compression');
-  if (eraTag) editPrompts.push('remix it with ' + eraTag + ', same arrangement');
-  const editStr = editPrompts.slice(0, 5).join('\n');
-
   const extendStr = 'continue with the same vibe and energy, keep ' + bpmTag + ' and ' + _g1 + (leadInst.length ? ', keep the ' + leadInst[0] : '') + ', stay consistent in tempo and instrumentation, build into a ' + _climax;
 
   // ── détecteur de conflits ──
@@ -478,6 +466,37 @@ export default function handler(req, res) {
   const structStrC = [overflowLine, ...blocksClean].filter(Boolean).join('\n');
   const structNotesTxt = ''; // notes par section maintenant DANS la structure (entre crochets)
 
+  // v6 — Song Editor : on sélectionne UNE section sur la timeline puis « Replace Section »,
+  // et la boîte de prompt réécrit cette section-là. Les instructions sont donc ciblées par section.
+  const _voxE = (vocals[0] || 'harsh vocals');
+  const _leadE = leadInst[0] || (guitar.includes('sweep picking solos') ? 'sweep-picking guitar' : 'lead guitar');
+  const _drumE = drums[0] || 'blast beats';
+  const EDIT_BY_SECTION = {
+    intro:            'open with ' + (_tunTag ? _tunTag + ' ' : '') + 'guitar only, no drums, let the last chord ring',
+    buildup:          'build tension: add a rising drum roll and a held guitar chord, no vocals',
+    verse:            'keep the riff, make the ' + _voxE + ' drier and further forward in the mix',
+    prechorus:        'lift it: hold one chord, drop the drums to toms, then a full-band hit at the end',
+    chorus:           'bigger hook: double-track the vocals, widen the guitars, add a high harmony',
+    breakdown:        'half-time and heavier, add shouted gang vocals and pounding floor toms',
+    halftime:         'slow it to half-time, heavy palm mutes, let the low end dominate',
+    blastsection:     'faster ' + _drumE + ', tremolo guitars, no breaks',
+    drop:             'full stop, then one low chord with long reverb',
+    solo:             'replace with a longer ' + _leadE + ' solo, keep the backing riff identical',
+    interlude:        'instrumental only: clean guitar and ambient pad, no drums',
+    atmosphericbreak: 'strip it down to clean guitar and reverb, no distortion',
+    spokenword:       'spoken vocals only over a sparse backing, no riff',
+    gangchant:        'shouted group vocals, everyone in unison, pounding floor toms',
+    scream:           'one sustained scream over a single band hit',
+    riffbreak:        'guitars and drums only, cut the vocals entirely',
+    bridge:           'change the feel: different chords, clean guitar, build back into the riff',
+    outro:            'end on ringing feedback, let the last chord decay',
+  };
+  const editPrompts = structs.filter(k => EDIT_BY_SECTION[k] && NAME[k])
+    .map(k => ({ section: NAME[k], prompt: EDIT_BY_SECTION[k] }))
+    .filter((v, i2, arr) => arr.findIndex(x => x.section === v.section) === i2)
+    .slice(0, 6);
+  const editStr = editPrompts.map(e => e.section + ' → ' + e.prompt).join('\n');
+
   const heavyD = heavy >= 8 ? 'extremely heavy and crushing' : heavy >= 5 ? 'heavy and punishing' : 'moderately heavy';
   const grooveD = groove >= 8 ? 'deeply groovy' : groove >= 5 ? 'mid-paced groovy' : 'straight aggressive';
   const chaosD = chaos >= 8 ? 'chaotic and unpredictable' : chaos >= 5 ? 'controlled chaos' : 'tight and structured';
@@ -489,5 +508,5 @@ export default function handler(req, res) {
     '\n\n=== STRUCTURE (-> top of Lyrics) ===\n' + structStr +
     '\n\n=== PRODUCTION NOTES (keep for yourself) ===\n' + heavyD + '. ' + grooveD + '. ' + chaosD + '. ' + melodyD + '. ' + bpmTag + '.' + organicBlock;
 
-  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, editStr, editPrompts: editPrompts.slice(0, 5), sliderRec, timeSig, modelRec, phonetic, rhythmStructTags });
+  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, coverStr, extendStr, editStr, editPrompts, sliderRec, timeSig, modelRec, phonetic, rhythmStructTags });
 }

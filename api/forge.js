@@ -636,7 +636,11 @@ export default function handler(req, res) {
   // Style Influence : la doc Suno ne donne aucune plage (juste Loose <-> Strong, défaut 50).
   // Règle retenue : un prompt SANS contradiction supporte l'adhérence max ; chaque conflit détecté
   // laisse un peu de marge à Suno pour arbitrer plutôt que de rendre la contradiction telle quelle.
-  const _styleInf = _clamp(100 - _nConf * 8 - (genres.length > 1 ? 5 : 0), 60, 100);
+  // Style Influence : 100 confirmé sûr par François à l'usage. On ne descend QUE pour une raison
+  // motivée — une contradiction réelle dans le prompt, que l'adhérence max forcerait Suno à rendre
+  // telle quelle. La pénalité « 2 genres » que j'avais ajoutée n'était fondée sur rien : une fusion
+  // voulue mérite autant d'adhérence qu'un genre seul.
+  const _styleInf = _clamp(100 - _nConf * 8, 60, 100);
   // Variety : échelle réelle du panneau = 0 / Normal / High / Extra / Max (ce n'est pas un %).
   // 0 = les deux prises se ressemblent au maximum, utile quand on teste une modif de prompt.
   // Variety, d'après la doc Suno, « ajuste et met à jour tes prompts de style » : c'est la licence de

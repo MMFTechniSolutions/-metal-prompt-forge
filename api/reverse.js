@@ -26,6 +26,7 @@ Rules:
 - Respond with STRICT JSON only, no prose, no markdown: {"genre":"<sub-genre>","flavor":"<second genre or empty>","signature":["<anchor>","<anchor>"],"label":"<short human label>","confidence":"high|medium|low"}
 - "genre" and "flavor" must be genre names only — NEVER an artist/band/album/song name.
 - If the band shifted styles across its career, pick the sound it is most known for.
+- Death metal disambiguation, be precise: "brutal death metal" = low guttural vocals, slam riffs, no melody; "melodic death metal" = harmonized twin-guitar melodies and hooks; "technical death metal" = complex arrangements and sweeps; "death metal" = the plain classic form. Never label a band melodic death unless harmonized melodic leads are central to its sound.
 - If you do not recognize the name at all, return {"genre":"","label":"","confidence":"low"}.`;
 
 export default async function handler(req, res) {
@@ -77,7 +78,10 @@ export default async function handler(req, res) {
     // Garde-fou : le modèle glisse parfois un nom de personne malgré la consigne
     // (cas réel 2026-09-10 : « phil anselmo's aggressive vocals »). On filtre en sortie.
     const signature = cleanDescriptors(
-      (Array.isArray(out.signature) ? out.signature : []).map(x => String(x).toLowerCase().replace(/,/g, ' ').trim().slice(0, 60)),
+      (Array.isArray(out.signature) ? out.signature : []).map(x => {
+        const t = String(x).toLowerCase().replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+        return t.length <= 60 ? t : t.slice(0, 60).replace(/\s+\S*$/, '');   // jamais couper en plein mot
+      }),
       [_bl]
     ).slice(0, 4);
     return res.status(200).json({

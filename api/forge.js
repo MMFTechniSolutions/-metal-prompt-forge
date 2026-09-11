@@ -430,7 +430,7 @@ export default function handler(req, res) {
 
   // ── v6 : mots vides bannis (ils ne décrivent aucun son → Suno moyenne) ──
   const BANNED = /\b(epic|brutal|heavy|masterpiece|intense|aggressive|furious)\b/gi;
-  const TECHNICAL = /(palm.?mut|blast|chug|riff|mix|low end|tone|reverb|drum|guitar|bass|vocal|tempo|production|breakdown|groove|kick|snare|tuning|BPM|meter|picking|chord)/i;
+  const TECHNICAL = /(palm.?mut|blast|chug|riff|mix|low end|tone|reverb|drum|guitar|bass|vocal|tempo|production|breakdown|groove|kick|snare|tuning|BPM|meter|picking|chord|shuffle|\d+\/\d+)/i;
   const scrub = t => {
     const s0 = String(t || '').trim();
     if (!s0) return '';
@@ -459,14 +459,6 @@ export default function handler(req, res) {
   const _vTxt0 = vocals.map(x => String(x).toLowerCase()).join(' ');
   const harshVox = /growl|scream|guttural|shriek|harsh|pig squeal|fry|roar|rasp/.test(_vTxt0) || phonetic.enabled;
   const voxLead = harshVox ? [...vocals.slice(0, 3), ...vrange.slice(0, 1)] : [];
-  // rhythmTags injectés tôt (priorité recette) — le budget coupe la fin, pas eux
-  const fullTagsRaw = dedup([...(meterLead?[meterLead, bpmTag]:[]), ...genresSafe.slice(0, 1), ...voxLead, ...genresSafe.slice(1), ...blendAuto.map(_brid), ...signature, bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...rhythmTags, ...drums, ...guitar.slice(0, 3), ...leadInst.slice(0, 3), ...bassInst.slice(0, 2), ...(tuning.length?tuning.slice(0,1):(autoTuning?[autoTuning]:[])), ...(keyTag?[keyTag]:[]), ...vocals.slice(0, 3), ...vrange.slice(0, 2), ...mood.slice(0, 3), ...(scaleTag?[scaleTag]:[]), ...secret, ...emotionTags, ...(genreProdTag?[genreProdTag]:[]), ...(prod.length ? prod.slice(0, 2) : ['very loud drums and guitars, aggressive mix']), ...allOrganic.slice(0, 4), ...globalRhythm]);
-  // Budget : au-delà de ~480 car., Suno dilue/ignore — on coupe par la fin
-  const STYLE_BUDGET = 480;
-  const fullTags = scrubList(fullTagsRaw);
-  while (fullTags.length > 8 && fullTags.join(', ').length > STYLE_BUDGET) fullTags.pop();
-  const compactCore = dedup([...(meterLead?[meterLead, bpmTag]:[]), ...genresSafe.slice(0, 1), ...voxLead.slice(0, 2), ...genresSafe.slice(1, 2).map(_brid), ...signature.slice(0, 2), bpmTag, tempoWord, ...(eraTag?[eraTag]:[]), ...secret, ...emotionTags.slice(0,1), ...drums.slice(0, 2), ...guitar.slice(0, 1), ...leadInst.slice(0, 1), ...vocals.slice(0, 1), ...mood.slice(0, 1), ...rhythmTags.slice(0, 1)]);
-  const overflow = fullTags.filter(x => !compactCore.includes(x));
   // ── PROMPT "RICHE" (tournure fluide groupée par « ; », optimisée Suno v4.5+) ──
   // Genre-fusion ; dynamiques/structure ; voix ; instruments/riffs ; accordage+tonalités ; mood+émotions ; tempo/changements
   const _lc = x => String(x).toLowerCase();
@@ -478,9 +470,9 @@ export default function handler(req, res) {
   const _hasAtmos = melody >= 6 || structs.some(s => /atmospheric|interlude|intro|clean/.test(s)) || allOrganic.some(o => /acoustic|clean|ambient/.test(_lc(o)));
   const _hasHeavy = heavy >= 6 || drums.some(d => /blast|double/.test(_lc(d))) || structs.some(s => /breakdown|blast|drop|halftime/.test(s));
   let dynamicsClause = '';
-  if (_hasHeavy && _hasAtmos) dynamicsClause = 'dynamic long-form song alternating distorted sections and clean atmospheric passages';
+  if (_hasHeavy && _hasAtmos) dynamicsClause = 'clean-to-distorted dynamics';
   else if (_hasHeavy) dynamicsClause = heavy >= 8 ? 'wall-of-distortion sections, pounding low end' : 'driving momentum, palm-muted drive';
-  else if (_hasAtmos) dynamicsClause = 'clean atmospheric passages, evolving arrangement';
+  else if (_hasAtmos) dynamicsClause = 'clean atmospheric passages';
 
   const _hasClean = /clean|melodic sing|baritone|choir|spoken|croon/.test(_vTxt0);
   let vocalsClause = '';
@@ -518,23 +510,61 @@ export default function handler(req, res) {
   const _dropModern = t => _vintageEra && /modern|surgical|digital|triggered|bone-crushing low end|ultra-fast noise gate|polished/i.test(String(t));
   if (_vintageEra && (secret.some(_dropModern) || /modern|triggered|surgical/i.test(genreProdTag)))
     conf.push(L('Production ' + eraTag + ' + son moderne : incompatible — remplacé par l\'équivalent d\'époque.', 'Production ' + eraTag + ' + modern tone: incompatible — swapped for the period equivalent.'));
-  // v6 : en époque vintage on ÉCHANGE le son moderne contre son équivalent d'époque (on ne perd pas le slider Lourdeur)
   const VINTAGE_SWAP = { 'bone-crushing low end': 'thick saturated analog low end', 'locked-in and surgical': 'tight live-room performance' };
   const _secretClean = scrubList(secret.map(x => _dropModern(x) ? (VINTAGE_SWAP[String(x)] || '') : x).filter(Boolean));
   const _prodClean = scrubList([...(genreProdTag && !_dropModern(genreProdTag) ? [genreProdTag] : []), ...prod.slice(0, 2)]);
-  // ORDRE SPEC v6 : [sous-genre/métriques] ; [textures & instruments] ; [voix] ; [mixage & tonalité] — 6 blocs max
-  const _b1 = dedup([meterLead, genreClause, bpmTag].filter(Boolean)).join(', ');
-  const _b2 = scrubList([instrumentsClause, ...emotionTags].filter(Boolean)).join(', ');
-  const _b3 = scrub(vocalsClause);
-  const _b4 = dedup([tuningToneClause, ..._prodClean, moodClause].filter(Boolean)).join(', ');
-  const _b5 = dedup([..._secretClean.slice(0, 1), scrub(dynamicsClause), rhythmDynClause].filter(Boolean)).join(', ');
-  const richClauses = [_b1, _b2, _b3, _b4, _b5].filter(x => x && String(x).trim()).slice(0, 6);
-  const RICH_BUDGET = 600;   // guide : au-delà, les derniers tags sont dépriorisés (limite dure Suno = 1000)   // v4.5+ tolère ~1000 car. ; on coupe des clauses par la fin si trop long (jamais le genre/mood)
-  // dedup GLOBAL : en liste de virgules, un doublon (ex. le BPM répété) prend du poids pour rien
-  const _flatten = arr => dedup(arr.join(', ').split(/,\s*/).map(x => x.trim()).filter(Boolean)).join(', ');
-  let styleStr = _flatten(richClauses);
-  while (richClauses.length > 4 && styleStr.length > RICH_BUDGET) { richClauses.splice(richClauses.length - 2, 1); styleStr = _flatten(richClauses); }
-  const styleStrC = scrubList(compactCore).slice(0, 10).join(', ');   // guide : >10 tags, la fin est ignorée   // version compacte inchangée (fallback court)
+
+  // ── UNE SEULE LISTE, ORDONNÉE PAR IMPORTANCE ──
+  // Le prompt court était une recette séparée : couper changeait l'identité du morceau.
+  // Maintenant le compact est le DÉBUT de cette liste — couper ne retire que le décor.
+  const PRIORITY = [
+    meterLead,                       // 1. identité rythmique
+    genreClause,                     // 2. genre + influences historiques
+    bpmTag,                          // 3. tempo
+    ...(harshVox ? vocals.slice(0, 1) : []),   // 4. voix, si elle définit le genre
+    ...signature.slice(0, 2),        // 5. ancrages sonores du sous-genre
+    _tun, keyTag,                    // 6. accordage et tonalité
+    ...drums.slice(0, 1),
+    ...guitar.slice(0, 1),
+    eraTag,                          // 9. production d'époque
+    ...emotionTags.slice(0, 1),      // 10. émotion dominante (termes de production)
+    ...(harshVox ? [] : vocals.slice(0, 1)),
+    scaleTag,
+    ..._prodClean.slice(0, 1),
+    ...leadInst.slice(0, 1),
+    ..._secretClean.slice(0, 1),
+    _tonality,
+    scrub(dynamicsClause),
+    ...scrubList(mood.slice(0, 2)),
+    ...rhythmTags.slice(0, 1),
+    ...bassInst.slice(0, 1),
+    ...allOrganic.slice(0, 2),
+  ].filter(x => x && String(x).trim());
+
+  // Fusion des quasi-doublons : « blast beats » + « fast blast beats » ne valent pas deux items.
+  // La liste étant triée par importance, le premier arrivé gagne — on garde 2 items max par famille.
+  const FAMILIES = [/blast/i, /chug/i, /breakdown/i, /growl|scream|shout|shriek|squeal|vocal/i, /mix|production|master/i, /riff/i, /kick|snare|tom|drum/i, /reverb|ambien|atmospher/i, /groove/i, /tremolo/i, /solo|lead/i];
+  const _collapse = arr => {
+    const seen = new Map(), out = [];
+    const norm = x => String(x).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+    for (const raw of dedup(arr)) {
+      const t = String(raw), nt = norm(t);
+      // inclusion : « blast beats » est déjà contenu dans « fast blast beats » — un seul suffit
+      if (out.some(o => { const no = norm(o); return no.includes(nt) || nt.includes(no); })) continue;
+      const fam = FAMILIES.findIndex(re => re.test(t));
+      if (fam < 0) { out.push(t); continue; }
+      const n = (seen.get(fam) || 0);
+      if (n >= 2) continue;                                  // 3e item de la même famille = redondant
+      seen.set(fam, n + 1); out.push(t);
+    }
+    return out;
+  };
+  const ORDERED = _collapse(PRIORITY);
+
+  const RICH_BUDGET = 420;   // mesuré : au-delà on empile des synonymes, pas de l'information
+  const _fit = (arr, budget) => { const o = []; for (const t of arr) { if (o.length && (o.join(', ') + ', ' + t).length > budget) break; o.push(t); } return o; };
+  const styleStr  = _fit(ORDERED, RICH_BUDGET).join(', ');
+  const styleStrC = ORDERED.slice(0, 9).join(', ');          // même liste, juste plus court
   // T11 — prompts secondaires : COVER (sous-genre dominant) + EXTEND (callback cohérent)
   const _g1 = genres[0] || 'metal';
   const _g2 = genres[1] || null;
@@ -619,7 +649,7 @@ export default function handler(req, res) {
     conf.push(L('Des sections étaient placées après l\'Outro — elles ont été remontées avant (Suno ne chante rien après un outro).', 'Sections were placed after the Outro — moved before it (Suno sings nothing after an outro).'));
   const blocksClean = [..._structsOrdered.map(x => NAME[x] ? blockTag(x) : '').filter(Boolean), '[End]'];
   const structStr = blocksClean.join('\n');   // v5.5 : crochets = sections seulement, BPM/mesure restent dans Style
-  const overflowLine = overflow.length ? '[' + overflow.join(', ') + ']' : '';
+  const overflowLine = '';   // le compact est un préfixe du riche : plus rien à déporter dans les Lyrics
   const structStrC = [overflowLine, ...blocksClean].filter(Boolean).join('\n');
   const structNotesTxt = ''; // notes par section maintenant DANS la structure (entre crochets)
 

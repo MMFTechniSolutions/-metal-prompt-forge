@@ -1513,7 +1513,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [meterInfo,setMeterInfo]=useState(SV.meterInfo ?? null);   // {lead, auto} — séquence déduite du genre
   const [editList,setEditList]=useState(SV.editList ?? []);        // [{section, prompt}] — une ligne = un copier séparé
   const [editOpen,setEditOpen]=useState(false);
-  const [audioSrc,setAudioSrc]=useState(SV.audioSrc ?? 'none');   // none | cover | seed — pilote Audio Influence                    // replié par défaut : ça ne doit PAS ressembler à un bloc à coller  // v6 : Weirdness / Style Influence / Variety
+  const [audioSrc,setAudioSrc]=useState(SV.audioSrc ?? 'none');   // none | cover | seed — pilote Audio Influence  // v6 : Weirdness / Style Influence / Variety
   const [extendTxt,setExtendTxt]=useState(SV.extendTxt ?? "");
   const [modelRec,setModelRec]=useState(SV.modelRec ?? null);
   const [structTxtC,setStructTxtC]=useState(SV.structTxtC ?? "");
@@ -2237,7 +2237,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             {n:"Style Influence",v:"65-85%",d:L("HAUT — pour que Suno tienne la voie du genre. Baisse-le si le prompt est suivi trop rigidement.","HIGH — so Suno holds the genre lane. Lower it if the prompt is followed too rigidly.")},
             {n:"Variety",v:"0 · Normal · High · Extra · Max",d:L("Ce n'est pas un %. C'est la licence de RÉÉCRITURE que tu donnes à Suno : en High il reformule ton prompt au complet (tu le vois sous la génération). Reste bas pour que tes tags soient respectés.","Not a %. It is the REWRITE licence you give Suno: on High it reformulates your whole prompt (you can see it under the generation). Keep it low so your tags are respected.")},
             {n:"Max Mode",v:"ON si long",d:L("Garde la cohérence sur les morceaux longs (6+ sections).","Keeps consistency on long songs (6+ sections).")},
-            {n:"Audio Influence",v:"55-75%",d:L("Apparaît avec un upload. Plus haut = colle à ta référence (ex. ton WAV du Riff Generator).","Appears with an upload. Higher = sticks to your reference (e.g. your Riff Generator WAV).")},
+            {n:"Audio Influence",v:"Cover 65 · amorce 25-50",d:L("N'apparaît qu'avec une source audio (upload OU Cover). Cover d'une chanson complète : 65, tu gardes l'arrangement. Amorce (riff, mélodie, beatbox) : 25-50, sinon Suno recopie ton esquisse au lieu de bâtir autour.","Only appears with an audio source (upload OR Cover). Cover of a full song: 65, you keep the arrangement. Seed (riff, melody, beatbox): 25-50, otherwise Suno copies your sketch instead of building around it.")},
             {n:"Vocal Gender",v:"Male",d:L("Male pour la plupart du metal (Female pour certains styles).","Male for most metal (Female for some styles).")},
             {n:"Exclude Styles",v:"<->",d:L("Recopie tes tags de l'onglet Exclude (pop, clean vocals…). Reste court : seules les exclusions nettes marchent.","Copy your tags from the Exclude tab (pop, clean vocals…). Keep it short: only clear exclusions work.")},
           ].map((r,i,ar)=>(
@@ -2259,7 +2259,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {[
             L("Onglet Riff : choisis ton style + une scène (saveur régionale).","Riff tab: choose your style + a scene (regional flavor)."),
             L("Écoute avec Play, ajuste le tempo, puis Export en WAV.","Preview with Play, tweak the tempo, then Export to WAV."),
-            L("Dans Suno : uploade le WAV comme « Audio Influence » → Suno colle à ton groove au lieu d'inventer.","In Suno: upload the WAV as « Audio Influence » → Suno locks to your groove instead of inventing."),
+            L("Dans Suno : ajoute le WAV comme source audio, puis mets Audio Influence entre 25 et 50 — c'est une amorce, pas une chanson à recopier.","In Suno: add the WAV as an audio source, then set Audio Influence between 25 and 50 — it is a seed, not a song to copy."),
           ].map((s,i)=>(
             <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<2?"1px solid #1a1a1a":"none"}}>
               <div style={S.stepNum(RED)}>{i+1}</div>

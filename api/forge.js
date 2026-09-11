@@ -273,7 +273,9 @@ export default function handler(req, res) {
   const eraTag = _eraKey ? ERA_TAG[_eraKey] : '';
   const _vintageEra = /^(60s-70s|80s|90s)$/.test(_eraKey || '');
   const blockRhythm = b.blockRhythm || {};
-  const heavy = +b.heavy || 5, groove = +b.groove || 5, chaos = +b.chaos || 5, melody = +b.melody || 5;
+  // BUG : « +b.x || 5 » traitait 0 comme absent — un curseur mis à 0 repartait à 5 (le milieu).
+  const _slider = v => { const n = Number(v); return Number.isFinite(n) ? Math.max(0, Math.min(10, n)) : 5; };
+  const heavy = _slider(b.heavy), groove = _slider(b.groove), chaos = _slider(b.chaos), melody = _slider(b.melody);
   const bpm = Math.max(60, Math.min(280, +b.bpm || 180));
   const lang = b.lang || 'en';
   const L = (fr, en) => lang === 'fr' ? fr : en;
@@ -626,7 +628,10 @@ export default function handler(req, res) {
   // Duration (Custom/Auto), Max Mode (Off/On), Weirdness %, Style Influence %, Audio Influence %,
   // Variety (label Low/Medium/High — PAS un pourcentage), Personalize/My Taste (Off/On).
   const _clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(v)));
-  const _weird = _clamp(30 + chaos * 4.5, 25, 78);                      // curseur Chaos de l'app -> Weirdness
+  // Weirdness : plafond 65, constaté par François à l'usage — au-dessus, Suno part en vrille
+  // (structures incohérentes, dérive hors genre). La plage 60-75 des guides est trop optimiste.
+  // Chaos 0 -> 30, Chaos 5 -> 48, Chaos 10 -> 65.
+  const _weird = _clamp(30 + chaos * 3.5, 25, 65);
   const _nConf = conf.length;
   // Style Influence : la doc Suno ne donne aucune plage (juste Loose <-> Strong, défaut 50).
   // Règle retenue : un prompt SANS contradiction supporte l'adhérence max ; chaque conflit détecté

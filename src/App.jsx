@@ -2214,10 +2214,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         {/* LES 3 PROMPTS */}
         <div style={S.card}>
           <div style={S.ctitle}>{L("2 · Les 3 prompts (le coeur du système)","2 · The 3 prompts (the core trick)")}</div>
-          <div style={{fontSize:"0.72rem",color:"#999",lineHeight:1.65,marginBottom:"12px"}}>{L("Suno mélange mal plusieurs genres dans un seul prompt. On le contourne avec 3 prompts complémentaires :","Suno blends multiple genres badly in a single prompt. We work around it with 3 complementary prompts:")}</div>
+          <div style={{fontSize:"0.72rem",color:"#999",lineHeight:1.65,marginBottom:"12px"}}>{L("La fusion se fait maintenant dans le prompt principal (« groove metal with glam metal inflections ») — Suno v6 gère ça très bien. Les deux autres servent à retravailler la chanson APRÈS :","Fusion now happens inside the main prompt (\"groove metal with glam metal inflections\") — Suno v6 handles it well. The other two are for reworking the song AFTER:")}</div>
           {[
             {n:L("PRINCIPAL","MAIN"),c:RED,d:L("Ton genre dominant. Copie le « Style of Music » dans le champ Style de Suno, et colle les blocs de structure EN HAUT du champ Lyrics. Génère.","Your dominant genre. Copy the « Style of Music » into Suno's Style field, and paste the structure blocks at the TOP of the Lyrics field. Generate.")},
-            {n:L("COVER (sous-genre)","COVER (sub-genre)"),c:"#b06bff",d:L("Sur la chanson générée, clique « Cover » dans Suno et colle ce prompt → la fusion / le sous-genre ressort proprement.","On the generated track, click « Cover » in Suno and paste this prompt → the fusion / sub-genre comes out cleanly.")},
+            {n:L("COVER (sous-genre)","COVER (sub-genre)"),c:"#b06bff",d:L("Sur la chanson générée, clique « Cover » dans Suno et colle ce prompt → pousse le morceau plus loin dans le sous-genre. Audio Influence à 65 : tu gardes l'arrangement.","On the generated track, click « Cover » in Suno and paste this prompt → pushes the track further into the sub-genre. Audio Influence at 65: you keep the arrangement.")},
             {n:L("EXTEND (rallonge)","EXTEND (lengthen)"),c:"#33ccbb",d:L("Pour allonger la chanson sans qu'elle dérive : « Extend » dans Suno + ce prompt de rappel.","To lengthen the track without drift: « Extend » in Suno + this callback prompt.")},
           ].map((p,i)=>(
             <div key={i} style={{padding:"9px 0",borderBottom:i<2?"1px solid #1a1a1a":"none"}}>
@@ -2249,7 +2249,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <div style={{fontSize:"0.68rem",color:"#888",lineHeight:1.5,marginTop:"2px"}}>{r.d}</div>
             </div>
           ))}
-          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Règle d'or : Style Influence haut + Weirdness modéré = Suno suit ton prompt sans déraper.","Rule of thumb: high Style Influence + moderate Weirdness = Suno follows your prompt without going off the rails.")}</div>
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Règle d'or : Style Influence 100 (si l'analyse ne signale aucun conflit) + Weirdness sous 65 + Variety bas = Suno suit ton prompt sans déraper.","Rule of thumb: Style Influence 100 (when the analysis flags no conflict) + Weirdness under 65 + low Variety = Suno follows your prompt without going off the rails.")}</div>
         </div>
 
         {/* RIFF */}
@@ -2300,7 +2300,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <div style={{fontSize:"0.8rem",color:"#ccc",lineHeight:1.6,paddingTop:"3px"}}>{s}</div>
             </div>
           ))}
-          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Custom Models : Suno Pro/Premier · ~2-5 min d'entraînement · jusqu'à 3 modèles · 6+ chansons que tu possèdes.","Custom Models: Suno Pro/Premier · ~2-5 min training · up to 3 models · 6+ songs you own.")}</div>
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Custom Models (bêta en v6) : Suno Pro/Premier · 100 crédits par modèle · 6+ chansons que tu possèdes.","Custom Models (beta in v6): Suno Pro/Premier · 100 credits per model · 6+ songs you own.")}</div>
         </div>
         <div style={{height:80}}/>
       </div>}
@@ -2432,7 +2432,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{...S.card,display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",borderColor:"#2a2a2a"}}>
             <div>
               <div style={{fontSize:"0.74rem",fontWeight:800,color:"#e0e0e0"}}>{L("Mode Compact","Compact mode")}</div>
-              <div style={{fontSize:"0.58rem",color:"#666",marginTop:"2px"}}>{L("Réduit le style ≤120 car. · surplus → champ Lyrics","Trim style ≤120 chars · overflow → Lyrics field")}</div>
+              <div style={{fontSize:"0.58rem",color:"#666",marginTop:"2px"}}>{L("Version courte : 10 éléments max · le surplus part dans le champ Lyrics","Short version: 10 items max · the overflow goes to the Lyrics field")}</div>
             </div>
             <button onClick={()=>setCompact(c=>!c)} style={{background:compact?RED:"#1a1a1a",border:`1px solid ${compact?RED:"#333"}`,borderRadius:"20px",width:"50px",height:"26px",position:"relative",cursor:"pointer",flexShrink:0,padding:0}}>
               <span style={{position:"absolute",top:"2px",left:compact?"26px":"2px",width:"20px",height:"20px",borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>

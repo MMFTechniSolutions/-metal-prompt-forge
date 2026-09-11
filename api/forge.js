@@ -647,12 +647,17 @@ export default function handler(req, res) {
   // RÉÉCRITURE que tu donnes à Suno. Observé en High : il reformule tout le prompt en prose.
   // Notre prompt est précis par construction → on reste bas, sauf demande explicite d'exploration.
   const _varietyLbl = chaos >= 9 ? 'High' : chaos >= 6 ? 'Normal' : '0';
+  const _audioSrc = ['cover', 'seed'].includes(String(b.audioSrc || '')) ? String(b.audioSrc) : 'none';
   const _vTxtAll = vocals.concat(vrange).join(' ');
   const sliderRec = {
     weirdness: _weird,
     styleInfluence: _styleInf,
     variety: _varietyLbl,                                              // label, pas un %
-    audioInfluence: 65,                                                // n'apparaît qu'avec une source audio (upload OU Cover)
+    // Audio Influence dépend de CE QU'EST la source (constaté par François à l'usage) :
+    //   Cover d'une chanson complète -> 65, on veut garder l'arrangement.
+    //   Amorce (riff, mélodie, beatbox) -> 25-50, sinon Suno recopie l'esquisse au lieu de bâtir dessus.
+    audioSource: _audioSrc,
+    audioInfluence: _audioSrc === 'cover' ? 65 : _audioSrc === 'seed' ? 35 : null,
     maxMode: structs.length >= 6,
     duration: structs.length >= 6 ? 'Custom' : 'Auto',
     personalize: false,                                                // My Taste OFF quand on teste un prompt
@@ -664,8 +669,14 @@ export default function handler(req, res) {
               : 'Prompt sans contradiction → Style Influence poussé au maximum.') + ' Variety « ' + _varietyLbl + ' » = la licence de réécriture que tu donnes à Suno : en High il reformule ton prompt au complet. Reste bas pour que TES tags soient respectés.',
       (_nConf ? _nConf + ' conflict' + (_nConf > 1 ? 's' : '') + ' detected → Style Influence lowered so Suno can resolve it.'
               : 'No contradiction in the prompt → Style Influence pushed to the max.') + ' Variety "' + _varietyLbl + '" = how much rewriting you allow Suno: on High it reformulates your whole prompt. Keep it low so YOUR tags are respected.'),
-    audioNote: L('Audio Influence n\'apparaît qu\'avec une source audio : un WAV téléversé (Riff / Mélodie) OU un Cover. Haut = garde la mélodie et le rythme de la source ; bas = Suno réinterprète. En Cover avec un prompt modifié, baisse-le à 30-50 pour que le nouveau style prenne le dessus.',
-                 'Audio Influence only appears with an audio source: an uploaded WAV (Riff / Melody) OR a Cover. High = keeps the source melody and rhythm; low = Suno reinterprets. On a Cover with a changed prompt, drop it to 30-50 so the new style wins.'),
+    audioNote: _audioSrc === 'cover'
+      ? L('Cover d\'une chanson complète : 65 garde l\'arrangement de la source pendant que ton nouveau style la retravaille.',
+          'Cover of a full song: 65 keeps the source arrangement while your new style reworks it.')
+      : _audioSrc === 'seed'
+      ? L('Amorce (riff, mélodie, beatbox) : reste entre 25 et 50. Plus haut, Suno recopie ton esquisse au lieu de bâtir un morceau autour.',
+          'Seed (riff, melody, beatbox): stay between 25 and 50. Higher and Suno copies your sketch instead of building a track around it.')
+      : L('Audio Influence n\'apparaît que si tu pars d\'une source audio. Choisis-en une ci-dessus pour avoir la valeur.',
+          'Audio Influence only appears if you start from an audio source. Pick one above to get the value.'),
   };
 
   // v6 — Song Editor : on sélectionne UNE section sur la timeline puis « Replace Section »,

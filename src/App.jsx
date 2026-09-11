@@ -1512,7 +1512,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [critic,setCritic]=useState(SV.critic ?? null);   // passe de critique auto-notée
   const [meterInfo,setMeterInfo]=useState(SV.meterInfo ?? null);   // {lead, auto} — séquence déduite du genre
   const [editList,setEditList]=useState(SV.editList ?? []);        // [{section, prompt}] — une ligne = un copier séparé
-  const [editOpen,setEditOpen]=useState(false);                    // replié par défaut : ça ne doit PAS ressembler à un bloc à coller  // v6 : Weirdness / Style Influence / Variety
+  const [editOpen,setEditOpen]=useState(false);
+  const [audioSrc,setAudioSrc]=useState(SV.audioSrc ?? 'none');   // none | cover | seed — pilote Audio Influence                    // replié par défaut : ça ne doit PAS ressembler à un bloc à coller  // v6 : Weirdness / Style Influence / Variety
   const [extendTxt,setExtendTxt]=useState(SV.extendTxt ?? "");
   const [modelRec,setModelRec]=useState(SV.modelRec ?? null);
   const [structTxtC,setStructTxtC]=useState(SV.structTxtC ?? "");
@@ -1531,7 +1532,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [lyricsErr,setLyricsErr]=useState("");
   const [history,setHistory]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_history")||"[]")}catch{return[]}});
   // Sauvegarde continue de l'etat (persistance au refresh)
-  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({editList,meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[editList,meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
+  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({audioSrc,editList,meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[audioSrc,editList,meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
   const resetAll=()=>{ try{ localStorage.removeItem('mpf_state'); Object.keys(localStorage).filter(k=>k.startsWith('mpf_sel_')).forEach(k=>localStorage.removeItem(k)); localStorage.removeItem('mpf_history'); }catch(e){} location.reload(); };
   const saveToHistory=p=>{
     if(!isPro)return;
@@ -1584,6 +1585,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       structs:autoStructs,blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions,tier:userTier,
       eras:GENRE_FAMILIES.filter(f=>f.genres.some(x=>genres.has(x.g))).map(f=>f.nameEn),   // couche Époque → /api/forge
       signature,   // anchors sonores du reverse (vides si pas de reverse)
+      audioSrc,    // source audio : rien / Cover / amorce (riff, mélodie, beatbox)
     };
     let data;
     try{
@@ -2471,7 +2473,12 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {sliderRec&&<div style={{...S.card,borderColor:"#ffaa0044",background:"#100c02"}}>
             <div style={{...S.outLbl,color:"#ffbb33",marginBottom:"6px"}}>{L("Réglages « More Options » (Suno v6)","\"More Options\" settings (Suno v6)")}</div>
             <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"9px",lineHeight:1.5}}>{L("Dans Suno → Create → Custom → More Options. Recopie ces valeurs de haut en bas.","In Suno → Create → Custom → More Options. Copy these values top to bottom.")}</div>
-            {[["Vocal Gender",sliderRec.vocalGender],["Duration",sliderRec.duration],["Max Mode",sliderRec.maxMode?"On":"Off"],["Weirdness",sliderRec.weirdness+"%"],["Style Influence",sliderRec.styleInfluence+"%"],["Audio Influence",sliderRec.audioInfluence+"% "+L("(si source)","(if source)")],["Variety",sliderRec.variety],["Personalize (My Taste)",sliderRec.personalize?"On":"Off"]].map(([k,v],i2)=>(
+            <div style={{display:"flex",gap:"6px",marginBottom:"11px",flexWrap:"wrap",alignItems:"center"}}>
+              <span style={{fontSize:"0.58rem",color:"#776",marginRight:"2px"}}>{L("Tu pars de :","Starting from:")}</span>
+              {[["none",L("rien","nothing")],["cover",L("un Cover","a Cover")],["seed",L("riff / mélodie / beatbox","riff / melody / beatbox")]].map(([k,lbl])=>(
+                <span key={k} onClick={()=>setAudioSrc(k)} style={{cursor:"pointer",fontSize:"0.6rem",fontWeight:audioSrc===k?800:500,padding:"4px 10px",borderRadius:"5px",border:`1px solid ${audioSrc===k?"#ffbb33":"#2a2a2a"}`,background:audioSrc===k?"#1a1202":"#0d0d0d",color:audioSrc===k?"#ffbb33":"#888"}}>{lbl}</span>))}
+            </div>
+            {[["Vocal Gender",sliderRec.vocalGender],["Duration",sliderRec.duration],["Max Mode",sliderRec.maxMode?"On":"Off"],["Weirdness",sliderRec.weirdness+"%"],["Style Influence",sliderRec.styleInfluence+"%"],...(sliderRec.audioInfluence!=null?[["Audio Influence",sliderRec.audioInfluence+"%"]]:[]),["Variety",sliderRec.variety],["Personalize (My Taste)",sliderRec.personalize?"On":"Off"]].map(([k,v],i2)=>(
               <div key={k} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",padding:"6px 2px",borderBottom:i2<7?"1px solid #1e1a0a":"none"}}>
                 <span style={{fontSize:"0.72rem",color:"#bbb"}}>{k}</span>
                 <span style={{fontSize:"0.85rem",fontWeight:900,color:"#ffbb33",fontFamily:"monospace"}}>{v}</span>

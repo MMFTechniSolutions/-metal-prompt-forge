@@ -58,7 +58,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: process.env.LYRICS_MODEL || 'claude-sonnet-4-6', // A/B : LYRICS_MODEL=claude-sonnet-5-5 dans Vercel
         max_tokens: maxTokens,
         messages: [{ role: 'user', content: prompt }],
       }),

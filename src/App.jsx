@@ -472,6 +472,22 @@ const TIER_RANK = {free:0,forge:1,pro:2,elite:3,eliteplus:4};
 const LIMITS = {free:{prompts:3,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity},eliteplus:{prompts:Infinity,lyrics:Infinity}};
 const TAB_REQ = {genre:"free",melodie:"elite",drums:"free",vocals:"free",guitar:"forge",bass:"forge",instru:"forge",structure:"forge",paroles:"pro",organic:"pro",exclude:"forge",output:"free",history:"pro"};
 
+// ── FORGER v2 (oct. 2026) : aides pour la boîte d'entrée unique ──
+// Clés d'époque comprises par /api/forge (ERA_TAG).
+const ERA_KEYS = ["60s-70s","80s","90s","2000s","2010s","2020s"];
+// Repère une année (« 1993 ») ou une décennie (« 90s », « années 90 ») dans le texte libre.
+function parseEra(txt){
+  let rest=String(txt||""), era="";
+  const dec=y=>y<1980?"60s-70s":y<1990?"80s":y<2000?"90s":y<2010?"2000s":y<2020?"2010s":"2020s";
+  let m=rest.match(/\b(19[6-9]\d|20[0-2]\d)(?:'?s)?\b/);
+  if(m){ era=dec(+m[1]); rest=rest.replace(m[0]," "); }
+  else if((m=rest.match(/(?:ann[ée]es\s+)?\b([6-9]0)'?s\b|ann[ée]es\s+([6-9]0)\b/i))){ era=dec(1900+(+(m[1]||m[2]))); rest=rest.replace(m[0]," "); }
+  rest=rest.replace(/\s+/g," ").replace(/^[\s,;·–-]+|[\s,;·–-]+$/g,"").trim();
+  return {era,rest};
+}
+// Genre tapé tel quel (« djent », « thrash » → « thrash metal ») : trouvé sans appel serveur.
+const GENRE_INDEX=(()=>{const m={};GENRE_FAMILIES.forEach(f=>f.genres.forEach(x=>{m[String(x.g).toLowerCase()]=x;}));return m;})();
+const findGenre=p=>{const k=String(p||"").toLowerCase().trim();return k?(GENRE_INDEX[k]||GENRE_INDEX[k+" metal"]||null):null;};
 // Fusionne la structure enrichie + les paroles générées : chaque section reçoit ses paroles SOUS son tag (prêt à coller dans Suno)
 function mergeStructLyrics(struct, lyrics){
   if(!lyrics||!lyrics.trim()) return struct;
@@ -584,6 +600,12 @@ function CopyBtnInline({getText}) {
 function CopyBtn({getText}) {
   const [txt,setTxt]=useState("COPY");
   return <button style={S.copyBtn} onClick={()=>navigator.clipboard.writeText(getText()).then(()=>{setTxt("✅");setTimeout(()=>setTxt("COPY"),1500)}).catch(()=>setTxt("ERR"))}>{txt}</button>;
+}
+
+// Bouton Copier principal de l'écran Sortie (une carte = un champ Suno = un bouton)
+function BigCopy({getText,L}) {
+  const [ok,setOk]=useState(0);   // 0 prêt · 1 copié · 2 erreur
+  return <button onClick={()=>navigator.clipboard.writeText(getText()).then(()=>{setOk(1);setTimeout(()=>setOk(0),1500)}).catch(()=>setOk(2))} style={{flexShrink:0,minWidth:"84px",background:ok===1?"#0d2a14":RED,border:"1px solid "+(ok===1?"#2f7a45":RED),borderRadius:"7px",padding:"8px 14px",fontSize:"0.72rem",fontWeight:900,color:ok===1?"#7fe0a0":"#000",cursor:"pointer",letterSpacing:"0.5px"}}>{ok===1?L("Copié","Copied"):ok===2?"ERR":L("Copier","Copy")}</button>;
 }
 
 function MiniCopy({text,style}) {
@@ -1164,31 +1186,27 @@ function Manifesto({onClose,uiLang}){
 function WhatsNew({onClose,uiLang}){
   const fr=uiLang!=="en";
   const items = fr ? [
-    ["⚡ Suno v6 — recette mise à jour","v6 est sorti le 9 sept. et remplace tous les anciens modèles. La recette a été refaite : émotions traduites en termes de production (fini les adjectifs qui lissent le mix), style en 4-6 blocs sans mots vides, garde-fous anti-contradiction (doom à 175 BPM, prod 80s + son moderne), balises de paroles en [Section: description]."],
-    ["🎛️ Réglages Mode Avancé calculés","Weirdness, Style Influence, Variety, Max Mode et genre vocal — calculés d'après tes choix et affichés dans l'onglet Output. Plus besoin de deviner."],
-    ["✂️ Prompts d'édition (nouveau v6)","v6 modifie une section sans tout regénérer. On te prépare 5 instructions prêtes à coller : « make the breakdown half-time and heavier… »."],
-    ["🎤 Générateur de mélodies chantées (onglet Mélodie)","26 thèmes metal & hit (refrain, metalcore, melodeath, doom, power, thrash gang, nu-metal…), 47 gammes, 10 familles, voix de chœur et vrais instruments. Écoute, édite, exporte le WAV pour Suno."],
-    ["🎼 Métriques mixtes (nouveau)","Onglet Genre (et Structure en mode Avancé) : clique tes chiffrages dans l'ordre — 7/8, 4/4, 9/8, 5/4… La séquence est placée EN TÊTE du Style et Suno la lit comme un feel prog/avant-garde qui teinte tout le morceau."],
-    ["🔍 Reverse plus fin","Entre un nom de groupe : on détecte maintenant le genre principal + le 2e genre qui colore le son (ex. folk, prog 70s) + 2-4 signatures sonores (interludes acoustiques, mellotron, clean-to-growl…)."],
-    ["🧠 Recette alignée sur Suno v6","Genre en position 1, fusion « X-influenced » au lieu de 2 genres nus, époque de production (70s analog → 2020s modern), clé explicite (ex. D minor), prompt plus court (idéal ≤ 600 car.) — Suno pèse les premiers tags."],
-    ["🎤 Paroles","6-10 syllabes par ligne, refrain 3× max — Suno ne rush plus les lignes trop longues."],
+    ["🔨 Une seule boîte pour forger","Tape un groupe, une année, un genre ou une description, puis Forger : on détecte le style, on règle tout et ton prompt sort. Le nom d'un groupe sert seulement à trouver le style — il n'est jamais écrit dans ton prompt."],
+    ["🧭 5 onglets au lieu de 17","Forger, Mélodie & Riff, Paroles, Galerie, Plus. Les réglages manuels (batterie, voix, instruments, structure, organic, exclusions) sont maintenant sous Forger → Réglages fins."],
+    ["🎚️ Détecté, modifiable","Genre et mix de genres, époque, tempo, accordage, métriques : ce qui a été détecté s'affiche sous la boîte et se change d'un clic."],
+    ["📋 Sortie en 4 cartes","Style, Lyrics, Exclude, More Options : une carte = un champ de Suno = un bouton Copier, avec compteur de caractères. Retouche par section, Cover et Extend sont repliés sous « Plus tard »."],
+    ["🎸 Mélodie et riff comme amorce","Crée ta mélodie ou ton riff, clique « Utiliser comme amorce » et forge : le réglage Audio Influence conseillé suit ta source."],
+    ["🧹 Curseurs d'émotion retirés","Le prompt reste plus court et plus précis : rien d'invisible ne vient le teinter."],
     ["🎲 Rappel","Suno est aléatoire par design : génère 2-3 fois le même prompt avant de conclure."],
   ] : [
-    ["⚡ Suno v6 — recipe updated","v6 shipped Sept 9 and replaces every older model. The recipe was rebuilt: emotions mapped to production terms (no more mood adjectives that flatten the mix), style in 4-6 blocks with no filler words, contradiction guards (doom at 175 BPM, 80s production + modern tone), lyric tags as [Section: description]."],
-    ["🎛️ Advanced Mode settings, computed","Weirdness, Style Influence, Variety, Max Mode and vocal gender — computed from your choices and shown in the Output tab. No more guessing."],
-    ["✂️ Edit prompts (new in v6)","v6 edits one section without regenerating everything. We prepare 5 paste-ready instructions: \"make the breakdown half-time and heavier…\"."],
-    ["🎤 Singable melody generator (Melody tab)","26 metal & hit themes (chorus, metalcore, melodeath, doom, power, thrash gang, nu-metal…), 47 scales, 10 families, choir voices and real instruments. Listen, edit, export the WAV for Suno."],
-    ["🎼 Mixed meters (new)","Genre tab (and Structure in Advanced mode): click your time signatures in order — 7/8, 4/4, 9/8, 5/4… The sequence goes at the TOP of the Style and Suno reads it as a prog/avant-garde feel that colors the whole track."],
-    ["🔍 Sharper reverse","Type a band name: we now detect the main genre + the second genre coloring the sound (e.g. folk, 70s prog) + 2-4 sonic signatures (acoustic interludes, mellotron, clean-to-growl…)."],
-    ["🧠 Recipe aligned with Suno v6","Genre in position 1, « X-influenced » fusion instead of two bare genres, production era (70s analog → 2020s modern), explicit key (e.g. D minor), shorter prompt (sweet spot ≤ 600 chars) — Suno weighs the first tags most."],
-    ["🎤 Lyrics","6-10 syllables per line, chorus 3× max — Suno stops rushing long lines."],
+    ["🔨 One box to forge","Type a band, a year, a genre or a description, then Forge: we detect the style, set everything and your prompt comes out. A band name only picks the style — it is never written into your prompt."],
+    ["🧭 5 tabs instead of 17","Forge, Melody & Riff, Lyrics, Gallery, More. Manual tuning (drums, vocals, instruments, structure, organic, exclusions) now lives under Forge → Fine tuning."],
+    ["🎚️ Detected, editable","Genre and genre mix, era, tempo, tuning, meters: what was detected shows under the box and changes in one click."],
+    ["📋 Output in 4 cards","Style, Lyrics, Exclude, More Options: one card = one Suno field = one Copy button, with a character counter. Section edits, Cover and Extend are folded under \"Later\"."],
+    ["🎸 Melody and riff as a seed","Build your melody or riff, click \"Use as a seed\" and forge: the recommended Audio Influence setting follows your source."],
+    ["🧹 Emotion sliders removed","The prompt stays shorter and more precise: nothing invisible colors it."],
     ["🎲 Reminder","Suno is random by design: run the same prompt 2-3 times before judging."],
   ];
   return (
     <div style={{position:"fixed",inset:0,background:"#000000ee",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}}>
       <div style={{maxWidth:"580px",width:"100%",background:"linear-gradient(180deg,#120000,#0a0a0b)",border:"1px solid #5a0000",borderRadius:"14px",padding:"28px 24px",boxShadow:"0 0 50px #000",margin:"auto"}}>
         <div style={{textAlign:"center",fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.72rem",letterSpacing:"4px",color:RED,marginBottom:"6px"}}>{fr?"NOUVEAUTÉS":"WHAT'S NEW"}</div>
-        <div className="forge-title" style={{textAlign:"center",fontSize:"1.6rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Suno v6 est là 🤘":"Suno v6 is here 🤘"}</div>
+        <div className="forge-title" style={{textAlign:"center",fontSize:"1.6rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Version 3.0 — plus simple 🤘":"Version 3.0 — simpler 🤘"}</div>
         <div style={{display:"flex",flexDirection:"column",gap:"9px",marginBottom:"20px"}}>
           {items.map((p,i)=>(<div key={i} style={{background:"#0d0000",border:"1px solid #2a0000",borderRadius:"8px",padding:"10px 12px"}}>
             <div style={{color:"#ff9090",fontWeight:800,fontSize:"0.8rem"}}>{p[0]}</div>
@@ -1368,6 +1386,19 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [reverseLoading,setReverseLoading]=useState(false);
   const [reverseMsg,setReverseMsg]=useState(null); // {ok, genre, label, confidence, matched}
   const [signature,setSignature]=useState([]);   // anchors sonores du reverse (→ /api/forge)
+  // ── FORGER v2 (oct. 2026) : boîte d'entrée unique + panneaux repliés ──
+  const [ideaInput,setIdeaInput]=useState("");
+  const [lastIdea,setLastIdea]=useState("");            // dernier texte détecté : pas de nouvelle détection si inchangé
+  const [ideaBusy,setIdeaBusy]=useState(false);
+  const [ideaMsg,setIdeaMsg]=useState(null);            // {ok, text}
+  const [eraPick,setEraPick]=useState("");              // "" = époque déduite du genre
+  const [pendingForge,setPendingForge]=useState(false); // forge au prochain rendu, une fois la détection appliquée
+  const [finsOpen,setFinsOpen]=useState(false);
+  const [pickerOpen,setPickerOpen]=useState(false);
+  const [soundsOpen,setSoundsOpen]=useState(false);
+  const [meterOpen,setMeterOpen]=useState(false);
+  const [moreOpen,setMoreOpen]=useState(false);
+  const [seedKind,setSeedKind]=useState("melodie");     // amorce : mélodie ou riff (les deux = audioSrc "seed")
   const [openFam,setOpenFam]=useState({});
   const [vocFilter,setVocFilter]=useState("");
   const [openVocEra,setOpenVocEra]=useState({});
@@ -1425,8 +1456,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [emotions,setEmotions]=useState(SV.emotions ?? {});
   const [advanced,setAdvanced]=useState(false);
   const [showManifesto,setShowManifesto]=useState(false);
-  useEffect(()=>{try{if(!localStorage.getItem('mpf_news_202609b')){setShowManifesto(true);localStorage.setItem('mp_manifesto_seen','1');}}catch(e){}},[]);
-  const closeManifesto=()=>{try{localStorage.setItem('mpf_news_202609b','1');}catch(e){}setShowManifesto(false);};
+  useEffect(()=>{try{if(!localStorage.getItem('mpf_news_202610_v3')){setShowManifesto(true);localStorage.setItem('mp_manifesto_seen','1');}}catch(e){}},[]);
+  const closeManifesto=()=>{try{localStorage.setItem('mpf_news_202610_v3','1');}catch(e){}setShowManifesto(false);};
   const [groove,setGroove]=useState(SV.groove ?? 6);
   const [chaos,setChaos]=useState(SV.chaos ?? 7);
   const [melody,setMelody]=useState(SV.melody ?? 3);
@@ -1485,6 +1516,57 @@ export default function App({ user, onLogout, onRequestAuth }) {
     }catch(e){setReverseMsg({ok:false});}
     finally{setReverseLoading(false);}
   };
+  // ── FORGER v2 : une seule boîte — année, genre connu, groupe ou description → détecte, applique, forge ──
+  const smartForge=async()=>{
+    if(!user){onRequestAuth&&onRequestAuth();return;}
+    if(ideaBusy)return;
+    const raw=ideaInput.trim();
+    if(!raw){
+      if(genres.size){generate();}
+      else setIdeaMsg({ok:false,text:L("Écris un groupe, une année, un genre ou une description — ou choisis un genre juste en dessous.","Type a band, a year, a genre or a description — or pick a genre just below.")});
+      return;
+    }
+    if(raw===lastIdea&&genres.size){generate();return;}   // texte déjà détecté : on forge avec les réglages actuels
+    setIdeaBusy(true);setIdeaMsg(null);
+    try{
+      const {era,rest}=parseEra(raw);
+      if(era||rest)setEraPick(era);   // nouvelle idée sans année = époque remise en auto ; année seule = on garde le genre
+      if(!rest){   // une année seule
+        if(genres.size){setLastIdea(raw);setIdeaMsg({ok:true,text:L("Époque : ","Era: ")+era});setPendingForge(true);}
+        else setIdeaMsg({ok:false,text:L("Époque réglée sur ","Era set to ")+era+L(". Ajoute un genre ou un groupe.",". Add a genre or a band.")});
+        return;
+      }
+      // 1) genres connus tapés tels quels (« djent », « doom + sludge ») : aucun appel serveur
+      const parts=rest.split(/\s*(?:,|\+|\/|&|\bet\b|\band\b)\s*/i).map(s=>s.trim()).filter(Boolean);
+      const known=parts.map(findGenre);
+      if(parts.length&&parts.length<=3&&known.every(Boolean)){
+        if(known.some(x=>!canAccess(x.req))){setShowPaywall(true);return;}
+        const pick=[...new Set(known.map(x=>x.g))].slice(0,2);
+        setGenres(pick);setSignature([]);
+        await autoFillGenre(pick[0]);
+        setLastIdea(raw);
+        setIdeaMsg({ok:true,text:pick.join(" + ")+(era?" · "+era:"")});
+        setPendingForge(true);return;
+      }
+      // 2) groupe ou description libre → /api/reverse (le nom n'est jamais écrit dans le prompt)
+      if(!canAccess("pro")){setShowPaywall(true);return;}
+      const r=await fetch('/api/reverse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({band:rest})});
+      const d=await r.json();
+      if(!r.ok||!d.genre){setIdeaMsg({ok:false,text:L("Pas reconnu — vérifie l'orthographe, ou choisis un genre juste en dessous.","Not recognized — check the spelling, or pick a genre just below.")});return;}
+      setGenres([d.genre,d.flavor].filter(Boolean));
+      setSignature(Array.isArray(d.signature)?d.signature:[]);
+      const _prof=await autoFillGenre(d.genre);
+      const _ta=seedThemesFromMood((_prof&&_prof.mood)||[]);   // thème + atmosphère des paroles selon le style
+      if(_ta){setThemes(_ta.themes);setLatmo(_ta.atmo);}
+      setLastIdea(raw);
+      setIdeaMsg({ok:true,text:(d.label||d.genre)+(d.flavor?" + "+d.flavor:"")+(era?" · "+era:"")+(d.confidence==="low"?L(" · estimation approximative"," · rough guess"):"")});
+      setPendingForge(true);
+    }catch(e){setIdeaMsg({ok:false,text:L("Erreur de détection, réessaie.","Detection error, try again.")});}
+    finally{setIdeaBusy(false);}
+  };
+  // La détection pose son état (genre, profil, époque) puis lève pendingForge : generate() tourne au rendu
+  // suivant, donc avec les valeurs à jour — sans ça il forgerait avec l'état d'avant la détection.
+  useEffect(()=>{ if(pendingForge){ setPendingForge(false); generate(); } },[pendingForge]);
   // ── MON SOUND (custom model perso, localStorage) ──
   const [sounds,setSounds]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_sounds")||"[]")}catch{return[]}});
   const persistSounds=arr=>{setSounds(arr);try{localStorage.setItem("mpf_sounds",JSON.stringify(arr))}catch{}};
@@ -1513,6 +1595,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [meterInfo,setMeterInfo]=useState(SV.meterInfo ?? null);   // {lead, auto} — séquence déduite du genre
   const [editList,setEditList]=useState(SV.editList ?? []);        // [{section, prompt}] — une ligne = un copier séparé
   const [editOpen,setEditOpen]=useState(false);
+  const [laterOpen,setLaterOpen]=useState(false);const [notesOpen,setNotesOpen]=useState(false);   // Sortie v2 : Cover/Extend et notes de prod repliés
   const [audioSrc,setAudioSrc]=useState(SV.audioSrc ?? 'none');   // none | cover | seed — pilote Audio Influence  // v6 : Weirdness / Style Influence / Variety
   const [extendTxt,setExtendTxt]=useState(SV.extendTxt ?? "");
   const [modelRec,setModelRec]=useState(SV.modelRec ?? null);
@@ -1582,8 +1665,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
       bassStyle:[...bassStyle],bassTech:[...bassTech],bassTone:[...bassTone],bassTuning:[...bassTuning],bassProd:[...bassProd],sax:[...sax],brass:[...brass],keys:[...keys],strings:[...strings],
       org:isPro?[...orgRec,...orgDrm,...orgVoc,...orgGtr]:[],
       excl:isElite?{g:[...exclGenre],v:[...exclVocal],p:[...exclProd],i:[...exclInst],c:exclCustom}:null,
-      structs:autoStructs,blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions,tier:userTier,
-      eras:GENRE_FAMILIES.filter(f=>f.genres.some(x=>genres.has(x.g))).map(f=>f.nameEn),   // couche Époque → /api/forge
+      structs:autoStructs,blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions:{},tier:userTier,   // émotions retirées de l'interface (oct. 2026) : plus rien d'invisible ne teinte le prompt
+      eras:eraPick?[eraPick]:GENRE_FAMILIES.filter(f=>f.genres.some(x=>genres.has(x.g))).map(f=>f.nameEn),   // couche Époque → /api/forge
       signature,   // anchors sonores du reverse (vides si pas de reverse)
       audioSrc,    // source audio : rien / Cover / amorce (riff, mélodie, beatbox)
     };
@@ -1713,15 +1796,43 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
     </>
   );
 
-  const TABS=[
-    {id:"genre",req:"free"},
-    {id:"melodie",req:"elite"},   // générateur de mélodie chantée — en avant-plan
-    {id:"drums",req:"free",adv:true},{id:"vocals",req:"free",adv:true},{id:"instrums",req:"forge",adv:true},{id:"structure",req:"forge",adv:true},{id:"organic",req:"pro",adv:true},{id:"exclude",req:"forge",adv:true},
-    {id:"paroles",req:"pro"},{id:"output",req:"free"},
-    {id:"riff",req:"elite"},{id:"master",req:"elite"},{id:"aimusic",req:"forge"},
-    ...(isPro?[{id:"history",req:"pro"}]:[]),
-    {id:"masterclass",req:"free"},{id:"galerie",req:"free"},{id:"tuto",req:"free"},
-  ].filter(tb=>advanced||!tb.adv);
+  // ── NAV v2 + FORGER v2 (oct. 2026) ──
+  // 4 entrées + « Plus ». Les anciens onglets de réglage manuel vivent sous Forger → Réglages fins.
+  const FINE_TABS=["drums","vocals","instrums","structure","organic","exclude"];
+  const NAV_MAIN=[
+    {id:"genre",label:L("Forger","Forge"),also:["output",...FINE_TABS],req:"free"},
+    {id:"melodie",label:L("Mélodie & Riff","Melody & Riff"),also:["riff"],req:"elite"},
+    {id:"paroles",label:t.tabs.paroles,also:[],req:"pro"},
+    {id:"galerie",label:t.tabs.galerie,also:[],req:"free"},
+  ];
+  const NAV_MORE=[...(isPro?["history"]:[]),"master","aimusic","masterclass","tuto"];
+  const MORE_REQ={history:"pro",master:"elite",aimusic:"forge",masterclass:"free",tuto:"free"};
+  const FINE_ROWS=[
+    ["drums",L("Batterie","Drums"),drums.size+drumP.size],
+    ["vocals",L("Voix","Vocals"),vocals.size+vrange.size+vfx.size],
+    ["instrums",L("Guitare, basse et autres instruments","Guitar, bass and other instruments"),guitar.size+tuning.size+gprod.size+bassStyle.size+bassTech.size+bassTone.size+bassTuning.size+bassProd.size+sax.size+brass.size+keys.size+strings.size],
+    ["structure",L("Structure et rythme par section","Structure and per-section rhythm"),structs.size+globalRhythm.size],
+    ["organic",L("Son organique","Organic sound"),orgRec.size+orgDrm.size+orgVoc.size+orgGtr.size],
+    ["exclude",L("Exclusions","Exclusions"),exclGenre.size+exclVocal.size+exclProd.size+exclInst.size],
+  ];
+  const LOCK="\u{1F512} ";
+  const FL={display:"block",fontSize:"0.62rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:"#aaa",marginBottom:"5px"};
+  const FC={width:"100%",minHeight:"42px",background:"#1a1a1a",border:"1.5px solid #3a3a3a",borderRadius:"8px",padding:"0 12px",color:"#e6e6e6",fontSize:"0.84rem",fontWeight:700,colorScheme:"dark"};
+  const CHIP={background:"#1a1a1a",border:"1px solid #3a3a3a",borderRadius:"20px",padding:"8px 14px",fontSize:"0.76rem",fontWeight:700,color:"#e0e0e0",cursor:"pointer"};
+  const CHIP_ON={...CHIP,background:"#2a0808",border:"1px solid "+RED,color:"#ffb0b0"};
+  const SEG=on=>({minHeight:"44px",padding:"0 10px",borderRadius:"8px",fontSize:"0.8rem",fontWeight:on?800:600,cursor:"pointer",background:on?"#2a0808":"#1a1a1a",border:"1.5px solid "+(on?RED:"#3a3a3a"),color:on?"#ffb0b0":"#d0d0d0"});
+  const autoEra=GENRE_FAMILIES.filter(f=>f.genres.some(x=>genres.has(x.g))).map(f=>ERA_KEYS.find(k=>String(f.nameEn||"").startsWith(k))).filter(Boolean)[0]||"";
+  const SRC=[["none","",L("Rien","Nothing")],["seed","melodie",L("Une mélodie","A melody")],["seed","riff",L("Un riff","A riff")],["cover","",L("Un Cover","A Cover")]];
+  // Barre commune des pages Mélodie et Riff : bascule entre les deux + envoi vers la forge comme amorce.
+  const studioBar=kind=>(
+    <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"11px"}}>
+      <div style={{display:"flex",gap:"6px"}}>
+        {[["melodie",L("Mélodie","Melody")],["riff",L("Riff et beat","Riff & beat")]].map(([id,lbl])=>(
+          <button key={id} aria-pressed={kind===id} onClick={()=>setTab(id)} style={{...SEG(kind===id),padding:"0 18px"}}>{lbl}</button>))}
+      </div>
+      <button onClick={()=>{setAudioSrc("seed");setSeedKind(kind);setTab("genre");}} style={{minHeight:"44px",padding:"0 16px",background:RED,border:"none",borderRadius:"8px",color:"#000",fontSize:"0.76rem",fontWeight:900,cursor:"pointer"}}>{L("Utiliser comme amorce → Forger","Use as a seed → Forge")}</button>
+    </div>
+  );
 
   return (
     <div style={S.wrap}>
@@ -1756,55 +1867,82 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* NAV */}
       <div className="nav-scroll" style={{background:"#0f0f0f",borderBottom:"1px solid #1a1a1a"}}>
-        <button onClick={()=>{const na=!advanced;setAdvanced(na);if(!na&&['drums','vocals','instrums','structure','organic','exclude'].includes(tab))setTab('genre');}} style={S.navBtn(advanced,false)} title={L("Affiche les onglets de réglage manuel","Show manual tuning tabs")}>{advanced?L("Avancé ","Advanced "):L("Avancé","Advanced")}</button>
-        {TABS.map(tb=>{
-          const locked=!canAccess(tb.req);
-          return <button key={tb.id} style={S.navBtn(tab===tb.id,locked)} onClick={()=>setTab(tb.id)}>
-            {locked?"🔒 ":""}{t.tabs[tb.id]||tb.id}
-          </button>;
+        {NAV_MAIN.map(n=>{
+          const on=n.id===tab||n.also.includes(tab);
+          return <button key={n.id} aria-current={on?"page":undefined} style={{...S.navBtn(on,false),fontSize:"0.7rem",padding:"12px 14px"}} onClick={()=>{setMoreOpen(false);setTab(n.id);}}>{canAccess(n.req)?"":LOCK}{n.label}</button>;
         })}
+        <button aria-expanded={moreOpen} style={{...S.navBtn(NAV_MORE.includes(tab)||moreOpen,false),fontSize:"0.7rem",padding:"12px 14px"}} onClick={()=>setMoreOpen(o=>!o)}>{L("Plus","More")} {moreOpen?"▴":"▾"}</button>
       </div>
+      {moreOpen&&<div style={{background:"#0c0c0c",borderBottom:"1px solid #1a1a1a",display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px",padding:"8px 10px"}}>
+        {NAV_MORE.map(id=>(
+          <button key={id} onClick={()=>{setTab(id);setMoreOpen(false);}} style={tab===id?{...CHIP_ON,borderRadius:"8px"}:{...CHIP,borderRadius:"8px"}}>{canAccess(MORE_REQ[id])?"":LOCK}{t.tabs[id]||id}</button>))}
+      </div>}
+      {FINE_TABS.includes(tab)&&<div style={{background:"#0c0c0c",borderBottom:"1px solid #1a1a1a",display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px",padding:"8px 10px"}}>
+        <button onClick={()=>setTab("genre")} style={{...CHIP,borderRadius:"8px",border:"1px solid #5a1a1a",color:"#ff8a8a"}}>← {L("Retour à Forger","Back to Forge")}</button>
+        {FINE_TABS.map(id=>(
+          <button key={id} aria-pressed={tab===id} onClick={()=>setTab(id)} style={tab===id?{...CHIP_ON,borderRadius:"8px"}:{...CHIP,borderRadius:"8px"}}>{t.tabs[id]||id}</button>))}
+      </div>}
       </div>
 
       {/* GENRE */}
-      {tab==="genre"&&<div style={S.page}>
-        {meterCard}
-        <div style={S.card}>
-          <div style={S.ctitle}>{L("Groupe → style","Band → style")}{!canAccess("pro")?" 🔒":""}</div>
-          <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"9px",lineHeight:1.5}}>{L("Tape le nom d'un groupe : on détecte son sous-genre et on applique tout (BPM, drums, voix, accordage, sliders). Le nom sert seulement à trouver le style — il n'est jamais écrit dans ton prompt.","Type a band name: we detect its sub-genre and apply everything (BPM, drums, vocals, tuning, sliders). The name only picks the style — it's never written into your prompt.")}</div>
-          <div style={{display:"flex",gap:"7px"}}>
-            <input value={reverseInput} onChange={e=>setReverseInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')reverseBand();}} placeholder={L("Nom du groupe…","Band name…")} style={{flex:1,background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem"}}/>
-            <button onClick={reverseBand} disabled={reverseLoading} style={{background:"#1a0000",border:`1px solid ${RED}`,borderRadius:"6px",color:RED,fontSize:"0.68rem",fontWeight:800,padding:"8px 14px",cursor:reverseLoading?"default":"pointer",whiteSpace:"nowrap",opacity:reverseLoading?0.6:1}}>{reverseLoading?L("Analyse…","Analyzing…"):L("Détecter","Detect")}</button>
+      {tab==="genre"&&<div style={{...S.page,maxWidth:"900px"}}>
+        {/* FORGER v2 (oct. 2026) — une boîte d'entrée, ce qui est détecté, la source audio ; tout le reste est replié. */}
+        <div style={{margin:"12px 0 16px"}}>
+          <label htmlFor="mpf-idee" style={{display:"block",fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.3rem",letterSpacing:"2px",color:"#f4f4f4",lineHeight:1}}>{L("Qu'est-ce qu'on forge ?","What are we forging?")}</label>
+          <div style={{fontSize:"0.78rem",color:"#aaa",margin:"8px 0 12px",lineHeight:1.55}}>{L("Un groupe, une année, un genre ou une description. Le nom d'un groupe sert seulement à trouver le style : il n'est jamais écrit dans ton prompt.","A band, a year, a genre or a description. A band name only picks the style: it is never written into your prompt.")}</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"9px"}}>
+            <input id="mpf-idee" value={ideaInput} maxLength={160} onChange={e=>setIdeaInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')smartForge();}} placeholder={L("ex. : death metal progressif, 1993","e.g. progressive death metal, 1993")} style={{flex:"1 1 300px",minWidth:0,height:"54px",background:"#141414",border:"1.5px solid #4a4a4a",borderRadius:"10px",padding:"0 16px",color:"#f4f4f4",fontSize:"1rem"}}/>
+            <button onClick={smartForge} disabled={ideaBusy} style={{height:"54px",padding:"0 34px",background:RED,border:"none",borderRadius:"10px",color:"#000",fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"4px",cursor:ideaBusy?"default":"pointer",opacity:ideaBusy?0.6:1,boxShadow:"0 4px 24px #ff000055"}}>{ideaBusy?L("Analyse…","Analyzing…"):L("Forger","Forge")}</button>
           </div>
-          {reverseMsg&&(reverseMsg.ok
-            ? <div style={{fontSize:"0.66rem",color:"#7bd88f",marginTop:"9px",lineHeight:1.5}}>✓ {L("Style appliqué","Style applied")} : <b style={{color:"#a8f0b8"}}>{reverseMsg.label}</b>{reverseMsg.matched?<span style={{color:"#555"}}> · {L("preset sur-mesure","tuned preset")}</span>:null}{reverseMsg.confidence==="low"?<span style={{color:"#c9a227"}}> · {L("estimation approximative","rough guess")}</span>:null}{reverseMsg.signature&&reverseMsg.signature.length?<div style={{color:"#8a9",marginTop:"3px"}}>{L("Signature","Signature")} : {reverseMsg.signature.join(" · ")} <span onClick={()=>{setSignature([]);setReverseMsg(m=>({...m,signature:[]}));}} style={{color:"#666",cursor:"pointer",marginLeft:"6px"}}>✕</span></div>:null}</div>
-            : <div style={{fontSize:"0.66rem",color:"#c98",marginTop:"9px",lineHeight:1.5}}>{L("Groupe non reconnu — essaie l'orthographe exacte, ou choisis un genre plus bas.","Band not recognized — try the exact spelling, or pick a genre below.")}</div>
-          )}
+          {ideaMsg&&<div role="status" style={{fontSize:"0.74rem",marginTop:"9px",lineHeight:1.5,color:ideaMsg.ok?"#7bd88f":"#e6b08a"}}>{ideaMsg.ok?"✓ ":""}{ideaMsg.text}</div>}
+          {styleTxt&&<button onClick={()=>setTab("output")} style={{marginTop:"9px",background:"none",border:"none",padding:0,color:"#ff8a8a",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{L("Voir la dernière sortie →","See the last output →")}</button>}
         </div>
         <div style={S.card}>
-          <div style={S.ctitle}>{L("Presets rapides","Quick presets")}</div>
-          <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"9px",lineHeight:1.5}}>{L("Un clic = config optimisée pour Suno (genre, BPM, drums, voix…)","One click = Suno-optimized setup (genre, BPM, drums, vocals…)")}</div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>
-            {Object.entries(PRESETS).map(([k,p])=>{const lk=!canAccess(p.req);return(
-              <button key={k} onClick={()=>applyPreset(k)} style={{background:lk?"#101010":"#1a0000",border:`1px solid ${lk?"#222":"#5a0000"}`,borderRadius:"8px",padding:"8px 13px",fontSize:"0.72rem",fontWeight:700,color:lk?"#444":"#ff9090",cursor:"pointer"}}>{lk?"🔒 ":""}{p.label}</button>
-            );})}
+          <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"baseline",gap:"6px",marginBottom:"12px"}}>
+            <div style={{...S.ctitle,marginBottom:0,fontSize:"0.66rem"}}>{L("Détecté — clique pour changer","Detected — click to change")}</div>
+            <div style={{fontSize:"0.68rem",color:"#aaa"}}>{L("Tout le reste se règle tout seul d'après le genre.","Everything else is set automatically from the genre.")}</div>
           </div>
-        </div>
-        <div style={S.card}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
-            <div style={{...S.ctitle,marginBottom:0}}>{L("Mon Sound","My Sound")}{!canAccess("pro")?" 🔒":""}</div>
-            <button onClick={saveSound} style={{background:"#1a0000",border:`1px solid ${RED}`,borderRadius:"6px",color:RED,fontSize:"0.6rem",fontWeight:800,padding:"5px 11px",cursor:"pointer",letterSpacing:"0.5px"}}>＋ {L("Sauver","Save")}</button>
-          </div>
-          <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"9px",lineHeight:1.5}}>{L("Sauve ton ADN sonore et recharge-le en un clic — la base de ton custom model Suno.","Save your sonic DNA and reload it in one click — the base for your Suno custom model.")}</div>
-          {sounds.length===0&&<div style={{fontSize:"0.62rem",color:"#444"}}>{L("Aucun sound sauvegardé.","No saved sound yet.")}</div>}
-          {sounds.map(s=>(
-            <div key={s.id} style={{display:"flex",alignItems:"center",gap:"8px",padding:"6px 0",borderBottom:"1px solid #1a1a1a"}}>
-              <button onClick={()=>loadSound(s)} style={{flex:1,textAlign:"left",background:"none",border:"none",color:"#ff9090",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",padding:0}}>{s.name}</button>
-              <span style={{fontSize:"0.55rem",color:"#555"}}>{s.data?.bpm} BPM</span>
-              <button onClick={()=>delSound(s.id)} style={{background:"none",border:"none",color:"#5a0000",fontSize:"0.72rem",cursor:"pointer"}}></button>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:"12px"}}>
+            <div style={{gridColumn:"1 / -1"}}>
+              <div style={FL}>{genres.size>1?L("Genres · mix","Genres · mix"):L("Genre","Genre")}</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>
+                {[...genres].map(g=>(
+                  <button key={g} onClick={()=>tGenre(g)} title={L("Retirer ce genre","Remove this genre")} style={{...CHIP_ON,borderRadius:"8px",fontSize:"0.84rem",padding:"10px 14px"}}>{g} ✕</button>))}
+                <button onClick={()=>setPickerOpen(o=>!o)} aria-expanded={pickerOpen} style={{...CHIP,borderRadius:"8px",fontSize:"0.84rem",padding:"10px 14px",border:"1.5px dashed #5a5a5a"}}>{genres.size===0?L("Choisir un genre","Pick a genre"):genres.size===1?L("+ Mixer un 2e genre","+ Mix a 2nd genre"):L("+ Genre","+ Genre")} {pickerOpen?"▾":"▸"}</button>
+              </div>
             </div>
-          ))}
+            <div>
+              <label htmlFor="mpf-era" style={FL}>{L("Époque","Era")}{eraPick?"":" · auto"}</label>
+              <select id="mpf-era" value={eraPick} onChange={e=>setEraPick(e.target.value)} style={FC}>
+                <option value="">{L("Auto","Auto")}{autoEra?" ("+autoEra+")":""}</option>
+                {ERA_KEYS.map(k=><option key={k} value={k}>{k}</option>)}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="mpf-bpm" style={FL}>Tempo (BPM)</label>
+              <input id="mpf-bpm" type="number" min="60" max="280" value={bpm} onChange={e=>setBpmVal(+e.target.value||0)} onBlur={e=>setBPM(+e.target.value||180)} style={FC}/>
+            </div>
+            <div>
+              <label htmlFor="mpf-tuning" style={FL}>{L("Accordage","Tuning")}{tuning.size?"":" · auto"}</label>
+              <select id="mpf-tuning" value={[...tuning][0]||""} onChange={e=>setTuning(e.target.value?[e.target.value]:[])} style={FC}>
+                <option value="">{L("Auto (selon le genre)","Auto (from genre)")}</option>
+                {TUNING.map(k=><option key={k} value={k}>{k}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={FL}>{L("Métriques","Meters")}{meters.length?"":" · auto"}</div>
+              <button onClick={()=>setMeterOpen(o=>!o)} aria-expanded={meterOpen} style={{...FC,display:"flex",justifyContent:"space-between",alignItems:"center",gap:"8px",textAlign:"left",cursor:"pointer"}}><span>{meters.length?meters.join(" · "):L("Auto (selon le genre)","Auto (from genre)")}</span><span>{meterOpen?"▾":"▸"}</span></button>
+            </div>
+          </div>
+          {meterOpen&&<div style={{marginTop:"12px",borderTop:"1px solid #262626",paddingTop:"12px"}}>
+            <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginBottom:"8px"}}>
+              {METER_LIST.map(m=>{const i=meters.indexOf(m);return <button key={m} onClick={()=>tMeter(m)} title={METER_HINT[m]} style={i>=0?{...CHIP_ON,borderRadius:"8px"}:{...CHIP,borderRadius:"8px"}}>{i>=0?<b style={{color:"#fff",marginRight:"5px"}}>{i+1}</b>:null}{m}</button>;})}
+              {meters.length>0&&<button onClick={()=>setMeters([])} style={{...CHIP,borderRadius:"8px",color:"#aaa"}}>{L("Remettre en auto","Back to auto")}</button>}
+            </div>
+            <div style={{fontSize:"0.68rem",color:"#aaa",lineHeight:1.6}}>{L("Clique dans l'ordre voulu (max 5). La séquence va en tête du Style. Rien de coché = séquence déduite du genre (prog, math, djent, doom, folk… ; thrash, deathcore et black restent en 4/4).","Click in the order you want (max 5). The sequence goes at the top of the Style. Nothing selected = sequence derived from the genre (prog, math, djent, doom, folk…; thrash, deathcore and black stay in 4/4).")}</div>
+          </div>}
         </div>
+        {pickerOpen&&<>
         <div style={S.card}>
           <div style={{...S.ctitle,marginBottom:"8px"}}>Genres</div>
           <input value={genreFilter} onChange={e=>setGenreFilter(e.target.value)} placeholder={L("Chercher un genre…","Search a genre…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
@@ -1826,31 +1964,70 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           })}
           {genreFilter.trim() && !GENRE_FAMILIES.some(fam=>fam.genres.some(x=>x.g.toLowerCase().includes(genreFilter.trim().toLowerCase()))) && <div style={{fontSize:"0.7rem",color:"#666",padding:"10px 0"}}>{L("Aucun genre trouvé.","No genre found.")}</div>}
         </div>
-        <div style={S.card}><div style={S.ctitle}>{L("Intensité globale","Overall intensity")}</div>
-          <Slider label="Heaviness" val={heavy} setVal={setHeavy}/>
-          <Slider label="Groove Factor" val={groove} setVal={setGroove}/>
-          <Slider label="Chaos Level" val={chaos} setVal={setChaos}/>
-          <Slider label="Melodic Touch" val={melody} setVal={setMelody}/>
+        </>}
+        <div style={{margin:"18px 0"}}>
+          <div style={{...S.ctitle,fontSize:"0.66rem"}}>{L("Tu pars de quoi ?","What are you starting from?")}</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:"8px"}}>
+            {SRC.map(([k,kind,lbl])=>{const on=audioSrc===k&&(k!=="seed"||seedKind===kind);return(
+              <button key={k+kind} aria-pressed={on} onClick={()=>{setAudioSrc(k);if(kind)setSeedKind(kind);}} style={SEG(on)}>{lbl}</button>);})}
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:"10px",fontSize:"0.72rem",color:"#aaa",marginTop:"8px",lineHeight:1.5}}>
+            <span>{audioSrc==="cover"
+              ?L("Cover : Audio Influence à 65 % pour garder l'arrangement de la source.","Cover: Audio Influence at 65% to keep the source arrangement.")
+              :audioSrc==="seed"
+                ?L("Amorce : Audio Influence entre 25 et 50 %, pour que Suno bâtisse autour au lieu de recopier.","Seed: Audio Influence between 25 and 50%, so Suno builds around it instead of copying it.")
+                :L("Aucune source audio : pas de ligne Audio Influence dans les réglages Suno.","No audio source: no Audio Influence line in the Suno settings.")}</span>
+            {audioSrc==="seed"&&<button onClick={()=>setTab(seedKind==="riff"?"riff":"melodie")} style={{background:"none",border:"none",padding:0,color:"#ff8a8a",fontSize:"0.72rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{seedKind==="riff"?L("Créer le riff →","Build the riff →"):L("Créer la mélodie →","Build the melody →")}</button>}
+          </div>
         </div>
+        <div style={{...S.card,padding:0,overflow:"hidden"}}>
+          <button onClick={()=>setFinsOpen(o=>!o)} aria-expanded={finsOpen} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",background:"none",border:"none",padding:"14px",cursor:"pointer",textAlign:"left"}}>
+            <span>
+              <span style={{display:"block",fontSize:"0.86rem",fontWeight:800,color:"#e6e6e6"}}>{L("Réglages fins","Fine tuning")}</span>
+              <span style={{display:"block",fontSize:"0.68rem",color:"#aaa",marginTop:"2px"}}>{L("Intensité, batterie, voix, instruments, structure, son organique, exclusions","Intensity, drums, vocals, instruments, structure, organic sound, exclusions")}</span>
+            </span>
+            <span style={{color:"#aaa",fontSize:"1rem"}}>{finsOpen?"▾":"▸"}</span>
+          </button>
+          {finsOpen&&<div style={{padding:"0 14px 10px"}}>
+            <div style={{borderTop:"1px solid #262626",padding:"12px 0 6px"}}>
+              <div style={{...FL,marginBottom:"8px"}}>{L("Intensité","Intensity")}</div>
+              <Slider label="Heaviness" val={heavy} setVal={setHeavy}/>
+              <Slider label="Groove Factor" val={groove} setVal={setGroove}/>
+              <Slider label="Chaos Level" val={chaos} setVal={setChaos}/>
+              <Slider label="Melodic Touch" val={melody} setVal={setMelody}/>
+            </div>
+            {FINE_ROWS.map(([id,lbl,n])=>(
+              <button key={id} onClick={()=>setTab(id)} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",minHeight:"48px",background:"none",border:"none",borderTop:"1px solid #262626",padding:"0 2px",cursor:"pointer",textAlign:"left"}}>
+                <span style={{fontSize:"0.8rem",fontWeight:600,color:"#e0e0e0"}}>{lbl}</span>
+                <span style={{fontSize:"0.72rem",color:"#aaa",whiteSpace:"nowrap"}}>{n>0?n+" "+L("choix","picks"):L("aucun choix","no picks")} ▸</span>
+              </button>))}
+          </div>}
+        </div>
+        <div style={{margin:"18px 0 10px"}}>
+          <div style={{...S.ctitle,fontSize:"0.66rem"}}>{L("Départs rapides","Quick starts")}</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>
+            {Object.entries(PRESETS).map(([k,p])=>(
+              <button key={k} onClick={()=>{setIdeaInput("");setIdeaMsg(null);applyPreset(k);}} style={CHIP}>{canAccess(p.req)?"":LOCK}{p.label}</button>))}
+            <button onClick={()=>setSoundsOpen(o=>!o)} aria-expanded={soundsOpen} style={{...CHIP,border:"1px dashed #5a5a5a"}}>{L("Mes sounds","My sounds")} ({sounds.length}) {soundsOpen?"▾":"▸"}</button>
+          </div>
+        </div>
+        {soundsOpen&&<>
         <div style={S.card}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
-            <div style={{...S.ctitle,marginBottom:0}}>{L("Émotions","Emotions")}</div>
-            <span style={{fontSize:"0.55rem",color:"#666"}}>{Math.min(EMOTIONS.length,(IS_LOCAL?EMOTIONS.length:(EMO_LIMIT[userTier]||2)))}/{EMOTIONS.length} {L("débloquées","unlocked")}</span>
+            <div style={{...S.ctitle,marginBottom:0}}>{L("Mon Sound","My Sound")}{!canAccess("pro")?" 🔒":""}</div>
+            <button onClick={saveSound} style={{background:"#1a0000",border:`1px solid ${RED}`,borderRadius:"6px",color:RED,fontSize:"0.6rem",fontWeight:800,padding:"5px 11px",cursor:"pointer",letterSpacing:"0.5px"}}>＋ {L("Sauver","Save")}</button>
           </div>
-          <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"10px",lineHeight:1.5}}>{L("Dose les émotions — MetalPrompt injecte les bons tags. La plus forte domine le morceau.","Dial emotions — MetalPrompt injects the matching tags. The strongest one dominates.")}</div>
-          {EMOTIONS.map((e,i)=>{
-            const lim=Math.min(EMOTIONS.length,(IS_LOCAL?EMOTIONS.length:(EMO_LIMIT[userTier]||2)));const locked=i>=lim;const v=emotions[e.id]||0;
-            if(locked) return (<div key={e.id} onClick={()=>setShowPaywall(true)} style={{display:"flex",alignItems:"center",gap:"8px",padding:"5px 0",opacity:0.4,cursor:"pointer"}}>
-              <span style={{fontSize:"0.72rem",width:"120px"}}>🔒 {e.icon} {L(e.label,e.labelEn||e.label)}</span>
-              <span style={{fontSize:"0.55rem",color:RED,fontWeight:700}}>{L("Tier supérieur","Upgrade")}</span>
-            </div>);
-            return (<div key={e.id} style={{display:"flex",alignItems:"center",gap:"8px",padding:"4px 0"}}>
-              <span style={{fontSize:"0.72rem",width:"120px",color:v>0?e.c:"#aaa"}}>{e.icon} {L(e.label,e.labelEn||e.label)}</span>
-              <input type="range" min="0" max="100" step="5" value={v} onChange={ev=>setEmotions(p=>({...p,[e.id]:+ev.target.value}))} style={{flex:1,accentColor:e.c}}/>
-              <span style={{fontSize:"0.62rem",fontFamily:"monospace",color:v>0?e.c:"#555",width:"30px",textAlign:"right"}}>{v}</span>
-            </div>);
-          })}
+          <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"9px",lineHeight:1.5}}>{L("Sauve ton ADN sonore et recharge-le en un clic — la base de ton custom model Suno.","Save your sonic DNA and reload it in one click — the base for your Suno custom model.")}</div>
+          {sounds.length===0&&<div style={{fontSize:"0.62rem",color:"#444"}}>{L("Aucun sound sauvegardé.","No saved sound yet.")}</div>}
+          {sounds.map(s=>(
+            <div key={s.id} style={{display:"flex",alignItems:"center",gap:"8px",padding:"6px 0",borderBottom:"1px solid #1a1a1a"}}>
+              <button onClick={()=>loadSound(s)} style={{flex:1,textAlign:"left",background:"none",border:"none",color:"#ff9090",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",padding:0}}>{s.name}</button>
+              <span style={{fontSize:"0.55rem",color:"#555"}}>{s.data?.bpm} BPM</span>
+              <button onClick={()=>delSound(s.id)} style={{background:"none",border:"none",color:"#5a0000",fontSize:"0.72rem",cursor:"pointer"}}></button>
+            </div>
+          ))}
         </div>
+        </>}
         <div style={{height:80}}/>
       </div>}
 
@@ -2119,6 +2296,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* OUTPUT */}
       {tab==="melodie"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
+        {studioBar("melodie")}
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ff2e2e44"}}>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>{L("GÉNÉRATEUR DE MÉLODIE CHANTÉE","SINGABLE MELODY GENERATOR")}</div>
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("26 thèmes (refrain hit, metalcore, melodeath, doom, power, thrash gang…), 47 gammes, 10 familles, vrais instruments et voix (chœur, ooh, lead). Écoute, édite note par note, exporte un WAV pour Suno.","26 themes (hit chorus, metalcore, melodeath, doom, power, thrash gang…), 47 scales, 10 families, real instruments and voices (choir, ooh, lead). Listen, edit note by note, export a WAV for Suno.")}</div>
@@ -2128,6 +2306,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
       </div>)}
       {tab==="riff"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
+        {studioBar("riff")}
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ff2e2e44"}}>
           <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>RIFF / BEAT GENERATOR</div>
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un riff + beat, écoute-le, et exporte un WAV prêt pour Suno (Style Reference / Custom Model). ","Generate a riff + beat, listen, and export a WAV ready for Suno (Style Reference / Custom Model). ")}</div>
@@ -2404,163 +2583,148 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{fontSize:"0.82rem",color:"#444"}}>{t.noPrompt}</div>
         </div>}
         {styleTxt&&<>
-          <div style={{fontSize:"0.62rem",color:"#8a7a4a",background:"#14110a",border:"1px solid #2a2410",borderRadius:"8px",padding:"7px 10px",marginBottom:"8px"}}>{L("Suno est aléatoire par design : génère 2-3 fois le même prompt avant de conclure qu'il ne marche pas.","Suno is random by design: run the same prompt 2-3 times before deciding it doesn't work.")}</div>
-          {critic&&<div style={{...S.card,borderColor:critic.score>=90?"#3a7a3a":critic.score>=75?"#7a7a2a":"#7a3a2a",background:critic.score>=90?"#04120a":critic.score>=75?"#121002":"#140803"}}>
-            <div style={{display:"flex",alignItems:"center",gap:"14px"}}>
-              <div style={{width:"58px",height:"58px",borderRadius:"50%",flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",border:`2px solid ${critic.score>=90?"#5fd98a":critic.score>=75?"#d8d86a":"#ff8844"}`}}>
-                <div style={{fontSize:"1.25rem",fontWeight:900,lineHeight:1,color:critic.score>=90?"#5fd98a":critic.score>=75?"#d8d86a":"#ff8844"}}>{critic.grade}</div>
-                <div style={{fontSize:"0.5rem",color:"#777"}}>{critic.score}/100</div>
-              </div>
-              <div style={{flex:1}}>
-                <div style={{fontSize:"0.55rem",letterSpacing:"2px",textTransform:"uppercase",fontWeight:800,color:"#888"}}>{L("Analyse du prompt","Prompt analysis")}</div>
-                <div style={{fontSize:"0.78rem",color:"#ddd",marginTop:"3px",lineHeight:1.5}}>{critic.verdict}</div>
-              </div>
-            </div>
-            {critic.issues.length>0&&<div style={{marginTop:"11px",borderTop:"1px solid #ffffff11",paddingTop:"9px"}}>
-              {critic.issues.map((it,i)=>(
-                <div key={i} onClick={()=>it.tab&&setTab(it.tab)} style={{display:"flex",gap:"9px",alignItems:"baseline",padding:"5px 0",cursor:it.tab?"pointer":"default"}}>
-                  <span style={{fontSize:"0.62rem",fontWeight:900,color:"#ff8844",fontFamily:"monospace",flexShrink:0,minWidth:"26px"}}>−{it.pts}</span>
-                  <span style={{fontSize:"0.7rem",color:"#aaa",lineHeight:1.55}}>{it.msg}
-                    {it.fix
-                      ?<button onClick={e=>{e.stopPropagation();applyFix(it.fix);}} style={{marginLeft:"7px",background:"#0d2a14",border:"1px solid #2f7a45",borderRadius:"5px",color:"#7fe0a0",fontSize:"0.6rem",fontWeight:800,padding:"2px 8px",cursor:"pointer"}}>{L("Corriger","Fix")}</button>
-                      :it.tab?<span style={{color:"#5a8ad8",marginLeft:"5px"}}>{L("→ voir","→ open")}</span>:null}
-                  </span>
-                </div>))}
-            </div>}
-          </div>}
-          {/* COMPACT TOGGLE + CONFLICTS */}
-          <div style={{...S.card,display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",borderColor:"#2a2a2a"}}>
+          {/* SORTIE v2 (oct. 2026) — 4 cartes à coller dans Suno ; tout le reste est replié sous « Plus tard ». */}
+          <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"12px"}}>
             <div>
-              <div style={{fontSize:"0.74rem",fontWeight:800,color:"#e0e0e0"}}>{L("Mode Compact","Compact mode")}</div>
-              <div style={{fontSize:"0.58rem",color:"#666",marginTop:"2px"}}>{L("Version courte : 10 éléments max · le surplus part dans le champ Lyrics","Short version: 10 items max · the overflow goes to the Lyrics field")}</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:"2px",color:"#f4f4f4",lineHeight:1}}>{L("Colle ça dans Suno","Paste this into Suno")}</div>
+              <div style={{fontSize:"0.72rem",color:"#aaa",marginTop:"5px"}}>{[[...genres].slice(0,2).join(" + "),bpm?bpm+" BPM":""].filter(Boolean).join(" · ")}</div>
             </div>
-            <button onClick={()=>setCompact(c=>!c)} style={{background:compact?RED:"#1a1a1a",border:`1px solid ${compact?RED:"#333"}`,borderRadius:"20px",width:"50px",height:"26px",position:"relative",cursor:"pointer",flexShrink:0,padding:0}}>
-              <span style={{position:"absolute",top:"2px",left:compact?"26px":"2px",width:"20px",height:"20px",borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
-            </button>
+            <div style={{display:"flex",gap:"8px"}}>
+              <button onClick={()=>setTab("genre")} style={{background:"#1a1a1a",border:"1px solid #3a3a3a",borderRadius:"7px",color:"#e0e0e0",fontSize:"0.74rem",fontWeight:700,padding:"9px 15px",cursor:"pointer"}}>{L("Modifier","Edit")}</button>
+              <button onClick={generate} style={{background:RED,border:"1px solid "+RED,borderRadius:"7px",color:"#000",fontSize:"0.74rem",fontWeight:900,padding:"9px 15px",cursor:"pointer"}}>{L("Reforger","Reforge")}</button>
+            </div>
           </div>
-          {conflicts.length>0&&<div style={{...S.card,borderColor:"#5a4a00",background:"#0f0c00"}}>
-            <div style={{fontSize:"0.62rem",fontWeight:800,color:"#e6c200",letterSpacing:"1px",marginBottom:"6px"}}>⚠️ {L("Conflits possibles","Possible conflicts")}</div>
-            {conflicts.map((c,i)=><div key={i} style={{fontSize:"0.68rem",color:"#cba",lineHeight:1.6,padding:"2px 0"}}>• {c}</div>)}
-          </div>}
-          {/* STEP 1 */}
-          <div style={{...S.card,borderColor:"#ff2e2e33",background:"#0d0000"}}>
-            <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
-              <div style={S.stepNum(RED)}>1</div>
-              <div style={{...S.outLbl,marginBottom:0,color:RED}}>{t.step1t}</div>
-            </div>
-            <div style={{fontSize:"0.63rem",color:"#888",marginBottom:"10px",lineHeight:1.6}}>{t.step1d}</div>
-            {modelRec&&<div style={{background:"#0a0600",border:"1px solid #3a2a00",borderRadius:"6px",padding:"8px 10px",marginBottom:"10px",fontSize:"0.62rem",lineHeight:1.6}}>
-              <span style={{color:"#ffcc00",fontWeight:800}}>{L("Modèle Suno recommandé","Recommended Suno model")} :</span>{" "}
-              <span style={{color:"#7fdd7f",fontWeight:700}}>{modelRec.best}</span> · <span style={{color:"#d8d86a"}}>{modelRec.good}</span> · <span style={{color:"#cc8866"}}>{modelRec.weak}</span>
-              <div style={{color:"#888",marginTop:"3px"}}>{modelRec.why} · {L("teste les 3 au goût","try all 3 to taste")}</div>
-              {modelRec.note&&<div style={{color:"#666",marginTop:"3px",fontSize:"0.72rem"}}>{modelRec.note}</div>}
-            </div>}
-            <div style={{background:"#0a0a0a",border:"1px solid #3a0000",borderRadius:"6px",padding:"10px",position:"relative"}}>
-              <CopyBtn getText={()=>styleShown}/>
-              <div style={{color:"#ff9090",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{styleShown}</div>
-            </div>
-            <div style={{fontSize:"0.58rem",marginTop:"7px",textAlign:"right",fontWeight:700,color:styleShown.length<=600?"#4caf50":styleShown.length<=800?"#cc9900":"#ff5555"}}>{styleShown.length} {L("car.","chars")} · {styleShown.length<=600?L("idéal Suno v6 ","ideal for Suno v6 "):styleShown.length<=800?L("un peu long — les derniers tags pèsent moins","a bit long — last tags weigh less"):L("trop long — Suno risque d'ignorer le tempo/détails","too long — Suno may drop tempo/details")}</div>
-          </div>
-          {/* COVER + EXTEND (T11) */}
-          {coverTxt&&<div style={{...S.card,borderColor:"#9b59b633",background:"#0a0510"}}>
-            <div style={{...S.outLbl,color:"#b06bff",marginBottom:"6px"}}>{L("Prompt COVER (sous-genre)","COVER prompt (sub-genre)")}</div>
-            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"8px",lineHeight:1.5}}>{L("Génère avec le Principal, puis fais « Cover » sur le résultat dans Suno avec ce prompt → pousse la fusion proprement.","Generate with the Main first, then 'Cover' the result in Suno with this prompt → pushes the fusion cleanly.")}</div>
-            <div style={{background:"#0a0a0a",border:"1px solid #2a1a3a",borderRadius:"6px",padding:"10px",position:"relative"}}>
-              <CopyBtn getText={()=>coverTxt}/>
-              <div style={{color:"#c9a0ff",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{coverTxt}</div>
-            </div>
-          </div>}
-          {sliderRec&&<div style={{...S.card,borderColor:"#ffaa0044",background:"#100c02"}}>
-            <div style={{...S.outLbl,color:"#ffbb33",marginBottom:"6px"}}>{L("Réglages « More Options » (Suno v6)","\"More Options\" settings (Suno v6)")}</div>
-            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"9px",lineHeight:1.5}}>{L("Dans Suno → Create → Custom → More Options. Recopie ces valeurs de haut en bas.","In Suno → Create → Custom → More Options. Copy these values top to bottom.")}</div>
-            <div style={{display:"flex",gap:"6px",marginBottom:"11px",flexWrap:"wrap",alignItems:"center"}}>
-              <span style={{fontSize:"0.58rem",color:"#776",marginRight:"2px"}}>{L("Tu pars de :","Starting from:")}</span>
-              {[["none",L("rien","nothing")],["cover",L("un Cover","a Cover")],["seed",L("riff / mélodie / beatbox","riff / melody / beatbox")]].map(([k,lbl])=>(
-                <span key={k} onClick={()=>setAudioSrc(k)} style={{cursor:"pointer",fontSize:"0.6rem",fontWeight:audioSrc===k?800:500,padding:"4px 10px",borderRadius:"5px",border:`1px solid ${audioSrc===k?"#ffbb33":"#2a2a2a"}`,background:audioSrc===k?"#1a1202":"#0d0d0d",color:audioSrc===k?"#ffbb33":"#888"}}>{lbl}</span>))}
-            </div>
-            {[["Vocal Gender",sliderRec.vocalGender],["Duration",sliderRec.duration],["Max Mode",sliderRec.maxMode?"On":"Off"],["Weirdness",sliderRec.weirdness+"%"],["Style Influence",sliderRec.styleInfluence+"%"],...(sliderRec.audioInfluence!=null?[["Audio Influence",sliderRec.audioInfluence+"%"]]:[]),["Variety",sliderRec.variety],["Personalize (My Taste)",sliderRec.personalize?"On":"Off"]].map(([k,v],i2)=>(
-              <div key={k} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",padding:"6px 2px",borderBottom:i2<7?"1px solid #1e1a0a":"none"}}>
-                <span style={{fontSize:"0.72rem",color:"#bbb"}}>{k}</span>
-                <span style={{fontSize:"0.85rem",fontWeight:900,color:"#ffbb33",fontFamily:"monospace"}}>{v}</span>
+          {/* À CORRIGER — n'apparaît que s'il reste quelque chose (plus de note A-D ni de carte « conflits » séparée) */}
+          {(conflicts.length>0||(critic&&critic.issues&&critic.issues.length>0))&&<div style={{...S.card,borderColor:"#5a4a00",background:"#0f0c00"}}>
+            <div style={{fontSize:"0.64rem",fontWeight:800,color:"#e6c200",letterSpacing:"1px",marginBottom:"5px",textTransform:"uppercase"}}>{L("À corriger avant de coller","Fix before pasting")}</div>
+            {conflicts.map((c,i)=><div key={"c"+i} style={{fontSize:"0.72rem",color:"#cba",lineHeight:1.6,padding:"2px 0"}}>• {c}</div>)}
+            {critic&&critic.issues&&critic.issues.map((it,i)=>(
+              <div key={"i"+i} style={{display:"flex",gap:"10px",alignItems:"center",justifyContent:"space-between",padding:"4px 0"}}>
+                <span style={{fontSize:"0.72rem",color:"#cba",lineHeight:1.55}}>{it.msg}</span>
+                {it.fix
+                  ?<button onClick={()=>applyFix(it.fix)} style={{flexShrink:0,background:"#0d2a14",border:"1px solid #2f7a45",borderRadius:"6px",color:"#7fe0a0",fontSize:"0.68rem",fontWeight:800,padding:"6px 12px",cursor:"pointer"}}>{L("Corriger","Fix")}</button>
+                  :it.tab?<button onClick={()=>setTab(it.tab)} style={{flexShrink:0,background:"none",border:"1px solid #2a3a5a",borderRadius:"6px",color:"#8fb2f0",fontSize:"0.68rem",fontWeight:700,padding:"6px 12px",cursor:"pointer"}}>{L("Voir","Open")}</button>:null}
               </div>))}
-            <div style={{fontSize:"0.58rem",color:"#776",marginTop:"9px",lineHeight:1.6}}>{sliderRec.why}</div>
-            <div style={{fontSize:"0.58rem",color:"#665",marginTop:"4px",lineHeight:1.6}}>{sliderRec.audioNote}</div>
           </div>}
-          {extendTxt&&<div style={{...S.card,borderColor:"#00aaaa33",background:"#03100f"}}>
-            <div style={{...S.outLbl,color:"#33ccbb",marginBottom:"6px"}}>{L("Prompt EXTEND (rallonge)","EXTEND prompt (lengthen)")}</div>
-            <div style={{fontSize:"0.6rem",color:"#888",marginBottom:"8px",lineHeight:1.5}}>{L("Utilise « Extend » dans Suno avec ce prompt pour continuer la chanson sans qu'elle dérive.","Use 'Extend' in Suno with this prompt to continue the song without drift.")}</div>
-            <div style={{background:"#0a0a0a",border:"1px solid #103a38",borderRadius:"6px",padding:"10px",position:"relative"}}>
-              <CopyBtn getText={()=>extendTxt}/>
-              <div style={{color:"#7fded0",fontSize:"0.8rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{extendTxt}</div>
-            </div>
-          </div>}
-          {/* STEP 2 */}
-          {structTxt&&<div style={{...S.card,borderColor:"#00aa4433",background:"#030f03"}}>
-            <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
-              <div style={S.stepNum("#4caf50")}>2</div>
-              <div style={{...S.outLbl,color:"#4caf50",marginBottom:0}}>{t.step2t}</div>
-            </div>
-            <div style={{fontSize:"0.63rem",color:"#688",marginBottom:"10px",lineHeight:1.6}}>{t.step2d}</div>
-            {lyricsTxt
-              ? <div style={{fontSize:"0.62rem",color:"#4caf50",marginBottom:"8px",fontWeight:700}}>{L("Tes paroles sont déjà placées sous chaque section — colle ce bloc tel quel.","Your lyrics are already placed under each section — paste this block as is.")}</div>
-              : <div style={{fontSize:"0.6rem",color:"#777",marginBottom:"8px",lineHeight:1.5}}>{L("Écris tes paroles sous chaque tag de section, ou laisse Suno improviser. (Paroles par IA : onglet Lyrics, plan Pro)","Write your lyrics under each section tag, or let Suno improvise. (AI lyrics: Lyrics tab, Pro plan)")}</div>}
-            <div style={{background:"#0a0a0a",border:"1px solid #1a4a1a",borderRadius:"6px",padding:"10px",position:"relative"}}>
-              <CopyBtn getText={()=>step2Shown}/>
-              <pre style={{whiteSpace:"pre-wrap",fontFamily:"monospace",fontSize:"0.82rem",lineHeight:2,color:"#aaffaa",paddingRight:"50px"}}>{step2Shown}</pre>
-            </div>
-          </div>}
-          {/* STEP 3 */}
-          {structNotes&&<div style={{...S.card,borderColor:"#ff440022",background:"#0a0500"}}>
-            <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
-              <div style={S.stepNum("#ff6600")}>3</div>
-              <div style={{...S.outLbl,color:"#ff6633",marginBottom:0}}>{t.step3t}</div>
-            </div>
-            <div style={{fontSize:"0.63rem",color:"#a86",marginBottom:"10px",lineHeight:1.6}}>{t.step3d}</div>
-            <div style={{background:"#0a0a0a",border:"1px solid #3a1a00",borderRadius:"6px",padding:"10px",position:"relative"}}>
-              <CopyBtn getText={()=>structNotes}/>
-              <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.72rem",lineHeight:1.8,color:"#aa7755",paddingRight:"50px"}}>{structNotes}</pre>
-            </div>
-          </div>}
-          {editList.length>0&&<div style={{...S.card,borderColor:"#2a2a2a",background:"#0a0a0b",marginTop:"14px"}}>
-            <div onClick={()=>setEditOpen(o=>!o)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",userSelect:"none"}}>
-              <div>
-                <div style={{...S.outLbl,color:"#8a8a8a",marginBottom:"2px"}}>{L("Plus tard — retoucher une section","Later — fix one section")}</div>
-                <div style={{fontSize:"0.6rem",color:"#555"}}>{L("À utiliser APRÈS, sur une chanson déjà générée. Rien à coller ici.","For AFTER, on a song you already generated. Nothing to paste here.")}</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"11px",alignItems:"flex-start"}}>
+            <div style={{flex:"3 1 420px",minWidth:0}}>
+              {/* 1 · STYLE */}
+              <div style={{...S.card,borderColor:"#5a1a1a",background:"#160707"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
+                  <div style={{...S.outLbl,marginBottom:0,fontSize:"0.68rem"}}>1 · Style of Music</div>
+                  <BigCopy getText={()=>styleShown} L={L}/>
+                </div>
+                <div style={{color:"#ffc2c2",fontSize:"0.86rem",lineHeight:1.75,fontFamily:"monospace",wordBreak:"break-word"}}>{styleShown}</div>
+                <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",gap:"6px",marginTop:"10px",fontSize:"0.66rem"}}>
+                  <span style={{color:"#aaa"}}>{L("Vide le champ avant de coller.","Clear the field before pasting.")}</span>
+                  <span style={{fontWeight:700,color:styleShown.length<=600?"#5fd98a":styleShown.length<=800?"#e6c200":"#ff7a7a"}}>{styleShown.length} / 1000 {L("car.","chars")}{styleShown.length<=600?"":styleShown.length<=800?L(" · un peu long"," · a bit long"):L(" · trop long"," · too long")}</span>
+                </div>
               </div>
-              <span style={{color:"#666",fontSize:"0.9rem"}}>{editOpen?"▾":"▸"}</span>
+              {/* 2 · LYRICS */}
+              {structTxt&&<div style={S.card}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
+                  <div style={{...S.outLbl,marginBottom:0,fontSize:"0.68rem"}}>2 · Lyrics</div>
+                  <BigCopy getText={()=>step2Shown} L={L}/>
+                </div>
+                <pre style={{whiteSpace:"pre-wrap",fontFamily:"monospace",fontSize:"0.84rem",lineHeight:1.9,color:"#e0e0e0",wordBreak:"break-word"}}>{step2Shown}</pre>
+                <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:"8px",marginTop:"10px",fontSize:"0.66rem"}}>
+                  {lyricsTxt
+                    ?<span style={{color:"#5fd98a",fontWeight:700}}>{L("Tes paroles sont déjà placées sous chaque section.","Your lyrics are already placed under each section.")}</span>
+                    :<button onClick={()=>setTab("paroles")} style={{background:"#1a1a1a",border:"1px solid #3a3a3a",borderRadius:"6px",color:"#e0e0e0",fontSize:"0.68rem",fontWeight:700,padding:"7px 12px",cursor:"pointer"}}>{L("Ajouter des paroles","Add lyrics")}</button>}
+                  <span style={{fontWeight:700,color:step2Shown.length<=5000?"#5fd98a":"#ff7a7a"}}>{step2Shown.length} / 5000 {L("car.","chars")}</span>
+                </div>
+              </div>}
             </div>
-            {editOpen&&<div style={{marginTop:"11px",borderTop:"1px solid #1c1c1c",paddingTop:"10px"}}>
-              <div style={{fontSize:"0.62rem",color:"#8a9",lineHeight:1.65,marginBottom:"10px"}}>{L("Dans Suno, ouvre ta chanson → Song Editor → clique la section sur la timeline → « Replace Section » → colle la ligne de cette section dans la boîte de prompt.","In Suno, open your song → Song Editor → click the section on the timeline → \"Replace Section\" → paste that section\'s line into the prompt box.")}</div>
-              {editList.map((e,i2)=>(
-                <div key={i2} style={{display:"flex",gap:"9px",alignItems:"flex-start",padding:"7px 0",borderTop:i2?"1px solid #161616":"none"}}>
-                  <span style={{fontSize:"0.62rem",fontWeight:900,color:"#5fd98a",flexShrink:0,minWidth:"92px",paddingTop:"2px"}}>{e.section}</span>
-                  <span style={{fontSize:"0.7rem",color:"#999",lineHeight:1.5,flex:1}}>{e.prompt}</span>
-                  <CopyBtnInline getText={()=>e.prompt}/>
-                </div>))}
-            </div>}
-          </div>}
-          {/* STEP 4 */}
-          {excludeTxt&&<div style={{...S.card,borderColor:"#5a220022",background:"#080500"}}>
-            <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
-              <div style={S.stepNum("#ff6600")}>4</div>
-              <div style={{...S.outLbl,color:"#ff6633",marginBottom:0}}>{t.step4t}</div>
-            </div>
-            <div style={{fontSize:"0.63rem",color:"#a86",marginBottom:"10px",lineHeight:1.6}}>{t.step4d}</div>
-            <div style={{background:"#0a0a0a",border:"1px solid #3a1500",borderRadius:"6px",padding:"10px",position:"relative"}}>
-              <CopyBtn getText={()=>excludeTxt}/>
-              <div style={{color:"#ff8844",fontSize:"0.78rem",lineHeight:1.8,paddingRight:"50px",fontFamily:"monospace"}}>{excludeTxt}</div>
-              <div style={{fontSize:"0.55rem",color:"#665",marginTop:"6px",paddingRight:"50px"}}>{L("Colle tel quel dans le champ « Exclude Styles » — Suno ajoute lui-même le « - » à l'affichage.","Paste as-is into the \"Exclude Styles\" field — Suno adds the \"-\" on display itself.")}</div>
-            </div>
-          </div>}
-          <div style={{...S.card,borderColor:"#1a3a1a",textAlign:"center"}}>
-            <div style={{color:"#4caf50",fontSize:"0.65rem",letterSpacing:"2px",textTransform:"uppercase",fontWeight:700,marginBottom:"8px"}}>{L("Tips Suno","Suno tips")}</div>
-            <div style={{fontSize:"0.68rem",color:"#555",lineHeight:1.9}}>
-              • {L("8–12 tags max dans Style of Music","8–12 tags max in Style of Music")}<br/>
-              • {L("[Breakdown, half-time feel] = changement de rythme garanti","[Breakdown, half-time feel] = guaranteed rhythm change")}<br/>
-              • {L("pig squeals + guttural growls = combo deathcore parfait","pig squeals + guttural growls = perfect deathcore combo")}<br/>
-              • {L("saxophone + metal = son unique et brutal ","saxophone + metal = unique, brutal sound ")}
+            <div style={{flex:"2 1 300px",minWidth:0}}>
+              {/* 3 · EXCLUDE */}
+              {excludeTxt&&<div style={S.card}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
+                  <div style={{...S.outLbl,marginBottom:0,fontSize:"0.68rem"}}>3 · Exclude Styles</div>
+                  <BigCopy getText={()=>excludeTxt} L={L}/>
+                </div>
+                <div style={{color:"#e0e0e0",fontSize:"0.84rem",lineHeight:1.75,fontFamily:"monospace",wordBreak:"break-word"}}>{excludeTxt}</div>
+                <div style={{fontSize:"0.64rem",color:"#aaa",marginTop:"8px"}}>{L("Colle tel quel — Suno ajoute lui-même le « - ».","Paste as-is — Suno adds the \"-\" itself.")}</div>
+              </div>}
+              {/* 4 · MORE OPTIONS */}
+              {sliderRec&&<div style={{...S.card,borderColor:"#5a4410",background:"#141005"}}>
+                <div style={{...S.outLbl,color:"#ffbb33",marginBottom:"9px",fontSize:"0.68rem"}}>{excludeTxt?4:3} · More Options</div>
+                <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:"8px",marginBottom:"10px",fontSize:"0.68rem",color:"#aaa"}}>
+                  <span>{L("Source audio : ","Audio source: ")}<b style={{color:"#ffbb33"}}>{audioSrc==="cover"?L("un Cover","a Cover"):audioSrc==="seed"?(seedKind==="riff"?L("un riff","a riff"):L("une mélodie","a melody")):L("aucune","none")}</b></span>
+                  <button onClick={()=>setTab("genre")} style={{background:"none",border:"1px solid #3a3a3a",borderRadius:"6px",color:"#ccc",fontSize:"0.66rem",fontWeight:700,padding:"5px 10px",cursor:"pointer"}}>{L("Changer","Change")}</button>
+                </div>
+                {[...(modelRec?[[L("Modèle","Model"),modelRec.best]]:[]),["Vocal Gender",sliderRec.vocalGender],["Duration",sliderRec.duration],["Max Mode",sliderRec.maxMode?"On":"Off"],["Weirdness",sliderRec.weirdness+"%"],["Style Influence",sliderRec.styleInfluence+"%"],...(sliderRec.audioInfluence!=null?[["Audio Influence",sliderRec.audioInfluence+"%"]]:[]),["Variety",sliderRec.variety],["Personalize (My Taste)",sliderRec.personalize?"On":"Off"]].map(([k,v])=>(
+                  <div key={k} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:"10px",padding:"7px 2px",borderTop:"1px solid #2e2610"}}>
+                    <span style={{fontSize:"0.76rem",color:"#d0d0d0"}}>{k}</span>
+                    <span style={{fontSize:"0.9rem",fontWeight:900,color:"#ffbb33",fontFamily:"monospace"}}>{v}</span>
+                  </div>))}
+                <div style={{fontSize:"0.64rem",color:"#aaa",marginTop:"9px",lineHeight:1.6}}>{L("Suno → Create → Custom → More Options. Recopie de haut en bas.","Suno → Create → Custom → More Options. Copy top to bottom.")}</div>
+                {modelRec&&<div style={{fontSize:"0.62rem",color:"#998",marginTop:"4px",lineHeight:1.6}}>{L("Modèle","Model")} : {modelRec.why}{modelRec.note?" · "+modelRec.note:""}</div>}
+                {sliderRec.why&&<div style={{fontSize:"0.62rem",color:"#998",marginTop:"4px",lineHeight:1.6}}>{sliderRec.why}</div>}
+                {sliderRec.audioNote&&<div style={{fontSize:"0.62rem",color:"#998",marginTop:"4px",lineHeight:1.6}}>{sliderRec.audioNote}</div>}
+              </div>}
             </div>
           </div>
+          {/* PLUS TARD — replié : retouche par section, Cover / Extend, notes de prod */}
+          {(editList.length>0||coverTxt||extendTxt||structNotes)&&<div style={{...S.card,padding:0,overflow:"hidden"}}>
+            {editList.length>0&&<div>
+              <button onClick={()=>setEditOpen(o=>!o)} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",background:"none",border:"none",padding:"13px",cursor:"pointer",textAlign:"left"}}>
+                <span>
+                  <span style={{display:"block",fontSize:"0.78rem",fontWeight:800,color:"#e0e0e0"}}>{L("Plus tard : retoucher une section","Later: fix one section")}</span>
+                  <span style={{display:"block",fontSize:"0.64rem",color:"#aaa",marginTop:"2px"}}>{L("Une ligne par section pour « Replace Section », sur une chanson déjà générée.","One line per section for \"Replace Section\", on a song you already generated.")}</span>
+                </span>
+                <span style={{color:"#aaa",fontSize:"0.9rem"}}>{editOpen?"▾":"▸"}</span>
+              </button>
+              {editOpen&&<div style={{padding:"0 13px 12px"}}>
+                <div style={{fontSize:"0.64rem",color:"#8a9",lineHeight:1.65,marginBottom:"8px"}}>{L("Dans Suno, ouvre ta chanson → Song Editor → clique la section sur la timeline → « Replace Section » → colle la ligne de cette section dans la boîte de prompt.","In Suno, open your song → Song Editor → click the section on the timeline → \"Replace Section\" → paste that section\'s line into the prompt box.")}</div>
+                {editList.map((e,i2)=>(
+                  <div key={i2} style={{display:"flex",gap:"9px",alignItems:"flex-start",padding:"7px 0",borderTop:"1px solid #1e1e1e"}}>
+                    <span style={{fontSize:"0.66rem",fontWeight:900,color:"#5fd98a",flexShrink:0,minWidth:"92px",paddingTop:"2px"}}>{e.section}</span>
+                    <span style={{fontSize:"0.72rem",color:"#bbb",lineHeight:1.5,flex:1}}>{e.prompt}</span>
+                    <CopyBtnInline getText={()=>e.prompt}/>
+                  </div>))}
+              </div>}
+            </div>}
+            {(coverTxt||extendTxt)&&<div style={{borderTop:editList.length>0?"1px solid #1e1e1e":"none"}}>
+              <button onClick={()=>setLaterOpen(o=>!o)} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",background:"none",border:"none",padding:"13px",cursor:"pointer",textAlign:"left"}}>
+                <span>
+                  <span style={{display:"block",fontSize:"0.78rem",fontWeight:800,color:"#e0e0e0"}}>{L("Plus tard : Cover et Extend","Later: Cover and Extend")}</span>
+                  <span style={{display:"block",fontSize:"0.64rem",color:"#aaa",marginTop:"2px"}}>{L("Pousser une fusion ou rallonger la chanson sans qu'elle dérive.","Push a fusion or lengthen the song without drift.")}</span>
+                </span>
+                <span style={{color:"#aaa",fontSize:"0.9rem"}}>{laterOpen?"▾":"▸"}</span>
+              </button>
+              {laterOpen&&<div style={{padding:"0 13px 12px"}}>
+                {coverTxt&&<div style={{padding:"8px 0",borderTop:"1px solid #1e1e1e"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
+                    <span style={{fontSize:"0.66rem",fontWeight:800,color:"#c9a0ff",letterSpacing:"1px"}}>COVER</span>
+                    <CopyBtnInline getText={()=>coverTxt}/>
+                  </div>
+                  <div style={{fontSize:"0.64rem",color:"#aaa",marginBottom:"6px",lineHeight:1.5}}>{L("Génère avec le Principal, puis fais « Cover » sur le résultat dans Suno avec ce prompt → pousse la fusion proprement.","Generate with the Main first, then 'Cover' the result in Suno with this prompt → pushes the fusion cleanly.")}</div>
+                  <div style={{color:"#d8bfff",fontSize:"0.8rem",lineHeight:1.7,fontFamily:"monospace",wordBreak:"break-word"}}>{coverTxt}</div>
+                </div>}
+                {extendTxt&&<div style={{padding:"8px 0",borderTop:"1px solid #1e1e1e"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
+                    <span style={{fontSize:"0.66rem",fontWeight:800,color:"#7fded0",letterSpacing:"1px"}}>EXTEND</span>
+                    <CopyBtnInline getText={()=>extendTxt}/>
+                  </div>
+                  <div style={{fontSize:"0.64rem",color:"#aaa",marginBottom:"6px",lineHeight:1.5}}>{L("Utilise « Extend » dans Suno avec ce prompt pour continuer la chanson sans qu'elle dérive.","Use 'Extend' in Suno with this prompt to continue the song without drift.")}</div>
+                  <div style={{color:"#a8ece2",fontSize:"0.8rem",lineHeight:1.7,fontFamily:"monospace",wordBreak:"break-word"}}>{extendTxt}</div>
+                </div>}
+              </div>}
+            </div>}
+            {structNotes&&<div style={{borderTop:(editList.length>0||coverTxt||extendTxt)?"1px solid #1e1e1e":"none"}}>
+              <button onClick={()=>setNotesOpen(o=>!o)} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",background:"none",border:"none",padding:"13px",cursor:"pointer",textAlign:"left"}}>
+                <span>
+                  <span style={{display:"block",fontSize:"0.78rem",fontWeight:800,color:"#e0e0e0"}}>{L("Notes de prod (pour toi)","Production notes (for you)")}</span>
+                  <span style={{display:"block",fontSize:"0.64rem",color:"#aaa",marginTop:"2px"}}>{L("À ne PAS coller dans Suno — il les chanterait comme des paroles.","Do NOT paste into Suno — it would sing them as lyrics.")}</span>
+                </span>
+                <span style={{color:"#aaa",fontSize:"0.9rem"}}>{notesOpen?"▾":"▸"}</span>
+              </button>
+              {notesOpen&&<div style={{padding:"0 13px 12px"}}>
+                <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.74rem",lineHeight:1.8,color:"#c9a58a"}}>{structNotes}</pre>
+              </div>}
+            </div>}
+          </div>}
+          <div style={{fontSize:"0.68rem",color:"#aaa",lineHeight:1.6,padding:"2px 2px 0"}}>{L("Suno est aléatoire par design : génère 2-3 fois le même prompt avant de conclure qu'il ne marche pas.","Suno is random by design: run the same prompt 2-3 times before deciding it doesn't work.")}</div>
         </>}
         <div style={{height:80}}/>
       </div>}

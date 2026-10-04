@@ -676,7 +676,10 @@ export default function handler(req, res) {
   // Variety, d'après la doc Suno, « ajuste et met à jour tes prompts de style » : c'est la licence de
   // RÉÉCRITURE que tu donnes à Suno. Observé en High : il reformule tout le prompt en prose.
   // Notre prompt est précis par construction → on reste bas, sauf demande explicite d'exploration.
-  const _varietyLbl = chaos >= 9 ? 'High' : chaos >= 6 ? 'Normal' : '0';
+  // 2026-10-04, test de François : à Extra, Suno a réécrit tout le prompt (« D minor » et « 1990s
+  // production » perdus, growls et gang shouts ajoutés) ; à Désactivé, il suit le prompt tel quel et
+  // ça sort mieux. → Désactivé recommandé dans TOUS les cas (avant : Normal dès Chaos 6, High dès 9).
+  const _varietyLbl = L('Désactivé (0)', 'Off (0)');
   const _audioSrc = ['cover', 'seed'].includes(String(b.audioSrc || '')) ? String(b.audioSrc) : 'none';
   const _vTxtAll = vocals.concat(vrange).join(' ');
   const sliderRec = {
@@ -696,9 +699,9 @@ export default function handler(req, res) {
                : L('laisse vide', 'leave unset'),
     why: L(
       (_nConf ? _nConf + ' conflit' + (_nConf > 1 ? 's' : '') + ' détecté' + (_nConf > 1 ? 's' : '') + ' → Style Influence baissé pour laisser Suno arbitrer.'
-              : 'Prompt sans contradiction → Style Influence poussé au maximum.') + ' Variety « ' + _varietyLbl + ' » = la licence de réécriture que tu donnes à Suno : en High il reformule ton prompt au complet. Reste bas pour que TES tags soient respectés.',
+              : 'Prompt sans contradiction → Style Influence poussé au maximum.') + ' Variety désactivé : Suno suit ton prompt tel quel au lieu de le réécrire.',
       (_nConf ? _nConf + ' conflict' + (_nConf > 1 ? 's' : '') + ' detected → Style Influence lowered so Suno can resolve it.'
-              : 'No contradiction in the prompt → Style Influence pushed to the max.') + ' Variety "' + _varietyLbl + '" = how much rewriting you allow Suno: on High it reformulates your whole prompt. Keep it low so YOUR tags are respected.'),
+              : 'No contradiction in the prompt → Style Influence pushed to the max.') + ' Variety off: Suno follows your prompt as written instead of rewriting it.'),
     audioNote: _audioSrc === 'cover'
       ? L('Cover d\'une chanson complète : 65 garde l\'arrangement de la source pendant que ton nouveau style la retravaille.',
           'Cover of a full song: 65 keeps the source arrangement while your new style reworks it.')

@@ -781,5 +781,11 @@ export default function handler(req, res) {
     '\n\n=== STRUCTURE (-> top of Lyrics) ===\n' + structStr +
     '\n\n=== PRODUCTION NOTES (keep for yourself) ===\n' + heavyD + '. ' + grooveD + '. ' + chaosD + '. ' + melodyD + '. ' + bpmTag + '.' + organicBlock;
 
-  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, critic, blendAuto, meterLead, meterAuto, coverStr, extendStr, editStr, editPrompts, sliderRec, timeSig, modelRec, phonetic, rhythmStructTags });
+  // ── GOÛT MAISON (oct. 2026) — texte à coller une fois dans Suno → My Taste (boîte de 2 000 car.). ──
+  // Registre « organique / live band » de la recette : vrai band capté en studio, mots de placement et de
+  // poids, aucune marque d'équipement ni nom propre. Officiellement, My Taste n'agit que par la baguette
+  // magique du champ Styles ; son effet sur la réécriture de Variety n'est PAS vérifié.
+  const tasteStr = "Extreme and underground metal above all: death, black, doom, thrash, progressive, sludge, hardcore and their fusions. Dark, heavy, intense moods; never glossy or radio-friendly.\n\nSound: a real band tracked live in a room. Natural untriggered acoustic drums with room mic bleed and human velocity, kick and snare that pound instead of click. Guitars from cranked tube amps through a mic'd 4x12 cabinet: thick mid-range bite, pick attack, fret buzz, low tunings that crush rather than sparkle. Overdriven bass locked to the kick, audible and gritty. Vocals placed in front of the band, dry and close-miked, harsh or clean as the song asks.\n\nMix: dry, dynamic, analog. Tape saturation, console warmth, wide room mics, no brickwall limiting, no pitch correction, no quantized perfection.\n\nWriting: riff-driven songs with tempo changes, breakdowns and dynamics rather than verse-chorus pop structure. Minor, phrygian and diminished colors.\n\nAvoid: pop, EDM, trap, synthwave textures, autotune, bright polished guitars, programmed-sounding drums, glossy modern radio production, electronic sheen unless explicitly requested.";
+
+  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, tasteStr, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, critic, blendAuto, meterLead, meterAuto, coverStr, extendStr, editStr, editPrompts, sliderRec, timeSig, modelRec, phonetic, rhythmStructTags });
 }

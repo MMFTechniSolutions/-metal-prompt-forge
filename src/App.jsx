@@ -1595,7 +1595,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [meterInfo,setMeterInfo]=useState(SV.meterInfo ?? null);   // {lead, auto} — séquence déduite du genre
   const [editList,setEditList]=useState(SV.editList ?? []);        // [{section, prompt}] — une ligne = un copier séparé
   const [editOpen,setEditOpen]=useState(false);
-  const [laterOpen,setLaterOpen]=useState(false);const [notesOpen,setNotesOpen]=useState(false);   // Sortie v2 : Cover/Extend et notes de prod repliés
+  const [laterOpen,setLaterOpen]=useState(false);const [notesOpen,setNotesOpen]=useState(false);const [tasteOpen,setTasteOpen]=useState(false);const [tasteTxt,setTasteTxt]=useState(SV.tasteTxt ?? "");   // Sortie v2 : Cover/Extend et notes de prod repliés
   const [audioSrc,setAudioSrc]=useState(SV.audioSrc ?? 'none');   // none | cover | seed — pilote Audio Influence  // v6 : Weirdness / Style Influence / Variety
   const [extendTxt,setExtendTxt]=useState(SV.extendTxt ?? "");
   const [modelRec,setModelRec]=useState(SV.modelRec ?? null);
@@ -1615,7 +1615,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [lyricsErr,setLyricsErr]=useState("");
   const [history,setHistory]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_history")||"[]")}catch{return[]}});
   // Sauvegarde continue de l'etat (persistance au refresh)
-  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({audioSrc,editList,meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts})); }catch(e){} },[audioSrc,editList,meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts]);
+  useEffect(()=>{ try{ localStorage.setItem('mpf_state', JSON.stringify({audioSrc,editList,meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts,tasteTxt})); }catch(e){} },[audioSrc,editList,meterInfo,critic,editTxt,sliderRec,heavy,groove,chaos,melody,bpm,emotions,vocalMix,duet,lyricsNarrator,lyricsTense,lyricsAngle,keywords,bannedWords,phoneticOn,blockRhythm,exclCustom,styleTxt,structTxt,structNotes,excludeTxt,fullTxt,styleTxtC,coverTxt,extendTxt,structTxtC,lyricsTxt,lyricsRaw,lyricsPhon,modelRec,phoneticRec,conflicts,tasteTxt]);
   const resetAll=()=>{ try{ localStorage.removeItem('mpf_state'); Object.keys(localStorage).filter(k=>k.startsWith('mpf_sel_')).forEach(k=>localStorage.removeItem(k)); localStorage.removeItem('mpf_history'); }catch(e){} location.reload(); };
   const saveToHistory=p=>{
     if(!isPro)return;
@@ -1677,7 +1677,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(!r.ok)throw new Error('forge');
     }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie ":"Generation error, try again "); return; }
     setConflicts(data.conflicts||[]);
-    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setEditTxt(data.editStr||"");setEditList(Array.isArray(data.editPrompts)?data.editPrompts:[]);setEditOpen(false);setSliderRec(data.sliderRec||null);setCritic(data.critic||null);setMeterInfo(data.meterLead?{lead:data.meterLead,auto:!!data.meterAuto}:null);setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);
+    setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setEditTxt(data.editStr||"");setEditList(Array.isArray(data.editPrompts)?data.editPrompts:[]);setEditOpen(false);setSliderRec(data.sliderRec||null);setCritic(data.critic||null);setMeterInfo(data.meterLead?{lead:data.meterLead,auto:!!data.meterAuto}:null);setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);setTasteTxt(data.tasteStr||"");
     const nc=promptCount+1;setPromptCount(nc);
     if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
     saveToHistory(data.styleStr);
@@ -2669,7 +2669,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
           </div>
           {/* PLUS TARD — replié : retouche par section, Cover / Extend, notes de prod */}
-          {(editList.length>0||coverTxt||extendTxt||structNotes)&&<div style={{...S.card,padding:0,overflow:"hidden"}}>
+          {(editList.length>0||coverTxt||extendTxt||structNotes||tasteTxt)&&<div style={{...S.card,padding:0,overflow:"hidden"}}>
             {editList.length>0&&<div>
               <button onClick={()=>setEditOpen(o=>!o)} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",background:"none",border:"none",padding:"13px",cursor:"pointer",textAlign:"left"}}>
                 <span>
@@ -2725,6 +2725,23 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               </button>
               {notesOpen&&<div style={{padding:"0 13px 12px"}}>
                 <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.74rem",lineHeight:1.8,color:"#c9a58a"}}>{structNotes}</pre>
+              </div>}
+            </div>}
+            {tasteTxt&&<div style={{borderTop:(editList.length>0||coverTxt||extendTxt||structNotes)?"1px solid #1e1e1e":"none"}}>
+              <button onClick={()=>setTasteOpen(o=>!o)} aria-expanded={tasteOpen} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",background:"none",border:"none",padding:"13px",cursor:"pointer",textAlign:"left"}}>
+                <span>
+                  <span style={{display:"block",fontSize:"0.78rem",fontWeight:800,color:"#e0e0e0"}}>{L("À faire une fois : Mes goûts Suno","Do once: your Suno taste")}</span>
+                  <span style={{display:"block",fontSize:"0.64rem",color:"#aaa",marginTop:"2px"}}>{L("Un texte à coller dans « My Taste » pour que Suno penche vers un son de vrai band.","A text to paste into \"My Taste\" so Suno leans toward a real-band sound.")}</span>
+                </span>
+                <span style={{color:"#aaa",fontSize:"0.9rem"}}>{tasteOpen?"▾":"▸"}</span>
+              </button>
+              {tasteOpen&&<div style={{padding:"0 13px 12px"}}>
+                <div style={{fontSize:"0.66rem",color:"#aaa",lineHeight:1.65,marginBottom:"9px"}}>{L("Dans Suno : clique ton avatar → My Taste, remplace le texte par celui-ci et enregistre. Il sert quand tu utilises la baguette magique du champ Styles : Suno écrit alors le style dans ce sens-là. Avec Variety désactivé et sans baguette, Suno suit déjà ton prompt tel quel.","In Suno: click your avatar → My Taste, replace the text with this one and save. It is used when you click the magic wand in the Styles box: Suno then writes the style in this direction. With Variety off and no wand, Suno already follows your prompt as written.")}</div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
+                  <span style={{fontSize:"0.66rem",fontWeight:700,color:tasteTxt.length<=2000?"#5fd98a":"#ff7a7a"}}>{tasteTxt.length} / 2000 {L("car.","chars")}</span>
+                  <BigCopy getText={()=>tasteTxt} L={L}/>
+                </div>
+                <pre style={{whiteSpace:"pre-wrap",fontFamily:"monospace",fontSize:"0.76rem",lineHeight:1.7,color:"#d8d8d8",wordBreak:"break-word",background:"#0c0c0c",border:"1px solid #222",borderRadius:"8px",padding:"11px"}}>{tasteTxt}</pre>
               </div>}
             </div>}
           </div>}

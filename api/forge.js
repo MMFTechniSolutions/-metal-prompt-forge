@@ -627,7 +627,7 @@ export default function handler(req, res) {
   const baseExcl = /rap|nu.?metal/.test(_gtxt) ? NON_METAL : [...NON_METAL, 'hip hop'];
   const autoExcl = baseExcl.filter(x => ![...keep].some(k => x.toLowerCase().includes(k)));
   // Jamais exclure ce que le genre ou le groupe demande (prog exclut les growls, mais Gojira en a — 2026-10-28)
-  const _posTxt = (signature.join(' ') + ' ' + _gtxt + ' ' + vocals.join(' ')).toLowerCase();
+  const _posTxt = [signature, vocals, drums, guitar, structs].map(a => a.join(' ')).join(' ').concat(' ', _gtxt).toLowerCase().replace(/blastsection/g, 'blast beats');
   const _harshCtx = /growl|guttural|roar|scream|shriek|harsh|death|core\b|black|grind|slam/.test(_posTxt);
   const _STOP = new Set(['production','vocals','vocal','drums','guitar','guitars','riffs','sound','heavy','metal','music','style','modern','clean']);
   const _keepExcl = x => {

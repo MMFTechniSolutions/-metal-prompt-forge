@@ -1186,27 +1186,27 @@ function Manifesto({onClose,uiLang}){
 function WhatsNew({onClose,uiLang}){
   const fr=uiLang!=="en";
   const items = fr ? [
-    ["🔨 Une seule boîte pour forger","Tape un groupe, une année, un genre ou une description, puis Forger : on détecte le style, on règle tout et ton prompt sort. Le nom d'un groupe sert seulement à trouver le style — il n'est jamais écrit dans ton prompt."],
-    ["🧭 5 onglets au lieu de 17","Forger, Mélodie & Riff, Paroles, Galerie, Plus. Les réglages manuels (batterie, voix, instruments, structure, organic, exclusions) sont maintenant sous Forger → Réglages fins."],
-    ["🎚️ Détecté, modifiable","Genre et mix de genres, époque, tempo, accordage, métriques : ce qui a été détecté s'affiche sous la boîte et se change d'un clic."],
-    ["📋 Sortie en 4 cartes","Style, Lyrics, Exclude, More Options : une carte = un champ de Suno = un bouton Copier, avec compteur de caractères. Retouche par section, Cover et Extend sont repliés sous « Plus tard »."],
-    ["🎸 Mélodie et riff comme amorce","Crée ta mélodie ou ton riff, clique « Utiliser comme amorce » et forge : le réglage Audio Influence conseillé suit ta source."],
-    ["🧹 Curseurs d'émotion retirés","Le prompt reste plus court et plus précis : rien d'invisible ne vient le teinter."],
+    ["🔍 Tape ton band, c'est tout","L'accueil, c'est maintenant une seule boîte : un groupe, une année, un genre ou une description, puis Forger. Tous les réglages sont rangés sous « Ajuster » pour ceux qui veulent jouer dedans."],
+    ["🤝 Mixe tes groupes","« Gojira + Meshuggah », « Despised Icon x Slipknot » : chaque groupe est analysé, puis leurs styles sont combinés dans un seul prompt."],
+    ["⚡ 2 000+ groupes reconnus d'avance","Les groupes les plus cherchés sont déjà analysés : réponse instantanée, et toujours le même résultat pour le même groupe."],
+    ["🎯 Détection plus juste","Nouveau moteur de classement : le bon sous-genre beaucoup plus souvent, et quand il ne connaît pas un groupe, il le dit au lieu d'inventer."],
+    ["🎛️ 151 sous-genres avec leur vrai son","Chaque sous-genre a maintenant son propre profil (tempo, accordage, batterie, voix, exclusions) au lieu d'un réglage générique."],
+    ["🧹 Prompts plus propres","Plus de mots hors-sujet (flamenco, jazzy…) dans un prompt metal, cris plus naturels à la place des pig squeals, bonne époque selon ton genre principal, Pre-Chorus toujours avant le Chorus."],
     ["🎲 Rappel","Suno est aléatoire par design : génère 2-3 fois le même prompt avant de conclure."],
   ] : [
-    ["🔨 One box to forge","Type a band, a year, a genre or a description, then Forge: we detect the style, set everything and your prompt comes out. A band name only picks the style — it is never written into your prompt."],
-    ["🧭 5 tabs instead of 17","Forge, Melody & Riff, Lyrics, Gallery, More. Manual tuning (drums, vocals, instruments, structure, organic, exclusions) now lives under Forge → Fine tuning."],
-    ["🎚️ Detected, editable","Genre and genre mix, era, tempo, tuning, meters: what was detected shows under the box and changes in one click."],
-    ["📋 Output in 4 cards","Style, Lyrics, Exclude, More Options: one card = one Suno field = one Copy button, with a character counter. Section edits, Cover and Extend are folded under \"Later\"."],
-    ["🎸 Melody and riff as a seed","Build your melody or riff, click \"Use as a seed\" and forge: the recommended Audio Influence setting follows your source."],
-    ["🧹 Emotion sliders removed","The prompt stays shorter and more precise: nothing invisible colors it."],
+    ["🔍 Type your band, that's it","The home screen is now a single box: a band, a year, a genre or a description, then Forge. Every setting lives under \"Adjust\" for those who want to dig in."],
+    ["🤝 Mix your bands","\"Gojira + Meshuggah\", \"Despised Icon x Slipknot\": each band is analyzed, then their styles are blended into one prompt."],
+    ["⚡ 2,000+ bands known in advance","The most searched bands are pre-analyzed: instant answer, and always the same result for the same band."],
+    ["🎯 Sharper detection","New classification engine: the right sub-genre far more often, and when it doesn't know a band it says so instead of guessing."],
+    ["🎛️ 151 sub-genres with their real sound","Every sub-genre now has its own profile (tempo, tuning, drums, vocals, exclusions) instead of a generic default."],
+    ["🧹 Cleaner prompts","No more off-topic words (flamenco, jazzy…) in a metal prompt, more natural screams instead of pig squeals, the right era for your main genre, Pre-Chorus always before the Chorus."],
     ["🎲 Reminder","Suno is random by design: run the same prompt 2-3 times before judging."],
   ];
   return (
     <div style={{position:"fixed",inset:0,background:"#000000ee",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}}>
       <div style={{maxWidth:"580px",width:"100%",background:"linear-gradient(180deg,#120000,#0a0a0b)",border:"1px solid #5a0000",borderRadius:"14px",padding:"28px 24px",boxShadow:"0 0 50px #000",margin:"auto"}}>
         <div style={{textAlign:"center",fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.72rem",letterSpacing:"4px",color:RED,marginBottom:"6px"}}>{fr?"NOUVEAUTÉS":"WHAT'S NEW"}</div>
-        <div className="forge-title" style={{textAlign:"center",fontSize:"1.6rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Version 3.0 — plus simple 🤘":"Version 3.0 — simpler 🤘"}</div>
+        <div className="forge-title" style={{textAlign:"center",fontSize:"1.6rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Version 3.1 — tape ton band 🤘":"Version 3.1 — just type your band 🤘"}</div>
         <div style={{display:"flex",flexDirection:"column",gap:"9px",marginBottom:"20px"}}>
           {items.map((p,i)=>(<div key={i} style={{background:"#0d0000",border:"1px solid #2a0000",borderRadius:"8px",padding:"10px 12px"}}>
             <div style={{color:"#ff9090",fontWeight:800,fontSize:"0.8rem"}}>{p[0]}</div>
@@ -1457,8 +1457,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [emotions,setEmotions]=useState(SV.emotions ?? {});
   const [advanced,setAdvanced]=useState(false);
   const [showManifesto,setShowManifesto]=useState(false);
-  useEffect(()=>{try{if(!localStorage.getItem('mpf_news_202610_v3')){setShowManifesto(true);localStorage.setItem('mp_manifesto_seen','1');}}catch(e){}},[]);
-  const closeManifesto=()=>{try{localStorage.setItem('mpf_news_202610_v3','1');}catch(e){}setShowManifesto(false);};
+  useEffect(()=>{try{if(!localStorage.getItem('mpf_news_202610_v31')){setShowManifesto(true);localStorage.setItem('mp_manifesto_seen','1');}}catch(e){}},[]);
+  const closeManifesto=()=>{try{localStorage.setItem('mpf_news_202610_v31','1');}catch(e){}setShowManifesto(false);};
   const [groove,setGroove]=useState(SV.groove ?? 6);
   const [chaos,setChaos]=useState(SV.chaos ?? 7);
   const [melody,setMelody]=useState(SV.melody ?? 3);

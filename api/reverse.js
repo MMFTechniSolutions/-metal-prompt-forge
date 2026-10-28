@@ -12,7 +12,7 @@ import { createClient } from '@supabase/supabase-js';
 // Absent / erreur / pas trouvé → on continue avec Decisions + Claude comme avant.
 const normBand = s => String(s).toLowerCase().normalize('NFKC').replace(/^the\s+/, '').replace(/\s+/g, ' ').trim();
 async function fromCache(band) {
-  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;   // webhook.js utilise SUPABASE_SERVICE_KEY
   if (!url || !key || band.length > 60) return null;
   try {
     const sb = createClient(url, key, { auth: { persistSession: false } });

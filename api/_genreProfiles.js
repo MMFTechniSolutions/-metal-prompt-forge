@@ -10,6 +10,8 @@
  * Aucun nom d'artiste réel — conforme aux règles Suno du 6 août 2026.
  */
 
+import { GENRE_PROFILES_EXTRA } from './_genreProfilesExtra.js';
+
 export const GENRE_PROFILES = {
   // ── RACINES ──
   "acid rock":{bpm:[110,140],tuning:["standard E tuning"],drums:["bluesy shuffle","big room toms"],guitar:["fuzz riffs","wah-wah leads","pentatonic riffs"],vocals:["psychedelic vocals","raw rock vocals"],mood:["dreamy and ethereal"],heavy:4,groove:7,chaos:5,melody:7,exclude:["growl","blast beats","triggered drums","modern metal production"]},
@@ -103,6 +105,9 @@ const _rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
  * Retourne le profil d'un genre, BPM tiré au hasard dans sa plage.
  * `fallback` = ta logique actuelle si le genre n'a pas encore de profil.
  */
+// Profils générés (crédit promo, oct. 2026) : seulement pour les sous-genres SANS profil fait main
+for (const [k, v] of Object.entries(GENRE_PROFILES_EXTRA)) if (!GENRE_PROFILES[k]) GENRE_PROFILES[k] = v;
+
 export function profileFor(genre, fallback) {
   const p = GENRE_PROFILES[genre];
   if (!p) return fallback;

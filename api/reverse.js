@@ -6,6 +6,21 @@
 import { GENRE_PROFILES } from './_genreProfiles.js';
 import { cleanDescriptors } from './_lib/nameGuard.js';
 import { FAMILLES } from './_genreFamilies.js';
+import { createClient } from '@supabase/supabase-js';
+
+// ── Cache de groupes (table band_cache, pré-classée avec Opus) : réponse instantanée, gratuite et stable.
+// Absent / erreur / pas trouvé → on continue avec Decisions + Claude comme avant.
+const normBand = s => String(s).toLowerCase().normalize('NFKC').replace(/^the\s+/, '').replace(/\s+/g, ' ').trim();
+async function fromCache(band) {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key || band.length > 60) return null;
+  try {
+    const sb = createClient(url, key, { auth: { persistSession: false } });
+    const q = sb.from('band_cache').select('genre,flavor,signature,confidence').eq('name_key', normBand(band)).maybeSingle();
+    const { data } = await Promise.race([q, new Promise(r => setTimeout(() => r({ data: null }), 1500))]);
+    return data && data.confidence !== 'low' ? data : null;
+  } catch { return null; }
+}
 
 // ── Decisions API (OpenAI, bêta) — choisit les sous-genres dans NOTRE liste, avec un % de confiance.
 // Test 2026-10-27 : 19/20 vs 11/20 pour Claude seul. Claude reste appelé en parallèle pour flavor + signature,
@@ -90,6 +105,17 @@ export default async function handler(req, res) {
 
   const band = String(body.band || body.name || '').trim().slice(0, 160);   // nom de groupe OU description libre (boîte unique de l'écran Forger)
   if (!band) return res.status(400).json({ error: 'Nom de groupe manquant' });
+
+  const hit = await fromCache(band);
+  if (hit) {
+    const _bl = band.toLowerCase();
+    return res.status(200).json({
+      genre: hit.genre, flavor: hit.flavor || '',
+      signature: cleanDescriptors((hit.signature || []).map(String), [_bl]).slice(0, 4),
+      label: hit.genre, confidence: hit.confidence, source: 'cache',
+      genres: [hit.genre, hit.flavor].filter(Boolean), matched: !!GENRE_PROFILES[hit.genre],
+    });
+  }
 
   const apiKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'Clé API non configurée' });

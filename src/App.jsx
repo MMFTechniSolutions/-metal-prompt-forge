@@ -1394,6 +1394,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [eraPick,setEraPick]=useState("");              // "" = époque déduite du genre
   const [pendingForge,setPendingForge]=useState(false); // forge au prochain rendu, une fois la détection appliquée
   const [finsOpen,setFinsOpen]=useState(false);
+  const [adjustOpen,setAdjustOpen]=useState(false);   // écran d'accueil = juste la boîte ; tout le reste derrière « Ajuster »
   const [pickerOpen,setPickerOpen]=useState(false);
   const [soundsOpen,setSoundsOpen]=useState(false);
   const [meterOpen,setMeterOpen]=useState(false);
@@ -1550,6 +1551,23 @@ export default function App({ user, onLogout, onRequestAuth }) {
       }
       // 2) groupe ou description libre → /api/reverse (le nom n'est jamais écrit dans le prompt)
       if(!canAccess("pro")){setShowPaywall(true);return;}
+      // Mix de groupes (« Gojira + Meshuggah ») : un reverse par groupe, puis on combine (genre principal de chacun)
+      const mixParts=rest.split(/\s*\+\s*|\s+\/\s+|\s+x\s+|\s+vs\.?\s+/i).map(s=>s.trim()).filter(Boolean);   // seulement « + », « / » espacé, « x », « vs » (pas AC/DC, pas les virgules ni « et » d'une description)
+      if(mixParts.length>=2&&mixParts.length<=3&&!known.every(Boolean)){
+        const ds=(await Promise.all(mixParts.slice(0,2).map(b=>fetch('/api/reverse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({band:b})}).then(r=>r.ok?r.json():null).catch(()=>null)))).filter(x=>x&&x.genre);
+        if(ds.length){
+          const gs=[...new Set(ds.map(x=>x.genre).concat(ds.length===1&&ds[0].flavor?[ds[0].flavor]:[]))].slice(0,2);
+          setGenres(gs);
+          setSignature([...new Set(ds.flatMap(x=>(Array.isArray(x.signature)?x.signature:[]).slice(0,2)))].slice(0,4));
+          const _prof=await autoFillGenre(gs[0]);
+          const _ta=seedThemesFromMood((_prof&&_prof.mood)||[]);
+          if(_ta){setThemes(_ta.themes);setLatmo(_ta.atmo);}
+          setLastIdea(raw);
+          setIdeaMsg({ok:true,text:L("Mix : ","Mix: ")+gs.join(" + ")+(era?" · "+era:"")});
+          setPendingForge(true);
+          return;
+        }
+      }
       const r=await fetch('/api/reverse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({band:rest})});
       const d=await r.json();
       if(!r.ok||!d.genre){setIdeaMsg({ok:false,text:L("Pas reconnu — vérifie l'orthographe, ou choisis un genre juste en dessous.","Not recognized — check the spelling, or pick a genre just below.")});return;}
@@ -1891,12 +1909,22 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <label htmlFor="mpf-idee" style={{display:"block",fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.3rem",letterSpacing:"2px",color:"#f4f4f4",lineHeight:1}}>{L("Qu'est-ce qu'on forge ?","What are we forging?")}</label>
           <div style={{fontSize:"0.78rem",color:"#aaa",margin:"8px 0 12px",lineHeight:1.55}}>{L("Un groupe, une année, un genre ou une description. Le nom d'un groupe sert seulement à trouver le style : il n'est jamais écrit dans ton prompt.","A band, a year, a genre or a description. A band name only picks the style: it is never written into your prompt.")}</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:"9px"}}>
-            <input id="mpf-idee" value={ideaInput} maxLength={160} onChange={e=>setIdeaInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')smartForge();}} placeholder={L("ex. : death metal progressif, 1993","e.g. progressive death metal, 1993")} style={{flex:"1 1 300px",minWidth:0,height:"54px",background:"#141414",border:"1.5px solid #4a4a4a",borderRadius:"10px",padding:"0 16px",color:"#f4f4f4",fontSize:"1rem"}}/>
+            <input id="mpf-idee" value={ideaInput} maxLength={160} onChange={e=>setIdeaInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')smartForge();}} placeholder={L("ex. : Gojira · Despised Icon + Meshuggah · doom lent avec orgue, 1993","e.g. Gojira · Despised Icon + Meshuggah · slow doom with organ, 1993")} style={{flex:"1 1 300px",minWidth:0,height:"54px",background:"#141414",border:"1.5px solid #4a4a4a",borderRadius:"10px",padding:"0 16px",color:"#f4f4f4",fontSize:"1rem"}}/>
             <button onClick={smartForge} disabled={ideaBusy} style={{height:"54px",padding:"0 34px",background:RED,border:"none",borderRadius:"10px",color:"#000",fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"4px",cursor:ideaBusy?"default":"pointer",opacity:ideaBusy?0.6:1,boxShadow:"0 4px 24px #ff000055"}}>{ideaBusy?L("Analyse…","Analyzing…"):L("Forger","Forge")}</button>
           </div>
           {ideaMsg&&<div role="status" style={{fontSize:"0.74rem",marginTop:"9px",lineHeight:1.5,color:ideaMsg.ok?"#7bd88f":"#e6b08a"}}>{ideaMsg.ok?"✓ ":""}{ideaMsg.text}</div>}
           {styleTxt&&<button onClick={()=>setTab("output")} style={{marginTop:"9px",background:"none",border:"none",padding:0,color:"#ff8a8a",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{L("Voir la dernière sortie →","See the last output →")}</button>}
         </div>
+        {!adjustOpen&&!ideaInput&&<div style={{display:"flex",flexWrap:"wrap",gap:"7px",margin:"-4px 0 14px"}}>
+          {["Gojira","Slipknot","Despised Icon","Mayhem","Gojira + Meshuggah"].map(x=>(
+            <button key={x} onClick={()=>setIdeaInput(x)} style={{...CHIP,borderRadius:"8px"}}>{x}</button>))}
+        </div>}
+        <button onClick={()=>setAdjustOpen(o=>!o)} aria-expanded={adjustOpen} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",minHeight:"48px",background:"#111",border:"1px solid #262626",borderRadius:"10px",padding:"0 14px",cursor:"pointer",textAlign:"left",marginBottom:"14px"}}>
+          <span><span style={{fontSize:"0.86rem",fontWeight:800,color:"#e6e6e6"}}>{L("Ajuster","Adjust")}</span>
+          <span style={{fontSize:"0.68rem",color:"#aaa",marginLeft:"8px"}}>{genres.size?[...genres].join(" + ")+" · "+bpm+" BPM":L("genre, époque, tempo, accordage, réglages fins","genre, era, tempo, tuning, fine tuning")}</span></span>
+          <span style={{color:"#aaa",fontSize:"1rem"}}>{adjustOpen?"▾":"▸"}</span>
+        </button>
+        {adjustOpen&&<>
         <div style={S.card}>
           <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"baseline",gap:"6px",marginBottom:"12px"}}>
             <div style={{...S.ctitle,marginBottom:0,fontSize:"0.66rem"}}>{L("Détecté — clique pour changer","Detected — click to change")}</div>
@@ -2027,6 +2055,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
           ))}
         </div>
+        </>}
         </>}
         <div style={{height:80}}/>
       </div>}

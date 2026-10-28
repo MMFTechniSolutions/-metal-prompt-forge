@@ -140,7 +140,11 @@ export default async function handler(req, res) {
     const signature = cleanDescriptors(
       (Array.isArray(out.signature) ? out.signature : []).map(x => {
         const t = String(x).toLowerCase().replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
-        return t.length <= 60 ? t : t.slice(0, 60).replace(/\s+\S*$/, '');   // jamais couper en plein mot
+        if (t.length <= 100) return t;
+        // trop long : on coupe au mot, puis on enlève les mots orphelins (« …with industrial », « …between growls and »)
+        const cut = t.slice(0, 100).replace(/\s+\S*$/, '');
+        const m = [...cut.matchAll(/\s(with|and|or|between|of|into|over|under|by|from|plus)\s/gi)].pop();   // dernier lien → on coupe AVANT lui
+        return (m && m.index >= 30 ? cut.slice(0, m.index) : cut).trim();
       }),
       [_bl]
     ).slice(0, 4);

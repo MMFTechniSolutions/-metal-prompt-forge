@@ -1394,7 +1394,16 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [eraPick,setEraPick]=useState("");              // "" = époque déduite du genre
   const [pendingForge,setPendingForge]=useState(false); // forge au prochain rendu, une fois la détection appliquée
   const [finsOpen,setFinsOpen]=useState(false);
-  const [adjustOpen,setAdjustOpen]=useState(false);   // écran d'accueil = juste la boîte ; tout le reste derrière « Ajuster »
+  const [adjustOpen,setAdjustOpen]=useState(false);
+  // Auto-complétion des groupes (public/bands.json = noms du cache band_cache) + bouton 🎲
+  const [bandList,setBandList]=useState(null);
+  const loadBands=()=>{if(bandList)return Promise.resolve(bandList);return fetch('/bands.json').then(r=>r.ok?r.json():[]).then(l=>{setBandList(l);return l;}).catch(()=>{setBandList([]);return [];});};
+  const [sugOpen,setSugOpen]=useState(false);
+  const _lastPart=v=>{const m=v.match(/^(.*?(?:\s*\+\s*|\s+x\s+|\s+vs\.?\s+|\s+\/\s+))?([^+]*)$/i);return {head:(m&&m[1])||'',tail:((m&&m[2])||'').trim()};};
+  const bandSugs=(()=>{if(!bandList||!sugOpen)return[];const t=_lastPart(ideaInput).tail.toLowerCase();if(t.length<2)return[];
+    const st=[],inn=[];for(const b of bandList){const l=b.toLowerCase();if(l===t)return[];if(l.startsWith(t))st.push(b);else if(l.includes(t))inn.push(b);if(st.length>=6)break;}return [...st,...inn].slice(0,6);})();
+  const pickSug=b=>{setIdeaInput(_lastPart(ideaInput).head+b);setSugOpen(false);};
+  const randomBand=async()=>{const l=await loadBands();if(!l.length)return;const r=()=>l[Math.floor(Math.random()*l.length)];setIdeaInput(Math.random()<0.35?r()+' + '+r():r());setSugOpen(false);};   // écran d'accueil = juste la boîte ; tout le reste derrière « Ajuster »
   const [pickerOpen,setPickerOpen]=useState(false);
   const [soundsOpen,setSoundsOpen]=useState(false);
   const [meterOpen,setMeterOpen]=useState(false);
@@ -1909,9 +1918,13 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <label htmlFor="mpf-idee" style={{display:"block",fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.3rem",letterSpacing:"2px",color:"#f4f4f4",lineHeight:1}}>{L("Qu'est-ce qu'on forge ?","What are we forging?")}</label>
           <div style={{fontSize:"0.78rem",color:"#aaa",margin:"8px 0 12px",lineHeight:1.55}}>{L("Un groupe, une année, un genre ou une description. Le nom d'un groupe sert seulement à trouver le style : il n'est jamais écrit dans ton prompt.","A band, a year, a genre or a description. A band name only picks the style: it is never written into your prompt.")}</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:"9px"}}>
-            <input id="mpf-idee" value={ideaInput} maxLength={160} onChange={e=>setIdeaInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')smartForge();}} placeholder={L("ex. : Gojira · Despised Icon + Meshuggah · doom lent avec orgue, 1993","e.g. Gojira · Despised Icon + Meshuggah · slow doom with organ, 1993")} style={{flex:"1 1 300px",minWidth:0,height:"54px",background:"#141414",border:"1.5px solid #4a4a4a",borderRadius:"10px",padding:"0 16px",color:"#f4f4f4",fontSize:"1rem"}}/>
+            <input id="mpf-idee" autoComplete="off" value={ideaInput} maxLength={160} onFocus={()=>{loadBands();setSugOpen(true);}} onBlur={()=>setTimeout(()=>setSugOpen(false),150)} onChange={e=>{setIdeaInput(e.target.value);setSugOpen(true);}} onKeyDown={e=>{if(e.key==='Enter'){setSugOpen(false);smartForge();}if(e.key==='Tab'&&bandSugs.length){e.preventDefault();pickSug(bandSugs[0]);}}} placeholder={L("ex. : Gojira · Despised Icon + Meshuggah · doom lent avec orgue, 1993","e.g. Gojira · Despised Icon + Meshuggah · slow doom with organ, 1993")} style={{flex:"1 1 300px",minWidth:0,height:"54px",background:"#141414",border:"1.5px solid #4a4a4a",borderRadius:"10px",padding:"0 16px",color:"#f4f4f4",fontSize:"1rem"}}/>
             <button onClick={smartForge} disabled={ideaBusy} style={{height:"54px",padding:"0 34px",background:RED,border:"none",borderRadius:"10px",color:"#000",fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"4px",cursor:ideaBusy?"default":"pointer",opacity:ideaBusy?0.6:1,boxShadow:"0 4px 24px #ff000055"}}>{ideaBusy?L("Analyse…","Analyzing…"):L("Forger","Forge")}</button>
+            <button onClick={randomBand} title={L("Groupe au hasard","Random band")} aria-label={L("Groupe au hasard","Random band")} style={{height:"54px",width:"54px",background:"#1a1a1a",border:"1px solid #3a3a3a",borderRadius:"10px",fontSize:"1.4rem",cursor:"pointer"}}>🎲</button>
           </div>
+          {bandSugs.length>0&&<div role="listbox" style={{display:"flex",flexWrap:"wrap",gap:"6px",marginTop:"8px"}}>
+            {bandSugs.map(b=>(<button key={b} role="option" onMouseDown={e=>e.preventDefault()} onClick={()=>pickSug(b)} style={{...CHIP,borderRadius:"8px",borderColor:"#5a1a1a",color:"#ffc2c2"}}>{b}</button>))}
+          </div>}
           {ideaMsg&&<div role="status" style={{fontSize:"0.74rem",marginTop:"9px",lineHeight:1.5,color:ideaMsg.ok?"#7bd88f":"#e6b08a"}}>{ideaMsg.ok?"✓ ":""}{ideaMsg.text}</div>}
           {styleTxt&&<button onClick={()=>setTab("output")} style={{marginTop:"9px",background:"none",border:"none",padding:0,color:"#ff8a8a",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{L("Voir la dernière sortie →","See the last output →")}</button>}
         </div>
@@ -2636,7 +2649,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               </div>))}
           </div>}
           <div style={{display:"flex",flexWrap:"wrap",gap:"11px",alignItems:"flex-start"}}>
-            <div style={{flex:"3 1 420px",minWidth:0}}>
+            <div style={{flex:"1 1 420px",minWidth:0}}>
               {/* 1 · STYLE */}
               <div style={{...S.card,borderColor:"#5a1a1a",background:"#160707"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
@@ -2649,6 +2662,17 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                   <span style={{fontWeight:700,color:styleShown.length<=600?"#5fd98a":styleShown.length<=800?"#e6c200":"#ff7a7a"}}>{styleShown.length} / 1000 {L("car.","chars")}{styleShown.length<=600?"":styleShown.length<=800?L(" · un peu long"," · a bit long"):L(" · trop long"," · too long")}</span>
                 </div>
               </div>
+              {/* 3 · EXCLUDE */}
+              {excludeTxt&&<div style={S.card}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
+                  <div style={{...S.outLbl,marginBottom:0,fontSize:"0.68rem"}}>3 · Exclude Styles</div>
+                  <BigCopy getText={()=>excludeTxt} L={L}/>
+                </div>
+                <div style={{color:"#e0e0e0",fontSize:"0.84rem",lineHeight:1.75,fontFamily:"monospace",wordBreak:"break-word"}}>{excludeTxt}</div>
+                <div style={{fontSize:"0.64rem",color:"#aaa",marginTop:"8px"}}>{L("Colle tel quel — Suno ajoute lui-même le « - ».","Paste as-is — Suno adds the \"-\" itself.")}</div>
+              </div>}
+            </div>
+            <div style={{flex:"1 1 360px",minWidth:0}}>
               {/* 2 · LYRICS */}
               {structTxt&&<div style={S.card}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
@@ -2662,17 +2686,6 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                     :<button onClick={()=>setTab("paroles")} style={{background:"#1a1a1a",border:"1px solid #3a3a3a",borderRadius:"6px",color:"#e0e0e0",fontSize:"0.68rem",fontWeight:700,padding:"7px 12px",cursor:"pointer"}}>{L("Ajouter des paroles","Add lyrics")}</button>}
                   <span style={{fontWeight:700,color:step2Shown.length<=5000?"#5fd98a":"#ff7a7a"}}>{step2Shown.length} / 5000 {L("car.","chars")}</span>
                 </div>
-              </div>}
-            </div>
-            <div style={{flex:"2 1 300px",minWidth:0}}>
-              {/* 3 · EXCLUDE */}
-              {excludeTxt&&<div style={S.card}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
-                  <div style={{...S.outLbl,marginBottom:0,fontSize:"0.68rem"}}>3 · Exclude Styles</div>
-                  <BigCopy getText={()=>excludeTxt} L={L}/>
-                </div>
-                <div style={{color:"#e0e0e0",fontSize:"0.84rem",lineHeight:1.75,fontFamily:"monospace",wordBreak:"break-word"}}>{excludeTxt}</div>
-                <div style={{fontSize:"0.64rem",color:"#aaa",marginTop:"8px"}}>{L("Colle tel quel — Suno ajoute lui-même le « - ».","Paste as-is — Suno adds the \"-\" itself.")}</div>
               </div>}
               {/* 4 · MORE OPTIONS — retiré de la sortie (oct. 2026, « pas utile » — François). Le calcul reste dans forge.js. */}
               {false&&sliderRec&&<div style={{...S.card,borderColor:"#5a4410",background:"#141005"}}>

@@ -626,7 +626,16 @@ export default function handler(req, res) {
   ALLOW.forEach(m => { if (m.re.test(_gtxt)) m.keep.forEach(k => keep.add(k.toLowerCase())); });
   const baseExcl = /rap|nu.?metal/.test(_gtxt) ? NON_METAL : [...NON_METAL, 'hip hop'];
   const autoExcl = baseExcl.filter(x => ![...keep].some(k => x.toLowerCase().includes(k)));
-  const excStr = dedup([...allExclude, ...autoExcl]).slice(0, 8).join(', ');
+  // Jamais exclure ce que le genre ou le groupe demande (prog exclut les growls, mais Gojira en a — 2026-10-28)
+  const _posTxt = (signature.join(' ') + ' ' + _gtxt + ' ' + vocals.join(' ')).toLowerCase();
+  const _harshCtx = /growl|guttural|roar|scream|shriek|harsh|death|core\b|black|grind|slam/.test(_posTxt);
+  const _STOP = new Set(['production','vocals','vocal','drums','guitar','guitars','riffs','sound','heavy','metal','music','style','modern','clean']);
+  const _keepExcl = x => {
+    const t = String(x).toLowerCase();
+    if (_harshCtx && /growl|guttural|scream|shriek|harsh/.test(t)) return false;
+    return !t.split(/[^a-z]+/).filter(w => w.length >= 5 && !_STOP.has(w)).some(w => _posTxt.includes(w));
+  };
+  const excStr = dedup([...allExclude, ...autoExcl]).filter(_keepExcl).slice(0, 8).join(', ');
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)
   const NAME = { intro: 'Intro', buildup: 'Build-up', verse: 'Verse', prechorus: 'Pre-Chorus', chorus: 'Chorus', breakdown: 'Breakdown', halftime: 'Half-Time', blastsection: 'Blast Section', drop: 'Drop', solo: 'Guitar Solo', interlude: 'Interlude', atmosphericbreak: 'Atmospheric Break', spokenword: 'Spoken Word', gangchant: 'Gang Chant', scream: 'Scream Section', riffbreak: 'Riff Break', bridge: 'Bridge', outro: 'Outro' };

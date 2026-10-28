@@ -2674,8 +2674,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                 <div style={{color:"#e0e0e0",fontSize:"0.84rem",lineHeight:1.75,fontFamily:"monospace",wordBreak:"break-word"}}>{excludeTxt}</div>
                 <div style={{fontSize:"0.64rem",color:"#aaa",marginTop:"8px"}}>{L("Colle tel quel — Suno ajoute lui-même le « - ».","Paste as-is — Suno adds the \"-\" itself.")}</div>
               </div>}
-              {/* 4 · MORE OPTIONS */}
-              {sliderRec&&<div style={{...S.card,borderColor:"#5a4410",background:"#141005"}}>
+              {/* 4 · MORE OPTIONS — retiré de la sortie (oct. 2026, « pas utile » — François). Le calcul reste dans forge.js. */}
+              {false&&sliderRec&&<div style={{...S.card,borderColor:"#5a4410",background:"#141005"}}>
                 <div style={{...S.outLbl,color:"#ffbb33",marginBottom:"9px",fontSize:"0.68rem"}}>{excludeTxt?4:3} · More Options</div>
                 <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:"8px",marginBottom:"10px",fontSize:"0.68rem",color:"#aaa"}}>
                   <span>{L("Source audio : ","Audio source: ")}<b style={{color:"#ffbb33"}}>{audioSrc==="cover"?L("un Cover","a Cover"):audioSrc==="seed"?(seedKind==="riff"?L("un riff","a riff"):L("une mélodie","a melody")):L("aucune","none")}</b></span>

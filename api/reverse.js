@@ -133,8 +133,9 @@ export default async function handler(req, res) {
     const _bl = band.toLowerCase();
     let flavor = String(out.flavor || '').toLowerCase().trim().slice(0, 40);
     if (flavor === _bl || flavor === genre || !cleanDescriptors([flavor], [_bl]).length) flavor = '';
-    // Pas de couleur venant de Claude : on prend le 2e choix de Decisions s'il vient d'une AUTRE famille (évite thrash + bay area thrash)
-    if (dec && !flavor) { const f2 = dec.picks.find(x => x.g !== genre && FAM_DE[x.g] !== FAM_DE[genre]); if (f2) flavor = f2.g; }
+    // Decisions sûr → la couleur vient SEULEMENT de lui (Claude inventait parfois : Despised Icon « + industrial metal », 2026-10-27).
+    // 2e choix de Decisions s'il vient d'une AUTRE famille (évite thrash + bay area thrash), sinon pas de couleur.
+    if (dec) { const f2 = dec.picks.find(x => x.g !== genre && FAM_DE[x.g] !== FAM_DE[genre]); flavor = f2 ? f2.g : ''; }
     // Garde-fou : le modèle glisse parfois un nom de personne malgré la consigne
     // (cas réel 2026-09-10 : « phil anselmo's aggressive vocals »). On filtre en sortie.
     const signature = cleanDescriptors(

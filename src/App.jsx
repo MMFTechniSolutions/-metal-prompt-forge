@@ -452,7 +452,13 @@ const BLOCK_RHYTHMS = [
 const STRIPE_MENSUEL = "https://buy.stripe.com/9B66oJ1kI1avgb83obfQI07";          // abonnement 2,99 $ US / mois
 // Promo « À VIE » : paiement unique, visible seulement pendant la fenêtre (Black Friday → Cyber Monday 2026, heure de l'Est).
 // Pour tester avant : ajoute ?avie=1 à l'adresse du site.
-const LIFETIME = { price:"$50", stripe:"https://buy.stripe.com/bJefZj4wU06r4sq7ErfQI08", start:"2026-11-27T00:00:00-05:00", end:"2026-12-01T00:00:00-05:00" };
+const LIFETIME = { price:"$50", regular:"$120", stripe:"https://buy.stripe.com/bJefZj4wU06r4sq7ErfQI08", start:"2026-11-27T00:00:00-05:00", end:"2026-12-01T00:00:00-05:00" };
+// Recharges de prompts (paiement unique, n'expirent jamais) — oct. 2026
+const PACKS = [
+  {n:10, price:"$5",  per:"0,50 $", stripe:"https://buy.stripe.com/aFaaEZgfC3iD6AycYLfQI09"},
+  {n:30, price:"$10", per:"0,33 $", stripe:"https://buy.stripe.com/6oUdRb0gE9H18IG9MzfQI0a", best:true},
+  {n:50, price:"$20", per:"0,40 $", stripe:"https://buy.stripe.com/6oU5kFfbydXh2ki6AnfQI0b"},
+];
 const lifetimeActive=()=>{try{if(new URLSearchParams(location.search).get('avie')==='1')return true;}catch(e){}const n=Date.now();return n>=Date.parse(LIFETIME.start)&&n<Date.parse(LIFETIME.end);};
 const lifetimeLeft=()=>{const ms=Date.parse(LIFETIME.end)-Date.now();if(ms<=0)return "";const d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5);return d>0?`${d} j ${h} h`:`${h} h`;};
 // ── TIERS ──
@@ -697,6 +703,17 @@ function PaywallModal({onClose,email,uiLang}) {
           <div style={{fontSize:"0.6rem",color:"#555",letterSpacing:"3px",textTransform:"uppercase",marginBottom:"6px"}}>{L("PROMPT GRATUIT UTILISÉ","FREE PROMPT USED")}</div>
           <div className="forge-title" style={{fontSize:"1.5rem",color:"#fff",letterSpacing:"4px"}}>{L("CHOISIS TON PLAN","CHOOSE YOUR PLAN")}</div>
         </div>
+        <div style={{marginBottom:"16px"}}>
+          <div style={{fontSize:"0.62rem",color:"#aaa",textAlign:"center",marginBottom:"8px"}}>{L("Recharge de prompts, sans abonnement, n'expire jamais","Prompt packs, no subscription, never expire")}</div>
+          <div style={{display:"flex",gap:"8px"}}>
+            {PACKS.map(pk=><a key={pk.n} href={payUrl(pk.stripe,email)} target="_blank" rel="noopener noreferrer" style={{flex:1,textDecoration:"none",textAlign:"center",padding:"10px 4px",borderRadius:"10px",border:`1px solid ${pk.best?"#FF6A2B":"#333"}`,background:pk.best?"#2a1208":"#151515",color:"#fff"}}>
+              <div style={{fontWeight:800,fontSize:"0.85rem"}}>{pk.n} prompts</div>
+              <div style={{fontSize:"1.1rem",fontWeight:900,margin:"2px 0"}}>{pk.price}</div>
+              <div style={{fontSize:"0.55rem",color:"#999"}}>{pk.per} {L("le prompt","each")}</div>
+            </a>)}
+          </div>
+          <div style={{fontSize:"0.58rem",color:"#666",textAlign:"center",marginTop:"10px"}}>{L("ou illimité avec l'abonnement ↓","or unlimited with the subscription ↓")}</div>
+        </div>
         {Object.values(TIERS).some(t=>t.priceYear)&&<div style={{display:"flex",justifyContent:"center",gap:"8px",marginBottom:"16px"}}>
           <button onClick={()=>setBilling("month")} style={{padding:"6px 16px",borderRadius:"20px",border:`1px solid ${!year?"#ff2e2e":"#333"}`,background:!year?"#1a0000":"#111",color:!year?"#ff7070":"#666",fontSize:"0.66rem",fontWeight:700,cursor:"pointer"}}>{L("Mensuel","Monthly")}</button>
           <button onClick={()=>setBilling("year")} style={{padding:"6px 16px",borderRadius:"20px",border:`1px solid ${year?"#4caf50":"#333"}`,background:year?"#0a1f00":"#111",color:year?"#7fdd7f":"#666",fontSize:"0.66rem",fontWeight:700,cursor:"pointer"}}>{L("Annuel","Annual")} · {L("2 mois gratuits","2 months free")}</button>
@@ -719,8 +736,8 @@ function PaywallModal({onClose,email,uiLang}) {
         </div>
         {lifetimeActive()&&<a href={payUrl(LIFETIME.stripe,email)} target="_blank" rel="noreferrer" style={{display:"block",textDecoration:"none",background:"linear-gradient(135deg,#2a1a00,#1a0000)",border:"1.5px solid #ffbb33",borderRadius:"10px",padding:"14px",marginBottom:"12px",textAlign:"center"}}>
           <div style={{fontSize:"0.58rem",color:"#ffbb33",letterSpacing:"3px",fontWeight:900}}>🔥 {L("BLACK FRIDAY — DURÉE LIMITÉE","BLACK FRIDAY — LIMITED TIME")}</div>
-          <div style={{fontSize:"1.5rem",fontWeight:900,color:"#fff",margin:"4px 0"}}>{LIFETIME.price} <span style={{fontSize:"0.8rem",color:"#ffbb33"}}>{L("à vie","lifetime")}</span></div>
-          <div style={{fontSize:"0.66rem",color:"#d0c8b0"}}>{L("Un seul paiement, accès complet pour toujours.","One payment, full access forever.")}{lifetimeLeft()?" · "+L("Finit dans ","Ends in ")+lifetimeLeft():""}</div>
+          <div style={{fontSize:"1.5rem",fontWeight:900,color:"#fff",margin:"4px 0"}}><span style={{fontSize:"0.9rem",color:"#777",textDecoration:"line-through",marginRight:"6px"}}>{LIFETIME.regular}</span>{LIFETIME.price} <span style={{fontSize:"0.8rem",color:"#ffbb33"}}>{L("à vie","lifetime")}</span> <span style={{fontSize:"0.7rem",background:"#FF6A2B",color:"#160A04",borderRadius:"6px",padding:"2px 6px",verticalAlign:"middle"}}>-58 %</span></div>
+          <div style={{fontSize:"0.66rem",color:"#d0c8b0"}}>{L("Un seul paiement, accès complet pour toujours. Seulement 100 places.","One payment, full access forever. Only 100 spots.")}{lifetimeLeft()?" · "+L("Finit dans ","Ends in ")+lifetimeLeft():""}</div>
         </a>}
         <a href={payUrl(checkoutUrl,email)} target="_blank" rel="noreferrer"
           style={{display:"block",width:"100%",padding:"14px",background:tier.color,borderRadius:"8px",color:sel==="elite"?"#fff":"#000",fontWeight:900,fontSize:"0.85rem",letterSpacing:"2px",textTransform:"uppercase",textDecoration:"none",textAlign:"center",marginBottom:"10px"}}>
@@ -1344,6 +1361,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
 
   // ── TIER ──
   const [promptCount,setPromptCount]=useState(0);
+  const [credits,setCredits]=useState(0);   // prompts achetés (recharges), utilisés après les 3 gratuits
   const [userTier,setUserTier]=useState("free");
   const [musicPrompt,setMusicPrompt]=useState("");
   const [musicUrl,setMusicUrl]=useState("");
@@ -1354,17 +1372,17 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [musicLeft,setMusicLeft]=useState(null);
   useEffect(()=>{
     if(user?.email){
-      supabase.from('users').select('tier,prompts_used,tier_expires_at').eq('email',user.email).single()
+      supabase.from('users').select('tier,prompts_used,tier_expires_at,prompt_credits').eq('email',user.email).single()
         .then(({data})=>{
           let tr=data?.tier||"free";
           // accès promo expiré → retour gratuit (le vrai abonnement Stripe n'a jamais de date d'expiration)
           if(data?.tier_expires_at && new Date(data.tier_expires_at).getTime() < Date.now()) tr="free";
-          setUserTier(tr);setPromptCount(data?.prompts_used||0);
+          setUserTier(tr);setPromptCount(data?.prompts_used||0);setCredits(data?.prompt_credits||0);
         });
     } else {
       // invité ou déconnexion → on remet le tier gratuit (sinon accès illimité collé)
       setUserTier("free");
-      setPromptCount(0);
+      setPromptCount(0);setCredits(0);
     }
   },[user]);
   const isForge=TIER_RANK[userTier]>=1;
@@ -1692,7 +1710,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   // ── GENERATE ──
   const generate=async()=>{
     if(!user){onRequestAuth&&onRequestAuth();return;}          // compte requis pour générer (même gratuit)
-    if(promptCount>=limit.prompts){setView("landing");return;}
+    const _useCredit=promptCount>=limit.prompts;   // gratuits épuisés → on puise dans les recharges
+    if(_useCredit&&credits<=0){setShowPaywall(true);return;}
     // Nettoyage : on efface TOUTES les sorties précédentes avant de regénérer, sinon un champ absent
     // de la nouvelle réponse laisse l'ancienne valeur affichée (et on croit que ça n'a pas marché).
     setStyleTxt("");setStyleTxtC("");setStructTxt("");setStructTxtC("");setStructNotes("");setExcludeTxt("");
@@ -1719,8 +1738,13 @@ export default function App({ user, onLogout, onRequestAuth }) {
     }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie ":"Generation error, try again "); return; }
     setConflicts(data.conflicts||[]);
     setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setEditTxt(data.editStr||"");setEditList(Array.isArray(data.editPrompts)?data.editPrompts:[]);setEditOpen(false);setSliderRec(data.sliderRec||null);setCritic(data.critic||null);setMeterInfo(data.meterLead?{lead:data.meterLead,auto:!!data.meterAuto}:null);setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);setTasteTxt(data.tasteStr||"");
-    const nc=promptCount+1;setPromptCount(nc);
-    if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
+    if(_useCredit){
+      const cr=Math.max(0,credits-1);setCredits(cr);
+      if(user?.email) supabase.from('users').update({prompt_credits:cr}).eq('email',user.email);
+    } else {
+      const nc=promptCount+1;setPromptCount(nc);
+      if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
+    }
     saveToHistory(data.styleStr);
     setTab("output");
   };
@@ -1897,7 +1921,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
         <div style={S.sub}>{t.sub}</div>
         <div style={{fontSize:"0.55rem",color:"#555",marginTop:"4px",display:"flex",justifyContent:"center",gap:"12px",alignItems:"center",flexWrap:"wrap"}}>
-          <span>{limit.prompts===Infinity?(uiLang==="fr"?"Illimité":"Unlimited"):<><b style={{color:Math.max(0,limit.prompts-promptCount)>0?"#4caf50":RED}}>{Math.max(0,limit.prompts-promptCount)}</b> {uiLang==="fr"?"essais gratuits":"free trials left"}</>} · <span onClick={()=>setShowPaywall(true)} style={{color:RED,textDecoration:"none",fontWeight:700,cursor:"pointer"}}>{t.plans}</span></span>
+          <span>{limit.prompts===Infinity?(uiLang==="fr"?"Illimité":"Unlimited"):<><b style={{color:Math.max(0,limit.prompts-promptCount)>0?"#4caf50":RED}}>{Math.max(0,limit.prompts-promptCount)}</b> {uiLang==="fr"?"essais gratuits":"free trials left"}{credits>0&&<> · <b style={{color:"#4caf50"}}>{credits}</b> {uiLang==="fr"?"prompts achetés":"bought prompts"}</>}</>} · <span onClick={()=>setShowPaywall(true)} style={{color:RED,textDecoration:"none",fontWeight:700,cursor:"pointer"}}>{t.plans}</span></span>
           <div style={{display:"flex",gap:"6px",alignItems:"center"}}>
             {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#1a0000":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"3px",color:uiLang===l?RED:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{l.toUpperCase()}</button>)}
             <button onClick={()=>{if(window.confirm(L("Réinitialiser tous les réglages et vider la sauvegarde ? Cette action recharge la page.","Reset all settings and clear saved state? This reloads the page."))) resetAll();}} title={L("Réinitialiser l'app (vide la sauvegarde)","Reset app (clears saved state)")} style={{background:"none",border:"1px solid #333",borderRadius:"3px",color:"#555",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{L("RÉINIT.","RESET")}</button>

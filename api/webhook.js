@@ -43,12 +43,32 @@ export default async function handler(req, res) {
     const session = event.data.object
     const email = session.customer_details?.email || session.customer_email
 
-    // Plan unique : TOUT paiement = accès complet (tier 'pro'). Plus besoin de matcher des price IDs.
-    const tier = 'pro'
+    // Quoi a été acheté ? On lit les metadata du Payment Link (copiées sur la session),
+    // avec un plan B par ID de lien.
+    const PACK_LINKS = {
+      plink_1UVaugP7FMUYG6wCM6axWWlK: 10,
+      plink_1UVauhP7FMUYG6wC8GDVyFIv: 30,
+      plink_1UVauiP7FMUYG6wCMNFEsAKX: 50,
+    }
+    const LIFETIME_LINK = 'plink_1UVZw2P7FMUYG6wCvOZ7yJcS'
+    const md = session.metadata || {}
+    const packPrompts =
+      md.kind === 'pack' ? parseInt(md.prompts, 10) || 0 : PACK_LINKS[session.payment_link] || 0
 
-    // Paiement unique (mode « payment ») = offre À VIE → lifetime: true (jamais rétrogradé)
-    const lifetime = session.mode === 'payment'
-    if (email) {
+    if (email && packPrompts > 0) {
+      // Recharge de prompts : on AJOUTE des crédits, on ne touche pas au tier.
+      const { data: u } = await supabase
+        .from('users').select('prompt_credits').eq('email', email).maybeSingle()
+      const credits = (u?.prompt_credits || 0) + packPrompts
+      await supabase.from('users').upsert(
+        { email, prompt_credits: credits, ...(session.customer ? { stripe_customer_id: session.customer } : {}) },
+        { onConflict: 'email' }
+      )
+    } else if (email) {
+      // Abonnement Forge Plus ou offre À VIE → accès complet (tier 'pro')
+      const tier = 'pro'
+      const lifetime =
+        session.mode === 'payment' && (md.kind === 'lifetime' || session.payment_link === LIFETIME_LINK)
       await supabase.from('users').upsert(
         {
           email,

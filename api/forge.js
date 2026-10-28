@@ -493,9 +493,13 @@ export default function handler(req, res) {
 
   const _tun = tuning[0] || autoTuning || '';
   // Modes → DESCRIPTIF (Suno lit mal les noms de modes ; le descriptif marche mieux — cf. guide God Mode)
-  const MODE_DESC = { 'phrygian dominant':'dark exotic Middle-Eastern flavor', 'phrygian':'dark Spanish flamenco tension', 'harmonic minor':'neoclassical dramatic minor', 'melodic minor':'sophisticated jazzy minor', 'dorian':'jazzy soulful minor', 'aeolian':'natural melancholic minor', 'locrian':'unstable dissonant tension', 'lydian':'dreamy floating bright', 'mixolydian':'bluesy dominant groove', 'ionian':'bright major', 'minor':'dark minor' };
-  // Phrygien hors genres « world » : en metal c'est la menace du demi-ton (b2), pas le flamenco — « Spanish flamenco » faisait dériver Suno (2026-10-27)
-  if (!_worldGenre) MODE_DESC['phrygian'] = 'ominous half-step menace';
+  // Descriptifs NEUTRES par défaut : jamais un autre genre (flamenco, jazzy, bluesy, Middle-Eastern…) qui fait dériver Suno.
+  // La couleur « genre » revient seulement si le genre choisi la porte déjà (2026-10-27).
+  const MODE_DESC = { 'phrygian dominant':'serpentine augmented-second menace', 'phrygian':'ominous half-step menace', 'harmonic minor':'dramatic harmonic minor runs', 'melodic minor':'dark ascending minor tension', 'dorian':'brooding open minor', 'aeolian':'natural melancholic minor', 'locrian':'unstable dissonant tension', 'lydian':'eerie floating raised fourth', 'mixolydian':'swaggering dominant groove', 'ionian':'bright major', 'minor':'dark minor' };
+  if (_worldGenre) Object.assign(MODE_DESC, { 'phrygian dominant':'dark exotic Middle-Eastern flavor', 'phrygian':'dark Spanish flamenco tension' });
+  if (/jazz|fusion|avant/.test(_gtxt)) Object.assign(MODE_DESC, { 'melodic minor':'sophisticated jazzy minor', 'dorian':'jazzy soulful minor' });
+  if (/neoclassical|power/.test(_gtxt)) MODE_DESC['harmonic minor'] = 'neoclassical dramatic minor';
+  if (/stoner|doom|southern|blues|hard rock|occult|proto/.test(_gtxt)) MODE_DESC['mixolydian'] = 'bluesy dominant groove';
   const _found = String(scaleTag).match(/phrygian dominant|harmonic minor|melodic minor|phrygian|dorian|aeolian|mixolydian|ionian|locrian|lydian|minor/g) || [];
   const _uniqModes = [...new Set(_found)].slice(0, 2);
   const _tonality = _uniqModes.length ? _uniqModes.map(m => MODE_DESC[m] || m).join(', ') : '';

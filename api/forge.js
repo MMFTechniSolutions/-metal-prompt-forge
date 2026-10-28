@@ -494,6 +494,8 @@ export default function handler(req, res) {
   const _tun = tuning[0] || autoTuning || '';
   // Modes → DESCRIPTIF (Suno lit mal les noms de modes ; le descriptif marche mieux — cf. guide God Mode)
   const MODE_DESC = { 'phrygian dominant':'dark exotic Middle-Eastern flavor', 'phrygian':'dark Spanish flamenco tension', 'harmonic minor':'neoclassical dramatic minor', 'melodic minor':'sophisticated jazzy minor', 'dorian':'jazzy soulful minor', 'aeolian':'natural melancholic minor', 'locrian':'unstable dissonant tension', 'lydian':'dreamy floating bright', 'mixolydian':'bluesy dominant groove', 'ionian':'bright major', 'minor':'dark minor' };
+  // Phrygien hors genres « world » : en metal c'est la menace du demi-ton (b2), pas le flamenco — « Spanish flamenco » faisait dériver Suno (2026-10-27)
+  if (!_worldGenre) MODE_DESC['phrygian'] = 'ominous half-step menace';
   const _found = String(scaleTag).match(/phrygian dominant|harmonic minor|melodic minor|phrygian|dorian|aeolian|mixolydian|ionian|locrian|lydian|minor/g) || [];
   const _uniqModes = [...new Set(_found)].slice(0, 2);
   const _tonality = _uniqModes.length ? _uniqModes.map(m => MODE_DESC[m] || m).join(', ') : '';

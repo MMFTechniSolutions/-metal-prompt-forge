@@ -4,8 +4,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { load, chunk } from './_common.mjs';
 const URL = process.env.SUPABASE_URL || 'https://wlnttrzmjfefyghxlbyb.supabase.co';
-const KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
-if (!KEY) { console.log('✖ SUPABASE_SERVICE_ROLE_KEY absente (Supabase → Project Settings → API Keys → service_role).'); process.exit(1); }
+let KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+if (!KEY) {   // pas de clé : on la demande (Supabase → Project Settings → API Keys → service_role / secret)
+  const rl = (await import('node:readline')).createInterface({ input: process.stdin, output: process.stdout });
+  KEY = (await new Promise(r => rl.question('Colle ta clé Supabase service_role (ou secret) puis Entrée : ', r))).trim().replace(/^["']|["']$/g, '');
+  rl.close();
+}
+if (!KEY) { console.log('✖ Pas de clé.'); process.exit(1); }
 const sb = createClient(URL, KEY, { auth: { persistSession: false } });
 const cache = load('bands-cache.json', {});
 const rows = Object.entries(cache).map(([name_key, x]) => ({ name_key, band: x.band, genre: x.genre, flavor: x.flavor || '', signature: x.signature || [], confidence: x.confidence || 'medium' }));

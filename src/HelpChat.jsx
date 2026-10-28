@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 
-const RED = '#ff2e2e'
+const RED = '#FF6A2B'
 
 export default function HelpChat() {
   const [open, setOpen] = useState(false)
@@ -118,7 +118,7 @@ export default function HelpChat() {
           fontWeight: 800,
           fontSize: '0.85rem',
           cursor: 'pointer',
-          boxShadow: '0 6px 20px #ff2e2e55',
+          boxShadow: '0 6px 20px #FF6A2B55',
           display: 'flex',
           alignItems: 'center',
           gap: '8px',

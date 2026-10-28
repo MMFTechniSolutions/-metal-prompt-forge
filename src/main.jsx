@@ -23,8 +23,8 @@ function Root() {
   }, [])
 
   if (loading) return (
-    <div style={{ background:"#0a0a0a", minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <div style={{ color:"#ff2e2e", fontSize:"1.5rem" }}>⚙️</div>
+    <div style={{ background:"#0C0D0F", minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <div style={{ color:"#FF6A2B", fontSize:"1.5rem" }}>⚙️</div>
     </div>
   )
 

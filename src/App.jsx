@@ -457,9 +457,9 @@ const STRIPE_MENSUEL = "https://buy.stripe.com/9B66oJ1kI1avgb83obfQI07";        
 const LIFETIME = { price:"$50", regular:"$120", stripe:"https://buy.stripe.com/bJefZj4wU06r4sq7ErfQI08", start:"2026-11-27T00:00:00-05:00", end:"2026-12-01T00:00:00-05:00" };
 // Recharges de prompts (paiement unique, n'expirent jamais) — oct. 2026
 const PACKS = [
-  {n:10, price:"$5",  per:"0,50 $", stripe:"https://buy.stripe.com/aFaaEZgfC3iD6AycYLfQI09"},
-  {n:30, price:"$10", per:"0,33 $", stripe:"https://buy.stripe.com/6oUdRb0gE9H18IG9MzfQI0a", best:true},
-  {n:50, price:"$20", per:"0,40 $", stripe:"https://buy.stripe.com/6oU5kFfbydXh2ki6AnfQI0b"},
+  {n:10, price:"5 $",  per:"0,50 $", stripe:"https://buy.stripe.com/aFaaEZgfC3iD6AycYLfQI09"},
+  {n:30, price:"10 $", per:"0,33 $", stripe:"https://buy.stripe.com/6oUdRb0gE9H18IG9MzfQI0a", best:true},
+  {n:50, price:"20 $", per:"0,40 $", stripe:"https://buy.stripe.com/6oU5kFfbydXh2ki6AnfQI0b"},
 ];
 const lifetimeActive=()=>{try{if(new URLSearchParams(location.search).get('avie')==='1')return true;}catch(e){}const n=Date.now();return n>=Date.parse(LIFETIME.start)&&n<Date.parse(LIFETIME.end);};
 const lifetimeLeft=()=>{const ms=Date.parse(LIFETIME.end)-Date.now();if(ms<=0)return "";const d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5);return d>0?`${d} j ${h} h`:`${h} h`;};
@@ -541,11 +541,11 @@ function SelAll({all,set,L}){
 
 // ── STYLES ──
 const S = {
-  wrap:    {background:"radial-gradient(1100px 520px at 50% -8%, rgba(255,106,43,0.13), rgba(255,106,43,0) 65%), #0C0D0F",color:"#E3E4E7",minHeight:"100vh"},
-  header:  {background:"rgba(12,13,15,0.82)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"14px 20px 10px",textAlign:"center",position:"relative"},
+  wrap:    {overflowX:"hidden",background:"radial-gradient(1100px 520px at 50% -8%, rgba(255,106,43,0.13), rgba(255,106,43,0) 65%), #0C0D0F",color:"#E3E4E7",minHeight:"100vh"},
+  header:  {background:"rgba(12,13,15,0.82)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"12px 24px",textAlign:"left",position:"relative"},
   h1:      {fontSize:"1.35rem",color:"#F2F1ED"},
   sub:     {fontSize:"0.6rem",color:"#8A8F97",letterSpacing:"2px",textTransform:"uppercase",marginTop:"4px"},
-  navBtn:  (a,locked)=>({flex:"0 0 auto",padding:"7px 9px",fontSize:"0.52rem",fontWeight:700,letterSpacing:"0.5px",textTransform:"uppercase",textAlign:"center",cursor:"pointer",border:"none",background:a?"#2a1208":"none",color:locked?"#2a2a2a":a?RED:"#555",borderBottom:a?`2px solid ${RED}`:"2px solid transparent",whiteSpace:"nowrap",transition:"all 0.2s"}),
+  navBtn:  (a,locked)=>({flex:"0 0 auto",padding:"10px 12px",fontSize:"0.88rem",fontWeight:500,textAlign:"center",cursor:"pointer",border:"none",background:"none",color:locked?"#5C6068":a?"#F2F1ED":"#B9BDC4",borderBottom:a?`1px solid ${RED}`:"1px solid transparent",whiteSpace:"nowrap",transition:"color 0.2s"}),
   page:    {padding:"14px",maxWidth:"1000px",margin:"0 auto"},
   card:    {background:"rgba(22,24,28,0.72)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"14px",padding:"14px",marginBottom:"12px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.04)"},
   ctitle:  {fontSize:"0.6rem",textTransform:"uppercase",letterSpacing:"2px",color:"#FFB36B",fontWeight:600,fontFamily:"'Geist Mono',monospace",marginBottom:"10px"},
@@ -698,64 +698,58 @@ function PaywallModal({onClose,email,uiLang}) {
   const year=billing==="year";
   const priceOf=t=>year&&t.priceYear?t.priceYear:t.price;
   const checkoutUrl=year&&tier.stripeYear?tier.stripeYear:tier.stripe;
+  const CARDS={flex:"1 1 260px",boxSizing:"border-box",background:"rgba(22,24,28,0.78)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:"18px",padding:"24px",display:"flex",flexDirection:"column",gap:"16px",textAlign:"left"};
+  const MONO={fontFamily:"'Geist Mono',monospace",fontSize:"0.68rem",letterSpacing:"0.08em",textTransform:"uppercase",color:"#FFB36B"};
+  const dot=on=><span style={{color:on?"#FF6A2B":"#5C6068",marginRight:"10px"}}>{on?"●":"○"}</span>;
+  const LI=(t,on=true)=><li key={t} style={{display:"flex",alignItems:"baseline",color:on?"#D4D6DA":"#8A8F97",fontSize:"0.92rem",lineHeight:1.5}}>{dot(on)}{t}</li>;
+  const UL={margin:0,padding:0,listStyle:"none",display:"flex",flexDirection:"column",gap:"9px"};
+  const big={fontSize:"2.4rem",fontWeight:600,letterSpacing:"-0.03em",color:"#F2F1ED"};
+  const btnW={display:"block",textAlign:"center",textDecoration:"none",padding:"14px",borderRadius:"12px",fontWeight:600,fontSize:"0.95rem"};
   return (
-    <div style={{position:"fixed",inset:0,background:"#000000dd",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px",overflowY:"auto"}}>
-      <div style={{background:"#0f0f0f",border:"1px solid #333",borderRadius:"14px",padding:"22px 18px",maxWidth:"420px",width:"100%"}}>
-        <div style={{textAlign:"center",marginBottom:"14px"}}>
-          <div style={{fontSize:"0.6rem",color:"#555",letterSpacing:"3px",textTransform:"uppercase",marginBottom:"6px"}}>{L("PROMPT GRATUIT UTILISÉ","FREE PROMPT USED")}</div>
-          <div className="forge-title" style={{fontSize:"1.5rem",color:"#fff",letterSpacing:"4px"}}>{L("CHOISIS TON PLAN","CHOOSE YOUR PLAN")}</div>
+    <div style={{position:"fixed",inset:0,background:"rgba(6,7,8,0.88)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",zIndex:1000,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"32px 16px",overflowY:"auto"}}>
+      <div style={{position:"relative",background:"radial-gradient(700px 300px at 50% 0%, rgba(255,106,43,0.12), rgba(255,106,43,0) 70%), #0E0F12",border:"1px solid rgba(255,255,255,0.09)",borderRadius:"22px",padding:"34px 26px 24px",maxWidth:"1040px",width:"100%",boxShadow:"0 40px 120px rgba(0,0,0,0.7)"}}>
+        <button onClick={onClose} aria-label={L("Fermer","Close")} style={{position:"absolute",top:"14px",right:"16px",background:"none",border:"none",color:"#8A8F97",fontSize:"1.4rem",cursor:"pointer"}}>×</button>
+        <div style={{textAlign:"center",display:"flex",flexDirection:"column",gap:"10px",marginBottom:"26px"}}>
+          <span style={MONO}>{L("Forfaits","Plans")}</span>
+          <div className="forge-title" style={{fontSize:"clamp(1.9rem,5vw,2.9rem)",color:"#FFFFFF",lineHeight:1.05}}>{L("Recharge ou forge sans limite.","Top up or forge without limits.")}</div>
+          <div style={{fontSize:"1rem",color:"#D4D6DA"}}>{L("Pas d'abonnement obligé. Les prompts achetés n'expirent jamais.","No subscription required. Bought prompts never expire.")}</div>
         </div>
-        <div style={{marginBottom:"16px"}}>
-          <div style={{fontSize:"0.62rem",color:"#aaa",textAlign:"center",marginBottom:"8px"}}>{L("Recharge de prompts, sans abonnement, n'expire jamais","Prompt packs, no subscription, never expire")}</div>
-          <div style={{display:"flex",gap:"8px"}}>
-            {PACKS.map(pk=><a key={pk.n} href={payUrl(pk.stripe,email)} target="_blank" rel="noopener noreferrer" style={{flex:1,textDecoration:"none",textAlign:"center",padding:"10px 4px",borderRadius:"10px",border:`1px solid ${pk.best?"#FF6A2B":"#333"}`,background:pk.best?"#2a1208":"#151515",color:"#fff"}}>
-              <div style={{fontWeight:800,fontSize:"0.85rem"}}>{pk.n} prompts</div>
-              <div style={{fontSize:"1.1rem",fontWeight:900,margin:"2px 0"}}>{pk.price}</div>
-              <div style={{fontSize:"0.55rem",color:"#999"}}>{pk.per} {L("le prompt","each")}</div>
-            </a>)}
-          </div>
-          <div style={{fontSize:"0.58rem",color:"#666",textAlign:"center",marginTop:"10px"}}>{L("ou illimité avec l'abonnement ↓","or unlimited with the subscription ↓")}</div>
-        </div>
-        {Object.values(TIERS).some(t=>t.priceYear)&&<div style={{display:"flex",justifyContent:"center",gap:"8px",marginBottom:"16px"}}>
-          <button onClick={()=>setBilling("month")} style={{padding:"6px 16px",borderRadius:"20px",border:`1px solid ${!year?"#FF6A2B":"#333"}`,background:!year?"#2a1208":"#111",color:!year?"#FFB36B":"#666",fontSize:"0.66rem",fontWeight:700,cursor:"pointer"}}>{L("Mensuel","Monthly")}</button>
-          <button onClick={()=>setBilling("year")} style={{padding:"6px 16px",borderRadius:"20px",border:`1px solid ${year?"#4caf50":"#333"}`,background:year?"#0a1f00":"#111",color:year?"#7fdd7f":"#666",fontSize:"0.66rem",fontWeight:700,cursor:"pointer"}}>{L("Annuel","Annual")} · {L("2 mois gratuits","2 months free")}</button>
-        </div>}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",marginBottom:"18px"}}>
-          {Object.values(TIERS).filter(t=>t.id!=="free").map(t=>(
-            <div key={t.id} onClick={()=>setSel(t.id)}
-              style={{background:sel===t.id?"#2a1208":"#111",border:`1.5px solid ${sel===t.id?t.color:"#222"}`,borderRadius:"8px",padding:"10px 6px",textAlign:"center",cursor:"pointer"}}>
-              <div style={{fontSize:"0.65rem",fontWeight:900,color:sel===t.id?t.color:"#555",letterSpacing:"1px",marginBottom:"4px"}}>{t.label}</div>
-              {t.launch&&<div style={{fontSize:"0.55rem",color:"#777",textDecoration:"line-through"}}>{(year&&t.priceOldYear?t.priceOldYear:t.priceOld||"").split("/")[0]}</div>}
-              <div style={{fontSize:"0.9rem",fontWeight:900,color:t.launch?"#7fdd7f":"#fff"}}>{priceOf(t).split("/")[0]}</div>
-              <div style={{fontSize:"0.5rem",color:"#444"}}>{year&&t.priceYear?L("/an","/yr"):L("/mois","/mo")} · USD</div>
-              {t.launch&&<div style={{fontSize:"0.42rem",color:"#7fdd7f",fontWeight:900,letterSpacing:"0.5px",marginTop:"2px"}}>{L("LANCEMENT","LAUNCH")}</div>}
+        <div style={{display:"flex",flexWrap:"wrap",gap:"18px",alignItems:"stretch"}}>
+          <section style={CARDS}>
+            <span style={{fontWeight:600,fontSize:"1.15rem",color:"#F2F1ED"}}>{L("Recharges","Top-ups")}</span>
+            <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+              {PACKS.map(pk=><a key={pk.n} href={payUrl(pk.stripe,email)} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",textDecoration:"none",padding:"12px 14px",borderRadius:"12px",border:`1px solid ${pk.best?"rgba(255,106,43,0.6)":"rgba(255,255,255,0.10)"}`,background:pk.best?"rgba(255,106,43,0.10)":"rgba(255,255,255,0.03)",color:"#F2F1ED"}}>
+                <span style={{display:"flex",flexDirection:"column"}}><span style={{fontWeight:600}}>{pk.n} prompts{pk.best&&<span style={{...MONO,fontSize:"0.58rem",marginLeft:"8px"}}>{L("Populaire","Popular")}</span>}</span><span style={{fontSize:"0.72rem",color:"#9A9DA3",fontFamily:"'Geist Mono',monospace"}}>{pk.per} {L("le prompt","each")}</span></span>
+                <span style={{fontSize:"1.3rem",fontWeight:600}}>{pk.price}</span>
+              </a>)}
             </div>
-          ))}
+            <span style={{fontSize:"0.75rem",color:"#8A8F97",marginTop:"auto"}}>{L("Paiement unique, sans abonnement.","One-time payment, no subscription.")}</span>
+          </section>
+          <section style={{...CARDS,borderColor:"rgba(255,255,255,0.22)"}}>
+            <span style={{fontWeight:600,fontSize:"1.15rem",color:"#F2F1ED"}}>Forge Plus</span>
+            <span style={{display:"flex",alignItems:"baseline",gap:"8px"}}><span style={big}>2,99 $</span><span style={{color:"#B9BDC4"}}>US / {L("mois","month")}</span></span>
+            <ul style={UL}>{LI(L("Prompts illimités","Unlimited prompts"))}{LI(L("Paroles complètes en anglais","Full English lyrics"))}{LI(L("Mélodie et riff, export WAV","Melody & riff, WAV export"))}{LI(L("Galerie et réglages fins","Gallery & fine tuning"))}</ul>
+            <a href={payUrl(STRIPE_MENSUEL,email)} target="_blank" rel="noreferrer" style={{...btnW,marginTop:"auto",background:"#F2F1ED",color:"#0C0D0F"}}>{L("Passer à Plus","Go Plus")}</a>
+          </section>
+          {lifetimeActive()&&<section style={{...CARDS,background:"linear-gradient(160deg, rgba(255,106,43,0.18), rgba(22,24,28,0.85) 55%)",border:"1px solid rgba(255,106,43,0.55)",boxShadow:"0 0 60px rgba(255,106,43,0.18)"}}>
+            <span style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px"}}><span style={{fontWeight:600,fontSize:"1.15rem",color:"#F2F1ED"}}>{L("Fan à vie","Lifetime fan")}</span><span style={{...MONO,padding:"4px 9px",border:"1px solid rgba(255,179,107,0.5)",borderRadius:"999px"}}>Black Friday</span></span>
+            <span style={{display:"flex",alignItems:"baseline",gap:"8px",flexWrap:"wrap"}}><span style={{fontSize:"1.2rem",color:"#8A8F97",textDecoration:"line-through"}}>120 $</span><span style={big}>50 $</span><span style={{padding:"3px 8px",borderRadius:"6px",background:"#FF6A2B",color:"#160A04",fontWeight:600,fontSize:"0.8rem"}}>-58 %</span></span>
+            <ul style={UL}>{LI(L("Tout Forge Plus, pour toujours","All of Forge Plus, forever"))}{LI(L("Un seul paiement, jamais de renouvellement","One payment, never renews"))}{LI(L("Toutes les mises à jour à venir","All future updates"))}</ul>
+            <span style={{fontFamily:"'Geist Mono',monospace",fontSize:"0.74rem",color:"#FFD2B8",marginTop:"auto"}}>{L("Seulement 100 places","Only 100 spots")}{lifetimeLeft()?" · "+L("finit dans ","ends in ")+lifetimeLeft():""}</span>
+            <a href={payUrl(LIFETIME.stripe,email)} target="_blank" rel="noreferrer" style={{...btnW,background:"#FF6A2B",color:"#160A04"}}>{L("Devenir fan à vie","Become a lifetime fan")}</a>
+          </section>}
         </div>
-        <div style={{background:"#0a0a0a",border:`1px solid ${tier.color}22`,borderRadius:"8px",padding:"14px",marginBottom:"16px",minHeight:"160px"}}>
-          <div style={{fontSize:"0.58rem",color:tier.color,letterSpacing:"2px",textTransform:"uppercase",fontWeight:800,marginBottom:"10px"}}>{tier.label} — {tier.launch&&<span style={{textDecoration:"line-through",color:"#666",marginRight:"5px"}}>{(year&&tier.priceOldYear?tier.priceOldYear:tier.priceOld||"").split("/")[0]}</span>}{priceOf(tier)} {tier.launch?L("· LANCEMENT","· LAUNCH"):""} — {L("INCLUS","INCLUDED")}</div>
-          {(uiLang==="en"?tier.featuresEn:tier.features)?.map(f=><div key={f} style={{fontSize:"0.7rem",color:f.startsWith("✅")?"#ccc":"#333",padding:"3px 0"}}>{f}</div>)}
+        <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"center",gap:"10px",marginTop:"24px"}}>
+          <span style={{fontSize:"0.8rem",color:"#8A8F97"}}>{L("Tu as un code promo ?","Have a promo code?")}</span>
+          <input value={promo} onChange={e=>{setPromo(e.target.value.toUpperCase());setPromoMsg(null);}} onKeyDown={e=>{if(e.key==="Enter")redeemPromo();}} placeholder={L("CODE PROMO","PROMO CODE")}
+            style={{width:"180px",background:"rgba(0,0,0,0.35)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:"10px",padding:"10px 12px",color:"#F2F1ED",fontSize:"0.8rem",letterSpacing:"2px",fontFamily:"'Geist Mono',monospace",textTransform:"uppercase"}}/>
+          <button onClick={redeemPromo} disabled={promoBusy} style={{padding:"10px 16px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.14)",borderRadius:"10px",color:"#F2F1ED",fontWeight:600,fontSize:"0.8rem",cursor:promoBusy?"default":"pointer"}}>{promoBusy?"…":L("Activer","Redeem")}</button>
         </div>
-        {lifetimeActive()&&<a href={payUrl(LIFETIME.stripe,email)} target="_blank" rel="noreferrer" style={{display:"block",textDecoration:"none",background:"linear-gradient(135deg,#2a1a00,#2a1208)",border:"1.5px solid #ffbb33",borderRadius:"10px",padding:"14px",marginBottom:"12px",textAlign:"center"}}>
-          <div style={{fontSize:"0.58rem",color:"#ffbb33",letterSpacing:"3px",fontWeight:900}}>🔥 {L("BLACK FRIDAY — DURÉE LIMITÉE","BLACK FRIDAY — LIMITED TIME")}</div>
-          <div style={{fontSize:"1.5rem",fontWeight:900,color:"#fff",margin:"4px 0"}}><span style={{fontSize:"0.9rem",color:"#777",textDecoration:"line-through",marginRight:"6px"}}>{LIFETIME.regular}</span>{LIFETIME.price} <span style={{fontSize:"0.8rem",color:"#ffbb33"}}>{L("à vie","lifetime")}</span> <span style={{fontSize:"0.7rem",background:"#FF6A2B",color:"#160A04",borderRadius:"6px",padding:"2px 6px",verticalAlign:"middle"}}>-58 %</span></div>
-          <div style={{fontSize:"0.66rem",color:"#d0c8b0"}}>{L("Un seul paiement, accès complet pour toujours. Seulement 100 places.","One payment, full access forever. Only 100 spots.")}{lifetimeLeft()?" · "+L("Finit dans ","Ends in ")+lifetimeLeft():""}</div>
-        </a>}
-        <a href={payUrl(checkoutUrl,email)} target="_blank" rel="noreferrer"
-          style={{display:"block",width:"100%",padding:"14px",background:tier.color,borderRadius:"8px",color:sel==="elite"?"#fff":"#000",fontWeight:900,fontSize:"0.85rem",letterSpacing:"2px",textTransform:"uppercase",textDecoration:"none",textAlign:"center",marginBottom:"10px"}}>
-          {L("COMMENCER","START")} {tier.label} {year?L("(annuel)","(annual)"):""}
-        </a>
-        <div style={{borderTop:"1px solid #1c1c1c",margin:"4px 0 12px",paddingTop:"14px"}}>
-          <div style={{fontSize:"0.55rem",color:"#666",letterSpacing:"2px",textTransform:"uppercase",fontWeight:800,marginBottom:"8px",textAlign:"center"}}>{L("Tu as un code promo ?","Have a promo code?")}</div>
-          <div style={{display:"flex",gap:"8px"}}>
-            <input value={promo} onChange={e=>{setPromo(e.target.value.toUpperCase());setPromoMsg(null);}} onKeyDown={e=>{if(e.key==="Enter")redeemPromo();}} placeholder={L("CODE PROMO","PROMO CODE")}
-              style={{flex:1,background:"#0a0a0a",border:"1px solid #333",borderRadius:"7px",padding:"11px 12px",color:"#fff",fontSize:"0.8rem",letterSpacing:"2px",fontFamily:"'Geist Mono',monospace",textTransform:"uppercase"}}/>
-            <button onClick={redeemPromo} disabled={promoBusy} style={{padding:"0 18px",background:promoBusy?"#222":"#7fdd7f",border:"none",borderRadius:"7px",color:promoBusy?"#666":"#000",fontWeight:900,fontSize:"0.72rem",letterSpacing:"1px",textTransform:"uppercase",cursor:promoBusy?"default":"pointer",whiteSpace:"nowrap"}}>{promoBusy?"…":L("Activer","Redeem")}</button>
-          </div>
-          {promoMsg&&<div style={{fontSize:"0.68rem",marginTop:"8px",color:promoMsg.ok?"#7fdd7f":"#ff6b6b",lineHeight:1.4}}>{promoMsg.text}</div>}
-          <div style={{fontSize:"0.55rem",color:"#444",marginTop:"6px",textAlign:"center"}}>{L("30 jours d'accès complet gratuit.","30 days full access, free.")}</div>
+        {promoMsg&&<div style={{fontSize:"0.8rem",marginTop:"8px",textAlign:"center",color:promoMsg.ok?"#7fdd7f":"#ff8a6b"}}>{promoMsg.text}</div>}
+        <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",gap:"10px",marginTop:"18px",fontSize:"0.72rem",color:"#8A8F97"}}>
+          <span>{L("Paiement sécurisé par Stripe. Prix en dollars américains.","Secure payment by Stripe. Prices in US dollars.")}</span>
+          <button onClick={onClose} style={{background:"none",border:"none",color:"#8A8F97",fontSize:"0.72rem",cursor:"pointer",textDecoration:"underline"}}>{L("Continuer sans payer","Continue without paying")}</button>
         </div>
-        <button onClick={onClose} style={{width:"100%",background:"none",border:"none",color:"#333",fontSize:"0.65rem",cursor:"pointer",textDecoration:"underline"}}>{L("Continuer sans abonnement","Continue without a plan")}</button>
       </div>
     </div>
   );
@@ -1125,6 +1119,8 @@ function LegalModal({doc,onClose,uiLang}){
   );
 }
 
+const MP_WAVE="M0 136 L3 136 L9 136 L15 135 L21 135 L27 135 L33 135 L39 136 L45 137 L51 137 L57 137 L63 137 L69 136 L75 134 L81 134 L87 134 L93 134 L99 135 L105 138 L111 139 L117 138 L123 139 L129 137 L135 132 L141 132 L147 132 L153 131 L159 134 L165 141 L171 142 L177 142 L183 143 L189 138 L195 128 L201 127 L207 128 L213 126 L219 133 L225 147 L231 149 L237 148 L243 150 L249 140 L255 120 L261 118 L267 120 L273 116 L279 130 L285 157 L291 160 L297 157 L303 162 L309 144 L315 108 L321 105 L327 108 L333 102 L339 126 L345 171 L351 176 L357 172 L363 180 L369 149 L375 90 L381 85 L387 90 L393 80 L399 120 L405 193 L411 196 L417 190 L423 201 L429 157 L435 69 L441 61 L447 70 L453 56 L459 116 L465 212 L471 218 L477 214 L483 227 L489 161 L495 49 L501 42 L507 49 L513 40 L519 110 L525 237 L531 243 L537 224 L543 244 L549 169 L555 28 L561 26 L567 34 L573 14 L579 99 L585 255 L591 258 L597 245 L603 262 L609 174 L615 18 L621 15 L627 33 L633 9 L639 107 L645 250 L651 257 L657 248 L663 266 L669 173 L675 20 L681 6 L687 33 L693 20 L699 108 L705 244 L711 251 L717 237 L723 250 L729 172 L735 31 L741 31 L747 48 L753 31 L759 102 L765 229 L771 238 L777 219 L783 232 L789 162 L795 53 L801 48 L807 61 L813 52 L819 115 L825 210 L831 212 L837 200 L843 208 L849 157 L855 75 L861 71 L867 84 L873 75 L879 120 L885 187 L891 190 L897 181 L903 185 L909 148 L915 95 L921 94 L927 101 L933 98 L939 126 L945 169 L951 169 L957 163 L963 166 L969 144 L975 111 L981 111 L987 116 L993 113 L999 130 L1005 155 L1011 155 L1017 151 L1023 153 L1029 140 L1035 122 L1041 122 L1047 125 L1053 124 L1059 133 L1065 146 L1071 146 L1077 144 L1083 144 L1089 138 L1095 129 L1101 129 L1107 131 L1113 130 L1119 134 L1125 141 L1131 141 L1137 140 L1143 140 L1149 137 L1155 133 L1161 133 L1167 134 L1173 133 L1179 135 L1185 138 L1191 138 L1197 138 L1203 138 L1209 136 L1215 135 L1221 135 L1227 135 L1233 135 L1239 136 L1245 137 L1251 137 L1257 137 L1263 137 L1269 136 L1275 136";
+function MPLogo({w=40}){return <svg width={w} height={Math.round(w*0.8)} viewBox="0 0 60 48" role="img" aria-label="MetalPrompt" style={{flexShrink:0}}><g fill="#F2F1ED" stroke="#F2F1ED" strokeWidth="1" strokeLinejoin="round"><path d="M6 43 L8.6 6.5 Q9 3.6 11.6 4.2 Q13.2 4.6 14 6.4 L24 28 L34 9.4 Q34.9 7.8 36.6 8.3 Q38.6 8.9 38.7 11.2 L42 43 H34.8 L33.4 22.5 L24 38 L14.6 21 L13.2 43 Z"/><path d="M39.2 14 H46.5 Q56 14 56 23.2 Q56 32.4 46.5 32.4 H40.6 L40 26.8 H46 Q49.4 26.8 49.4 23.2 Q49.4 19.6 46 19.6 H39.7 Z"/></g><path d="M9.4 10.6 L13.4 12.4" stroke="#FF6A2B" strokeWidth="1.6" strokeLinecap="round"/></svg>;}
 function UserChip({user,uiLang,tierBadge,tierColor,isElite,onLogout,onRequestAuth}){
   const [open,setOpen]=useState(false);
   const fr=uiLang==="fr";
@@ -1919,28 +1915,22 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* HEADER + NAV (sticky) */}
       <div style={{position:"sticky",top:0,zIndex:100}}>
       <div style={S.header}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"10px"}}>
-          <svg width="40" height="32" viewBox="0 0 60 48" role="img" aria-label="MetalPrompt" style={{flexShrink:0}}><g fill="#F2F1ED" stroke="#F2F1ED" strokeWidth="1" strokeLinejoin="round"><path d="M6 43 L8.6 6.5 Q9 3.6 11.6 4.2 Q13.2 4.6 14 6.4 L24 28 L34 9.4 Q34.9 7.8 36.6 8.3 Q38.6 8.9 38.7 11.2 L42 43 H34.8 L33.4 22.5 L24 38 L14.6 21 L13.2 43 Z"/><path d="M39.2 14 H46.5 Q56 14 56 23.2 Q56 32.4 46.5 32.4 H40.6 L40 26.8 H46 Q49.4 26.8 49.4 23.2 Q49.4 19.6 46 19.6 H39.7 Z"/></g><path d="M9.4 10.6 L13.4 12.4" stroke="#FF6A2B" strokeWidth="1.6" strokeLinecap="round"/></svg><div className="forge-title" style={S.h1}>MetalPrompt</div>
-          {tierBadge&&<span style={{background:tierColor,color:isElite?"#fff":"#000",fontSize:"0.5rem",fontWeight:900,padding:"2px 7px",borderRadius:"8px",letterSpacing:"1px"}}>{tierBadge}</span>}
-        </div>
-        <div style={S.sub}>{t.sub}</div>
-        <div style={{fontSize:"0.55rem",color:"#555",marginTop:"4px",display:"flex",justifyContent:"center",gap:"12px",alignItems:"center",flexWrap:"wrap"}}>
-          <span>{limit.prompts===Infinity?(uiLang==="fr"?"Illimité":"Unlimited"):<><b style={{color:Math.max(0,limit.prompts-promptCount)>0?"#4caf50":RED}}>{Math.max(0,limit.prompts-promptCount)}</b> {uiLang==="fr"?"essais gratuits":"free trials left"}{credits>0&&<> · <b style={{color:"#4caf50"}}>{credits}</b> {uiLang==="fr"?"prompts achetés":"bought prompts"}</>}</>} · <span onClick={()=>setShowPaywall(true)} style={{color:RED,textDecoration:"none",fontWeight:700,cursor:"pointer"}}>{t.plans}</span></span>
-          <div style={{display:"flex",gap:"6px",alignItems:"center"}}>
+        <div style={{maxWidth:"1240px",margin:"0 auto",display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:"10px 18px"}}>
+          <div onClick={()=>setTab("genre")} style={{display:"flex",alignItems:"center",gap:"10px",cursor:"pointer"}}><MPLogo/><span className="forge-title" style={S.h1}>MetalPrompt</span>{tierBadge&&<span style={{background:tierColor,color:isElite?"#fff":"#000",fontSize:"0.5rem",fontWeight:900,padding:"2px 7px",borderRadius:"8px",letterSpacing:"1px"}}>{tierBadge}</span>}</div>
+          <nav aria-label="Sections" style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"2px"}}>
+        {NAV_MAIN.map(n=>{
+          const on=n.id===tab||n.also.includes(tab);
+          return <button key={n.id} aria-current={on?"page":undefined} style={S.navBtn(on,false)} onClick={()=>{setMoreOpen(false);setTab(n.id);}}>{canAccess(n.req)?"":LOCK}{n.label}</button>;
+        })}
+        <button aria-expanded={moreOpen} style={S.navBtn(NAV_MORE.includes(tab)||moreOpen,false)} onClick={()=>setMoreOpen(o=>!o)}>{L("Plus","More")} {moreOpen?"▴":"▾"}</button>
+          </nav>
+          <div style={{display:"flex",gap:"8px",alignItems:"center",flexWrap:"wrap",justifyContent:"flex-end",fontSize:"0.72rem",color:"#8A8F97"}}>
+            <span>{limit.prompts===Infinity?(uiLang==="fr"?"Illimité":"Unlimited"):<><b style={{color:Math.max(0,limit.prompts-promptCount)>0?"#4caf50":RED}}>{Math.max(0,limit.prompts-promptCount)}</b> {uiLang==="fr"?"essais gratuits":"free trials left"}{credits>0&&<> · <b style={{color:"#4caf50"}}>{credits}</b> {uiLang==="fr"?"prompts achetés":"bought prompts"}</>}</>} · <span onClick={()=>setShowPaywall(true)} style={{color:RED,textDecoration:"none",fontWeight:700,cursor:"pointer"}}>{t.plans}</span></span>
             {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#2a1208":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"3px",color:uiLang===l?RED:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{l.toUpperCase()}</button>)}
             <button onClick={()=>{if(window.confirm(L("Réinitialiser tous les réglages et vider la sauvegarde ? Cette action recharge la page.","Reset all settings and clear saved state? This reloads the page."))) resetAll();}} title={L("Réinitialiser l'app (vide la sauvegarde)","Reset app (clears saved state)")} style={{background:"none",border:"1px solid #333",borderRadius:"3px",color:"#555",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{L("RÉINIT.","RESET")}</button>
             <UserChip user={user} uiLang={uiLang} tierBadge={tierBadge} tierColor={tierColor} isElite={isElite} onLogout={onLogout} onRequestAuth={onRequestAuth}/>
           </div>
         </div>
-      </div>
-
-      {/* NAV */}
-      <div className="nav-scroll" style={{background:"rgba(12,13,15,0.82)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
-        {NAV_MAIN.map(n=>{
-          const on=n.id===tab||n.also.includes(tab);
-          return <button key={n.id} aria-current={on?"page":undefined} style={{...S.navBtn(on,false),fontSize:"0.7rem",padding:"12px 14px"}} onClick={()=>{setMoreOpen(false);setTab(n.id);}}>{canAccess(n.req)?"":LOCK}{n.label}</button>;
-        })}
-        <button aria-expanded={moreOpen} style={{...S.navBtn(NAV_MORE.includes(tab)||moreOpen,false),fontSize:"0.7rem",padding:"12px 14px"}} onClick={()=>setMoreOpen(o=>!o)}>{L("Plus","More")} {moreOpen?"▴":"▾"}</button>
       </div>
       {moreOpen&&<div style={{background:"#0c0c0c",borderBottom:"1px solid #1a1a1a",display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px",padding:"8px 10px"}}>
         {NAV_MORE.map(id=>(
@@ -1957,20 +1947,26 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {tab==="genre"&&<div style={{...S.page,maxWidth:"900px"}}>
         {/* FORGER v2 (oct. 2026) — une boîte d'entrée, ce qui est détecté, la source audio ; tout le reste est replié. */}
         <div style={{margin:"12px 0 16px"}}>
+          <div style={{display:"flex",justifyContent:"center",marginTop:"28px",filter:"drop-shadow(0 0 22px rgba(255,106,43,0.30))"}}><MPLogo w={96}/></div>
           <label htmlFor="mpf-idee" style={{display:"block",textAlign:"center",fontWeight:600,fontSize:"clamp(2rem,6vw,3.4rem)",letterSpacing:"-0.035em",color:"#FFFFFF",lineHeight:1.05,margin:"18px 0 0"}}>{L("La couleur de tes influences, ta signature à toi.","The colour of your influences, your own signature.")}</label>
           <div style={{fontSize:"1rem",color:"#D4D6DA",margin:"14px auto 22px",lineHeight:1.65,maxWidth:"52ch",textAlign:"center"}}>{L("Tape un groupe ou mélange-en deux. On capte son énergie, sa couleur, son grain, et tu forges quelque chose de neuf. Le nom reste en dehors de ton prompt.","Type a band or mix two. We catch its energy, colour and grit, and you forge something new. The name stays out of your prompt.")}</div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:"9px"}}>
-            <input id="mpf-idee" autoComplete="off" value={ideaInput} maxLength={160} onFocus={()=>{loadBands();setSugOpen(true);}} onBlur={()=>setTimeout(()=>setSugOpen(false),150)} onChange={e=>{setIdeaInput(e.target.value);setSugOpen(true);}} onKeyDown={e=>{if(e.key==='Enter'){setSugOpen(false);smartForge();}if(e.key==='Tab'&&bandSugs.length){e.preventDefault();pickSug(bandSugs[0]);}}} placeholder={L("ex. : Gojira · Despised Icon + Meshuggah · doom lent avec orgue, 1993","e.g. Gojira · Despised Icon + Meshuggah · slow doom with organ, 1993")} style={{flex:"1 1 300px",minWidth:0,height:"58px",background:"rgba(22,24,28,0.8)",border:"1px solid rgba(255,255,255,0.14)",borderRadius:"14px",padding:"0 18px",color:"#F2F1ED",fontSize:"1.05rem",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}}/>
-            <button onClick={smartForge} disabled={ideaBusy} style={{height:"58px",padding:"0 30px",background:"#F2F1ED",border:"none",borderRadius:"14px",color:"#0C0D0F",fontWeight:600,fontSize:"1.05rem",cursor:ideaBusy?"default":"pointer",opacity:ideaBusy?0.6:1}}>{ideaBusy?L("Analyse…","Analyzing…"):L("Forger","Forge")}</button>
-            <button onClick={randomBand} title={L("Groupe au hasard","Random band")} aria-label={L("Groupe au hasard","Random band")} style={{height:"58px",width:"58px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:"14px",fontSize:"1.4rem",cursor:"pointer"}}>🎲</button>
+          <div style={{position:"relative",isolation:"isolate",display:"flex",flexWrap:"wrap",gap:"9px",margin:"64px 0 64px"}}>
+            <svg aria-hidden="true" viewBox="0 0 1280 272" preserveAspectRatio="none" style={{position:"absolute",left:"50%",top:"50%",width:"100vw",height:"150px",transform:"translate(-50%,-50%)",pointerEvents:"none",zIndex:-1}}>
+              <defs><linearGradient id="mpWave" x1="0" x2="1"><stop offset="0%" stopColor="#FF6A2B" stopOpacity="0"/><stop offset="30%" stopColor="#FF6A2B"/><stop offset="50%" stopColor="#FFB36B"/><stop offset="70%" stopColor="#FF6A2B"/><stop offset="100%" stopColor="#FF6A2B" stopOpacity="0"/></linearGradient><filter id="mpGlow"><feGaussianBlur stdDeviation="6"/></filter></defs>
+              <path d={MP_WAVE} fill="none" stroke="url(#mpWave)" strokeWidth="5" filter="url(#mpGlow)" opacity="0.75"/>
+              <path d={MP_WAVE} fill="none" stroke="url(#mpWave)" strokeWidth="1.4"/>
+            </svg>
+            <input id="mpf-idee" autoComplete="off" value={ideaInput} maxLength={160} onFocus={()=>{loadBands();setSugOpen(true);}} onBlur={()=>setTimeout(()=>setSugOpen(false),150)} onChange={e=>{setIdeaInput(e.target.value);setSugOpen(true);}} onKeyDown={e=>{if(e.key==='Enter'){setSugOpen(false);smartForge();}if(e.key==='Tab'&&bandSugs.length){e.preventDefault();pickSug(bandSugs[0]);}}} placeholder={L("ex. : Gojira · Despised Icon + Meshuggah · doom lent avec orgue, 1993","e.g. Gojira · Despised Icon + Meshuggah · slow doom with organ, 1993")} style={{flex:"999 1 300px",minWidth:0,height:"58px",background:"rgba(22,24,28,0.86)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:"1px solid rgba(255,255,255,0.14)",borderRadius:"14px",padding:"0 18px",color:"#F2F1ED",fontSize:"1.05rem",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}}/>
+            <button onClick={smartForge} disabled={ideaBusy} style={{flex:"1 0 auto",height:"58px",padding:"0 30px",background:"#F2F1ED",border:"none",borderRadius:"14px",color:"#0C0D0F",fontWeight:600,fontSize:"1.05rem",cursor:ideaBusy?"default":"pointer",opacity:ideaBusy?0.6:1}}>{ideaBusy?L("Analyse…","Analyzing…"):L("Forger","Forge")}</button>
+            <button onClick={randomBand} title={L("Groupe au hasard","Random band")} aria-label={L("Groupe au hasard","Random band")} style={{height:"58px",width:"58px",background:"rgba(22,24,28,0.86)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:"14px",fontSize:"1.4rem",cursor:"pointer"}}>🎲</button>
           </div>
           {bandSugs.length>0&&<div role="listbox" style={{display:"flex",flexWrap:"wrap",gap:"6px",marginTop:"8px"}}>
             {bandSugs.map(b=>(<button key={b} role="option" onMouseDown={e=>e.preventDefault()} onClick={()=>pickSug(b)} style={{...CHIP,borderRadius:"8px",borderColor:"#5a2a14",color:"#FFD2B8"}}>{b}</button>))}
           </div>}
           {ideaMsg&&<div role="status" style={{fontSize:"0.74rem",marginTop:"9px",lineHeight:1.5,color:ideaMsg.ok?"#7bd88f":"#e6b08a"}}>{ideaMsg.ok?"✓ ":""}{ideaMsg.text}</div>}
-          {styleTxt&&<button onClick={()=>setTab("output")} style={{marginTop:"9px",background:"none",border:"none",padding:0,color:"#FFB36B",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{L("Voir la dernière sortie →","See the last output →")}</button>}
+          {styleTxt&&<button onClick={()=>setTab("output")} style={{display:"block",margin:"-30px auto 18px",background:"none",border:"none",padding:0,color:"#FFB36B",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{L("Voir la dernière sortie →","See the last output →")}</button>}
         </div>
-        {!adjustOpen&&!ideaInput&&<div style={{display:"flex",flexWrap:"wrap",gap:"7px",margin:"-4px 0 14px"}}>
+        {!adjustOpen&&!ideaInput&&<div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"7px",margin:"-4px 0 18px"}}>
           {["Gojira","Slipknot","Despised Icon","Mayhem","Gojira + Meshuggah"].map(x=>(
             <button key={x} onClick={()=>setIdeaInput(x)} style={{...CHIP,borderRadius:"8px"}}>{x}</button>))}
         </div>}

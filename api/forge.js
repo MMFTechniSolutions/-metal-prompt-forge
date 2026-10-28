@@ -82,7 +82,9 @@ export default function handler(req, res) {
   b = b || {};
   const A = k => Array.isArray(b[k]) ? b[k] : [];
 
-  const genres = A('genres'), drums = A('drums'), vocals = A('vocals'), guitar = A('guitar');
+  // Pig squeals : Suno les rend mal (« toujours dégueulasse » — François, 2026-10-27) → fry screams aigus
+  const PIG = /^pig squeals?$/i;
+  const genres = A('genres'), drums = A('drums'), vocals = [...new Set(A('vocals').map(v => PIG.test(String(v).trim()) ? 'high-pitched fry screams' : v))], guitar = A('guitar');
   const tuning = A('tuning'), mood = A('mood'), prod = A('prod'), globalRhythm = A('globalRhythm'), vrange = A('vrange');
   const bassInst = [...A('bassStyle'), ...A('bassTech'), ...A('bassTone'), ...A('bassTuning'), ...A('bassProd')];
   const leadInst = [...A('sax'), ...A('brass'), ...A('keys'), ...A('strings')];   // instruments mélodiques (sax, cuivres, claviers, cordes)
@@ -146,7 +148,7 @@ export default function handler(req, res) {
   // façon il les rejette). Sert quand l'utilisateur coche un genre au lieu de passer par /api/reverse,
   // qui lui fournit déjà une signature. Une signature venue du reverse a toujours priorité.
   const GENRE_SIGNATURE = {
-    'deathcore':            ['open-note breakdowns with bass drops', 'pig squeal and low false-chord alternation', 'triggered click kick'],
+    'deathcore':            ['open-note breakdowns with bass drops', 'high fry screams and low false-chord alternation', 'triggered click kick'],
     'melodic-deathcore':    ['harmonized minor leads over breakdowns', 'clean-to-growl chorus lift', 'triggered click kick'],
     'technical-deathcore':  ['sweep-picked arpeggio runs between chugs', 'off-grid syncopated breakdowns'],
     'death-metal':          ['tremolo-picked chromatic riffing', 'low false-chord growls', 'blast beats with ride bell'],
@@ -263,13 +265,14 @@ export default function handler(req, res) {
     'post-hardcore':  { '90s':['emo','noise rock'], '2000s':['emo','pop punk'] },
     'industrial-metal':{ '90s':['EBM','groove metal'], '2010s':['electronic body music','djent'] },
   };
-  const _eraKeyEarly = ['60s-70s','80s','90s','2000s','2010s','2020s'].find(k => A('eras').some(e => String(e).startsWith(k)));
+  // Époque = celle du GENRE PRINCIPAL (1er de la liste), pas la plus ancienne (deathcore + industrial donnait « 1990s », 2026-10-27)
+  const _eraKeyEarly = A('eras').map(e => ['60s-70s','80s','90s','2000s','2010s','2020s'].find(k => String(e).startsWith(k))).find(Boolean);
   const _blendEra = (_sidEarly && _eraKeyEarly && BLEND_BY_ERA[_sidEarly] && BLEND_BY_ERA[_sidEarly][_eraKeyEarly]) ? BLEND_BY_ERA[_sidEarly][_eraKeyEarly] : null;
   const blendAuto = genres.length === 1 ? (_blendEra || (_sidEarly && GENRE_BLEND[_sidEarly]) || []).slice(0, 2) : [];   // anchors sonores du « reverse » (groupe → style)
   // Époque (couche 3 du style stack) : le client envoie les familles d'époque des genres choisis
   const ERA_TAG = { '60s-70s':'1970s analog tape production', '80s':'1980s production', '90s':'1990s production', '2000s':'2000s production', '2010s':'2010s modern production', '2020s':'2020s modern production' };
   const _eras = A('eras').map(x => String(x));
-  const _eraKey = Object.keys(ERA_TAG).find(k => _eras.some(e => e.startsWith(k)));
+  const _eraKey = _eras.map(e => Object.keys(ERA_TAG).find(k => e.startsWith(k))).find(Boolean);
   const eraTag = _eraKey ? ERA_TAG[_eraKey] : '';
   const _vintageEra = /^(60s-70s|80s|90s)$/.test(_eraKey || '');
   const blockRhythm = b.blockRhythm || {};
@@ -626,7 +629,7 @@ export default function handler(req, res) {
   const DESC = {
     intro: drums.includes('blast beats') ? 'blast beats, tremolo picking' : (_tunTag ? _tunTag + ' crushing riff' : 'palm-muted opening riff'),
     buildup: (heavy >= 8 ? 'layered wall of distortion' : 'layered build, rising drums') + ', no vocals',
-    verse: (vocals.includes('pig squeals') ? 'pig squeals and ' : '') + 'growls over ' + (guitar.includes('chugging riffs') ? 'chugging riffs' : 'palm-muted riffs'),
+    verse: (vocals.includes('high-pitched fry screams') ? 'fry screams and ' : '') + 'growls over ' + (guitar.includes('chugging riffs') ? 'chugging riffs' : 'palm-muted riffs'),
     prechorus: 'rising drum fill, held guitar chord',
     chorus: groove >= 6 ? 'syncopated groove riff, double-tracked vocals' : 'full band, double kick, wide chorus',
     breakdown: groove >= 7 ? 'half-time groove, shouted gang vocals' : 'low tuned open-note breakdown, pounding floor toms',
@@ -653,6 +656,9 @@ export default function handler(req, res) {
   const _structsOrdered = [...structs.filter(x => x !== 'outro'), ...(_hasOutro ? ['outro'] : [])];
   if (_hasOutro && structs[structs.length - 1] !== 'outro')
     conf.push(L('Des sections étaient placées après l\'Outro — elles ont été remontées avant (Suno ne chante rien après un outro).', 'Sections were placed after the Outro — moved before it (Suno sings nothing after an outro).'));
+  // Pre-Chorus toujours JUSTE AVANT le 1er Chorus (la liste vient d'un Set dans l'ordre des clics → il sortait après, 2026-10-27)
+  { const pi = _structsOrdered.indexOf('prechorus'), ci = _structsOrdered.indexOf('chorus');
+    if (pi > -1 && ci > -1 && pi !== ci - 1) { _structsOrdered.splice(pi, 1); _structsOrdered.splice(_structsOrdered.indexOf('chorus'), 0, 'prechorus'); } }
   const blocksClean = [..._structsOrdered.map(x => NAME[x] ? blockTag(x) : '').filter(Boolean), '[End]'];
   const structStr = blocksClean.join('\n');   // v5.5 : crochets = sections seulement, BPM/mesure restent dans Style
   const overflowLine = '';   // le compact est un préfixe du riche : plus rien à déporter dans les Lyrics

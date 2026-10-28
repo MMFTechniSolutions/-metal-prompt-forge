@@ -1666,7 +1666,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       org:isPro?[...orgRec,...orgDrm,...orgVoc,...orgGtr]:[],
       excl:isElite?{g:[...exclGenre],v:[...exclVocal],p:[...exclProd],i:[...exclInst],c:exclCustom}:null,
       structs:autoStructs,blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions:{},tier:userTier,   // émotions retirées de l'interface (oct. 2026) : plus rien d'invisible ne teinte le prompt
-      eras:eraPick?[eraPick]:GENRE_FAMILIES.filter(f=>f.genres.some(x=>genres.has(x.g))).map(f=>f.nameEn),   // couche Époque → /api/forge
+      eras:eraPick?[eraPick]:[...new Set([...genres].map(g=>(GENRE_FAMILIES.find(f=>f.genres.some(x=>x.g===g))||{}).nameEn).filter(Boolean))],   // ordre = genre principal d'abord   // couche Époque → /api/forge
       signature,   // anchors sonores du reverse (vides si pas de reverse)
       audioSrc,    // source audio : rien / Cover / amorce (riff, mélodie, beatbox)
     };
@@ -1821,7 +1821,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   const CHIP={background:"#1a1a1a",border:"1px solid #3a3a3a",borderRadius:"20px",padding:"8px 14px",fontSize:"0.76rem",fontWeight:700,color:"#e0e0e0",cursor:"pointer"};
   const CHIP_ON={...CHIP,background:"#2a0808",border:"1px solid "+RED,color:"#ffb0b0"};
   const SEG=on=>({minHeight:"44px",padding:"0 10px",borderRadius:"8px",fontSize:"0.8rem",fontWeight:on?800:600,cursor:"pointer",background:on?"#2a0808":"#1a1a1a",border:"1.5px solid "+(on?RED:"#3a3a3a"),color:on?"#ffb0b0":"#d0d0d0"});
-  const autoEra=GENRE_FAMILIES.filter(f=>f.genres.some(x=>genres.has(x.g))).map(f=>ERA_KEYS.find(k=>String(f.nameEn||"").startsWith(k))).filter(Boolean)[0]||"";
+  const autoEra=[...genres].map(g=>(GENRE_FAMILIES.find(f=>f.genres.some(x=>x.g===g))||{}).nameEn).map(n=>ERA_KEYS.find(k=>String(n||"").startsWith(k))).filter(Boolean)[0]||"";   // époque du genre principal
   const SRC=[["none","",L("Rien","Nothing")],["seed","melodie",L("Une mélodie","A melody")],["seed","riff",L("Un riff","A riff")],["cover","",L("Un Cover","A Cover")]];
   // Barre commune des pages Mélodie et Riff : bascule entre les deux + envoi vers la forge comme amorce.
   const studioBar=kind=>(

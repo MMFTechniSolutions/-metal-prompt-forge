@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "./supabase.js";
 
-const RED = "#ff2e2e";
-const DARK = "#0a0a0a";
-const CARD = "#141414";
+const RED = "#FF6A2B";   // braise (look Studio, oct. 2026)
+const DARK = "#0C0D0F";
+const CARD = "#141518";
 
 // ── i18n ──
 const T = {
@@ -34,10 +34,10 @@ const T = {
 };
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap');
   @keyframes spin      { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
   @keyframes flicker   { 0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:.7} 95%{opacity:1} 97%{opacity:.8} }
-  @keyframes pulseRed  { 0%,100%{box-shadow:0 0 0 0 #ff2e2e55} 50%{box-shadow:0 0 0 10px #ff2e2e00} }
+  @keyframes pulseRed  { 0%,100%{box-shadow:0 0 0 0 #FF6A2B55} 50%{box-shadow:0 0 0 10px #FF6A2B00} }
   @keyframes slideUp   { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
   @keyframes hammerSwing {
     0%  { transform: rotate(-35deg) translateY(-6px); }
@@ -51,21 +51,23 @@ const css = `
     100%{ opacity:0; transform:scale(0) translate(calc(var(--sx)*3),calc(var(--sy)*3)); }
   }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { background:#0a0a0a; font-family:'Inter',system-ui,sans-serif; }
+  body { background:#0C0D0F; color:#F2F1ED; font-family:'Geist',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  pre, code { font-family:'Geist Mono',ui-monospace,monospace; }
+  button { font-family:inherit; }
   ::-webkit-scrollbar { width:4px; }
   ::-webkit-scrollbar-track { background:#111; }
-  ::-webkit-scrollbar-thumb { background:#ff2e2e44; border-radius:2px; }
+  ::-webkit-scrollbar-thumb { background:#FF6A2B44; border-radius:2px; }
   .nav-scroll { scrollbar-width:none; overflow-x:auto; display:flex; flex-wrap:wrap; justify-content:center; }
   input[type=range] {
     width:100%; -webkit-appearance:none; height:4px; border-radius:2px; outline:none; cursor:pointer;
-    background: linear-gradient(to right, #ff2e2e 0%, #ff2e2e var(--pct,80%), #222 var(--pct,80%));
+    background: linear-gradient(to right, #FF6A2B 0%, #FF6A2B var(--pct,80%), #222 var(--pct,80%));
   }
   input[type=range]::-webkit-slider-thumb {
     -webkit-appearance:none; width:18px; height:18px; border-radius:50%;
-    background:#ff2e2e; cursor:pointer; box-shadow:0 0 10px #ff000088;
+    background:#FF6A2B; cursor:pointer; box-shadow:0 0 10px #FF6A2B88;
   }
   textarea:focus, input:focus { outline:none; }
-  .forge-title { font-family:'Bebas Neue',sans-serif; animation:flicker 8s infinite; }
+  .forge-title { font-family:'Geist',sans-serif; font-weight:600; letter-spacing:-0.02em !important; }
   .slide-up    { animation:slideUp 0.5s ease forwards; }
   .pulse       { animation:pulseRed 2s infinite; }
   .hammer-anim { animation:hammerSwing 0.45s cubic-bezier(.36,.07,.19,.97) forwards; }
@@ -222,7 +224,7 @@ const ORG_AVOID  = ["perfect production","polished mix","crisp","digital","quant
 const IS_LOCAL = typeof window!=="undefined" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
 // Émotions — méta d'affichage seulement (la recette émotion->tags vit dans /api/forge, secrète)
 const EMOTIONS=[
-  {id:'rage',label:'Rage',labelEn:'Rage',icon:'',c:'#ff2e2e'},
+  {id:'rage',label:'Rage',labelEn:'Rage',icon:'',c:'#FF6A2B'},
   {id:'melancholy',label:'Mélancolie',labelEn:'Melancholy',icon:'',c:'#5a8fd0'},
   {id:'despair',label:'Désespoir',labelEn:'Despair',icon:'',c:'#888'},
   {id:'triumph',label:'Triomphe',labelEn:'Triumph',icon:'',c:'#ffcc00'},
@@ -467,7 +469,7 @@ const TIERS = {
     features:["✅ 3 prompts d'essai gratuits","✅ Aperçu de la bibliothèque","❌ Reste verrouillé — passe à MetalPrompt"],
     featuresEn:["✅ 3 free trial prompts","✅ Library preview","❌ Rest locked — go MetalPrompt"]},
   // Oct. 2026 : un seul abonnement à 2,99 $/mois (plus d'annuel). Lien Stripe dans STRIPE_MENSUEL.
-  pro: {id:"pro", label:"METALPROMPT", price:"$2.99/mois", color:"#ff2e2e", badge:"PRO",
+  pro: {id:"pro", label:"METALPROMPT", price:"$2.99/mois", color:"#FF6A2B", badge:"PRO",
     stripe:STRIPE_MENSUEL,
     features:["✅ TOUT le site débloqué","✅ Bibliothèque complète + sliders + 10 émotions","✅ Générateur de Riff complet (28 styles)","✅ Module Mastering (débruitage + EQ)","✅ Paroles par IA illimitées","✅ Prompts Principal · Cover · Extend","✅ Reco de modèle Suno · prompts illimités"],
     featuresEn:["✅ FULL site unlocked","✅ Full library + sliders + 10 emotions","✅ Complete Riff Generator (28 styles)","✅ Mastering module (denoise + EQ)","✅ Unlimited AI lyrics","✅ Principal · Cover · Extend prompts","✅ Suno model rec · unlimited prompts"]},
@@ -532,32 +534,32 @@ function SelAll({all,set,L}){
   return (
     <div style={{display:"flex",gap:"6px",flexShrink:0}}>
       <button onClick={()=>set(all)} style={{background:"#0a1f00",border:"1px solid #2a5a2a",borderRadius:"5px",padding:"3px 10px",fontSize:"0.58rem",fontWeight:700,color:"#7fdd7f",cursor:"pointer"}}>{L("Tout","All")}</button>
-      <button onClick={()=>set([])} style={{background:"#1a0000",border:"1px solid #4a1010",borderRadius:"5px",padding:"3px 10px",fontSize:"0.58rem",fontWeight:700,color:"#cc6666",cursor:"pointer"}}>{L("Vider","Clear")}</button>
+      <button onClick={()=>set([])} style={{background:"#2a1208",border:"1px solid #4a1010",borderRadius:"5px",padding:"3px 10px",fontSize:"0.58rem",fontWeight:700,color:"#cc6666",cursor:"pointer"}}>{L("Vider","Clear")}</button>
     </div>
   );
 }
 
 // ── STYLES ──
 const S = {
-  wrap:    {background:DARK,color:"#e0e0e0",minHeight:"100vh"},
-  header:  {background:"linear-gradient(135deg,#1a0000 0%,#0a0a0a 60%)",borderBottom:"1px solid #ff2e2e33",padding:"14px 20px 10px",textAlign:"center",position:"relative",boxShadow:"0 2px 40px #ff000022"},
-  h1:      {fontSize:"1.6rem",letterSpacing:"6px",color:RED,textShadow:"0 0 30px #ff0000"},
-  sub:     {fontSize:"0.55rem",color:"#444",letterSpacing:"4px",textTransform:"uppercase",marginTop:"2px"},
-  navBtn:  (a,locked)=>({flex:"0 0 auto",padding:"7px 9px",fontSize:"0.52rem",fontWeight:700,letterSpacing:"0.5px",textTransform:"uppercase",textAlign:"center",cursor:"pointer",border:"none",background:a?"#1a0000":"none",color:locked?"#2a2a2a":a?RED:"#555",borderBottom:a?`2px solid ${RED}`:"2px solid transparent",whiteSpace:"nowrap",transition:"all 0.2s"}),
+  wrap:    {background:"radial-gradient(1100px 520px at 50% -8%, rgba(255,106,43,0.13), rgba(255,106,43,0) 65%), #0C0D0F",color:"#E3E4E7",minHeight:"100vh"},
+  header:  {background:"rgba(12,13,15,0.82)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"14px 20px 10px",textAlign:"center",position:"relative"},
+  h1:      {fontSize:"1.35rem",color:"#F2F1ED"},
+  sub:     {fontSize:"0.6rem",color:"#8A8F97",letterSpacing:"2px",textTransform:"uppercase",marginTop:"4px"},
+  navBtn:  (a,locked)=>({flex:"0 0 auto",padding:"7px 9px",fontSize:"0.52rem",fontWeight:700,letterSpacing:"0.5px",textTransform:"uppercase",textAlign:"center",cursor:"pointer",border:"none",background:a?"#2a1208":"none",color:locked?"#2a2a2a":a?RED:"#555",borderBottom:a?`2px solid ${RED}`:"2px solid transparent",whiteSpace:"nowrap",transition:"all 0.2s"}),
   page:    {padding:"14px",maxWidth:"1000px",margin:"0 auto"},
-  card:    {background:CARD,border:"1px solid #1e1e1e",borderRadius:"10px",padding:"13px",marginBottom:"11px"},
-  ctitle:  {fontSize:"0.58rem",textTransform:"uppercase",letterSpacing:"2px",color:RED,fontWeight:800,marginBottom:"10px"},
+  card:    {background:"rgba(22,24,28,0.72)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"14px",padding:"14px",marginBottom:"12px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.04)"},
+  ctitle:  {fontSize:"0.6rem",textTransform:"uppercase",letterSpacing:"2px",color:"#FFB36B",fontWeight:600,fontFamily:"'Geist Mono',monospace",marginBottom:"10px"},
   tags:    {display:"flex",flexWrap:"wrap",gap:"7px"},
-  tag:     (on,locked)=>({background:on?"#2a0000":locked?"#0f0f0f":"#181818",border:on?`1.5px solid ${RED}`:locked?"1.5px solid #1a1a1a":"1.5px solid #222",borderRadius:"20px",padding:"5px 12px",fontSize:"0.72rem",cursor:locked?"default":"pointer",color:on?"#ff7070":locked?"#2a2a2a":"#888",fontWeight:on?700:400,boxShadow:on?"0 0 10px #ff000033":"none",transition:"all 0.15s",userSelect:"none"}),
-  outBox:  {background:"#0d0d0d",border:"1px solid #222",borderRadius:"8px",padding:"12px",fontSize:"0.77rem",lineHeight:1.75,color:"#ccc",wordBreak:"break-word",position:"relative",marginBottom:"12px"},
-  outLbl:  {fontSize:"0.57rem",textTransform:"uppercase",letterSpacing:"2px",color:RED,fontWeight:800,marginBottom:"5px"},
+  tag:     (on,locked)=>({background:on?"#2a1208":locked?"#0f0f0f":"#181818",border:on?`1.5px solid ${RED}`:locked?"1.5px solid #1a1a1a":"1.5px solid #222",borderRadius:"20px",padding:"5px 12px",fontSize:"0.72rem",cursor:locked?"default":"pointer",color:on?"#FFB36B":locked?"#2a2a2a":"#888",fontWeight:on?700:400,boxShadow:on?"0 0 10px #FF6A2B33":"none",transition:"all 0.15s",userSelect:"none"}),
+  outBox:  {background:"rgba(0,0,0,0.35)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"12px",fontFamily:"'Geist Mono',monospace",padding:"12px",fontSize:"0.77rem",lineHeight:1.75,color:"#ccc",wordBreak:"break-word",position:"relative",marginBottom:"12px"},
+  outLbl:  {fontSize:"0.6rem",textTransform:"uppercase",letterSpacing:"2px",color:"#FFB36B",fontWeight:600,fontFamily:"'Geist Mono',monospace",marginBottom:"6px"},
   copyBtn: {position:"absolute",top:"8px",right:"8px",background:"#1c1c1c",border:"1px solid #2a2a2a",borderRadius:"5px",padding:"3px 8px",fontSize:"0.57rem",color:"#777",cursor:"pointer",textTransform:"uppercase",letterSpacing:"1px"},
-  fab:     {position:"fixed",bottom:"20px",right:"16px",width:"62px",height:"62px",borderRadius:"50%",background:RED,border:"none",color:"#000",fontSize:"1.6rem",cursor:"pointer",boxShadow:"0 4px 24px #ff000099",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,overflow:"hidden",flexShrink:0},
+  fab:     {position:"fixed",bottom:"20px",right:"16px",width:"62px",height:"62px",borderRadius:"50%",background:RED,border:"none",color:"#000",fontSize:"1.6rem",cursor:"pointer",boxShadow:"0 4px 24px #FF6A2B99",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,overflow:"hidden",flexShrink:0},
   intBar:  {display:"flex",gap:"3px",marginTop:"5px"},
   intSeg:  (l)=>({flex:1,height:"4px",borderRadius:"2px",background:l?RED:"#222",transition:"background 0.2s"}),
   structBlock:{background:"#0f0f0f",border:"1px solid #1e1e1e",borderLeft:`3px solid ${RED}`,borderRadius:"6px",padding:"10px 12px",marginBottom:"7px"},
-  togBtn:  (on)=>({width:"28px",height:"28px",borderRadius:"50%",border:"none",background:on?"#8a0000":"#1a1a1a",color:on?RED:"#444",fontSize:"0.8rem",cursor:"pointer",flexShrink:0,transition:"all 0.2s"}),
-  genBtn:  {width:"100%",padding:"14px",background:RED,border:"none",borderRadius:"8px",color:"#000",fontSize:"0.85rem",fontWeight:900,letterSpacing:"3px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 4px 24px #ff000055",marginBottom:"12px"},
+  togBtn:  (on)=>({width:"28px",height:"28px",borderRadius:"50%",border:"none",background:on?"#7a3414":"#1a1a1a",color:on?RED:"#444",fontSize:"0.8rem",cursor:"pointer",flexShrink:0,transition:"all 0.2s"}),
+  genBtn:  {width:"100%",padding:"15px",background:"#F2F1ED",border:"none",borderRadius:"12px",color:"#0C0D0F",fontSize:"0.9rem",fontWeight:600,letterSpacing:"0.5px",cursor:"pointer",marginBottom:"12px"},
   stepNum: (c)=>({width:"24px",height:"24px",borderRadius:"50%",background:c,color:"#000",fontSize:"0.7rem",fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}),
 };
 
@@ -715,13 +717,13 @@ function PaywallModal({onClose,email,uiLang}) {
           <div style={{fontSize:"0.58rem",color:"#666",textAlign:"center",marginTop:"10px"}}>{L("ou illimité avec l'abonnement ↓","or unlimited with the subscription ↓")}</div>
         </div>
         {Object.values(TIERS).some(t=>t.priceYear)&&<div style={{display:"flex",justifyContent:"center",gap:"8px",marginBottom:"16px"}}>
-          <button onClick={()=>setBilling("month")} style={{padding:"6px 16px",borderRadius:"20px",border:`1px solid ${!year?"#ff2e2e":"#333"}`,background:!year?"#1a0000":"#111",color:!year?"#ff7070":"#666",fontSize:"0.66rem",fontWeight:700,cursor:"pointer"}}>{L("Mensuel","Monthly")}</button>
+          <button onClick={()=>setBilling("month")} style={{padding:"6px 16px",borderRadius:"20px",border:`1px solid ${!year?"#FF6A2B":"#333"}`,background:!year?"#2a1208":"#111",color:!year?"#FFB36B":"#666",fontSize:"0.66rem",fontWeight:700,cursor:"pointer"}}>{L("Mensuel","Monthly")}</button>
           <button onClick={()=>setBilling("year")} style={{padding:"6px 16px",borderRadius:"20px",border:`1px solid ${year?"#4caf50":"#333"}`,background:year?"#0a1f00":"#111",color:year?"#7fdd7f":"#666",fontSize:"0.66rem",fontWeight:700,cursor:"pointer"}}>{L("Annuel","Annual")} · {L("2 mois gratuits","2 months free")}</button>
         </div>}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",marginBottom:"18px"}}>
           {Object.values(TIERS).filter(t=>t.id!=="free").map(t=>(
             <div key={t.id} onClick={()=>setSel(t.id)}
-              style={{background:sel===t.id?"#1a0000":"#111",border:`1.5px solid ${sel===t.id?t.color:"#222"}`,borderRadius:"8px",padding:"10px 6px",textAlign:"center",cursor:"pointer"}}>
+              style={{background:sel===t.id?"#2a1208":"#111",border:`1.5px solid ${sel===t.id?t.color:"#222"}`,borderRadius:"8px",padding:"10px 6px",textAlign:"center",cursor:"pointer"}}>
               <div style={{fontSize:"0.65rem",fontWeight:900,color:sel===t.id?t.color:"#555",letterSpacing:"1px",marginBottom:"4px"}}>{t.label}</div>
               {t.launch&&<div style={{fontSize:"0.55rem",color:"#777",textDecoration:"line-through"}}>{(year&&t.priceOldYear?t.priceOldYear:t.priceOld||"").split("/")[0]}</div>}
               <div style={{fontSize:"0.9rem",fontWeight:900,color:t.launch?"#7fdd7f":"#fff"}}>{priceOf(t).split("/")[0]}</div>
@@ -734,7 +736,7 @@ function PaywallModal({onClose,email,uiLang}) {
           <div style={{fontSize:"0.58rem",color:tier.color,letterSpacing:"2px",textTransform:"uppercase",fontWeight:800,marginBottom:"10px"}}>{tier.label} — {tier.launch&&<span style={{textDecoration:"line-through",color:"#666",marginRight:"5px"}}>{(year&&tier.priceOldYear?tier.priceOldYear:tier.priceOld||"").split("/")[0]}</span>}{priceOf(tier)} {tier.launch?L("· LANCEMENT","· LAUNCH"):""} — {L("INCLUS","INCLUDED")}</div>
           {(uiLang==="en"?tier.featuresEn:tier.features)?.map(f=><div key={f} style={{fontSize:"0.7rem",color:f.startsWith("✅")?"#ccc":"#333",padding:"3px 0"}}>{f}</div>)}
         </div>
-        {lifetimeActive()&&<a href={payUrl(LIFETIME.stripe,email)} target="_blank" rel="noreferrer" style={{display:"block",textDecoration:"none",background:"linear-gradient(135deg,#2a1a00,#1a0000)",border:"1.5px solid #ffbb33",borderRadius:"10px",padding:"14px",marginBottom:"12px",textAlign:"center"}}>
+        {lifetimeActive()&&<a href={payUrl(LIFETIME.stripe,email)} target="_blank" rel="noreferrer" style={{display:"block",textDecoration:"none",background:"linear-gradient(135deg,#2a1a00,#2a1208)",border:"1.5px solid #ffbb33",borderRadius:"10px",padding:"14px",marginBottom:"12px",textAlign:"center"}}>
           <div style={{fontSize:"0.58rem",color:"#ffbb33",letterSpacing:"3px",fontWeight:900}}>🔥 {L("BLACK FRIDAY — DURÉE LIMITÉE","BLACK FRIDAY — LIMITED TIME")}</div>
           <div style={{fontSize:"1.5rem",fontWeight:900,color:"#fff",margin:"4px 0"}}><span style={{fontSize:"0.9rem",color:"#777",textDecoration:"line-through",marginRight:"6px"}}>{LIFETIME.regular}</span>{LIFETIME.price} <span style={{fontSize:"0.8rem",color:"#ffbb33"}}>{L("à vie","lifetime")}</span> <span style={{fontSize:"0.7rem",background:"#FF6A2B",color:"#160A04",borderRadius:"6px",padding:"2px 6px",verticalAlign:"middle"}}>-58 %</span></div>
           <div style={{fontSize:"0.66rem",color:"#d0c8b0"}}>{L("Un seul paiement, accès complet pour toujours. Seulement 100 places.","One payment, full access forever. Only 100 spots.")}{lifetimeLeft()?" · "+L("Finit dans ","Ends in ")+lifetimeLeft():""}</div>
@@ -747,7 +749,7 @@ function PaywallModal({onClose,email,uiLang}) {
           <div style={{fontSize:"0.55rem",color:"#666",letterSpacing:"2px",textTransform:"uppercase",fontWeight:800,marginBottom:"8px",textAlign:"center"}}>{L("Tu as un code promo ?","Have a promo code?")}</div>
           <div style={{display:"flex",gap:"8px"}}>
             <input value={promo} onChange={e=>{setPromo(e.target.value.toUpperCase());setPromoMsg(null);}} onKeyDown={e=>{if(e.key==="Enter")redeemPromo();}} placeholder={L("CODE PROMO","PROMO CODE")}
-              style={{flex:1,background:"#0a0a0a",border:"1px solid #333",borderRadius:"7px",padding:"11px 12px",color:"#fff",fontSize:"0.8rem",letterSpacing:"2px",fontFamily:"monospace",textTransform:"uppercase"}}/>
+              style={{flex:1,background:"#0a0a0a",border:"1px solid #333",borderRadius:"7px",padding:"11px 12px",color:"#fff",fontSize:"0.8rem",letterSpacing:"2px",fontFamily:"'Geist Mono',monospace",textTransform:"uppercase"}}/>
             <button onClick={redeemPromo} disabled={promoBusy} style={{padding:"0 18px",background:promoBusy?"#222":"#7fdd7f",border:"none",borderRadius:"7px",color:promoBusy?"#666":"#000",fontWeight:900,fontSize:"0.72rem",letterSpacing:"1px",textTransform:"uppercase",cursor:promoBusy?"default":"pointer",whiteSpace:"nowrap"}}>{promoBusy?"…":L("Activer","Redeem")}</button>
           </div>
           {promoMsg&&<div style={{fontSize:"0.68rem",marginTop:"8px",color:promoMsg.ok?"#7fdd7f":"#ff6b6b",lineHeight:1.4}}>{promoMsg.text}</div>}
@@ -761,7 +763,7 @@ function PaywallModal({onClose,email,uiLang}) {
 
 function LandingPage({onEnter,uiLang,setUiLang,email}) {
   const examples=[
-    {tags:"deathcore, 180 BPM; chugging riffs, blast beats; guttural growls, pig squeals; Drop A, A minor",genre:"DEATHCORE",color:"#ff2e2e"},
+    {tags:"deathcore, 180 BPM; chugging riffs, blast beats; guttural growls, pig squeals; Drop A, A minor",genre:"DEATHCORE",color:"#FF6A2B"},
     {tags:"djent, polyrhythmic drums, 7-string guitar, groovy and headbang-worthy, 140 BPM",genre:"DJENT",color:"#ff6600"},
     {tags:"black metal, tremolo picking, blast beats, sinister and dark, 200 BPM",genre:"BLACK METAL",color:"#aa00ff"},
   ];
@@ -771,18 +773,18 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
   return (
     <div style={{background:DARK,minHeight:"100vh",color:"#e0e0e0"}}>
       <style>{css}</style>
-      <div style={{background:"linear-gradient(180deg,#1a0000 0%,#0a0a0a 100%)",padding:"50px 20px 40px",textAlign:"center",borderBottom:"1px solid #ff2e2e22",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:0,left:0,right:0,height:"2px",background:"linear-gradient(90deg,transparent,#ff2e2e,transparent)"}}/>
+      <div style={{background:"linear-gradient(180deg,#2a1208 0%,#0a0a0a 100%)",padding:"50px 20px 40px",textAlign:"center",borderBottom:"1px solid #FF6A2B22",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:0,left:0,right:0,height:"2px",background:"linear-gradient(90deg,transparent,#FF6A2B,transparent)"}}/>
         <div style={{display:"flex",justifyContent:"flex-end",padding:"0 20px",marginBottom:"16px",gap:"8px"}}>
-          {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#1a0000":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"4px",color:uiLang===l?RED:"#555",fontSize:"0.65rem",padding:"4px 10px",cursor:"pointer",fontWeight:uiLang===l?700:400}}>{l.toUpperCase()}</button>)}
+          {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#2a1208":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"4px",color:uiLang===l?RED:"#555",fontSize:"0.65rem",padding:"4px 10px",cursor:"pointer",fontWeight:uiLang===l?700:400}}>{l.toUpperCase()}</button>)}
         </div>
-        <div className="forge-title" style={{fontSize:"clamp(2.2rem,8vw,3.5rem)",color:RED,letterSpacing:"8px",textShadow:"0 0 40px #ff000088",marginBottom:"6px"}}>METAL PROMPT FORGE</div>
+        <div className="forge-title" style={{fontSize:"clamp(2.2rem,8vw,3.5rem)",color:RED,letterSpacing:"8px",textShadow:"0 0 40px #FF6A2B88",marginBottom:"6px"}}>METAL PROMPT FORGE</div>
         <div style={{fontSize:"0.65rem",color:"#555",letterSpacing:"5px",textTransform:"uppercase",marginBottom:"30px"}}>{uiLang==="fr"?"Le générateur de prompts Suno pour musiciens metal":"The Suno prompt generator for metal musicians"}</div>
         <div style={{maxWidth:"480px",margin:"0 auto 30px",background:"#0f0f0f",border:`1px solid ${examples[activeEx].color}33`,borderRadius:"10px",padding:"14px 16px",transition:"border-color 0.5s"}}>
           <div style={{fontSize:"0.55rem",color:examples[activeEx].color,letterSpacing:"3px",textTransform:"uppercase",fontWeight:800,marginBottom:"8px"}}>{L("EXEMPLE","EXAMPLE")} — {examples[activeEx].genre}</div>
-          <div style={{fontSize:"0.75rem",color:"#aaa",lineHeight:1.8,fontFamily:"monospace"}}>{examples[activeEx].tags}</div>
+          <div style={{fontSize:"0.75rem",color:"#aaa",lineHeight:1.8,fontFamily:"'Geist Mono',monospace"}}>{examples[activeEx].tags}</div>
         </div>
-        <button onClick={onEnter} className="pulse" style={{padding:"16px 36px",background:RED,border:"none",borderRadius:"8px",color:"#000",fontSize:"1rem",fontWeight:900,letterSpacing:"3px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 6px 30px #ff000077"}}>
+        <button onClick={onEnter} className="pulse" style={{padding:"16px 36px",background:RED,border:"none",borderRadius:"8px",color:"#000",fontSize:"1rem",fontWeight:900,letterSpacing:"3px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 6px 30px #FF6A2B77"}}>
           {uiLang==="fr"?"LANCER L'APP":"LAUNCH APP"}
         </button>
         <div style={{fontSize:"0.6rem",color:"#444",marginTop:"10px"}}>{uiLang==="fr"?"Gratuit · 3 prompts offerts · Aucune carte requise":"Free · 3 prompts included · No card required"}</div>
@@ -833,12 +835,12 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
           {["forge","pro","elite"].map(id=>{
             const tier=TIERS[id];
             return (
-              <div key={id} style={{background:id==="pro"?"#1a0000":id==="elite"?"#0f0015":CARD,border:`1px solid ${tier.color}${id==="pro"?"":"44"}`,borderRadius:"10px",padding:"16px",position:"relative"}}>
+              <div key={id} style={{background:id==="pro"?"#2a1208":id==="elite"?"#0f0015":CARD,border:`1px solid ${tier.color}${id==="pro"?"":"44"}`,borderRadius:"10px",padding:"16px",position:"relative"}}>
                 {id==="pro"&&<div style={{position:"absolute",top:"-10px",right:"12px",background:RED,color:"#000",fontSize:"0.55rem",fontWeight:900,letterSpacing:"1px",padding:"3px 8px",borderRadius:"10px",textTransform:"uppercase"}}>{L("POPULAIRE","POPULAR")}</div>}
                 <div style={{fontSize:"0.6rem",color:tier.color,letterSpacing:"2px",textTransform:"uppercase",marginBottom:"6px"}}>{tier.label}</div>
                 <div style={{fontSize:"1.4rem",fontWeight:900,color:"#fff",marginBottom:"10px"}}>{tier.price.split("/")[0]}<span style={{fontSize:"0.7rem",color:"#555"}}>{L("/mois","/mo")}</span></div>
                 {(uiLang==="en"?tier.featuresEn:tier.features)?.map(f=><div key={f} style={{fontSize:"0.68rem",color:f.startsWith("✅")?"#ccc":"#333",padding:"3px 0"}}>{f}</div>)}
-                <a href={payUrl(tier.stripe,email)} target="_blank" rel="noreferrer" style={{display:"block",width:"100%",marginTop:"12px",padding:"9px",background:tier.color,borderRadius:"6px",color:id==="elite"?"#fff":"#000",fontSize:"0.72rem",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textDecoration:"none",textAlign:"center",boxShadow:id==="pro"?`0 2px 14px #ff000055`:"none"}}>{tier.label.split(" ")[0]} {L("COMMENCER","START")}</a>
+                <a href={payUrl(tier.stripe,email)} target="_blank" rel="noreferrer" style={{display:"block",width:"100%",marginTop:"12px",padding:"9px",background:tier.color,borderRadius:"6px",color:id==="elite"?"#fff":"#000",fontSize:"0.72rem",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textDecoration:"none",textAlign:"center",boxShadow:id==="pro"?`0 2px 14px #FF6A2B55`:"none"}}>{tier.label.split(" ")[0]} {L("COMMENCER","START")}</a>
               </div>
             );
           })}
@@ -979,6 +981,7 @@ Dernière mise à jour : 26 juin 2026
 
 ÉDITEUR
 MMF Techni-Solutions — NEQ : 2279516308
+MetalPrompt est un outil indépendant, non affilié à Suno, Inc. ni à aucun groupe ou artiste cité.
 Adresse : 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1
 Courriel : mmftechnisolutions@gmail.com
 Responsable de la publication : François Lajoie-Levesque
@@ -1090,8 +1093,8 @@ function SiteFooter({onOpen,uiLang}){
   const fr=uiLang==="fr";
   const lk={background:"none",border:"none",color:"#666",fontSize:"0.62rem",cursor:"pointer",textDecoration:"underline",padding:"2px 6px"};
   return (
-    <div style={{borderTop:"1px solid #1a1a1a",padding:"18px 12px 40px",textAlign:"center",display:"flex",flexWrap:"wrap",gap:"4px",justifyContent:"center",alignItems:"center"}}>
-      <span style={{fontSize:"0.58rem",color:"#444"}}>© {new Date().getFullYear()} MetalPrompt ·</span>
+    <div style={{borderTop:"1px solid rgba(255,255,255,0.07)",padding:"20px 12px 40px",textAlign:"center",display:"flex",flexWrap:"wrap",gap:"4px",justifyContent:"center",alignItems:"center"}}>
+      <span style={{fontSize:"0.62rem",color:"#8A8F97"}}>© {new Date().getFullYear()} MetalPrompt ·</span>
       <button style={{...lk,color:RED,fontWeight:700}} onClick={()=>onOpen("about")}>{fr?"À propos":"About"}</button>
       <a href="/guide.html" target="_blank" rel="noreferrer" style={{...lk,display:"inline-block"}}>{fr?"Guide Suno":"Suno Guide"}</a>
       <button style={lk} onClick={()=>onOpen("privacy")}>{fr?"Confidentialité":"Privacy"}</button>
@@ -1099,6 +1102,7 @@ function SiteFooter({onOpen,uiLang}){
       <button style={lk} onClick={()=>onOpen("terms")}>{fr?"Conditions d'utilisation":"Terms"}</button>
       <button style={lk} onClick={()=>onOpen("sales")}>{fr?"Conditions de vente":"Sales terms"}</button>
       <button style={lk} onClick={()=>onOpen("legal")}>{fr?"Mentions légales":"Legal notice"}</button>
+      <div style={{flexBasis:"100%",fontSize:"0.6rem",color:"#8A8F97",marginTop:"6px"}}>{fr?"MetalPrompt est un outil indépendant, non affilié à Suno, Inc.":"MetalPrompt is an independent tool, not affiliated with Suno, Inc."}</div>
     </div>
   );
 }
@@ -1146,7 +1150,7 @@ function UserChip({user,uiLang,tierBadge,tierColor,isElite,onLogout,onRequestAut
             <span style={{fontSize:"0.5rem",color:"#666",textTransform:"uppercase",letterSpacing:"1px"}}>{fr?"Plan":"Plan"}</span>
             <span style={{background:tierColor||"#444",color:isElite?"#fff":"#000",fontSize:"0.5rem",fontWeight:900,padding:"2px 8px",borderRadius:"8px",letterSpacing:"0.5px"}}>{tierBadge||"FREE"}</span>
           </div>
-          <button onClick={onLogout} style={{width:"100%",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"5px",color:"#ff7070",fontSize:"0.6rem",fontWeight:700,padding:"7px",cursor:"pointer",letterSpacing:"0.5px"}}>{fr?"Déconnexion":"Log out"}</button>
+          <button onClick={onLogout} style={{width:"100%",background:"#2a1208",border:"1px solid #5a0000",borderRadius:"5px",color:"#FFB36B",fontSize:"0.6rem",fontWeight:700,padding:"7px",cursor:"pointer",letterSpacing:"0.5px"}}>{fr?"Déconnexion":"Log out"}</button>
         </div>
       </>)}
     </div>
@@ -1194,16 +1198,16 @@ function Manifesto({onClose,uiLang}){
   return (
     <div style={{position:"fixed",inset:0,background:"#000000ee",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}}>
       <div style={{maxWidth:"560px",width:"100%",background:"linear-gradient(180deg,#120000,#0a0a0b)",border:"1px solid #5a0000",borderRadius:"14px",padding:"30px 26px",boxShadow:"0 0 50px #000"}}>
-        <div style={{textAlign:"center",fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.72rem",letterSpacing:"4px",color:RED,marginBottom:"6px"}}>{fr?"LE MANIFESTE":"THE MANIFESTO"}</div>
+        <div style={{textAlign:"center",fontFamily:"'Geist',sans-serif",fontSize:"0.72rem",letterSpacing:"4px",color:RED,marginBottom:"6px"}}>{fr?"LE MANIFESTE":"THE MANIFESTO"}</div>
         <div className="forge-title" style={{textAlign:"center",fontSize:"1.7rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Un outil pour les musiciens. Jamais contre.":"A tool for musicians. Never against them."}</div>
         <div style={{fontSize:"0.8rem",color:"#bbb",lineHeight:1.7,marginBottom:"18px",textAlign:"center"}}>{fr?"MetalPrompt existe pour une seule raison : remettre le pouvoir entre les mains des artistes. Pas les majors. Pas les gatekeepers. Les créateurs.":"MetalPrompt exists for one reason: to put the power back in artists' hands. Not the majors. Not the gatekeepers. The creators."}</div>
         <div style={{display:"flex",flexDirection:"column",gap:"9px",marginBottom:"20px"}}>
-          {piliers.map((p,i)=>(<div key={i} style={{background:"#0d0000",border:"1px solid #2a0000",borderRadius:"8px",padding:"10px 12px"}}>
-            <div style={{color:"#ff9090",fontWeight:800,fontSize:"0.78rem"}}>{p[0]}</div>
+          {piliers.map((p,i)=>(<div key={i} style={{background:"#0d0000",border:"1px solid #2a1208",borderRadius:"8px",padding:"10px 12px"}}>
+            <div style={{color:"#FFB36B",fontWeight:800,fontSize:"0.78rem"}}>{p[0]}</div>
             <div style={{color:"#888",fontSize:"0.7rem",marginTop:"2px",lineHeight:1.5}}>{p[1]}</div>
           </div>))}
         </div>
-        <div style={{textAlign:"center",fontFamily:"'Bebas Neue',sans-serif",letterSpacing:"3px",color:RED,fontSize:"1.05rem",marginBottom:"18px"}}>{fr?"BRUTAL. ORGANIQUE. HUMAIN.":"BRUTAL. ORGANIC. HUMAN."}</div>
+        <div style={{textAlign:"center",fontFamily:"'Geist',sans-serif",letterSpacing:"3px",color:RED,fontSize:"1.05rem",marginBottom:"18px"}}>{fr?"BRUTAL. ORGANIQUE. HUMAIN.":"BRUTAL. ORGANIC. HUMAN."}</div>
         <button onClick={onClose} style={{width:"100%",padding:"14px",background:RED,border:"none",borderRadius:"8px",color:"#fff",fontWeight:900,fontSize:"0.9rem",letterSpacing:"2px",textTransform:"uppercase",cursor:"pointer"}}>{fr?"Entrer dans la forge":"Enter the forge"}</button>
         <div style={{textAlign:"center",fontSize:"0.55rem",color:"#555",marginTop:"10px"}}>MMF Techni-Solutions</div>
       </div>
@@ -1234,11 +1238,11 @@ function WhatsNew({onClose,uiLang}){
   return (
     <div style={{position:"fixed",inset:0,background:"#000000ee",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}}>
       <div style={{maxWidth:"580px",width:"100%",background:"linear-gradient(180deg,#120000,#0a0a0b)",border:"1px solid #5a0000",borderRadius:"14px",padding:"28px 24px",boxShadow:"0 0 50px #000",margin:"auto"}}>
-        <div style={{textAlign:"center",fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.72rem",letterSpacing:"4px",color:RED,marginBottom:"6px"}}>{fr?"NOUVEAUTÉS":"WHAT'S NEW"}</div>
+        <div style={{textAlign:"center",fontFamily:"'Geist',sans-serif",fontSize:"0.72rem",letterSpacing:"4px",color:RED,marginBottom:"6px"}}>{fr?"NOUVEAUTÉS":"WHAT'S NEW"}</div>
         <div className="forge-title" style={{textAlign:"center",fontSize:"1.6rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Version 3.1 — tape ton band 🤘":"Version 3.1 — just type your band 🤘"}</div>
         <div style={{display:"flex",flexDirection:"column",gap:"9px",marginBottom:"20px"}}>
-          {items.map((p,i)=>(<div key={i} style={{background:"#0d0000",border:"1px solid #2a0000",borderRadius:"8px",padding:"10px 12px"}}>
-            <div style={{color:"#ff9090",fontWeight:800,fontSize:"0.8rem"}}>{p[0]}</div>
+          {items.map((p,i)=>(<div key={i} style={{background:"#0d0000",border:"1px solid #2a1208",borderRadius:"8px",padding:"10px 12px"}}>
+            <div style={{color:"#FFB36B",fontWeight:800,fontSize:"0.8rem"}}>{p[0]}</div>
             <div style={{color:"#999",fontSize:"0.72rem",marginTop:"3px",lineHeight:1.5}}>{p[1]}</div>
           </div>))}
         </div>
@@ -1293,8 +1297,8 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
   };
   return (
     <div style={S.page}>
-      <div style={{...S.card,textAlign:"center",padding:"24px 20px",borderColor:"#ff2e2e44"}}>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.9rem",letterSpacing:"2px",color:"#fff"}}>{L("GALERIE","GALLERY")}</div>
+      <div style={{...S.card,textAlign:"center",padding:"24px 20px",borderColor:"#FF6A2B44"}}>
+        <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.9rem",letterSpacing:"2px",color:"#fff"}}>{L("GALERIE","GALLERY")}</div>
         <div style={{color:"#999",fontSize:"0.8rem",marginTop:"6px",lineHeight:1.55}}>{L("Les chansons forgées par la communauté. Metal fait avec l'IA comme un outil — l'humain au centre.","Tracks forged by the community. Metal made with AI as a tool — human at the center.")}</div>
         <button onClick={()=>setShowForm(v=>!v)} style={{marginTop:"14px",background:RED,border:"none",borderRadius:"8px",color:"#000",fontWeight:900,fontSize:"0.8rem",letterSpacing:"1px",textTransform:"uppercase",padding:"11px 22px",cursor:"pointer"}}>{showForm?L("Fermer","Close"):L("Soumettre ma chanson","Submit my track")}</button>
       </div>
@@ -1324,7 +1328,7 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
           </div>
           {e.type==="iframe"
             ? <iframe src={e.src} title={it.title} loading="lazy" allow="encrypted-media; clipboard-write" style={{width:"100%",height:e.h+"px",border:"none",borderRadius:"8px"}}/>
-            : <a href={e.src} target="_blank" rel="noopener noreferrer" style={{display:"inline-block",background:"#1a0000",border:`1px solid ${RED}`,borderRadius:"7px",color:"#ff9090",fontWeight:800,fontSize:"0.74rem",padding:"9px 16px",textDecoration:"none"}}>{L("▶ Écouter","▶ Listen")}</a>}
+            : <a href={e.src} target="_blank" rel="noopener noreferrer" style={{display:"inline-block",background:"#2a1208",border:`1px solid ${RED}`,borderRadius:"7px",color:"#FFB36B",fontWeight:800,fontSize:"0.74rem",padding:"9px 16px",textDecoration:"none"}}>{L("▶ Écouter","▶ Listen")}</a>}
         </div>
       );})}
       <div style={{height:60}}/>
@@ -1700,9 +1704,9 @@ export default function App({ user, onLogout, onRequestAuth }) {
             {METER_LIST.map(m=>{const i=meters.indexOf(m);return <span key={m} onClick={()=>tMeter(m)} title={METER_HINT[m]} style={S.tag(i>=0,false)}>{i>=0?<b style={{color:"#fff",marginRight:"4px"}}>{i+1}</b>:null}{m}</span>;})}
           </div>
           {meters.length>0
-            ?<div style={{fontSize:"0.62rem",color:"#c9a227",marginBottom:"6px",fontFamily:"monospace"}}>→ in alternating {meters.join(" + ")} <span onClick={()=>setMeters([])} style={{color:"#666",cursor:"pointer",marginLeft:"6px"}}>✕</span></div>
+            ?<div style={{fontSize:"0.62rem",color:"#c9a227",marginBottom:"6px",fontFamily:"'Geist Mono',monospace"}}>→ in alternating {meters.join(" + ")} <span onClick={()=>setMeters([])} style={{color:"#666",cursor:"pointer",marginLeft:"6px"}}>✕</span></div>
             :meterInfo&&meterInfo.auto
-              ?<div style={{fontSize:"0.62rem",color:"#7fbf7f",marginBottom:"6px",fontFamily:"monospace"}}>{L("Auto (genre) → ","Auto (genre) → ")}{meterInfo.lead}</div>
+              ?<div style={{fontSize:"0.62rem",color:"#7fbf7f",marginBottom:"6px",fontFamily:"'Geist Mono',monospace"}}>{L("Auto (genre) → ","Auto (genre) → ")}{meterInfo.lead}</div>
               :<div style={{fontSize:"0.6rem",color:"#5a7a5a",marginBottom:"6px"}}>{L("Rien de coché = séquence déduite du genre après génération (prog, math, djent, doom, folk… ; thrash, deathcore et black restent en 4/4).","Nothing selected = sequence derived from the genre after generating (prog, math, djent, doom, folk…; thrash, deathcore and black stay in 4/4).")}</div>}
           <div style={{fontSize:"0.58rem",color:"#333",marginTop:"4px",lineHeight:1.6}}>{L("→ Clique dans l'ordre voulu (max 5). La séquence est placée EN TÊTE du Style : Suno la lit comme un feel prog/avant-garde qui teinte tout le morceau.","→ Click in the order you want (max 5). The sequence goes at the TOP of the Style: Suno reads it as a prog/avant-garde feel that colors the whole track.")}</div>
         </Collapse>
@@ -1883,9 +1887,9 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   const LOCK="\u{1F512} ";
   const FL={display:"block",fontSize:"0.62rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:"#aaa",marginBottom:"5px"};
   const FC={width:"100%",minHeight:"42px",background:"#1a1a1a",border:"1.5px solid #3a3a3a",borderRadius:"8px",padding:"0 12px",color:"#e6e6e6",fontSize:"0.84rem",fontWeight:700,colorScheme:"dark"};
-  const CHIP={background:"#1a1a1a",border:"1px solid #3a3a3a",borderRadius:"20px",padding:"8px 14px",fontSize:"0.76rem",fontWeight:700,color:"#e0e0e0",cursor:"pointer"};
-  const CHIP_ON={...CHIP,background:"#2a0808",border:"1px solid "+RED,color:"#ffb0b0"};
-  const SEG=on=>({minHeight:"44px",padding:"0 10px",borderRadius:"8px",fontSize:"0.8rem",fontWeight:on?800:600,cursor:"pointer",background:on?"#2a0808":"#1a1a1a",border:"1.5px solid "+(on?RED:"#3a3a3a"),color:on?"#ffb0b0":"#d0d0d0"});
+  const CHIP={background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:"20px",padding:"8px 14px",fontSize:"0.76rem",fontWeight:500,color:"#D4D6DA",cursor:"pointer"};
+  const CHIP_ON={...CHIP,background:"#2a1208",border:"1px solid "+RED,color:"#FFD2B8"};
+  const SEG=on=>({minHeight:"44px",padding:"0 10px",borderRadius:"8px",fontSize:"0.8rem",fontWeight:on?800:600,cursor:"pointer",background:on?"#2a1208":"#1a1a1a",border:"1.5px solid "+(on?RED:"#3a3a3a"),color:on?"#FFD2B8":"#d0d0d0"});
   const autoEra=[...genres].map(g=>(GENRE_FAMILIES.find(f=>f.genres.some(x=>x.g===g))||{}).nameEn).map(n=>ERA_KEYS.find(k=>String(n||"").startsWith(k))).filter(Boolean)[0]||"";   // époque du genre principal
   const SRC=[["none","",L("Rien","Nothing")],["seed","melodie",L("Une mélodie","A melody")],["seed","riff",L("Un riff","A riff")],["cover","",L("Un Cover","A Cover")]];
   // Barre commune des pages Mélodie et Riff : bascule entre les deux + envoi vers la forge comme amorce.
@@ -1907,7 +1911,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {showManifesto&&<WhatsNew onClose={closeManifesto} uiLang={uiLang}/>}
 
       {warnLogout&&(
-        <div style={{position:"fixed",top:0,left:0,right:0,background:"#1a0000",borderBottom:`1px solid ${RED}`,padding:"8px",textAlign:"center",zIndex:500,fontSize:"0.65rem",color:"#ff9090"}}>
+        <div style={{position:"fixed",top:0,left:0,right:0,background:"#2a1208",borderBottom:`1px solid ${RED}`,padding:"8px",textAlign:"center",zIndex:500,fontSize:"0.65rem",color:"#FFB36B"}}>
           {t.warn}
         </div>
       )}
@@ -1916,14 +1920,14 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       <div style={{position:"sticky",top:0,zIndex:100}}>
       <div style={S.header}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"10px"}}>
-          <div className="forge-title" style={S.h1}>Metal Prompt Forge</div>
+          <svg width="40" height="32" viewBox="0 0 60 48" role="img" aria-label="MetalPrompt" style={{flexShrink:0}}><g fill="#F2F1ED" stroke="#F2F1ED" strokeWidth="1" strokeLinejoin="round"><path d="M6 43 L8.6 6.5 Q9 3.6 11.6 4.2 Q13.2 4.6 14 6.4 L24 28 L34 9.4 Q34.9 7.8 36.6 8.3 Q38.6 8.9 38.7 11.2 L42 43 H34.8 L33.4 22.5 L24 38 L14.6 21 L13.2 43 Z"/><path d="M39.2 14 H46.5 Q56 14 56 23.2 Q56 32.4 46.5 32.4 H40.6 L40 26.8 H46 Q49.4 26.8 49.4 23.2 Q49.4 19.6 46 19.6 H39.7 Z"/></g><path d="M9.4 10.6 L13.4 12.4" stroke="#FF6A2B" strokeWidth="1.6" strokeLinecap="round"/></svg><div className="forge-title" style={S.h1}>MetalPrompt</div>
           {tierBadge&&<span style={{background:tierColor,color:isElite?"#fff":"#000",fontSize:"0.5rem",fontWeight:900,padding:"2px 7px",borderRadius:"8px",letterSpacing:"1px"}}>{tierBadge}</span>}
         </div>
         <div style={S.sub}>{t.sub}</div>
         <div style={{fontSize:"0.55rem",color:"#555",marginTop:"4px",display:"flex",justifyContent:"center",gap:"12px",alignItems:"center",flexWrap:"wrap"}}>
           <span>{limit.prompts===Infinity?(uiLang==="fr"?"Illimité":"Unlimited"):<><b style={{color:Math.max(0,limit.prompts-promptCount)>0?"#4caf50":RED}}>{Math.max(0,limit.prompts-promptCount)}</b> {uiLang==="fr"?"essais gratuits":"free trials left"}{credits>0&&<> · <b style={{color:"#4caf50"}}>{credits}</b> {uiLang==="fr"?"prompts achetés":"bought prompts"}</>}</>} · <span onClick={()=>setShowPaywall(true)} style={{color:RED,textDecoration:"none",fontWeight:700,cursor:"pointer"}}>{t.plans}</span></span>
           <div style={{display:"flex",gap:"6px",alignItems:"center"}}>
-            {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#1a0000":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"3px",color:uiLang===l?RED:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{l.toUpperCase()}</button>)}
+            {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#2a1208":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"3px",color:uiLang===l?RED:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{l.toUpperCase()}</button>)}
             <button onClick={()=>{if(window.confirm(L("Réinitialiser tous les réglages et vider la sauvegarde ? Cette action recharge la page.","Reset all settings and clear saved state? This reloads the page."))) resetAll();}} title={L("Réinitialiser l'app (vide la sauvegarde)","Reset app (clears saved state)")} style={{background:"none",border:"1px solid #333",borderRadius:"3px",color:"#555",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{L("RÉINIT.","RESET")}</button>
             <UserChip user={user} uiLang={uiLang} tierBadge={tierBadge} tierColor={tierColor} isElite={isElite} onLogout={onLogout} onRequestAuth={onRequestAuth}/>
           </div>
@@ -1931,7 +1935,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>
 
       {/* NAV */}
-      <div className="nav-scroll" style={{background:"#0f0f0f",borderBottom:"1px solid #1a1a1a"}}>
+      <div className="nav-scroll" style={{background:"rgba(12,13,15,0.82)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
         {NAV_MAIN.map(n=>{
           const on=n.id===tab||n.also.includes(tab);
           return <button key={n.id} aria-current={on?"page":undefined} style={{...S.navBtn(on,false),fontSize:"0.7rem",padding:"12px 14px"}} onClick={()=>{setMoreOpen(false);setTab(n.id);}}>{canAccess(n.req)?"":LOCK}{n.label}</button>;
@@ -1943,7 +1947,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <button key={id} onClick={()=>{setTab(id);setMoreOpen(false);}} style={tab===id?{...CHIP_ON,borderRadius:"8px"}:{...CHIP,borderRadius:"8px"}}>{canAccess(MORE_REQ[id])?"":LOCK}{t.tabs[id]||id}</button>))}
       </div>}
       {FINE_TABS.includes(tab)&&<div style={{background:"#0c0c0c",borderBottom:"1px solid #1a1a1a",display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px",padding:"8px 10px"}}>
-        <button onClick={()=>setTab("genre")} style={{...CHIP,borderRadius:"8px",border:"1px solid #5a1a1a",color:"#ff8a8a"}}>← {L("Retour à Forger","Back to Forge")}</button>
+        <button onClick={()=>setTab("genre")} style={{...CHIP,borderRadius:"8px",border:"1px solid #5a2a14",color:"#FFB36B"}}>← {L("Retour à Forger","Back to Forge")}</button>
         {FINE_TABS.map(id=>(
           <button key={id} aria-pressed={tab===id} onClick={()=>setTab(id)} style={tab===id?{...CHIP_ON,borderRadius:"8px"}:{...CHIP,borderRadius:"8px"}}>{t.tabs[id]||id}</button>))}
       </div>}
@@ -1953,18 +1957,18 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {tab==="genre"&&<div style={{...S.page,maxWidth:"900px"}}>
         {/* FORGER v2 (oct. 2026) — une boîte d'entrée, ce qui est détecté, la source audio ; tout le reste est replié. */}
         <div style={{margin:"12px 0 16px"}}>
-          <label htmlFor="mpf-idee" style={{display:"block",fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.3rem",letterSpacing:"2px",color:"#f4f4f4",lineHeight:1}}>{L("Qu'est-ce qu'on forge ?","What are we forging?")}</label>
-          <div style={{fontSize:"0.78rem",color:"#aaa",margin:"8px 0 12px",lineHeight:1.55}}>{L("Un groupe, une année, un genre ou une description. Le nom d'un groupe sert seulement à trouver le style : il n'est jamais écrit dans ton prompt.","A band, a year, a genre or a description. A band name only picks the style: it is never written into your prompt.")}</div>
+          <label htmlFor="mpf-idee" style={{display:"block",textAlign:"center",fontWeight:600,fontSize:"clamp(2rem,6vw,3.4rem)",letterSpacing:"-0.035em",color:"#FFFFFF",lineHeight:1.05,margin:"18px 0 0"}}>{L("La couleur de tes influences, ta signature à toi.","The colour of your influences, your own signature.")}</label>
+          <div style={{fontSize:"1rem",color:"#D4D6DA",margin:"14px auto 22px",lineHeight:1.65,maxWidth:"52ch",textAlign:"center"}}>{L("Tape un groupe ou mélange-en deux. On capte son énergie, sa couleur, son grain, et tu forges quelque chose de neuf. Le nom reste en dehors de ton prompt.","Type a band or mix two. We catch its energy, colour and grit, and you forge something new. The name stays out of your prompt.")}</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:"9px"}}>
-            <input id="mpf-idee" autoComplete="off" value={ideaInput} maxLength={160} onFocus={()=>{loadBands();setSugOpen(true);}} onBlur={()=>setTimeout(()=>setSugOpen(false),150)} onChange={e=>{setIdeaInput(e.target.value);setSugOpen(true);}} onKeyDown={e=>{if(e.key==='Enter'){setSugOpen(false);smartForge();}if(e.key==='Tab'&&bandSugs.length){e.preventDefault();pickSug(bandSugs[0]);}}} placeholder={L("ex. : Gojira · Despised Icon + Meshuggah · doom lent avec orgue, 1993","e.g. Gojira · Despised Icon + Meshuggah · slow doom with organ, 1993")} style={{flex:"1 1 300px",minWidth:0,height:"54px",background:"#141414",border:"1.5px solid #4a4a4a",borderRadius:"10px",padding:"0 16px",color:"#f4f4f4",fontSize:"1rem"}}/>
-            <button onClick={smartForge} disabled={ideaBusy} style={{height:"54px",padding:"0 34px",background:RED,border:"none",borderRadius:"10px",color:"#000",fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"4px",cursor:ideaBusy?"default":"pointer",opacity:ideaBusy?0.6:1,boxShadow:"0 4px 24px #ff000055"}}>{ideaBusy?L("Analyse…","Analyzing…"):L("Forger","Forge")}</button>
-            <button onClick={randomBand} title={L("Groupe au hasard","Random band")} aria-label={L("Groupe au hasard","Random band")} style={{height:"54px",width:"54px",background:"#1a1a1a",border:"1px solid #3a3a3a",borderRadius:"10px",fontSize:"1.4rem",cursor:"pointer"}}>🎲</button>
+            <input id="mpf-idee" autoComplete="off" value={ideaInput} maxLength={160} onFocus={()=>{loadBands();setSugOpen(true);}} onBlur={()=>setTimeout(()=>setSugOpen(false),150)} onChange={e=>{setIdeaInput(e.target.value);setSugOpen(true);}} onKeyDown={e=>{if(e.key==='Enter'){setSugOpen(false);smartForge();}if(e.key==='Tab'&&bandSugs.length){e.preventDefault();pickSug(bandSugs[0]);}}} placeholder={L("ex. : Gojira · Despised Icon + Meshuggah · doom lent avec orgue, 1993","e.g. Gojira · Despised Icon + Meshuggah · slow doom with organ, 1993")} style={{flex:"1 1 300px",minWidth:0,height:"58px",background:"rgba(22,24,28,0.8)",border:"1px solid rgba(255,255,255,0.14)",borderRadius:"14px",padding:"0 18px",color:"#F2F1ED",fontSize:"1.05rem",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}}/>
+            <button onClick={smartForge} disabled={ideaBusy} style={{height:"58px",padding:"0 30px",background:"#F2F1ED",border:"none",borderRadius:"14px",color:"#0C0D0F",fontWeight:600,fontSize:"1.05rem",cursor:ideaBusy?"default":"pointer",opacity:ideaBusy?0.6:1}}>{ideaBusy?L("Analyse…","Analyzing…"):L("Forger","Forge")}</button>
+            <button onClick={randomBand} title={L("Groupe au hasard","Random band")} aria-label={L("Groupe au hasard","Random band")} style={{height:"58px",width:"58px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:"14px",fontSize:"1.4rem",cursor:"pointer"}}>🎲</button>
           </div>
           {bandSugs.length>0&&<div role="listbox" style={{display:"flex",flexWrap:"wrap",gap:"6px",marginTop:"8px"}}>
-            {bandSugs.map(b=>(<button key={b} role="option" onMouseDown={e=>e.preventDefault()} onClick={()=>pickSug(b)} style={{...CHIP,borderRadius:"8px",borderColor:"#5a1a1a",color:"#ffc2c2"}}>{b}</button>))}
+            {bandSugs.map(b=>(<button key={b} role="option" onMouseDown={e=>e.preventDefault()} onClick={()=>pickSug(b)} style={{...CHIP,borderRadius:"8px",borderColor:"#5a2a14",color:"#FFD2B8"}}>{b}</button>))}
           </div>}
           {ideaMsg&&<div role="status" style={{fontSize:"0.74rem",marginTop:"9px",lineHeight:1.5,color:ideaMsg.ok?"#7bd88f":"#e6b08a"}}>{ideaMsg.ok?"✓ ":""}{ideaMsg.text}</div>}
-          {styleTxt&&<button onClick={()=>setTab("output")} style={{marginTop:"9px",background:"none",border:"none",padding:0,color:"#ff8a8a",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{L("Voir la dernière sortie →","See the last output →")}</button>}
+          {styleTxt&&<button onClick={()=>setTab("output")} style={{marginTop:"9px",background:"none",border:"none",padding:0,color:"#FFB36B",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{L("Voir la dernière sortie →","See the last output →")}</button>}
         </div>
         {!adjustOpen&&!ideaInput&&<div style={{display:"flex",flexWrap:"wrap",gap:"7px",margin:"-4px 0 14px"}}>
           {["Gojira","Slipknot","Despised Icon","Mayhem","Gojira + Meshuggah"].map(x=>(
@@ -2056,7 +2060,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               :audioSrc==="seed"
                 ?L("Amorce : Audio Influence entre 25 et 50 %, pour que Suno bâtisse autour au lieu de recopier.","Seed: Audio Influence between 25 and 50%, so Suno builds around it instead of copying it.")
                 :L("Aucune source audio : pas de ligne Audio Influence dans les réglages Suno.","No audio source: no Audio Influence line in the Suno settings.")}</span>
-            {audioSrc==="seed"&&<button onClick={()=>setTab(seedKind==="riff"?"riff":"melodie")} style={{background:"none",border:"none",padding:0,color:"#ff8a8a",fontSize:"0.72rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{seedKind==="riff"?L("Créer le riff →","Build the riff →"):L("Créer la mélodie →","Build the melody →")}</button>}
+            {audioSrc==="seed"&&<button onClick={()=>setTab(seedKind==="riff"?"riff":"melodie")} style={{background:"none",border:"none",padding:0,color:"#FFB36B",fontSize:"0.72rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{seedKind==="riff"?L("Créer le riff →","Build the riff →"):L("Créer la mélodie →","Build the melody →")}</button>}
           </div>
         </div>
         <div style={{...S.card,padding:0,overflow:"hidden"}}>
@@ -2094,13 +2098,13 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <div style={S.card}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
             <div style={{...S.ctitle,marginBottom:0}}>{L("Mon Sound","My Sound")}{!canAccess("pro")?" 🔒":""}</div>
-            <button onClick={saveSound} style={{background:"#1a0000",border:`1px solid ${RED}`,borderRadius:"6px",color:RED,fontSize:"0.6rem",fontWeight:800,padding:"5px 11px",cursor:"pointer",letterSpacing:"0.5px"}}>＋ {L("Sauver","Save")}</button>
+            <button onClick={saveSound} style={{background:"#2a1208",border:`1px solid ${RED}`,borderRadius:"6px",color:RED,fontSize:"0.6rem",fontWeight:800,padding:"5px 11px",cursor:"pointer",letterSpacing:"0.5px"}}>＋ {L("Sauver","Save")}</button>
           </div>
           <div style={{fontSize:"0.58rem",color:"#666",marginBottom:"9px",lineHeight:1.5}}>{L("Sauve ton ADN sonore et recharge-le en un clic — la base de ton custom model Suno.","Save your sonic DNA and reload it in one click — the base for your Suno custom model.")}</div>
           {sounds.length===0&&<div style={{fontSize:"0.62rem",color:"#444"}}>{L("Aucun sound sauvegardé.","No saved sound yet.")}</div>}
           {sounds.map(s=>(
             <div key={s.id} style={{display:"flex",alignItems:"center",gap:"8px",padding:"6px 0",borderBottom:"1px solid #1a1a1a"}}>
-              <button onClick={()=>loadSound(s)} style={{flex:1,textAlign:"left",background:"none",border:"none",color:"#ff9090",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",padding:0}}>{s.name}</button>
+              <button onClick={()=>loadSound(s)} style={{flex:1,textAlign:"left",background:"none",border:"none",color:"#FFB36B",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",padding:0}}>{s.name}</button>
               <span style={{fontSize:"0.55rem",color:"#555"}}>{s.data?.bpm} BPM</span>
               <button onClick={()=>delSound(s.id)} style={{background:"none",border:"none",color:"#5a0000",fontSize:"0.72rem",cursor:"pointer"}}></button>
             </div>
@@ -2148,7 +2152,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           </div>
           <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>
             {[[90,"Doom"],[120,"Groove"],[140,"Metal"],[160,"Hardcore"],[180,"Deathcore"],[220,"Blast"],[260,"Grind"]].map(([v,l])=>(
-              <button key={v} onClick={()=>setBPM(v)} style={{background:bpm===v?"#2a0000":"#181818",border:`1px solid ${bpm===v?RED:"#222"}`,borderRadius:"6px",padding:"5px 10px",fontSize:"0.66rem",color:bpm===v?"#ff7070":"#777",cursor:"pointer"}}>{l} {v}</button>
+              <button key={v} onClick={()=>setBPM(v)} style={{background:bpm===v?"#2a1208":"#181818",border:`1px solid ${bpm===v?RED:"#222"}`,borderRadius:"6px",padding:"5px 10px",fontSize:"0.66rem",color:bpm===v?"#FFB36B":"#777",cursor:"pointer"}}>{l} {v}</button>
             ))}
           </div>
         </div>
@@ -2186,7 +2190,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* GUITAR */}
       {tab==="instrums"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         {/* --- GUITARE --- */}
-        <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("GUITARE","GUITAR")}</div></div>
+        <div style={{...S.card,borderColor:"#FF6A2B33",background:"#110000",textAlign:"center"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("GUITARE","GUITAR")}</div></div>
         <div style={S.card}>
           <div style={{...S.ctitle,marginBottom:"8px"}}>{L("Techniques guitare — par époque","Guitar techniques — by era")}</div>
           <input value={gtrFilter} onChange={e=>setGtrFilter(e.target.value)} placeholder={L("Chercher une technique…","Search a technique…")} style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",borderRadius:"6px",padding:"8px 10px",color:"#e0e0e0",fontSize:"0.78rem",marginBottom:"6px"}}/>
@@ -2211,7 +2215,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <Collapse title={L("Production guitare","Guitar production")} n={GPROD.length} selCount={gprod.size}><Tags list={GPROD} sel={gprod} toggle={tGprod}/></Collapse>
 
         {/* --- BASSE --- */}
-        <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center",marginTop:"18px"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("BASSE","BASS")}</div></div>
+        <div style={{...S.card,borderColor:"#FF6A2B33",background:"#110000",textAlign:"center",marginTop:"18px"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("BASSE","BASS")}</div></div>
         <Collapse title={L("Style de jeu","Playing style")} n={BASS_STYLE.length} selCount={bassStyle.size}><Tags list={BASS_STYLE} sel={bassStyle} toggle={tBassStyle}/></Collapse>
         <Collapse title={L("Techniques avancées","Advanced techniques")} n={BASS_TECH.length} selCount={bassTech.size}><Tags list={BASS_TECH} sel={bassTech} toggle={tBassTech}/></Collapse>
         <Collapse title={L("Tone / Son","Tone")} n={BASS_TONE.length} selCount={bassTone.size}><Tags list={BASS_TONE} sel={bassTone} toggle={tBassTone}/></Collapse>
@@ -2219,7 +2223,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <Collapse title={L("Production basse","Bass production")} n={BASS_PROD.length} selCount={bassProd.size}><Tags list={BASS_PROD} sel={bassProd} toggle={tBassProd}/></Collapse>
 
         {/* --- INSTRU --- */}
-        <div style={{...S.card,borderColor:"#ff2e2e33",background:"#110000",textAlign:"center",marginTop:"18px"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("AUTRES INSTRUMENTS","OTHER INSTRUMENTS")}</div></div>
+        <div style={{...S.card,borderColor:"#FF6A2B33",background:"#110000",textAlign:"center",marginTop:"18px"}}><div style={{...S.ctitle,color:RED,marginBottom:0}}>{L("AUTRES INSTRUMENTS","OTHER INSTRUMENTS")}</div></div>
         <Collapse title="Saxophone" n={SAX.length} selCount={sax.size}><Tags list={SAX} sel={sax} toggle={tSax}/></Collapse>
         <Collapse title={L("Cuivres","Brass")} n={BRASS.length} selCount={brass.size}><Tags list={BRASS} sel={brass} toggle={tBrass}/></Collapse>
         <Collapse title={L("Claviers & Synth","Keys & Synth")} n={KEYS.length} selCount={keys.size}><Tags list={KEYS} sel={keys} toggle={tKeys}/></Collapse>
@@ -2241,10 +2245,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             <div style={{...S.ctitle,marginBottom:0}}>{L("Blocs & Feeling par section","Blocks & per-section feel")}</div>
             <div style={{display:"flex",gap:"6px"}}>
               <button onClick={()=>setStructs(STRUCT_BLOCKS.map(b=>b.k))} style={{background:"#0a1f00",border:"1px solid #2a5a2a",borderRadius:"5px",padding:"4px 11px",fontSize:"0.62rem",fontWeight:700,color:"#7fdd7f",cursor:"pointer"}}>{L("Tout","All")}</button>
-              <button onClick={()=>setStructs([])} style={{background:"#1a0000",border:"1px solid #4a1010",borderRadius:"5px",padding:"4px 11px",fontSize:"0.62rem",fontWeight:700,color:"#cc6666",cursor:"pointer"}}>{L("Vider","Clear")}</button>
+              <button onClick={()=>setStructs([])} style={{background:"#2a1208",border:"1px solid #4a1010",borderRadius:"5px",padding:"4px 11px",fontSize:"0.62rem",fontWeight:700,color:"#cc6666",cursor:"pointer"}}>{L("Vider","Clear")}</button>
             </div>
           </div>
-          <div style={{fontSize:"0.57rem",color:"#333",marginBottom:"10px"}}>{L("Feel → s'ajoute dans la balise : ","Feel → added inside the tag: ")}<span style={{color:"#aaffaa",fontFamily:"monospace"}}>[Breakdown, half-time feel]</span></div>
+          <div style={{fontSize:"0.57rem",color:"#333",marginBottom:"10px"}}>{L("Feel → s'ajoute dans la balise : ","Feel → added inside the tag: ")}<span style={{color:"#aaffaa",fontFamily:"'Geist Mono',monospace"}}>[Breakdown, half-time feel]</span></div>
           <div style={S.tags}>
             {STRUCT_BLOCKS.map(b=>(
               <span key={b.k} onClick={()=>tStruct(b.k)} title={uiLang==="fr"?b.desc:(b.descEn||b.desc)} style={S.tag(structs.has(b.k),false)}>{b.icon} {b.name}</span>
@@ -2264,7 +2268,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                         {r.l}
                       </span>
                     ))}
-                    {hasR&&<span onClick={()=>clearBlockR(b.k)} style={{fontSize:"0.55rem",color:"#ff5555",cursor:"pointer",padding:"3px 6px",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"4px"}}></span>}
+                    {hasR&&<span onClick={()=>clearBlockR(b.k)} style={{fontSize:"0.55rem",color:"#ff5555",cursor:"pointer",padding:"3px 6px",background:"#2a1208",border:"1px solid #5a0000",borderRadius:"4px"}}></span>}
                   </FeelRow>
                 );
               })}
@@ -2289,13 +2293,13 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{...S.card,flex:1}}>
             <div style={S.ctitle}>{L("Narrateur","Narrator")}</div>
             {[["first",L("1ère pers.","1st person")],["second",L("2ème pers.","2nd person")],["third",L("3ème pers.","3rd person")]].map(([v,l])=>(
-              <div key={v} onClick={()=>setLyricsNarrator(v)} style={{padding:"7px 10px",borderRadius:"6px",marginBottom:"5px",cursor:"pointer",fontSize:"0.72rem",background:lyricsNarrator===v?"#2a0000":"#111",border:`1px solid ${lyricsNarrator===v?RED:"#222"}`,color:lyricsNarrator===v?"#ff7070":"#666"}}>{l}</div>
+              <div key={v} onClick={()=>setLyricsNarrator(v)} style={{padding:"7px 10px",borderRadius:"6px",marginBottom:"5px",cursor:"pointer",fontSize:"0.72rem",background:lyricsNarrator===v?"#2a1208":"#111",border:`1px solid ${lyricsNarrator===v?RED:"#222"}`,color:lyricsNarrator===v?"#FFB36B":"#666"}}>{l}</div>
             ))}
           </div>
           <div style={{...S.card,flex:1}}>
             <div style={S.ctitle}>{L("⏱️ Temps verbal","⏱️ Tense")}</div>
             {[["present",L("Présent","Present")],["past",L("Passé","Past")],["future",L("Futur","Future")]].map(([v,l])=>(
-              <div key={v} onClick={()=>setLyricsTense(v)} style={{padding:"7px 10px",borderRadius:"6px",marginBottom:"5px",cursor:"pointer",fontSize:"0.72rem",background:lyricsTense===v?"#2a0000":"#111",border:`1px solid ${lyricsTense===v?RED:"#222"}`,color:lyricsTense===v?"#ff7070":"#666"}}>{l}</div>
+              <div key={v} onClick={()=>setLyricsTense(v)} style={{padding:"7px 10px",borderRadius:"6px",marginBottom:"5px",cursor:"pointer",fontSize:"0.72rem",background:lyricsTense===v?"#2a1208":"#111",border:`1px solid ${lyricsTense===v?RED:"#222"}`,color:lyricsTense===v?"#FFB36B":"#666"}}>{l}</div>
             ))}
           </div>
         </div>
@@ -2305,42 +2309,42 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
         <div style={S.card}><div style={S.ctitle}>{L("Mots bannis","Banned words")}</div>
           <input value={bannedWords} onChange={e=>setBannedWords(e.target.value)} placeholder={L("ex: darkness, blood, rise, ashes...","e.g. darkness, blood, rise, ashes...")}
-            style={{width:"100%",background:"#111",border:"1px solid #5a1100",borderRadius:"6px",padding:"10px",color:"#ff7070",fontSize:"0.8rem"}}/>
-          {lyricsHistory.length>0&&<button onClick={()=>setLyricsHistory([])} style={{marginTop:"7px",padding:"5px 12px",background:"#1a0000",border:"1px solid #5a0000",borderRadius:"5px",color:"#ff5555",fontSize:"0.65rem",cursor:"pointer"}}>{L("Effacer mémoire","Clear memory")} ({lyricsHistory.length})</button>}
+            style={{width:"100%",background:"#111",border:"1px solid #5a1100",borderRadius:"6px",padding:"10px",color:"#FFB36B",fontSize:"0.8rem"}}/>
+          {lyricsHistory.length>0&&<button onClick={()=>setLyricsHistory([])} style={{marginTop:"7px",padding:"5px 12px",background:"#2a1208",border:"1px solid #5a0000",borderRadius:"5px",color:"#ff5555",fontSize:"0.65rem",cursor:"pointer"}}>{L("Effacer mémoire","Clear memory")} ({lyricsHistory.length})</button>}
         </div>
         <Collapse title={L("Langue des paroles","Lyrics language")} n={LYRIC_LANGS.length} selCount={lang.size} defaultOpen={true}><Tags list={LYRIC_LANGS} sel={lang} toggle={tLang}/></Collapse>
         <Collapse title={L("Blocs à générer","Blocks to generate")} n={LYRIC_BLOCKS.length} selCount={lblocks.size}><div style={{marginBottom:"10px"}}><SelAll all={LYRIC_BLOCKS.map(b=>b.v)} set={setLblocks} L={L}/></div><Tags list={LYRIC_BLOCKS} sel={lblocks} toggle={tLblock}/></Collapse>
         <div style={S.card}><div style={S.ctitle}>{L("Voix","Vocals")}</div>
           <div style={{display:"flex",gap:"6px"}}>
             {[["harsh",L("Guttural","Harsh")],["mix",L("Mix guttural + clean","Mix harsh + clean")],["clean",L("Chant clair","Clean")]].map(([v,lab])=>(
-              <div key={v} onClick={()=>setVocalMix(v)} style={{flex:1,textAlign:"center",padding:"8px 6px",borderRadius:"6px",cursor:"pointer",fontSize:"0.7rem",background:vocalMix===v?"#2a0000":"#111",border:`1px solid ${vocalMix===v?RED:"#222"}`,color:vocalMix===v?"#ff7070":"#888"}}>{lab}</div>
+              <div key={v} onClick={()=>setVocalMix(v)} style={{flex:1,textAlign:"center",padding:"8px 6px",borderRadius:"6px",cursor:"pointer",fontSize:"0.7rem",background:vocalMix===v?"#2a1208":"#111",border:`1px solid ${vocalMix===v?RED:"#222"}`,color:vocalMix===v?"#FFB36B":"#888"}}>{lab}</div>
             ))}
           </div>
           {vocalMix==="mix"&&<div style={{color:"#666",fontSize:"0.62rem",marginTop:"6px",lineHeight:1.4}}>{L("Refrains, ponts, intro/outro en chant clair · couplets, breakdowns en guttural — chaque section est taguée pour Suno.","Choruses, bridges, intro/outro clean-sung · verses, breakdowns harsh — each section tagged for Suno.")}</div>}
           {vocalMix!=="harsh"&&phoneticRec?.enabled&&<div style={{color:"#8a6a2a",fontSize:"0.6rem",marginTop:"5px"}}>{L("Note : la déformation phonétique harsh est désactivée en mode Mix/Clair.","Note: harsh phonetic deformation is off in Mix/Clean mode.")}</div>}
           <label style={{display:"flex",alignItems:"center",gap:"8px",cursor:"pointer",fontSize:"0.68rem",color:duet?"#ff9a9a":"#888",marginTop:"10px",paddingTop:"9px",borderTop:"1px solid #1c1c1c"}}>
-            <input type="checkbox" checked={duet} onChange={e=>setDuet(e.target.checked)} style={{accentColor:"#ff2e2e"}}/>
+            <input type="checkbox" checked={duet} onChange={e=>setDuet(e.target.checked)} style={{accentColor:"#FF6A2B"}}/>
             {L("Duo homme / femme (voix stables)","Duet male / female (stable voices)")}
           </label>
           {duet&&<div style={{color:"#666",fontSize:"0.62rem",marginTop:"6px",lineHeight:1.4}}>{L("Deux chanteurs distincts et constants. Chaque section est étiquetée [Male] / [Female] / [Both], plus l'en-tête [Duet: male and female] — Suno garde les deux voix stables.","Two distinct, consistent singers. Every section labeled [Male] / [Female] / [Both], plus a [Duet: male and female] header — keeps both voices stable in Suno.")}</div>}
         </div>
         {phoneticRec?.enabled&&<div style={{display:"flex",alignItems:"center",gap:"10px",background:"#0a0600",border:"1px solid #3a2a00",borderRadius:"6px",padding:"9px 12px",marginBottom:"10px"}}>
           <label style={{display:"flex",alignItems:"center",gap:"8px",cursor:"pointer",fontSize:"0.68rem",color:"#d8d86a",fontWeight:700,letterSpacing:"1px"}}>
-            <input type="checkbox" checked={phoneticOn} onChange={e=>setPhoneticOn(e.target.checked)} style={{accentColor:"#ff2e2e"}}/>
+            <input type="checkbox" checked={phoneticOn} onChange={e=>setPhoneticOn(e.target.checked)} style={{accentColor:"#FF6A2B"}}/>
             {L("VOCALS ILLISIBLES (PHONÉTIQUE)","UNINTELLIGIBLE VOCALS (PHONETIC)")}
           </label>
           <span style={{color:"#666",fontSize:"0.6rem",lineHeight:1.4}}>{phoneticRec.why} · {phoneticRec.intensity}</span>
         </div>}
         <button style={S.genBtn} onClick={generateLyrics} disabled={lyricsLoading}>{lyricsLoading?""+t.generating:L("GÉNÉRER LES PAROLES","GENERATE LYRICS")}</button>
         {lyricsLoading&&<div style={{textAlign:"center",padding:"20px"}}><div style={{fontSize:"1.8rem",animation:"spin 1s linear infinite",display:"inline-block"}}></div><div style={{color:"#444",fontSize:"0.7rem",letterSpacing:"2px",marginTop:"8px"}}>{L("CLAUDE COMPOSE...","CLAUDE IS COMPOSING...")}</div></div>}
-        {lyricsErr&&<div style={{color:"#ff5555",fontSize:"0.8rem",padding:"10px",background:"#1a0000",borderRadius:"8px",marginBottom:"10px"}}>{lyricsErr}</div>}
+        {lyricsErr&&<div style={{color:"#ff5555",fontSize:"0.8rem",padding:"10px",background:"#2a1208",borderRadius:"8px",marginBottom:"10px"}}>{lyricsErr}</div>}
         {lyricsTxt&&!lyricsLoading&&(<div>
           <div style={S.outLbl}>{L("Paroles générées","Generated lyrics")}</div>
           {lyricsPhon&&<div style={{display:"flex",gap:"6px",marginBottom:"8px"}}>
-            <button onClick={()=>{setShowPhon(false);setLyricsTxt(lyricsRaw);}} style={{padding:"5px 12px",background:!showPhon?"#2a0000":"#111",border:"1px solid "+(!showPhon?"#ff2e2e":"#222"),borderRadius:"5px",color:!showPhon?"#ff5555":"#666",fontSize:"0.62rem",fontWeight:700,cursor:"pointer",letterSpacing:"1px"}}>{L("LISIBLE","READABLE")}</button>
-            <button onClick={()=>{setShowPhon(true);setLyricsTxt(lyricsPhon);}} style={{padding:"5px 12px",background:showPhon?"#2a0000":"#111",border:"1px solid "+(showPhon?"#ff2e2e":"#222"),borderRadius:"5px",color:showPhon?"#ff5555":"#666",fontSize:"0.62rem",fontWeight:700,cursor:"pointer",letterSpacing:"1px"}}>{L("PHONÉTIQUE SUNO","SUNO PHONETIC")}</button>
+            <button onClick={()=>{setShowPhon(false);setLyricsTxt(lyricsRaw);}} style={{padding:"5px 12px",background:!showPhon?"#2a1208":"#111",border:"1px solid "+(!showPhon?"#FF6A2B":"#222"),borderRadius:"5px",color:!showPhon?"#ff5555":"#666",fontSize:"0.62rem",fontWeight:700,cursor:"pointer",letterSpacing:"1px"}}>{L("LISIBLE","READABLE")}</button>
+            <button onClick={()=>{setShowPhon(true);setLyricsTxt(lyricsPhon);}} style={{padding:"5px 12px",background:showPhon?"#2a1208":"#111",border:"1px solid "+(showPhon?"#FF6A2B":"#222"),borderRadius:"5px",color:showPhon?"#ff5555":"#666",fontSize:"0.62rem",fontWeight:700,cursor:"pointer",letterSpacing:"1px"}}>{L("PHONÉTIQUE SUNO","SUNO PHONETIC")}</button>
           </div>}
-          <div style={{...S.outBox,borderColor:"#ff2e2e33"}}><CopyBtn getText={()=>lyricsTxt}/><pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.8rem",lineHeight:1.9,color:"#ddd",paddingRight:"50px"}}>{lyricsTxt}</pre></div>
+          <div style={{...S.outBox,borderColor:"#FF6A2B33"}}><CopyBtn getText={()=>lyricsTxt}/><pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.8rem",lineHeight:1.9,color:"#ddd",paddingRight:"50px"}}>{lyricsTxt}</pre></div>
           <div style={{display:"flex",gap:"10px",marginBottom:"12px"}}>
             <button onClick={generateLyrics} style={{flex:1,padding:"10px",background:"#1a1a1a",border:"1px solid #222",borderRadius:"6px",color:"#888",fontSize:"0.72rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>{L("Régénérer","Regenerate")}</button>
             <button onClick={sendLyricsToOutput} style={{flex:1,padding:"10px",background:"#0a1f00",border:"1px solid #4caf50",borderRadius:"6px",color:"#4caf50",fontSize:"0.72rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>→ Output</button>
@@ -2356,7 +2360,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <Collapse title={L("Batterie organique","Organic drums")} n={ORG_DRUMS.length} selCount={orgDrm.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_DRUMS} set={setOrgDrm} L={L}/></div><Tags list={ORG_DRUMS} sel={orgDrm} toggle={tOrgDrm}/></Collapse>
         <Collapse title={L("Voix organique","Organic vocals")} n={ORG_VOCALS.length} selCount={orgVoc.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_VOCALS} set={setOrgVoc} L={L}/></div><Tags list={ORG_VOCALS} sel={orgVoc} toggle={tOrgVoc}/></Collapse>
         <Collapse title={L("Guitares organiques","Organic guitars")} n={ORG_GUITAR.length} selCount={orgGtr.size}><div style={{marginBottom:"10px"}}><SelAll all={ORG_GUITAR} set={setOrgGtr} L={L}/></div><Tags list={ORG_GUITAR} sel={orgGtr} toggle={tOrgGtr}/></Collapse>
-        <div style={{...S.card,borderColor:"#3a0000",background:"#0f0000"}}><div style={{...S.ctitle,color:"#ff5555"}}>{L("Tags à ÉVITER (sonnent AI)","Tags to AVOID (sound AI)")}</div><div style={S.tags}>{ORG_AVOID.map(v=><span key={v} style={{background:"#1a0000",border:"1.5px solid #5a0000",borderRadius:"20px",padding:"5px 12px",fontSize:"0.72rem",color:"#ff5555",textDecoration:"line-through",opacity:0.6}}>{v}</span>)}</div></div>
+        <div style={{...S.card,borderColor:"#3a0000",background:"#0f0000"}}><div style={{...S.ctitle,color:"#ff5555"}}>{L("Tags à ÉVITER (sonnent AI)","Tags to AVOID (sound AI)")}</div><div style={S.tags}>{ORG_AVOID.map(v=><span key={v} style={{background:"#2a1208",border:"1.5px solid #5a0000",borderRadius:"20px",padding:"5px 12px",fontSize:"0.72rem",color:"#ff5555",textDecoration:"line-through",opacity:0.6}}>{v}</span>)}</div></div>
         <div style={{height:80}}/>
       </div>)}
 
@@ -2377,8 +2381,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {/* OUTPUT */}
       {tab==="melodie"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         {studioBar("melodie")}
-        <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ff2e2e44"}}>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>{L("GÉNÉRATEUR DE MÉLODIE CHANTÉE","SINGABLE MELODY GENERATOR")}</div>
+        <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#FF6A2B44"}}>
+          <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>{L("GÉNÉRATEUR DE MÉLODIE CHANTÉE","SINGABLE MELODY GENERATOR")}</div>
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("26 thèmes (refrain hit, metalcore, melodeath, doom, power, thrash gang…), 47 gammes, 10 familles, vrais instruments et voix (chœur, ooh, lead). Écoute, édite note par note, exporte un WAV pour Suno.","26 themes (hit chorus, metalcore, melodeath, doom, power, thrash gang…), 47 scales, 10 families, real instruments and voices (choir, ooh, lead). Listen, edit note by note, export a WAV for Suno.")}</div>
         </div>
         <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
@@ -2387,8 +2391,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
       {tab==="riff"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         {studioBar("riff")}
-        <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ff2e2e44"}}>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>RIFF / BEAT GENERATOR</div>
+        <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#FF6A2B44"}}>
+          <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>RIFF / BEAT GENERATOR</div>
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un riff + beat, écoute-le, et exporte un WAV prêt pour Suno (Style Reference / Custom Model). ","Generate a riff + beat, listen, and export a WAV ready for Suno (Style Reference / Custom Model). ")}</div>
         </div>
         <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
@@ -2403,12 +2407,12 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {tab==="master"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ffcc0044"}}>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>MASTERING</div>
+          <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>MASTERING</div>
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Charge ta chanson Suno → EQ + compression + limiteur → WAV plus fort et serré, prêt à publier. ","Load your Suno track → EQ + compression + limiter → louder, tighter WAV, ready to publish. ")}</div>
         </div>
         <div style={{...S.card,textAlign:"center",padding:"48px 22px",borderColor:"#ffcc0033"}}>
           <div style={{fontSize:"2.2rem",marginBottom:"10px"}}>🔨</div>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.5rem",letterSpacing:"3px",color:"#ffcc00"}}>{L("BIENTÔT DISPONIBLE","COMING SOON")}</div>
+          <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.5rem",letterSpacing:"3px",color:"#ffcc00"}}>{L("BIENTÔT DISPONIBLE","COMING SOON")}</div>
           <div style={{color:"#888",fontSize:"0.78rem",marginTop:"10px",lineHeight:1.7,maxWidth:"420px",margin:"10px auto 0"}}>{L("Le mastering intégré est en forge — EQ, compression pis limiteur directement dans MetalPrompt. En attendant, exporte ta toune Suno pis masterise dans ton DAW.","Integrated mastering is being forged — EQ, compression and limiter right inside MetalPrompt. Meanwhile, export your Suno track and master it in your DAW.")}</div>
         </div>
         <div style={{height:80}}/>
@@ -2416,20 +2420,20 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {tab==="aimusic"&&(!canAccess("forge")?<LockedOverlay req="forge" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#b06bff44"}}>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>{L("MUSIQUE IA","AI MUSIC")}</div>
+          <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>{L("MUSIQUE IA","AI MUSIC")}</div>
           <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un aperçu audio avec Lyria 3 (Google). Clip 30s ou chanson complète.","Generate an audio preview with Lyria 3 (Google). 30s clip or full song.")}</div>
         </div>
         <div style={{...S.card,textAlign:"center",padding:"48px 22px",borderColor:"#b06bff33"}}>
           <div style={{fontSize:"2.2rem",marginBottom:"10px"}}>🎧</div>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.5rem",letterSpacing:"3px",color:"#b06bff"}}>{L("BIENTÔT DISPONIBLE","COMING SOON")}</div>
+          <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.5rem",letterSpacing:"3px",color:"#b06bff"}}>{L("BIENTÔT DISPONIBLE","COMING SOON")}</div>
           <div style={{color:"#888",fontSize:"0.78rem",marginTop:"10px",lineHeight:1.7,maxWidth:"420px",margin:"10px auto 0"}}>{L("La génération d'aperçus audio arrive — clips 30s direct dans MetalPrompt. En attendant, copie ton prompt forgé pis colle-le dans Suno.","Audio preview generation is coming — 30s clips right inside MetalPrompt. Meanwhile, copy your forged prompt and paste it into Suno.")}</div>
         </div>
         <div style={{height:80}}/>
       </div>)}
 
       {tab==="tuto"&&<div style={S.page}>
-        <div style={{...S.card,textAlign:"center",padding:"26px 22px",borderColor:"#ff2e2e44"}}>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.9rem",letterSpacing:"2px",color:"#fff"}}>{L("COMMENT FAIRE","HOW IT WORKS")}</div>
+        <div style={{...S.card,textAlign:"center",padding:"26px 22px",borderColor:"#FF6A2B44"}}>
+          <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.9rem",letterSpacing:"2px",color:"#fff"}}>{L("COMMENT FAIRE","HOW IT WORKS")}</div>
           <div style={{color:"#999",fontSize:"0.8rem",marginTop:"6px",lineHeight:1.5}}>{L("De ton idée à une chanson metal finie. MetalPrompt te guide à chaque étape — Forge le prompt, dirige Suno, peaufine le son.","From your idea to a finished metal track. MetalPrompt guides every step — Forge the prompt, steer Suno, polish the sound.")}</div>
         </div>
 
@@ -2503,7 +2507,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             <div key={r.n} style={{padding:"8px 0",borderBottom:i<ar.length-1?"1px solid #1a1a1a":"none"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:"8px"}}>
                 <span style={{fontSize:"0.8rem",fontWeight:800,color:"#e0e0e0"}}>{r.n}</span>
-                <span style={{fontSize:"0.74rem",fontWeight:900,color:RED,fontFamily:"monospace"}}>{r.v}</span>
+                <span style={{fontSize:"0.74rem",fontWeight:900,color:RED,fontFamily:"'Geist Mono',monospace"}}>{r.v}</span>
               </div>
               <div style={{fontSize:"0.68rem",color:"#888",lineHeight:1.5,marginTop:"2px"}}>{r.d}</div>
             </div>
@@ -2568,9 +2572,9 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {tab==="masterclass"&&<div style={S.page}>
         {/* HERO */}
-        <div style={{...S.card,textAlign:"center",padding:"26px 22px",borderColor:"#ff2e2e44"}}>
+        <div style={{...S.card,textAlign:"center",padding:"26px 22px",borderColor:"#FF6A2B44"}}>
           <div style={{display:"inline-block",fontSize:"0.6rem",fontWeight:900,letterSpacing:"2px",color:"#000",background:RED,borderRadius:"20px",padding:"4px 14px",marginBottom:"12px"}}>{L("À VENIR","COMING SOON")}</div>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.9rem",letterSpacing:"2px",color:"#fff"}}>MASTERCLASS</div>
+          <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.9rem",letterSpacing:"2px",color:"#fff"}}>MASTERCLASS</div>
           <div style={{color:"#999",fontSize:"0.82rem",marginTop:"6px",lineHeight:1.55}}>{L("Bientôt : progresse avec de vrais musiciens. Les classes ne sont pas encore lancées — on bâtit la plateforme et on recrute les premiers profs. Tu enseignes ? Embarque dès maintenant (plus bas).","Coming soon: level up with real musicians. Classes aren't live yet — we're building the platform and recruiting our first instructors. You teach? Get in now (below).")}</div>
         </div>
 
@@ -2636,7 +2640,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
 
         {/* RECRUTEMENT PROFS */}
-        <div style={{...S.card,borderColor:"#ff2e2e55",background:"#0d0000"}}>
+        <div style={{...S.card,borderColor:"#FF6A2B55",background:"#0d0000"}}>
           <div style={{...S.ctitle,color:RED}}>{L("Tu enseignes ? Garde 100% de tes revenus","You teach? Keep 100% of your revenue")}</div>
           <div style={{fontSize:"0.8rem",color:"#ccc",lineHeight:1.7,marginBottom:"12px"}}>{L("Place tes masterclasses sur MetalPrompt et garde 100% de ce que tu charges. Aucune commission : la plateforme se finance par l'abonnement, pas sur ton dos.","List your masterclasses on MetalPrompt and keep 100% of what you charge. No commission: the platform runs on subscriptions, not off your back.")}</div>
           {[
@@ -2666,7 +2670,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {/* SORTIE v2 (oct. 2026) — 4 cartes à coller dans Suno ; tout le reste est replié sous « Plus tard ». */}
           <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"12px"}}>
             <div>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:"2px",color:"#f4f4f4",lineHeight:1}}>{L("Colle ça dans Suno","Paste this into Suno")}</div>
+              <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.7rem",letterSpacing:"2px",color:"#f4f4f4",lineHeight:1}}>{L("Colle ça dans Suno","Paste this into Suno")}</div>
               <div style={{fontSize:"0.72rem",color:"#aaa",marginTop:"5px"}}>{[[...genres].slice(0,2).join(" + "),bpm?bpm+" BPM":""].filter(Boolean).join(" · ")}</div>
             </div>
             <div style={{display:"flex",gap:"8px"}}>
@@ -2689,12 +2693,12 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{display:"flex",flexWrap:"wrap",gap:"11px",alignItems:"flex-start"}}>
             <div style={{flex:"1 1 420px",minWidth:0}}>
               {/* 1 · STYLE */}
-              <div style={{...S.card,borderColor:"#5a1a1a",background:"#160707"}}>
+              <div style={{...S.card,borderColor:"#5a2a14",background:"#160707"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
                   <div style={{...S.outLbl,marginBottom:0,fontSize:"0.68rem"}}>1 · Style of Music</div>
                   <BigCopy getText={()=>styleShown} L={L}/>
                 </div>
-                <div style={{color:"#ffc2c2",fontSize:"0.86rem",lineHeight:1.75,fontFamily:"monospace",wordBreak:"break-word"}}>{styleShown}</div>
+                <div style={{color:"#FFD2B8",fontSize:"0.86rem",lineHeight:1.75,fontFamily:"'Geist Mono',monospace",wordBreak:"break-word"}}>{styleShown}</div>
                 <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",gap:"6px",marginTop:"10px",fontSize:"0.66rem"}}>
                   <span style={{color:"#aaa"}}>{L("Vide le champ avant de coller.","Clear the field before pasting.")}</span>
                   <span style={{fontWeight:700,color:styleShown.length<=600?"#5fd98a":styleShown.length<=800?"#e6c200":"#ff7a7a"}}>{styleShown.length} / 1000 {L("car.","chars")}{styleShown.length<=600?"":styleShown.length<=800?L(" · un peu long"," · a bit long"):L(" · trop long"," · too long")}</span>
@@ -2706,7 +2710,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                   <div style={{...S.outLbl,marginBottom:0,fontSize:"0.68rem"}}>3 · Exclude Styles</div>
                   <BigCopy getText={()=>excludeTxt} L={L}/>
                 </div>
-                <div style={{color:"#e0e0e0",fontSize:"0.84rem",lineHeight:1.75,fontFamily:"monospace",wordBreak:"break-word"}}>{excludeTxt}</div>
+                <div style={{color:"#e0e0e0",fontSize:"0.84rem",lineHeight:1.75,fontFamily:"'Geist Mono',monospace",wordBreak:"break-word"}}>{excludeTxt}</div>
                 <div style={{fontSize:"0.64rem",color:"#aaa",marginTop:"8px"}}>{L("Colle tel quel — Suno ajoute lui-même le « - ».","Paste as-is — Suno adds the \"-\" itself.")}</div>
               </div>}
             </div>
@@ -2717,7 +2721,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                   <div style={{...S.outLbl,marginBottom:0,fontSize:"0.68rem"}}>2 · Lyrics</div>
                   <BigCopy getText={()=>step2Shown} L={L}/>
                 </div>
-                <pre style={{whiteSpace:"pre-wrap",fontFamily:"monospace",fontSize:"0.84rem",lineHeight:1.9,color:"#e0e0e0",wordBreak:"break-word"}}>{step2Shown}</pre>
+                <pre style={{whiteSpace:"pre-wrap",fontFamily:"'Geist Mono',monospace",fontSize:"0.84rem",lineHeight:1.9,color:"#e0e0e0",wordBreak:"break-word"}}>{step2Shown}</pre>
                 <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:"8px",marginTop:"10px",fontSize:"0.66rem"}}>
                   {lyricsTxt
                     ?<span style={{color:"#5fd98a",fontWeight:700}}>{L("Tes paroles sont déjà placées sous chaque section.","Your lyrics are already placed under each section.")}</span>
@@ -2735,7 +2739,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                 {[...(modelRec?[[L("Modèle","Model"),modelRec.best]]:[]),["Vocal Gender",sliderRec.vocalGender],["Duration",sliderRec.duration],["Max Mode",sliderRec.maxMode?"On":"Off"],["Weirdness",sliderRec.weirdness+"%"],["Style Influence",sliderRec.styleInfluence+"%"],...(sliderRec.audioInfluence!=null?[["Audio Influence",sliderRec.audioInfluence+"%"]]:[]),["Variety",L("Désactivé (0)","Off (0)")],["Personalize (My Taste)",sliderRec.personalize?"On":"Off"]].map(([k,v])=>(
                   <div key={k} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:"10px",padding:"7px 2px",borderTop:"1px solid #2e2610"}}>
                     <span style={{fontSize:"0.76rem",color:"#d0d0d0"}}>{k}</span>
-                    <span style={{fontSize:"0.9rem",fontWeight:900,color:"#ffbb33",fontFamily:"monospace"}}>{v}</span>
+                    <span style={{fontSize:"0.9rem",fontWeight:900,color:"#ffbb33",fontFamily:"'Geist Mono',monospace"}}>{v}</span>
                   </div>))}
                 <div style={{marginTop:"11px",background:"#1a1404",border:"1px solid #6a5210",borderRadius:"8px",padding:"10px 12px"}}>
                   <div style={{fontSize:"0.72rem",fontWeight:800,color:"#ffbb33",marginBottom:"4px"}}>{L("Variété (Variety) : laisse-la à Désactivé","Variety: leave it Off")}</div>
@@ -2783,7 +2787,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                     <CopyBtnInline getText={()=>coverTxt}/>
                   </div>
                   <div style={{fontSize:"0.64rem",color:"#aaa",marginBottom:"6px",lineHeight:1.5}}>{L("Génère avec le Principal, puis fais « Cover » sur le résultat dans Suno avec ce prompt → pousse la fusion proprement.","Generate with the Main first, then 'Cover' the result in Suno with this prompt → pushes the fusion cleanly.")}</div>
-                  <div style={{color:"#d8bfff",fontSize:"0.8rem",lineHeight:1.7,fontFamily:"monospace",wordBreak:"break-word"}}>{coverTxt}</div>
+                  <div style={{color:"#d8bfff",fontSize:"0.8rem",lineHeight:1.7,fontFamily:"'Geist Mono',monospace",wordBreak:"break-word"}}>{coverTxt}</div>
                 </div>}
                 {extendTxt&&<div style={{padding:"8px 0",borderTop:"1px solid #1e1e1e"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
@@ -2791,7 +2795,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                     <CopyBtnInline getText={()=>extendTxt}/>
                   </div>
                   <div style={{fontSize:"0.64rem",color:"#aaa",marginBottom:"6px",lineHeight:1.5}}>{L("Utilise « Extend » dans Suno avec ce prompt pour continuer la chanson sans qu'elle dérive.","Use 'Extend' in Suno with this prompt to continue the song without drift.")}</div>
-                  <div style={{color:"#a8ece2",fontSize:"0.8rem",lineHeight:1.7,fontFamily:"monospace",wordBreak:"break-word"}}>{extendTxt}</div>
+                  <div style={{color:"#a8ece2",fontSize:"0.8rem",lineHeight:1.7,fontFamily:"'Geist Mono',monospace",wordBreak:"break-word"}}>{extendTxt}</div>
                 </div>}
               </div>}
             </div>}
@@ -2821,7 +2825,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
                   <span style={{fontSize:"0.66rem",fontWeight:700,color:tasteTxt.length<=2000?"#5fd98a":"#ff7a7a"}}>{tasteTxt.length} / 2000 {L("car.","chars")}</span>
                   <BigCopy getText={()=>tasteTxt} L={L}/>
                 </div>
-                <pre style={{whiteSpace:"pre-wrap",fontFamily:"monospace",fontSize:"0.76rem",lineHeight:1.7,color:"#d8d8d8",wordBreak:"break-word",background:"#0c0c0c",border:"1px solid #222",borderRadius:"8px",padding:"11px"}}>{tasteTxt}</pre>
+                <pre style={{whiteSpace:"pre-wrap",fontFamily:"'Geist Mono',monospace",fontSize:"0.76rem",lineHeight:1.7,color:"#d8d8d8",wordBreak:"break-word",background:"#0c0c0c",border:"1px solid #222",borderRadius:"8px",padding:"11px"}}>{tasteTxt}</pre>
               </div>}
             </div>}
           </div>}
@@ -2832,13 +2836,13 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* HISTORY */}
       {tab==="history"&&(isPro||isElite)&&<div style={S.page}>
-        <div style={{...S.card,borderColor:"#ff2e2e22"}}>
+        <div style={{...S.card,borderColor:"#FF6A2B22"}}>
           <div style={S.ctitle}>{L("Historique PRO","PRO History")} — {history.length}/50 prompts</div>
           {history.length===0&&<div style={{color:"#444",fontSize:"0.75rem",textAlign:"center",padding:"20px"}}>{L("Aucun prompt encore. Forge quelque chose ! ","No prompts yet. Forge something! ")}</div>}
           {history.map((h,i)=>(
             <div key={h.id} style={{borderBottom:"1px solid #1a1a1a",padding:"10px 0"}}>
               <div style={{fontSize:"0.58rem",color:"#555",letterSpacing:"1px",marginBottom:"4px"}}>#{history.length-i} · {h.date}</div>
-              <div style={{fontSize:"0.72rem",color:"#aaa",lineHeight:1.6,fontFamily:"monospace"}}>{h.prompt.slice(0,120)}...</div>
+              <div style={{fontSize:"0.72rem",color:"#aaa",lineHeight:1.6,fontFamily:"'Geist Mono',monospace"}}>{h.prompt.slice(0,120)}...</div>
               <MiniCopy text={h.prompt} style={{marginTop:"5px",background:"none",border:"1px solid #222",borderRadius:"4px",color:"#888",fontSize:"0.6rem",padding:"3px 8px",cursor:"pointer"}}/>
             </div>
           ))}

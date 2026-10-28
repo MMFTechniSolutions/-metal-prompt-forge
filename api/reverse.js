@@ -5,6 +5,56 @@
 // Il sert uniquement d'intrant pour déduire le style.
 import { GENRE_PROFILES } from './_genreProfiles.js';
 import { cleanDescriptors } from './_lib/nameGuard.js';
+import { FAMILLES } from './_genreFamilies.js';
+
+// ── Decisions API (OpenAI, bêta) — choisit les sous-genres dans NOTRE liste, avec un % de confiance.
+// Test 2026-10-27 : 19/20 vs 11/20 pour Claude seul. Claude reste appelé en parallèle pour flavor + signature,
+// et reprend le genre quand Decisions n'est pas sûr. Sans OPENAI_API_KEY (ou REVERSE_DECISIONS=off) : comportement d'avant.
+const SEUIL_FAMILLE = 0.5, SEUIL_SG = 0.9, MAX_SG = 3, SEUIL_2E_FAMILLE = 0.25, DECISIONS_TIMEOUT_MS = 8000;
+const FAM_DE = {};
+for (const [f, v] of Object.entries(FAMILLES)) for (const g of v.g) FAM_DE[g] = f;
+
+async function decide(key, input, questions, signal) {
+  const r = await fetch('https://api.openai.com/v1/decisions', {
+    method: 'POST', signal,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+    body: JSON.stringify({ model: 'gpt-6-luna', input, questions }),
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(`decisions ${r.status}: ${data?.error?.message || ''}`);
+  return data;
+}
+
+async function viaDecisions(band) {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key || process.env.REVERSE_DECISIONS === 'off') return null;
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), DECISIONS_TIMEOUT_MS);
+  try {
+    const input = `Input (band/artist name, or a description of a sound): ${band}`;
+    const d1 = await decide(key, input, [{
+      type: 'choice', name: 'famille',
+      instructions: 'Which family of heavy music best describes the band or artist named in the input (its signature sound), or the sound described in the input?',
+      choices: Object.entries(FAMILLES).map(([value, v]) => ({ value, description: v.d })),
+    }], ctrl.signal);
+    const a1 = d1.answers?.[0];
+    if (!a1 || a1.type !== 'choice' || (a1.confidence ?? 0) < SEUIL_FAMILLE) return null;
+    const others = (a1.probabilities || []).filter(p => p.value !== a1.choice && p.probability >= SEUIL_2E_FAMILLE)
+      .sort((x, y) => y.probability - x.probability).map(p => p.value);
+    const cand = [a1.choice, ...others].slice(0, 2).flatMap(f => FAMILLES[f]?.g || []);
+    const d2 = await decide(key, input, cand.map((g, k) => ({
+      type: 'predicate', name: `g${k}`,
+      instructions: `Is "${g}" a well-known part of the signature sound of the band or artist named in the input (or clearly the sound described in the input)? Answer true only if this sub-genre clearly describes it.`,
+    })), ctrl.signal);
+    const picks = (d2.answers || []).map((a, k) => ({ g: cand[k], p: a.type === 'predicate' ? a.probability : 0 }))
+      .filter(x => x.p >= SEUIL_SG).sort((x, y) => y.p - x.p).slice(0, MAX_SG);
+    if (!picks.length) return null;
+    return { picks, famille: a1.choice, confFamille: a1.confidence };
+  } catch (e) {
+    console.warn('[reverse] Decisions ignoré :', e.message);
+    return null;
+  } finally { clearTimeout(t); }
+}
 
 const CURATED = Object.keys(GENRE_PROFILES);
 
@@ -44,6 +94,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'Clé API non configurée' });
 
+  const decP = viaDecisions(band);   // part en même temps que Claude : pas de délai ajouté
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -70,6 +121,9 @@ export default async function handler(req, res) {
     } catch { out = {}; }
 
     let genre = String(out.genre || '').toLowerCase().trim();
+    const dec = await decP;
+    let source = 'claude';
+    if (dec) { genre = dec.picks[0].g; source = 'decisions'; }
     // Filet de sécurité : jamais renvoyer le nom du groupe comme "genre".
     // Exception : l'entrée EST un nom de genre (« blackgaze », « crust punk ») — là, genre === entrée est la bonne réponse.
     const _isGenreWord = /metal|core|rock|punk|doom|grind|gaze|sludge|thrash|djent|prog|folk|industrial|goth|hardcore|crust|stoner|drone/.test(genre);
@@ -79,6 +133,8 @@ export default async function handler(req, res) {
     const _bl = band.toLowerCase();
     let flavor = String(out.flavor || '').toLowerCase().trim().slice(0, 40);
     if (flavor === _bl || flavor === genre || !cleanDescriptors([flavor], [_bl]).length) flavor = '';
+    // Pas de couleur venant de Claude : on prend le 2e choix de Decisions s'il vient d'une AUTRE famille (évite thrash + bay area thrash)
+    if (dec && !flavor) { const f2 = dec.picks.find(x => x.g !== genre && FAM_DE[x.g] !== FAM_DE[genre]); if (f2) flavor = f2.g; }
     // Garde-fou : le modèle glisse parfois un nom de personne malgré la consigne
     // (cas réel 2026-09-10 : « phil anselmo's aggressive vocals »). On filtre en sortie.
     const signature = cleanDescriptors(
@@ -90,8 +146,11 @@ export default async function handler(req, res) {
     ).slice(0, 4);
     return res.status(200).json({
       genre, flavor, signature,
-      label: String(out.label || genre || '').slice(0, 60),
-      confidence: ['high', 'medium', 'low'].includes(out.confidence) ? out.confidence : (genre ? 'medium' : 'low'),
+      label: String((source === 'decisions' ? genre : out.label) || genre || '').slice(0, 60),
+      confidence: dec ? (dec.confFamille >= 0.8 ? 'high' : 'medium')
+        : ['high', 'medium', 'low'].includes(out.confidence) ? out.confidence : (genre ? 'medium' : 'low'),
+      source,                                   // 'decisions' ou 'claude' (débogage)
+      genres: dec ? dec.picks.map(x => x.g) : (genre ? [genre] : []),   // tous les sous-genres retenus
       matched, // true = profil sur-mesure (préréglage curé) ; false = profil générique
     });
   } catch (e) {

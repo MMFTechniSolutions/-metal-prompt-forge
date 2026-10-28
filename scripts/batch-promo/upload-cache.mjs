@@ -13,7 +13,7 @@ if (!KEY) {   // pas de clé : on la demande (Supabase → Project Settings → 
 if (!KEY) { console.log('✖ Pas de clé.'); process.exit(1); }
 const sb = createClient(URL, KEY, { auth: { persistSession: false } });
 const cache = load('bands-cache.json', {});
-const rows = Object.entries(cache).map(([name_key, x]) => ({ name_key, band: x.band, genre: x.genre, flavor: x.flavor || '', signature: x.signature || [], confidence: x.confidence || 'medium' }));
+const rows = Object.entries(cache).map(([name_key, x]) => ({ name_key, band: x.band, genre: x.genre, flavor: x.flavor || '', signature: x.signature || [], confidence: x.confidence || 'medium', ...(x.era ? { era: x.era } : {}) }));
 console.log(`Envoi de ${rows.length} groupes…`);
 let ok = 0;
 for (const lot of chunk(rows, 500)) {

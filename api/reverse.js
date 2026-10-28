@@ -16,7 +16,7 @@ async function fromCache(band) {
   if (!url || !key || band.length > 60) return null;
   try {
     const sb = createClient(url, key, { auth: { persistSession: false } });
-    const q = sb.from('band_cache').select('genre,flavor,signature,confidence').eq('name_key', normBand(band)).maybeSingle();
+    const q = sb.from('band_cache').select('*').eq('name_key', normBand(band)).maybeSingle();
     const { data } = await Promise.race([q, new Promise(r => setTimeout(() => r({ data: null }), 1500))]);
     return data && data.confidence !== 'low' ? data : null;
   } catch { return null; }
@@ -112,7 +112,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       genre: hit.genre, flavor: hit.flavor || '',
       signature: cleanDescriptors((hit.signature || []).map(String), [_bl]).slice(0, 4),
-      label: hit.genre, confidence: hit.confidence, source: 'cache',
+      label: hit.genre, confidence: hit.confidence, source: 'cache', era: hit.era || '',
       genres: [hit.genre, hit.flavor].filter(Boolean), matched: !!GENRE_PROFILES[hit.genre],
     });
   }

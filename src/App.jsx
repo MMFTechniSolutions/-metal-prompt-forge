@@ -448,14 +448,21 @@ const BLOCK_RHYTHMS = [
   {v:"asymmetric groove",l:"Asymétrique"},{v:"pushed beat",l:"Pushed Beat"},
 ];
 
+// ── PRIX & LIENS STRIPE (à remplacer par les nouveaux Payment Links) ──
+const STRIPE_MENSUEL = "https://buy.stripe.com/9B66oJ1kI1avgb83obfQI07";          // abonnement 2,99 $ US / mois
+// Promo « À VIE » : paiement unique, visible seulement pendant la fenêtre (Black Friday → Cyber Monday 2026, heure de l'Est).
+// Pour tester avant : ajoute ?avie=1 à l'adresse du site.
+const LIFETIME = { price:"$50", stripe:"https://buy.stripe.com/bJefZj4wU06r4sq7ErfQI08", start:"2026-11-27T00:00:00-05:00", end:"2026-12-01T00:00:00-05:00" };
+const lifetimeActive=()=>{try{if(new URLSearchParams(location.search).get('avie')==='1')return true;}catch(e){}const n=Date.now();return n>=Date.parse(LIFETIME.start)&&n<Date.parse(LIFETIME.end);};
+const lifetimeLeft=()=>{const ms=Date.parse(LIFETIME.end)-Date.now();if(ms<=0)return "";const d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5);return d>0?`${d} j ${h} h`:`${h} h`;};
 // ── TIERS ──
 const TIERS = {
   free: {id:"free", label:"FREE", price:"$0", color:"#444", badge:null,
     features:["✅ 3 prompts d'essai gratuits","✅ Aperçu de la bibliothèque","❌ Reste verrouillé — passe à MetalPrompt"],
     featuresEn:["✅ 3 free trial prompts","✅ Library preview","❌ Rest locked — go MetalPrompt"]},
-  // ⚠️ STRIPE : crée un produit 4,99$/mois et remplace le lien 'stripe' ci-dessous (l'actuel = ancien 8,99$)
-  pro: {id:"pro", label:"METALPROMPT", price:"$4.99/mois", priceYear:"$49.99/an", color:"#ff2e2e", badge:"PRO",
-    stripe:"https://buy.stripe.com/00w3cx2oM6uPbUSbUHfQI04", stripeYear:"https://buy.stripe.com/dRm6oJ4wU06rcYW9MzfQI06",
+  // Oct. 2026 : un seul abonnement à 2,99 $/mois (plus d'annuel). Lien Stripe dans STRIPE_MENSUEL.
+  pro: {id:"pro", label:"METALPROMPT", price:"$2.99/mois", color:"#ff2e2e", badge:"PRO",
+    stripe:STRIPE_MENSUEL,
     features:["✅ TOUT le site débloqué","✅ Bibliothèque complète + sliders + 10 émotions","✅ Générateur de Riff complet (28 styles)","✅ Module Mastering (débruitage + EQ)","✅ Paroles par IA illimitées","✅ Prompts Principal · Cover · Extend","✅ Reco de modèle Suno · prompts illimités"],
     featuresEn:["✅ FULL site unlocked","✅ Full library + sliders + 10 emotions","✅ Complete Riff Generator (28 styles)","✅ Mastering module (denoise + EQ)","✅ Unlimited AI lyrics","✅ Principal · Cover · Extend prompts","✅ Suno model rec · unlimited prompts"]},
 };
@@ -710,6 +717,11 @@ function PaywallModal({onClose,email,uiLang}) {
           <div style={{fontSize:"0.58rem",color:tier.color,letterSpacing:"2px",textTransform:"uppercase",fontWeight:800,marginBottom:"10px"}}>{tier.label} — {tier.launch&&<span style={{textDecoration:"line-through",color:"#666",marginRight:"5px"}}>{(year&&tier.priceOldYear?tier.priceOldYear:tier.priceOld||"").split("/")[0]}</span>}{priceOf(tier)} {tier.launch?L("· LANCEMENT","· LAUNCH"):""} — {L("INCLUS","INCLUDED")}</div>
           {(uiLang==="en"?tier.featuresEn:tier.features)?.map(f=><div key={f} style={{fontSize:"0.7rem",color:f.startsWith("✅")?"#ccc":"#333",padding:"3px 0"}}>{f}</div>)}
         </div>
+        {lifetimeActive()&&<a href={payUrl(LIFETIME.stripe,email)} target="_blank" rel="noreferrer" style={{display:"block",textDecoration:"none",background:"linear-gradient(135deg,#2a1a00,#1a0000)",border:"1.5px solid #ffbb33",borderRadius:"10px",padding:"14px",marginBottom:"12px",textAlign:"center"}}>
+          <div style={{fontSize:"0.58rem",color:"#ffbb33",letterSpacing:"3px",fontWeight:900}}>🔥 {L("BLACK FRIDAY — DURÉE LIMITÉE","BLACK FRIDAY — LIMITED TIME")}</div>
+          <div style={{fontSize:"1.5rem",fontWeight:900,color:"#fff",margin:"4px 0"}}>{LIFETIME.price} <span style={{fontSize:"0.8rem",color:"#ffbb33"}}>{L("à vie","lifetime")}</span></div>
+          <div style={{fontSize:"0.66rem",color:"#d0c8b0"}}>{L("Un seul paiement, accès complet pour toujours.","One payment, full access forever.")}{lifetimeLeft()?" · "+L("Finit dans ","Ends in ")+lifetimeLeft():""}</div>
+        </a>}
         <a href={payUrl(checkoutUrl,email)} target="_blank" rel="noreferrer"
           style={{display:"block",width:"100%",padding:"14px",background:tier.color,borderRadius:"8px",color:sel==="elite"?"#fff":"#000",fontWeight:900,fontSize:"0.85rem",letterSpacing:"2px",textTransform:"uppercase",textDecoration:"none",textAlign:"center",marginBottom:"10px"}}>
           {L("COMMENCER","START")} {tier.label} {year?L("(annuel)","(annual)"):""}
@@ -919,7 +931,7 @@ Vente des abonnements payants du Service, édité par MMF Techni-Solutions (NEQ 
 Avant votre paiement, nous indiquons : notre identité et nos coordonnées, la description du plan, le prix total en USD (dollars américains ; taxes applicables indiquées au paiement), la fréquence de facturation et le renouvellement, les modalités de résiliation et de remboursement. Après l'achat, vous recevez par courriel une confirmation tenant lieu de copie du contrat.
 
 3. PLANS ET PAIEMENT
-Abonnement unique donnant accès à l'ensemble du Service, offert en formule mensuelle (4,99 $ US/mois) ou annuelle (49,99 $ US/an, soit ~2 mois gratuits). TOUS LES PRIX SONT EN DOLLARS AMÉRICAINS (USD). Si vous payez avec une carte libellée dans une autre devise (ex. CAD), votre institution financière peut appliquer des frais de conversion qui ne sont PAS perçus par MetalPrompt. Paiements sécurisés par Stripe ; aucune donnée complète de carte n'est stockée. Vous autorisez le prélèvement récurrent jusqu'à résiliation. Prix modifiables pour les périodes futures, avec préavis.
+Abonnement unique donnant accès à l'ensemble du Service, offert en formule mensuelle (2,99 $ US/mois). Une formule « à vie » (paiement unique) peut être offerte pour une durée limitée lors de promotions ; elle donne accès au Service tant qu'il est exploité. TOUS LES PRIX SONT EN DOLLARS AMÉRICAINS (USD). Si vous payez avec une carte libellée dans une autre devise (ex. CAD), votre institution financière peut appliquer des frais de conversion qui ne sont PAS perçus par MetalPrompt. Paiements sécurisés par Stripe ; aucune donnée complète de carte n'est stockée. Vous autorisez le prélèvement récurrent jusqu'à résiliation. Prix modifiables pour les périodes futures, avec préavis.
 
 3.1 CRÉDITS DE GÉNÉRATION
 L'abonnement donne un accès ILLIMITÉ au générateur de prompts, au générateur de riffs et au module de mastering. La génération de musique audio DANS le Service, si et quand cette fonction sera activée, fonctionnera par crédits dont les modalités seront affichées sur la page des tarifs au moment de l'activation. L'export de prompts vers des plateformes tierces (ex. Suno) n'utilise aucun crédit.
@@ -1567,6 +1579,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
         if(ds.length){
           const gs=[...new Set(ds.map(x=>x.genre).concat(ds.length===1&&ds[0].flavor?[ds[0].flavor]:[]))].slice(0,2);
           setGenres(gs);
+          if(!era&&ds[0].era)setEraPick(ds[0].era);   // époque du groupe (cache)
           setSignature([...new Set(ds.flatMap(x=>(Array.isArray(x.signature)?x.signature:[]).slice(0,2)))].slice(0,4));
           const _prof=await autoFillGenre(gs[0]);
           const _ta=seedThemesFromMood((_prof&&_prof.mood)||[]);
@@ -1581,6 +1594,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       const d=await r.json();
       if(!r.ok||!d.genre){setIdeaMsg({ok:false,text:L("Pas reconnu — vérifie l'orthographe, ou choisis un genre juste en dessous.","Not recognized — check the spelling, or pick a genre just below.")});return;}
       setGenres([d.genre,d.flavor].filter(Boolean));
+      if(!era&&d.era)setEraPick(d.era);   // époque du groupe (cache) : Gojira = 2000s, pas l'époque du prog
       setSignature(Array.isArray(d.signature)?d.signature:[]);
       const _prof=await autoFillGenre(d.genre);
       const _ta=seedThemesFromMood((_prof&&_prof.mood)||[]);   // thème + atmosphère des paroles selon le style

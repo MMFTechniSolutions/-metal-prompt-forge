@@ -46,12 +46,15 @@ export default async function handler(req, res) {
     // Plan unique : TOUT paiement = accès complet (tier 'pro'). Plus besoin de matcher des price IDs.
     const tier = 'pro'
 
+    // Paiement unique (mode « payment ») = offre À VIE → lifetime: true (jamais rétrogradé)
+    const lifetime = session.mode === 'payment'
     if (email) {
       await supabase.from('users').upsert(
         {
           email,
           tier,
-          stripe_customer_id: session.customer,
+          ...(session.customer ? { stripe_customer_id: session.customer } : {}),
+          ...(lifetime ? { lifetime: true, tier_expires_at: null } : {}),
           prompts_used: 0,
           lyrics_used: 0,
         },
@@ -67,6 +70,7 @@ export default async function handler(req, res) {
       .from('users')
       .update({ tier: 'free' })
       .eq('stripe_customer_id', subscription.customer)
+      .eq('lifetime', false)   // un membre à vie garde son accès même s'il annule un ancien abonnement
   }
 
   res.status(200).json({ received: true })

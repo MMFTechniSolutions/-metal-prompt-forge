@@ -526,18 +526,25 @@ export default function handler(req, res) {
   // ── UNE SEULE LISTE, ORDONNÉE PAR IMPORTANCE ──
   // Le prompt court était une recette séparée : couper changeait l'identité du morceau.
   // Maintenant le compact est le DÉBUT de cette liste — couper ne retire que le décor.
+  // Signature d'un GROUPE (reverse/cache) = plus précise que le profil générique du sous-genre :
+  // sa voix passe avant celle du profil, et si elle dit « down-tuned », on n'écrit pas « standard E » (Gojira, 2026-10-28).
+  const _VOXRE = /vocal|scream|growl|roar|shout|shriek|singing|croon|guttural|bark|rasp/i;
+  const _sigVox = signature.filter(x => _VOXRE.test(x));
+  const _sigRest = signature.filter(x => !_VOXRE.test(x));
+  const _sigTun = /down-?tuned|low-?tuned|drop[- ]?[a-g]\b|7-string|8-string|baritone/i.test(signature.join(' '));
+  const _tunP = (_sigTun && /^standard( e)?( tuning)?$/i.test(String(_tun).trim())) ? '' : _tun;
   const PRIORITY = [
     meterLead,                       // 1. identité rythmique
     genreClause,                     // 2. genre + influences historiques
     bpmTag,                          // 3. tempo
-    ...(harshVox ? vocals.slice(0, 1) : []),   // 4. voix, si elle définit le genre
-    ...signature.slice(0, 2),        // 5. ancrages sonores du sous-genre
-    _tun, keyTag,                    // 6. accordage et tonalité
+    ...(_sigVox.length ? _sigVox.slice(0, 1) : harshVox ? vocals.slice(0, 1) : []),   // 4. voix (celle du groupe d'abord)
+    ..._sigRest.slice(0, 3),         // 5. ancrages sonores (groupe ou sous-genre)
+    _tunP, keyTag,                   // 6. accordage et tonalité
     ...drums.slice(0, 1),
     ...guitar.slice(0, 1),
     eraTag,                          // 9. production d'époque
     ...emotionTags.slice(0, 1),      // 10. émotion dominante (termes de production)
-    ...(harshVox ? [] : vocals.slice(0, 1)),
+    ...(harshVox || _sigVox.length ? [] : vocals.slice(0, 1)),
     scaleTag,
     ..._prodClean.slice(0, 1),
     ...leadInst.slice(0, 1),
@@ -625,7 +632,7 @@ export default function handler(req, res) {
   const NAME = { intro: 'Intro', buildup: 'Build-up', verse: 'Verse', prechorus: 'Pre-Chorus', chorus: 'Chorus', breakdown: 'Breakdown', halftime: 'Half-Time', blastsection: 'Blast Section', drop: 'Drop', solo: 'Guitar Solo', interlude: 'Interlude', atmosphericbreak: 'Atmospheric Break', spokenword: 'Spoken Word', gangchant: 'Gang Chant', scream: 'Scream Section', riffbreak: 'Riff Break', bridge: 'Bridge', outro: 'Outro' };
   // v6 : descriptions TECHNIQUES (jeu + production), jamais d'adjectif d'humeur
   const _tunTag0 = String(tuning[0] || autoTuning || '').replace(/\s+/g, ' ').trim();
-  const _tunTag = /^standard$/i.test(_tunTag0) ? '' : _tunTag0;
+  const _tunTag = (/^standard$/i.test(_tunTag0) || (_sigTun && /^standard( e)?( tuning)?$/i.test(_tunTag0))) ? '' : _tunTag0;
   const DESC = {
     intro: drums.includes('blast beats') ? 'blast beats, tremolo picking' : (_tunTag ? _tunTag + ' crushing riff' : 'palm-muted opening riff'),
     buildup: (heavy >= 8 ? 'layered wall of distortion' : 'layered build, rising drums') + ', no vocals',

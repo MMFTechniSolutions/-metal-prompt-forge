@@ -60,11 +60,47 @@
   .dur-row{display:flex;align-items:center;gap:10px;}
   .dur-val{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--ember-hot);min-width:50px;}
 </style>
+<style id="studio-theme">
+/* Look Studio (oct. 2026) — surcouche, l'ancien style reste en dessous */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+:root{--void:#0C0D0F;--forge:#141518;--steel:#1B1D22;--ember:#FF6A2B;--ember-hot:#FF8A4C;--iron:#2A2D33;--ash:#9196A0;--bone:#D4D6DA;--white:#F2F1ED;--gold:#FFB36B;}
+body{font-family:'Geist',system-ui,sans-serif;font-weight:400;background:radial-gradient(1100px 480px at 50% -10%,rgba(255,106,43,.13),rgba(255,106,43,0) 65%),#0C0D0F;-webkit-font-smoothing:antialiased;}
+header{align-items:center;padding:16px 28px;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(12,13,15,.7);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+.logo{font-family:'Geist',sans-serif;font-weight:600;font-size:1.25rem;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;}
+.logo span{color:inherit;}
+.badge{font-family:'Geist Mono',monospace;font-size:.66rem;letter-spacing:.08em;color:#FFB36B;border:1px solid rgba(255,179,107,.45);border-radius:999px;padding:4px 10px;}
+.navlink{font-family:'Geist',sans-serif;font-size:.82rem;color:#D4D6DA;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:8px 14px;}
+.navlink:hover{border-color:rgba(255,106,43,.6);color:#fff;}
+main{padding-top:32px;}
+.panel{background:rgba(22,24,28,.72);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 24px 60px rgba(0,0,0,.4);}
+h2{font-family:'Geist Mono',monospace;font-size:.72rem;letter-spacing:.08em;color:#FFB36B;font-weight:500;}
+label{font-family:'Geist Mono',monospace;font-size:.66rem;letter-spacing:.06em;color:#9196A0;}
+select{font-family:'Geist',sans-serif;font-size:.88rem;background-color:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:10px 34px 10px 12px;color:#F2F1ED;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239196A0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+select:hover,select:focus{border-color:rgba(255,106,43,.55);}
+select option{background:#141518;color:#F2F1ED;}
+input[type=range]{accent-color:#FF6A2B;}
+.rv{font-family:'Geist Mono',monospace;color:#FFB36B;}
+button{font-family:'Geist',sans-serif;font-weight:600;font-size:.88rem;letter-spacing:0;border-radius:10px;padding:11px 18px;}
+.bp{background:#FF6A2B;color:#160A04;}
+.bp:hover{background:#FF8A4C;}
+.bp:disabled{background:#2A2D33;color:#9196A0;}
+.bs{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:#E3E4E7;}
+.bs:hover{border-color:rgba(255,255,255,.3);}
+.bg{background:#F2F1ED;color:#0C0D0F;}
+.bg:hover{background:#fff;}
+.sb,.hint,.scaleName,.rowlab{font-family:'Geist Mono',monospace;}
+.info{color:#B9BDC4;}
+.roll-wrap{border:1px solid rgba(255,255,255,.08);border-radius:12px;background:#0A0B0D;}
+.rcell{border-right-color:#15161a;border-bottom-color:#15161a;}
+.rcell.rootrow{background:#121317;}
+.rcell.on{background:#FF6A2B;border-color:#FF8A4C;border-radius:3px;box-shadow:0 0 10px rgba(255,106,43,.45);}
+.rcell.on.chord{background:#FFB36B;}
+</style>
 </head>
 <body>
 <header>
-  <div class="logo">Metal<span>Prompt</span></div>
-  <div class="badge">RIFF GEN v3</div>
+  <a class="logo" href="/" style="text-decoration:none"><svg width="34" height="27" viewBox="0 0 60 48" aria-hidden="true"><g fill="#F2F1ED" stroke="#F2F1ED" stroke-width="1" stroke-linejoin="round"><path d="M6 43 L8.6 6.5 Q9 3.6 11.6 4.2 Q13.2 4.6 14 6.4 L24 28 L34 9.4 Q34.9 7.8 36.6 8.3 Q38.6 8.9 38.7 11.2 L42 43 H34.8 L33.4 22.5 L24 38 L14.6 21 L13.2 43 Z"/><path d="M39.2 14 H46.5 Q56 14 56 23.2 Q56 32.4 46.5 32.4 H40.6 L40 26.8 H46 Q49.4 26.8 49.4 23.2 Q49.4 19.6 46 19.6 H39.7 Z"/></g><path d="M9.4 10.6 L13.4 12.4" stroke="#FF6A2B" stroke-width="1.6" stroke-linecap="round"/></svg>MetalPrompt</a>
+  <div class="badge">Riff et beat</div>
 </header>
 <main>
   <div class="rcol rcol-l">
@@ -635,7 +671,7 @@ function semFreq(base,semi){return Tone.Frequency(base).transpose(semi).toNote()
 
 function renderViz(p){
   const c=document.getElementById('tracksViz');c.innerHTML='';
-  [{name:'GUITAR',data:p.guit,col:'#c0392b'},{name:'BASS',data:p.bass,col:'#8e44ad'},
+  [{name:'GUITAR',data:p.guit,col:'#FF6A2B'},{name:'BASS',data:p.bass,col:'#8e44ad'},
    {name:'KICK',data:p.drum.kick,col:'#e67e22'},{name:'SNARE',data:p.drum.snare,col:'#27ae60'},
    {name:'HIHAT',data:p.drum.hihat,col:'#2980b9'}].forEach(t=>{
     const row=document.createElement('div');row.className='track-row';
@@ -655,7 +691,7 @@ function drawWave(){
   const buf=new Uint8Array(analyser.fftSize);
   analyser.getByteTimeDomainData(buf);
   ctx.fillStyle='#1c1c22';ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle='#c0392b';ctx.lineWidth=1.5;ctx.beginPath();
+  ctx.strokeStyle='#FF6A2B';ctx.lineWidth=1.5;ctx.beginPath();
   const sw=W/buf.length;
   for(let i=0;i<buf.length;i++){const y=(buf[i]/128)*H/2;i===0?ctx.moveTo(0,y):ctx.lineTo(i*sw,y);}
   ctx.stroke();

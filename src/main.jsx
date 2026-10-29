@@ -5,6 +5,7 @@ import App from './App.jsx'
 import Auth from './Auth.jsx'
 import { supabase } from './supabase.js'
 import HelpChat from './HelpChat.jsx'
+import { Analytics } from '@vercel/analytics/react'   // stats de visites Vercel (sans témoins)
 
 function Root() {
   const [user, setUser] = useState(null)
@@ -36,5 +37,6 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Root />
     <HelpChat />
+    <Analytics />
   </StrictMode>
 )

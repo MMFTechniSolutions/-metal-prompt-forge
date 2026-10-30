@@ -22,6 +22,32 @@ async function fromCache(band) {
   } catch { return null; }
 }
 
+
+// ── Quota IA du plan gratuit (oct. 2026) : le prompting est gratuit, mais un groupe ABSENT du cache
+// coûte un appel IA. Gratuit = FREE_AI_PER_DAY recherches IA par jour; abonnés et propriétaire = illimité.
+const FREE_AI_PER_DAY = Number(process.env.FREE_AI_PER_DAY || 3);
+const OWNER_EMAILS = (process.env.OWNER_EMAILS || 'rzlajoie@gmail.com').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
+async function aiQuota(req) {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+  if (!url || !key) return { ok: false, reason: 'config' };
+  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!token) return { ok: false, reason: 'auth' };
+  const sb = createClient(url, key, { auth: { persistSession: false } });
+  const { data: ud } = await sb.auth.getUser(token);
+  const u = ud && ud.user;
+  if (!u || !u.email) return { ok: false, reason: 'auth' };
+  if (OWNER_EMAILS.includes(u.email.toLowerCase())) return { ok: true };
+  const { data: row } = await sb.from('users').select('tier').eq('email', u.email).maybeSingle();
+  const tier = String((row && row.tier) || 'free').trim().toLowerCase();
+  if (tier && tier !== 'free') return { ok: true };
+  const day = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+  const { data: use } = await sb.from('reverse_usage').select('count').eq('user_id', u.id).eq('day', day).maybeSingle();
+  const n = (use && use.count) || 0;
+  if (n >= FREE_AI_PER_DAY) return { ok: false, reason: 'limit', limit: FREE_AI_PER_DAY };
+  await sb.from('reverse_usage').upsert({ user_id: u.id, day, count: n + 1 }, { onConflict: 'user_id,day' });
+  return { ok: true };
+}
+
 // ── Decisions API (OpenAI, bêta) — choisit les sous-genres dans NOTRE liste, avec un % de confiance.
 // Test 2026-10-27 : 19/20 vs 11/20 pour Claude seul. Claude reste appelé en parallèle pour flavor + signature,
 // et reprend le genre quand Decisions n'est pas sûr. Sans OPENAI_API_KEY (ou REVERSE_DECISIONS=off) : comportement d'avant.
@@ -115,6 +141,13 @@ export default async function handler(req, res) {
       label: hit.genre, confidence: hit.confidence, source: 'cache', era: hit.era || '',
       genres: [hit.genre, hit.flavor].filter(Boolean), matched: !!GENRE_PROFILES[hit.genre],
     });
+  }
+
+  const quota = await aiQuota(req);
+  if (!quota.ok) {
+    if (quota.reason === 'limit') return res.status(429).json({ error: 'limit', limit: quota.limit });
+    if (quota.reason === 'auth') return res.status(401).json({ error: 'auth' });
+    return res.status(500).json({ error: 'config' });
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;

@@ -484,8 +484,8 @@ const _rand=(a,b)=>a+_ri(b-a+1);
 const _pick=(arr,n)=>{const c=[...arr];const o=[];for(let i=0;i<n&&c.length;i++)o.push(c.splice(_ri(c.length),1)[0]);return o;};
 // genreProfile + randStructure DÉPLACÉS côté serveur (/api/profile) — recette protégée
 const TIER_RANK = {free:0,forge:1,pro:2,elite:3,eliteplus:4};
-const LIMITS = {free:{prompts:3,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity},eliteplus:{prompts:Infinity,lyrics:Infinity}};
-const TAB_REQ = {genre:"free",melodie:"elite",drums:"free",vocals:"free",guitar:"forge",bass:"forge",instru:"forge",structure:"forge",paroles:"pro",organic:"pro",exclude:"forge",output:"free",history:"pro"};
+const LIMITS = {free:{prompts:Infinity,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity},eliteplus:{prompts:Infinity,lyrics:Infinity}};
+const TAB_REQ = {genre:"free",melodie:"elite",drums:"free",vocals:"free",guitar:"free",bass:"free",instru:"free",structure:"free",paroles:"pro",organic:"free",exclude:"free",output:"free",history:"pro"};   // oct. 2026 : prompting gratuit; Mélodie, Riff, Paroles payants
 
 // ── FORGER v2 (oct. 2026) : aides pour la boîte d'entrée unique ──
 // Clés d'époque comprises par /api/forge (ERA_TAG).
@@ -1556,7 +1556,6 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const setBPM=v=>setBpmVal(Math.max(60,Math.min(280,v)));
   const applyPreset=key=>{
     const p=PRESETS[key]; if(!p) return;
-    if(!canAccess(p.req)){setShowPaywall(true);return;}
     setGenres(p.genres); setBPM(p.bpm);
     if(p.drums)setDrums(p.drums);
     if(p.vocals)setVocals(p.vocals);
@@ -1586,15 +1585,17 @@ export default function App({ user, onLogout, onRequestAuth }) {
   };
   const onGenrePick=(g)=>{const adding=!genres.has(g);tGenre(g);if(adding)autoFillGenre(g);};
   // ── REVERSAL : tape un nom de groupe → détecte le sous-genre → applique le profil complet ──
+  // Jeton de session pour /api/reverse : quota IA du plan gratuit (groupes absents de la base)
+  const revHeaders=async()=>{const h={'Content-Type':'application/json'};try{const {data}=await supabase.auth.getSession();const tk=data?.session?.access_token;if(tk)h.Authorization='Bearer '+tk;}catch(e){}return h;};
+  const revLimitMsg=()=>L("Limite gratuite atteinte : 3 recherches IA par jour pour les groupes hors de notre base. Les 2 000+ groupes connus et les genres restent illimités. Abonne-toi pour l'illimité.","Free limit reached: 3 AI searches per day for bands outside our database. The 2,000+ known bands and all genres stay unlimited. Subscribe for unlimited.");
   const reverseBand=async()=>{
-    if(!canAccess("pro")){setShowPaywall(true);return;}
     const band=reverseInput.trim();
     if(!band||reverseLoading)return;
     setReverseLoading(true);setReverseMsg(null);
     const _emoLim=Math.min(EMOTIONS.length,(IS_LOCAL?EMOTIONS.length:(EMO_LIMIT[userTier]||2)));
     setEmotions(seedEmotionsFromName(band, EMOTIONS.slice(0,_emoLim)));  // base d'émotions liée au nom
     try{
-      const r=await fetch('/api/reverse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({band})});
+      const r=await fetch('/api/reverse',{method:'POST',headers:await revHeaders(),body:JSON.stringify({band})});
       const d=await r.json();
       if(!r.ok||!d.genre){setReverseMsg({ok:false});return;}
       if(!genres.has(d.genre))tGenre(d.genre);   // ajoute le sous-genre comme tag
@@ -1631,7 +1632,6 @@ export default function App({ user, onLogout, onRequestAuth }) {
       const parts=rest.split(/\s*(?:,|\+|\/|&|\bet\b|\band\b)\s*/i).map(s=>s.trim()).filter(Boolean);
       const known=parts.map(findGenre);
       if(parts.length&&parts.length<=3&&known.every(Boolean)){
-        if(known.some(x=>!canAccess(x.req))){setShowPaywall(true);return;}
         const pick=[...new Set(known.map(x=>x.g))].slice(0,2);
         setGenres(pick);setSignature([]);
         await autoFillGenre(pick[0]);
@@ -1640,11 +1640,11 @@ export default function App({ user, onLogout, onRequestAuth }) {
         setPendingForge(true);return;
       }
       // 2) groupe ou description libre → /api/reverse (le nom n'est jamais écrit dans le prompt)
-      if(!canAccess("pro")){setShowPaywall(true);return;}
       // Mix de groupes (« Gojira + Meshuggah ») : un reverse par groupe, puis on combine (genre principal de chacun)
       const mixParts=rest.split(/\s*\+\s*|\s+\/\s+|\s+x\s+|\s+vs\.?\s+/i).map(s=>s.trim()).filter(Boolean);   // seulement « + », « / » espacé, « x », « vs » (pas AC/DC, pas les virgules ni « et » d'une description)
       if(mixParts.length>=2&&mixParts.length<=3&&!known.every(Boolean)){
-        const ds=(await Promise.all(mixParts.slice(0,2).map(b=>fetch('/api/reverse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({band:b})}).then(r=>r.ok?r.json():null).catch(()=>null)))).filter(x=>x&&x.genre);
+        const _rh=await revHeaders();
+        const ds=(await Promise.all(mixParts.slice(0,2).map(b=>fetch('/api/reverse',{method:'POST',headers:_rh,body:JSON.stringify({band:b})}).then(r=>r.ok?r.json():null).catch(()=>null)))).filter(x=>x&&x.genre);
         if(ds.length){
           const gs=[...new Set(ds.map(x=>x.genre).concat(ds.length===1&&ds[0].flavor?[ds[0].flavor]:[]))].slice(0,2);
           setGenres(gs);
@@ -1659,8 +1659,10 @@ export default function App({ user, onLogout, onRequestAuth }) {
           return;
         }
       }
-      const r=await fetch('/api/reverse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({band:rest})});
+      const r=await fetch('/api/reverse',{method:'POST',headers:await revHeaders(),body:JSON.stringify({band:rest})});
       const d=await r.json();
+      if(r.status===429){setIdeaMsg({ok:false,text:revLimitMsg()});return;}
+      if(r.status===401){onRequestAuth&&onRequestAuth();return;}
       if(!r.ok||!d.genre){setIdeaMsg({ok:false,text:L("Pas reconnu — vérifie l'orthographe, ou choisis un genre juste en dessous.","Not recognized — check the spelling, or pick a genre just below.")});return;}
       setGenres([d.genre,d.flavor].filter(Boolean));
       if(!era&&d.era)setEraPick(d.era);   // époque du groupe (cache) : Gojira = 2000s, pas l'époque du prog
@@ -1681,7 +1683,6 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [sounds,setSounds]=useState(()=>{try{return JSON.parse(localStorage.getItem("mpf_sounds")||"[]")}catch{return[]}});
   const persistSounds=arr=>{setSounds(arr);try{localStorage.setItem("mpf_sounds",JSON.stringify(arr))}catch{}};
   const saveSound=()=>{
-    if(!canAccess("pro")){setShowPaywall(true);return;}
     const name=window.prompt(uiLang==="fr"?"Nom de ton sound :":"Name your sound:");
     if(!name||!name.trim())return;
     const data={genres:[...genres],bpm,drums:[...drums],vocals:[...vocals],mood:[...mood],guitar:[...guitar],tuning:[...tuning]};
@@ -1774,8 +1775,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
     const body={
       genres:[...genres],drums:[...drums],vocals:[...vocals],guitar:[...guitar],tuning:[...tuning],mood:[...mood],prod:[...prod],globalRhythm:[...globalRhythm],meters,vrange:[...vrange],
       bassStyle:[...bassStyle],bassTech:[...bassTech],bassTone:[...bassTone],bassTuning:[...bassTuning],bassProd:[...bassProd],sax:[...sax],brass:[...brass],keys:[...keys],strings:[...strings],
-      org:isPro?[...orgRec,...orgDrm,...orgVoc,...orgGtr]:[],
-      excl:isElite?{g:[...exclGenre],v:[...exclVocal],p:[...exclProd],i:[...exclInst],c:exclCustom}:null,
+      org:[...orgRec,...orgDrm,...orgVoc,...orgGtr],
+      excl:{g:[...exclGenre],v:[...exclVocal],p:[...exclProd],i:[...exclInst],c:exclCustom},
       structs:autoStructs,blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions:{},tier:userTier,   // émotions retirées de l'interface (oct. 2026) : plus rien d'invisible ne teinte le prompt
       eras:eraPick?[eraPick]:[...new Set([...genres].map(g=>(GENRE_FAMILIES.find(f=>f.genres.some(x=>x.g===g))||{}).nameEn).filter(Boolean))],   // ordre = genre principal d'abord   // couche Époque → /api/forge
       signature,   // anchors sonores du reverse (vides si pas de reverse)

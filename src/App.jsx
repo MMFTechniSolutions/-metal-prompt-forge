@@ -484,6 +484,7 @@ const _rand=(a,b)=>a+_ri(b-a+1);
 const _pick=(arr,n)=>{const c=[...arr];const o=[];for(let i=0;i<n&&c.length;i++)o.push(c.splice(_ri(c.length),1)[0]);return o;};
 // genreProfile + randStructure DÉPLACÉS côté serveur (/api/profile) — recette protégée
 const TIER_RANK = {free:0,forge:1,pro:2,elite:3,eliteplus:4};
+const DISCORD_URL = "https://discord.gg/6VeFzBTPZ";
 const LIMITS = {free:{prompts:Infinity,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity},eliteplus:{prompts:Infinity,lyrics:Infinity}};
 const TAB_REQ = {genre:"free",melodie:"elite",drums:"free",vocals:"free",guitar:"free",bass:"free",instru:"free",structure:"free",paroles:"pro",organic:"free",exclude:"free",output:"free",history:"pro"};   // oct. 2026 : prompting gratuit; Mélodie, Riff, Paroles payants
 
@@ -1334,6 +1335,7 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
         <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.9rem",letterSpacing:"2px",color:"#fff"}}>{L("GALERIE","GALLERY")}</div>
         <div style={{color:"#999",fontSize:"0.8rem",marginTop:"6px",lineHeight:1.55}}>{L("Les chansons forgées par la communauté. Metal fait avec l'IA comme un outil — l'humain au centre.","Tracks forged by the community. Metal made with AI as a tool — human at the center.")}</div>
         <button onClick={()=>setShowForm(v=>!v)} style={{marginTop:"14px",background:RED,border:"none",borderRadius:"8px",color:"#000",fontWeight:900,fontSize:"0.8rem",letterSpacing:"1px",textTransform:"uppercase",padding:"11px 22px",cursor:"pointer"}}>{showForm?L("Fermer","Close"):L("Soumettre ma chanson","Submit my track")}</button>
+        <div style={{marginTop:"10px"}}><a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" style={{color:"#8b9bff",fontSize:"0.72rem",fontWeight:800,textDecoration:"none"}}>{L("Rejoins la communauté sur Discord →","Join the community on Discord →")}</a></div>
       </div>
       {showForm&&<div style={S.card}>
         <div style={S.ctitle}>{L("Soumettre une chanson","Submit a track")}</div>
@@ -2711,6 +2713,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>}
 
       {tab==="output"&&<div style={S.page}>
+        <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" style={{...S.card,display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",textDecoration:"none",borderColor:"#5865F255"}}>
+          <span style={{color:"#ccc",fontSize:"0.74rem",lineHeight:1.5}}>{L("Partage ton résultat, pose tes questions et vote pour la chanson de la semaine sur notre Discord.","Share your result, ask questions and vote for the track of the week on our Discord.")}</span>
+          <span style={{flexShrink:0,background:"#5865F2",color:"#fff",fontWeight:900,fontSize:"0.72rem",borderRadius:"7px",padding:"8px 12px"}}>{L("Rejoindre","Join")}</span>
+        </a>
         {!styleTxt&&<div style={{...S.card,textAlign:"center",padding:"30px 20px",borderColor:"#222"}}>
           <div style={{fontSize:"2.5rem",marginBottom:"10px"}}></div>
           <div style={{fontSize:"0.82rem",color:"#444"}}>{t.noPrompt}</div>

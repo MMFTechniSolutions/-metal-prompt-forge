@@ -2497,12 +2497,13 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <div style={S.card}>
           <div style={S.ctitle}>{L("Le workflow complet","The full workflow")}</div>
           {[
-            {t:L("FORGE","FORGE"),d:L("Choisis ton genre + tes émotions. MetalPrompt génère 3 prompts optimisés pour Suno.","Pick your genre + emotions. MetalPrompt builds 3 Suno-optimized prompts.")},
+            {t:L("FORGE","FORGE"),d:L("Tape un groupe, un mix de groupes, une année ou une description. MetalPrompt génère 3 prompts optimisés pour Suno.","Type a band, a band mix, a year or a description. MetalPrompt builds 3 Suno-optimized prompts.")},
             {t:L("SUNO","SUNO"),d:L("Colle les prompts dans Suno et génère ta chanson.","Paste the prompts into Suno and generate your track.")},
-            {t:L("RIFF (option)","RIFF (optional)"),d:L("Crée un vrai riff/beat en WAV pour servir de référence audio à Suno.","Build a real riff/beat WAV to use as Suno's audio reference.")},
+            {t:L("MÉLODIE · RIFF (abonnement)","MELODY · RIFF (subscription)"),d:L("Crée une vraie mélodie ou un vrai riff en WAV pour servir de référence audio à Suno.","Build a real melody or riff WAV to use as Suno's audio reference.")},
             {t:L("MASTER","MASTER"),d:L("Nettoie et grossis le rendu Suno (mix, EQ, sidechain, débruiteur).","Clean up and fatten the Suno output (mix, EQ, sidechain, de-noise).")},
+            {t:L("GALERIE","GALLERY"),d:L("Soumets ta chanson, écoute celles des autres et vote pour tes préférées.","Submit your track, listen to others and vote for your favorites.")},
           ].map((s,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<3?"1px solid #1a1a1a":"none"}}>
+            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<4?"1px solid #1a1a1a":"none"}}>
               <div style={S.stepNum(RED)}>{i+1}</div>
               <div style={{paddingTop:"1px"}}>
                 <div style={{fontSize:"0.82rem",fontWeight:900,color:"#fff",letterSpacing:"1px"}}>{s.t}</div>
@@ -2510,20 +2511,21 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               </div>
             </div>
           ))}
-          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Prompting gratuit et illimité. L'abonnement débloque Mélodie, Riff et Paroles IA.","Prompting is free and unlimited. The subscription unlocks Melody, Riff and AI Lyrics.")}</div>
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Prompting gratuit et illimité avec un compte. L'abonnement débloque Mélodie, Riff et Paroles IA.","Prompting is free and unlimited with an account. The subscription unlocks Melody, Riff and AI Lyrics.")}</div>
         </div>
 
         {/* ETAPE PAR ETAPE FORGE */}
         <div style={S.card}>
           <div style={S.ctitle}>{L("1 · Forger ton prompt","1 · Forge your prompt")}</div>
           {[
-            L("Onglet Genre : choisis ton genre. Les réglages (BPM, batterie, voix) se calibrent tout seuls pour Suno.","Genre tab: pick your genre. The settings (BPM, drums, vocals) auto-calibrate for Suno."),
-            L("Règle tes émotions (rage, mélancolie, triomphe…) — elles colorent le son et les paroles.","Set your emotions (rage, melancholy, triumph…) — they color the sound and lyrics."),
-            L("Tu veux le contrôle fin ? Active « Mode Avancé » en haut : batterie, voix, structure et exclude manuels.","Want fine control? Turn on « Advanced Mode » at the top: manual drums, vocals, structure and exclude."),
-            L("Clique sur l'enclume FORGER. ","Hit the FORGE anvil. "),
-            L("Va dans l'onglet Output : tes 3 prompts t'attendent.","Go to the Output tab: your 3 prompts are ready."),
-          ].map((s,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<4?"1px solid #1a1a1a":"none"}}>
+            L("Crée ton compte (gratuit). C'est tout ce qu'il faut pour forger.","Create your account (free). That's all you need to forge."),
+            L("Dans la boîte d'accueil, tape un groupe (« Gojira »), une année (« 1993 »), un genre ou une description (« doom lent avec orgue »). 2 000+ groupes et 151 sous-genres sont déjà reconnus.","In the home box, type a band (\"Gojira\"), a year (\"1993\"), a genre or a description (\"slow doom with organ\"). 2,000+ bands and 151 sub-genres are already known."),
+            L("Mixe des groupes avec « + » ou « x » (« Gojira + Meshuggah ») : chaque groupe est analysé, puis leurs styles sont combinés dans un seul prompt. Essaie des mix que personne a jamais entendus.","Mix bands with \"+\" or \"x\" (\"Gojira + Meshuggah\"): each band is analyzed, then their styles are blended into one prompt. Try mixes nobody has ever heard."),
+            L("Clique sur Forger. Les réglages (BPM, accordage, batterie, voix, exclusions) se calibrent tout seuls.","Hit Forge. The settings (BPM, tuning, drums, vocals, exclusions) calibrate themselves."),
+            L("Tu veux le contrôle fin ? Ouvre « Ajuster » : genre, batterie, voix, guitare, structure et exclude.","Want fine control? Open \"Adjust\": genre, drums, vocals, guitar, structure and exclude."),
+            L("Tes 3 prompts t'attendent dans la sortie (« Voir la dernière sortie »).","Your 3 prompts are waiting in the output (\"See the last output\")."),
+          ].map((s,i,ar)=>(
+            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<ar.length-1?"1px solid #1a1a1a":"none"}}>
               <div style={S.stepNum(RED)}>{i+1}</div>
               <div style={{fontSize:"0.8rem",color:"#ccc",lineHeight:1.6,paddingTop:"3px"}}>{s}</div>
             </div>
@@ -2573,10 +2575,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
         {/* RIFF */}
         <div style={S.card}>
-          <div style={S.ctitle}>{L("4 · Riff Generator (référence audio)","4 · Riff Generator (audio reference)")}</div>
-          <div style={{fontSize:"0.74rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("Suno invente souvent un beat plate. Donne-lui un VRAI groove à suivre :","Suno often invents a flat beat. Give it a REAL groove to follow:")}</div>
+          <div style={S.ctitle}>{L("4 · Mélodie & Riff (référence audio)","4 · Melody & Riff (audio reference)")}</div>
+          <div style={{fontSize:"0.74rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("Suno invente souvent un beat plate ou un refrain sans accroche. Donne-lui une VRAIE mélodie ou un VRAI groove à suivre (abonnement) :","Suno often invents a flat beat or a chorus with no hook. Give it a REAL melody or groove to follow (subscription):")}</div>
           {[
-            L("Onglet Riff : choisis ton style + une scène (saveur régionale).","Riff tab: choose your style + a scene (regional flavor)."),
+            L("Onglet Mélodie & Riff : choisis un thème de mélodie (refrain, melodeath, doom…) ou un style de riff + une scène (saveur régionale).","Melody & Riff tab: pick a melody theme (chorus, melodeath, doom…) or a riff style + a scene (regional flavor)."),
             L("Écoute avec Play, ajuste le tempo, puis Export en WAV.","Preview with Play, tweak the tempo, then Export to WAV."),
             L("Dans Suno : ajoute le WAV comme source audio, puis mets Audio Influence entre 25 et 50 — c'est une amorce, pas une chanson à recopier.","In Suno: add the WAV as an audio source, then set Audio Influence between 25 and 50 — it is a seed, not a song to copy."),
           ].map((s,i)=>(
@@ -2604,12 +2606,29 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{background:"#170c0c",border:"1px solid #4a2020",borderRadius:"6px",padding:"9px 12px",marginTop:"10px",fontSize:"0.66rem",color:"#e0a0a0",lineHeight:1.6}}>{L("Important : le mastering est l'étape FINALE, pour ta release. Fais tes Extend/Cover DANS Suno avant — ne re-uploade jamais une chanson mastérisée dans Suno, son filtre anti-copie la bloquerait.","Important: mastering is the FINAL step, for your release. Do your Extends/Covers IN Suno first — never re-upload a mastered track into Suno, its anti-copy filter would block it.")}</div>
         </div>
 
+        {/* GALERIE */}
+        <div style={S.card}>
+          <div style={S.ctitle}>{L("6 · Galerie (fais-toi entendre)","6 · Gallery (get heard)")}</div>
+          <div style={{fontSize:"0.74rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("L'écoute est gratuite et ouverte à tous. Pour soumettre et voter, il faut un compte :","Listening is free and open to everyone. To submit and vote, you need an account:")}</div>
+          {[
+            L("Onglet Galerie : colle le lien de ta chanson (Suno, Spotify, YouTube ou SoundCloud). Gratuit, 2 chansons par mois.","Gallery tab: paste your track's link (Suno, Spotify, YouTube or SoundCloud). Free, 2 tracks per month."),
+            L("Chaque chanson est écoutée et approuvée avant d'être publiée. Metal seulement.","Every track is listened to and approved before it's published. Metal only."),
+            L("Vote pour tes préférées : 1 vote par jour, 1 vote par chanson. Reviens chaque jour pour en découvrir d'autres.","Vote for your favorites: 1 vote a day, 1 vote per track. Come back every day to discover more."),
+            L("Les chansons les plus aimées montent en haut de la galerie.","The most-loved tracks rise to the top of the gallery."),
+          ].map((s,i,ar)=>(
+            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<ar.length-1?"1px solid #1a1a1a":"none"}}>
+              <div style={S.stepNum(RED)}>{i+1}</div>
+              <div style={{fontSize:"0.8rem",color:"#ccc",lineHeight:1.6,paddingTop:"3px"}}>{s}</div>
+            </div>
+          ))}
+        </div>
+
         {/* CUSTOM MODEL */}
         <div style={S.card}>
           <div style={S.ctitle}>{L("Custom Model Studio","Custom Model Studio")}</div>
           <div style={{fontSize:"0.74rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("Entraîne un modèle Suno sur TON sound. MetalPrompt produit le jeu d'entraînement cohérent — c'est la clé d'un bon custom model.","Train a Suno model on YOUR sound. MetalPrompt produces the consistent training set — the key to a good custom model.")}</div>
           {[
-            L("Sauve ton profil dans « Mon Sound » (onglet Genre) : tags, BPM, voix signature.","Save your profile in « My Sound » (Genre tab): tags, BPM, signature vocals."),
+            L("Sauve ton profil dans « Mon Sound » (sous « Ajuster », onglet Genre) : tags, BPM, voix signature.","Save your profile in « My Sound » (under \"Adjust\", Genre tab): tags, BPM, signature vocals."),
             L("Génère 6 à 8 chansons COHÉRENTES dans Suno avec ce même profil.","Generate 6-8 CONSISTENT tracks in Suno with that same profile."),
             L("Dans Suno : menu du modèle -> « Create Custom Model » -> uploade tes 6+ chansons (que tu possèdes).","In Suno: model menu -> « Create Custom Model » -> upload your 6+ tracks (that you own)."),
             L("Génère avec ton custom model + tes prompts MetalPrompt pour diriger chaque chanson.","Generate with your custom model + your MetalPrompt prompts to steer each track."),

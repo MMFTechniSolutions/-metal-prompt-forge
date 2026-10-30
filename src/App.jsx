@@ -1284,7 +1284,6 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
   const inp={background:"#0d0d0d",border:"1px solid #2a2a2a",borderRadius:"6px",color:"#eee",fontSize:"0.8rem",padding:"9px 11px",width:"100%",outline:"none"};
   const submit=async()=>{
     if(!user){onRequestAuth&&onRequestAuth();return;}
-    if(!isPaid){onPaywall&&onPaywall();return;}
     if(!form.title.trim()||!form.url.trim()){setMsg(L("Titre et lien requis.","Title and link required."));return;}
     setMsg(L("Envoi…","Sending…"));
     let url=form.url.trim(), audio_url=null, image_url=null;
@@ -1305,7 +1304,7 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
       </div>
       {showForm&&<div style={S.card}>
         <div style={S.ctitle}>{L("Soumettre une chanson","Submit a track")}</div>
-        <div style={{fontSize:"0.62rem",color:"#777",marginBottom:"10px",lineHeight:1.5}}>{L("Réservé aux membres. Colle un lien Suno, Spotify, YouTube ou SoundCloud. Revue avant publication. Metal seulement.","Members only. Paste a Suno, Spotify, YouTube or SoundCloud link. Reviewed before publishing. Metal only.")}</div>
+        <div style={{fontSize:"0.62rem",color:"#777",marginBottom:"10px",lineHeight:1.5}}>{L("Gratuit avec un compte. Colle un lien Suno, Spotify, YouTube ou SoundCloud. Revue avant publication. Metal seulement.","Free with an account. Paste a Suno, Spotify, YouTube or SoundCloud link. Reviewed before publishing. Metal only.")}</div>
         <div style={{display:"flex",flexDirection:"column",gap:"9px"}}>
           <input style={inp} placeholder={L("Titre de la chanson","Track title")} value={form.title} onChange={e=>set('title',e.target.value)}/>
           <input style={inp} placeholder={L("Nom d'artiste (optionnel)","Artist name (optional)")} value={form.artist} onChange={e=>set('artist',e.target.value)}/>

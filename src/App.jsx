@@ -1438,6 +1438,11 @@ export default function App({ user, onLogout, onRequestAuth }) {
       setPromptCount(0);setCredits(0);
     }
   },[user]);
+  // LCAP : consentement courriel coché à l'inscription → enregistré (avec date et texte) dès que la session existe
+  useEffect(()=>{if(!user)return;let txt=null;try{txt=localStorage.getItem("mp_consent_pending");}catch(e){}
+    if(!txt)return;
+    supabase.rpc('set_marketing_consent',{p_consent:true,p_text:txt}).then(({error})=>{if(!error){try{localStorage.removeItem("mp_consent_pending");}catch(e){}}});
+  },[user]);
   const isForge=TIER_RANK[userTier]>=1;
   const isPro=TIER_RANK[userTier]>=1;
   const isElite=TIER_RANK[userTier]>=1;

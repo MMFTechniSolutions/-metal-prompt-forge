@@ -10,14 +10,18 @@ export default function Auth({ onLogin, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [consent, setConsent] = useState(false);   // LCAP : jamais coché d'avance
+  const CONSENT_TEXT = "J'accepte de recevoir par courriel les nouveautés et offres de MetalPrompt (MMF Techni Solutions). Je peux me désabonner en tout temps. / I agree to receive MetalPrompt news and offers by email. I can unsubscribe at any time.";
+  const rememberConsent = () => { try { if (consent) localStorage.setItem("mp_consent_pending", CONSENT_TEXT); } catch (e) {} };
 
   const handle = async () => {
     setLoading(true);
     setError("");
     setMessage("");
 
+    rememberConsent();
     if (isSignup) {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabase.auth.signUp({ email, password, options: { data: consent ? { marketing_consent: true, marketing_consent_text: CONSENT_TEXT, marketing_consent_at: new Date().toISOString() } : {} } });
       if (error) setError(error.message);
       else setMessage("Vérifie ton email pour confirmer ton compte !");
     } else {
@@ -30,6 +34,7 @@ export default function Auth({ onLogin, onClose }) {
 
   const handleGoogle = async () => {
     setError("");
+    rememberConsent();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.origin },
@@ -65,6 +70,11 @@ export default function Auth({ onLogin, onClose }) {
           onChange={e => setPassword(e.target.value)}
           style={{ width:"100%", background:"#111", border:"1px solid #222", borderRadius:"6px", padding:"12px", color:"#e0e0e0", fontSize:"0.85rem", marginBottom:"16px" }}
         />
+
+        <label style={{ display:"flex", gap:"9px", alignItems:"flex-start", fontSize:"0.68rem", color:"#999", lineHeight:1.45, marginBottom:"14px", cursor:"pointer" }}>
+          <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} style={{ marginTop:"2px", accentColor:RED, flexShrink:0 }} />
+          <span>J'accepte de recevoir par courriel les nouveautés et offres de MetalPrompt. Désabonnement en tout temps. <span style={{ color:"#666" }}>(Optionnel / Optional: email news and offers, unsubscribe anytime.)</span></span>
+        </label>
 
         {error && <div style={{ color:"#ff5555", fontSize:"0.75rem", marginBottom:"10px", textAlign:"center" }}>{error}</div>}
         {message && <div style={{ color:"#4caf50", fontSize:"0.75rem", marginBottom:"10px", textAlign:"center" }}>{message}</div>}

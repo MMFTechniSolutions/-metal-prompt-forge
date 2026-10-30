@@ -466,13 +466,13 @@ const lifetimeLeft=()=>{const ms=Date.parse(LIFETIME.end)-Date.now();if(ms<=0)re
 // ── TIERS ──
 const TIERS = {
   free: {id:"free", label:"FREE", price:"$0", color:"#444", badge:null,
-    features:["✅ 3 prompts d'essai gratuits","✅ Aperçu de la bibliothèque","❌ Reste verrouillé — passe à MetalPrompt"],
-    featuresEn:["✅ 3 free trial prompts","✅ Library preview","❌ Rest locked — go MetalPrompt"]},
+    features:["✅ Prompts illimités (compte gratuit)","✅ 2 000+ groupes connus · 151 sous-genres","✅ Tous les réglages (Ajuster)","✅ Galerie : 2 chansons/mois + votes","❌ Mélodie, Riff et Paroles IA"],
+    featuresEn:["✅ Unlimited prompts (free account)","✅ 2,000+ known bands · 151 sub-genres","✅ All settings (Adjust)","✅ Gallery: 2 tracks/month + votes","❌ Melody, Riff and AI Lyrics"]},
   // Oct. 2026 : un seul abonnement à 2,99 $/mois (plus d'annuel). Lien Stripe dans STRIPE_MENSUEL.
   pro: {id:"pro", label:"METALPROMPT", price:"$2.99/mois", color:"#FF6A2B", badge:"PRO",
     stripe:STRIPE_MENSUEL,
-    features:["✅ TOUT le site débloqué","✅ Bibliothèque complète + sliders + 10 émotions","✅ Générateur de Riff complet (28 styles)","✅ Module Mastering (débruitage + EQ)","✅ Paroles par IA illimitées","✅ Prompts Principal · Cover · Extend","✅ Reco de modèle Suno · prompts illimités"],
-    featuresEn:["✅ FULL site unlocked","✅ Full library + sliders + 10 emotions","✅ Complete Riff Generator (28 styles)","✅ Mastering module (denoise + EQ)","✅ Unlimited AI lyrics","✅ Principal · Cover · Extend prompts","✅ Suno model rec · unlimited prompts"]},
+    features:["✅ Tout le gratuit, plus :","✅ Générateur de Mélodie","✅ Recherches IA de groupes illimitées","✅ Bibliothèque complète + sliders + 10 émotions","✅ Générateur de Riff complet (28 styles)","✅ Module Mastering (débruitage + EQ)","✅ Paroles par IA illimitées","✅ Prompts Principal · Cover · Extend","✅ Reco de modèle Suno · prompts illimités"],
+    featuresEn:["✅ Everything in Free, plus:","✅ Melody generator","✅ Unlimited AI band searches","✅ Full library + sliders + 10 emotions","✅ Complete Riff Generator (28 styles)","✅ Mastering module (denoise + EQ)","✅ Unlimited AI lyrics","✅ Principal · Cover · Extend prompts","✅ Suno model rec · unlimited prompts"]},
 };
 const payUrl = (base, email) =>
   base && !base.includes("YOUR_") && email
@@ -824,7 +824,7 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
           <div style={{background:CARD,border:"1px solid #222",borderRadius:"10px",padding:"16px"}}>
             <div style={{fontSize:"0.6rem",color:"#555",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"6px"}}>{L("GRATUIT","FREE")}</div>
             <div style={{fontSize:"1.4rem",fontWeight:900,color:"#fff",marginBottom:"10px"}}>$0</div>
-            {(uiLang==="fr"?["3 prompts d'essai","Accès basique genre & drums","❌ Paroles IA","❌ Organic mode","❌ Exclude Tags"]:["3 free prompts","Basic genre & drums access","❌ AI lyrics","❌ Organic mode","❌ Exclude Tags"]).map((f,i)=><div key={f} style={{fontSize:"0.68rem",color:i<2?"#bbb":"#333",padding:"3px 0"}}>{f}</div>)}
+            {(uiLang==="fr"?["Prompts illimités","Tous les réglages + 2 000+ groupes","❌ Mélodie · Riff","❌ Paroles IA"]:["Unlimited prompts","All settings + 2,000+ bands","❌ Melody · Riff","❌ AI lyrics"]).map((f,i)=><div key={f} style={{fontSize:"0.68rem",color:i<2?"#bbb":"#333",padding:"3px 0"}}>{f}</div>)}
             <button onClick={onEnter} style={{width:"100%",marginTop:"12px",padding:"9px",background:"#1a1a1a",border:"1px solid #333",borderRadius:"6px",color:"#777",fontSize:"0.72rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>{L("ESSAYER","TRY")}</button>
           </div>
           {["forge","pro","elite"].map(id=>{
@@ -1594,7 +1594,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   // ── REVERSAL : tape un nom de groupe → détecte le sous-genre → applique le profil complet ──
   // Jeton de session pour /api/reverse : quota IA du plan gratuit (groupes absents de la base)
   const revHeaders=async()=>{const h={'Content-Type':'application/json'};try{const {data}=await supabase.auth.getSession();const tk=data?.session?.access_token;if(tk)h.Authorization='Bearer '+tk;}catch(e){}return h;};
-  const revLimitMsg=()=>L("Limite gratuite atteinte : 3 recherches IA par jour pour les groupes hors de notre base. Les 2 000+ groupes connus et les genres restent illimités. Abonne-toi pour l'illimité.","Free limit reached: 3 AI searches per day for bands outside our database. The 2,000+ known bands and all genres stay unlimited. Subscribe for unlimited.");
+  const revLimitMsg=()=>L("Limite gratuite atteinte : 5 recherches IA par jour pour les groupes hors de notre base. Les 2 000+ groupes connus et les genres restent illimités. Abonne-toi pour l'illimité.","Free limit reached: 5 AI searches per day for bands outside our database. The 2,000+ known bands and all genres stay unlimited. Subscribe for unlimited.");
   const reverseBand=async()=>{
     const band=reverseInput.trim();
     if(!band||reverseLoading)return;
@@ -2510,7 +2510,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               </div>
             </div>
           ))}
-          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Gratuit = essai. L'abonnement débloque tout le site.","Free = trial. The subscription unlocks the whole site.")}</div>
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Prompting gratuit et illimité. L'abonnement débloque Mélodie, Riff et Paroles IA.","Prompting is free and unlimited. The subscription unlocks Melody, Riff and AI Lyrics.")}</div>
         </div>
 
         {/* ETAPE PAR ETAPE FORGE */}

@@ -25,7 +25,7 @@ async function fromCache(band) {
 
 // ── Quota IA du plan gratuit (oct. 2026) : le prompting est gratuit, mais un groupe ABSENT du cache
 // coûte un appel IA. Gratuit = FREE_AI_PER_DAY recherches IA par jour; abonnés et propriétaire = illimité.
-const FREE_AI_PER_DAY = Number(process.env.FREE_AI_PER_DAY || 3);
+const FREE_AI_PER_DAY = Number(process.env.FREE_AI_PER_DAY || 5);
 const OWNER_EMAILS = (process.env.OWNER_EMAILS || 'rzlajoie@gmail.com').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
 async function aiQuota(req) {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;

@@ -1333,9 +1333,9 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
               <span style={{fontSize:"0.5rem",fontWeight:900,color:"#000",background:"#7a7a7a",borderRadius:"5px",padding:"3px 7px",letterSpacing:"0.5px"}}>IA</span>
             </div>
           </div>
-          {e.type==="suno"&&(it.audio_url||e.id)
+          {e.type==="suno"&&e.id
             ? <div>
-                <audio controls preload="none" src={it.audio_url||`https://cdn1.suno.ai/${e.id}.mp3`} style={{width:"100%",height:"40px",colorScheme:"dark"}}/>
+                <iframe src={`https://suno.com/embed/${e.id}`} title={it.title} loading="lazy" allow="autoplay; encrypted-media" style={{width:"100%",height:"240px",border:"none",borderRadius:"8px",background:"#0d0d0d"}}/>
                 <a href={it.url} target="_blank" rel="noopener noreferrer" style={{display:"inline-block",marginTop:"6px",color:"#777",fontSize:"0.62rem",textDecoration:"none"}}>{L("Voir sur Suno ↗","View on Suno ↗")}</a>
               </div>
             : e.type==="iframe"

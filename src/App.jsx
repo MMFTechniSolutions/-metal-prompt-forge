@@ -1310,7 +1310,7 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
     }
     const {error}=await supabase.from('gallery').insert({title:form.title.trim(),artist:(form.artist.trim()||(user.email?user.email.split('@')[0]:"anon")),genre:form.genre,url,audio_url,image_url,status:'pending'});
     if(error){
-      if(error.code==='42501'){setMsg(L("Limite atteinte : 1 chanson par membre par mois. Reviens le mois prochain! 🤘","Limit reached: 1 track per member per month. Come back next month! 🤘"));return;}
+      if(error.code==='42501'){setMsg(L("Limite atteinte : 2 chansons par membre par mois. Reviens le mois prochain! 🤘","Limit reached: 2 tracks per member per month. Come back next month! 🤘"));return;}
       if(error.code==='23505'){setMsg(L("Cette chanson a déjà été soumise.","This track was already submitted."));return;}
       if(error.code==='23514'){setMsg(L("Lien refusé : Suno, Spotify, YouTube ou SoundCloud seulement.","Link refused: Suno, Spotify, YouTube or SoundCloud only."));return;}
       setMsg(L("Erreur — réessaie.","Error — try again."));return;}
@@ -1326,7 +1326,7 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
       </div>
       {showForm&&<div style={S.card}>
         <div style={S.ctitle}>{L("Soumettre une chanson","Submit a track")}</div>
-        <div style={{fontSize:"0.62rem",color:"#777",marginBottom:"10px",lineHeight:1.5}}>{L("Gratuit avec un compte · 1 chanson par mois. Colle un lien Suno, Spotify, YouTube ou SoundCloud. Revue avant publication. Metal seulement.","Free with an account · 1 track per month. Paste a Suno, Spotify, YouTube or SoundCloud link. Reviewed before publishing. Metal only.")}</div>
+        <div style={{fontSize:"0.62rem",color:"#777",marginBottom:"10px",lineHeight:1.5}}>{L("Gratuit avec un compte · 2 chansons par mois. Colle un lien Suno, Spotify, YouTube ou SoundCloud. Revue avant publication. Metal seulement.","Free with an account · 2 tracks per month. Paste a Suno, Spotify, YouTube or SoundCloud link. Reviewed before publishing. Metal only.")}</div>
         <div style={{display:"flex",flexDirection:"column",gap:"9px"}}>
           <input style={inp} placeholder={L("Titre de la chanson","Track title")} value={form.title} onChange={e=>set('title',e.target.value)}/>
           <input style={inp} placeholder={L("Nom d'artiste (optionnel)","Artist name (optional)")} value={form.artist} onChange={e=>set('artist',e.target.value)}/>

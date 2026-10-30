@@ -1274,25 +1274,36 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
   const [msg,setMsg]=useState("");
   const [showForm,setShowForm]=useState(false);
   const [voted,setVoted]=useState(()=>new Set());
+  const [todayVote,setTodayVote]=useState(null);
+  const [voteMsg,setVoteMsg]=useState("");
+  const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   useEffect(()=>{let on=true;
     supabase.from('gallery').select('*').eq('status','approved').order('likes',{ascending:false}).order('created_at',{ascending:false})
       .then(({data})=>{if(on){setItems(data||[]);setLoading(false);}}).catch(()=>{if(on)setLoading(false);});
     return ()=>{on=false;};},[]);
   useEffect(()=>{let on=true;
-    if(!user){setVoted(new Set());return;}
-    supabase.from('gallery_votes').select('gallery_id').then(({data})=>{if(on)setVoted(new Set((data||[]).map(v=>v.gallery_id)));});
+    if(!user){setVoted(new Set());setTodayVote(null);return;}
+    supabase.from('gallery_votes').select('gallery_id,vote_day').then(({data})=>{if(!on)return;
+      const rows=data||[]; setVoted(new Set(rows.map(v=>v.gallery_id)));
+      const t=rows.find(v=>v.vote_day===today()); setTodayVote(t?t.gallery_id:null);});
     return ()=>{on=false;};},[user]);
+  const bump=(id,d)=>setItems(xs=>xs.map(x=>x.id===id?{...x,likes:Math.max(0,(x.likes||0)+d)}:x));
   const toggleVote=async(id)=>{
     if(!user){onRequestAuth&&onRequestAuth();return;}
-    const has=voted.has(id); const d=has?-1:1;
-    setVoted(v=>{const n=new Set(v); has?n.delete(id):n.add(id); return n;});
-    setItems(xs=>xs.map(x=>x.id===id?{...x,likes:Math.max(0,(x.likes||0)+d)}:x));
-    const {error}=has
-      ? await supabase.from('gallery_votes').delete().eq('gallery_id',id).eq('user_id',user.id)
-      : await supabase.from('gallery_votes').insert({gallery_id:id,user_id:user.id});
+    setVoteMsg("");
+    if(voted.has(id)){
+      if(todayVote!==id){setVoteMsg(L("T'as déjà voté pour celle-là. Un vote par chanson. 🤘","You already voted for this one. One vote per track. 🤘"));return;}
+      setVoted(v=>{const n=new Set(v);n.delete(id);return n;}); setTodayVote(null); bump(id,-1);
+      const {error}=await supabase.from('gallery_votes').delete().eq('gallery_id',id).eq('user_id',user.id);
+      if(error){setVoted(v=>new Set(v).add(id)); setTodayVote(id); bump(id,1);}
+      return;
+    }
+    if(todayVote){setVoteMsg(L("Ton vote du jour est déjà donné. Reviens demain pour en écouter d'autres! 🤘","You already used today's vote. Come back tomorrow and listen to more! 🤘"));return;}
+    setVoted(v=>new Set(v).add(id)); setTodayVote(id); bump(id,1);
+    const {error}=await supabase.from('gallery_votes').insert({gallery_id:id,user_id:user.id});
     if(error){
-      setVoted(v=>{const n=new Set(v); has?n.add(id):n.delete(id); return n;});
-      setItems(xs=>xs.map(x=>x.id===id?{...x,likes:Math.max(0,(x.likes||0)-d)}:x));
+      setVoted(v=>{const n=new Set(v);n.delete(id);return n;}); setTodayVote(null); bump(id,-1);
+      setVoteMsg(error.code==='23505'?L("Ton vote du jour est déjà donné. Reviens demain! 🤘","Today's vote already used. Come back tomorrow! 🤘"):L("Erreur — réessaie.","Error — try again."));
     }
   };
   const genresPresent=[...new Set(items.map(i=>i.genre).filter(Boolean))];
@@ -1340,6 +1351,8 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
         <button onClick={()=>setFilter("")} style={chip(filter==="")}>{L("Tous","All")}</button>
         {genresPresent.map(g=><button key={g} onClick={()=>setFilter(g)} style={chip(filter===g)}>{g}</button>)}
       </div>}
+      <div style={{fontSize:"0.66rem",color:"#999",textAlign:"center"}}>{L("🤘 1 vote par jour · 1 vote par chanson. Écoute, choisis ta préférée du jour.","🤘 1 vote per day · 1 vote per track. Listen and pick today's favorite.")}</div>
+      {voteMsg&&<div style={{...S.card,textAlign:"center",color:"#FFB36B",fontSize:"0.74rem",position:"sticky",top:"8px",zIndex:5}}>{voteMsg}</div>}
       {loading&&<div style={{...S.card,textAlign:"center",color:"#555",fontSize:"0.8rem"}}>{L("Chargement…","Loading…")}</div>}
       {!loading&&shown.length===0&&<div style={{...S.card,textAlign:"center",padding:"30px 20px",color:"#555",fontSize:"0.82rem"}}>{L("Aucune chanson pour l'instant — sois le premier à soumettre la tienne. ","No tracks yet — be the first to submit yours. ")}</div>}
       {shown.map(it=>{const e=galleryEmbed(it.url); return (

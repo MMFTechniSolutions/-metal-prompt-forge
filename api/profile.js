@@ -2,6 +2,7 @@
 // Le client envoie juste un nom de genre, reçoit des valeurs concrètes (BPM, drums, voix, sliders, structure).
 // La logique (profils par genre + structure semi-aléatoire) n'est PAS exposée au navigateur.
 import { GENRE_PROFILES } from './_genreProfiles.js';
+import sunoHandler from './_lib/suno.js';
 const _ri = n => Math.floor(Math.random() * n);
 const _rand = (a, b) => a + _ri(b - a + 1);
 const _pick = (arr, n) => { const c = [...arr]; const o = []; for (let i = 0; i < n && c.length; i++) o.push(c.splice(_ri(c.length), 1)[0]); return o; };
@@ -33,6 +34,8 @@ function randStructure() {
 }
 
 export default function handler(req, res) {
+  // Galerie : résolution d'un lien Suno (fusionné ici, limite de 12 fonctions Vercel Hobby)
+  if (req.query && req.query.suno) { req.query.url = req.query.suno; return sunoHandler(req, res); }
   let b = req.method === 'POST' ? req.body : (req.query || {});
   if (typeof b === 'string') { try { b = JSON.parse(b); } catch { b = {}; } }
   b = b || {};

@@ -1289,7 +1289,7 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
     setMsg(L("Envoi…","Sending…"));
     let url=form.url.trim(), audio_url=null, image_url=null;
     if(/suno\.(com|ai)/i.test(url)){
-      try{const r=await fetch('/api/suno?url='+encodeURIComponent(url)); if(r.ok){const j=await r.json(); url=j.url||url; audio_url=j.audio||null; image_url=j.image||null;}}catch(e){}
+      try{const r=await fetch('/api/profile?suno='+encodeURIComponent(url)); if(r.ok){const j=await r.json(); url=j.url||url; audio_url=j.audio||null; image_url=j.image||null;}}catch(e){}
     }
     const {error}=await supabase.from('gallery').insert({title:form.title.trim(),artist:(form.artist.trim()||(user.email?user.email.split('@')[0]:"anon")),genre:form.genre,url,audio_url,image_url,status:'pending'});
     if(error){setMsg(L("Erreur — réessaie.","Error — try again."));return;}

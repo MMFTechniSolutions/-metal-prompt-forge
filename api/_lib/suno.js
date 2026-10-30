@@ -1,4 +1,4 @@
-// /api/suno.js — Résout un lien Suno (suno.com/s/xxx ou suno.com/song/<uuid>)
+// api/_lib/suno.js (appelé via /api/profile?suno=) — Résout un lien Suno (suno.com/s/xxx ou suno.com/song/<uuid>)
 // en { id, title, image, audio, url } pour jouer la toune direct dans la galerie.
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 

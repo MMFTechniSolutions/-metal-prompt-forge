@@ -1273,10 +1273,28 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
   const [form,setForm]=useState({title:"",artist:"",genre:"Deathcore",url:""});
   const [msg,setMsg]=useState("");
   const [showForm,setShowForm]=useState(false);
+  const [voted,setVoted]=useState(()=>new Set());
   useEffect(()=>{let on=true;
-    supabase.from('gallery').select('*').eq('status','approved').order('created_at',{ascending:false})
+    supabase.from('gallery').select('*').eq('status','approved').order('likes',{ascending:false}).order('created_at',{ascending:false})
       .then(({data})=>{if(on){setItems(data||[]);setLoading(false);}}).catch(()=>{if(on)setLoading(false);});
     return ()=>{on=false;};},[]);
+  useEffect(()=>{let on=true;
+    if(!user){setVoted(new Set());return;}
+    supabase.from('gallery_votes').select('gallery_id').then(({data})=>{if(on)setVoted(new Set((data||[]).map(v=>v.gallery_id)));});
+    return ()=>{on=false;};},[user]);
+  const toggleVote=async(id)=>{
+    if(!user){onRequestAuth&&onRequestAuth();return;}
+    const has=voted.has(id); const d=has?-1:1;
+    setVoted(v=>{const n=new Set(v); has?n.delete(id):n.add(id); return n;});
+    setItems(xs=>xs.map(x=>x.id===id?{...x,likes:Math.max(0,(x.likes||0)+d)}:x));
+    const {error}=has
+      ? await supabase.from('gallery_votes').delete().eq('gallery_id',id).eq('user_id',user.id)
+      : await supabase.from('gallery_votes').insert({gallery_id:id,user_id:user.id});
+    if(error){
+      setVoted(v=>{const n=new Set(v); has?n.add(id):n.delete(id); return n;});
+      setItems(xs=>xs.map(x=>x.id===id?{...x,likes:Math.max(0,(x.likes||0)-d)}:x));
+    }
+  };
   const genresPresent=[...new Set(items.map(i=>i.genre).filter(Boolean))];
   const shown=filter?items.filter(i=>i.genre===filter):items;
   const set=(k,v)=>setForm(ff=>({...ff,[k]:v}));
@@ -1331,7 +1349,8 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
               {it.image_url&&<img src={it.image_url} alt="" loading="lazy" style={{width:56,height:56,borderRadius:"7px",objectFit:"cover",flexShrink:0,border:"1px solid #2a2a2a"}}/>}
               <div style={{minWidth:0}}><div style={{color:"#fff",fontWeight:800,fontSize:"0.9rem"}}>{it.title}</div><div style={{color:"#888",fontSize:"0.66rem",marginTop:"2px"}}>{it.artist} · {it.genre}</div></div>
             </div>
-            <div style={{display:"flex",gap:"5px",flexShrink:0}}>
+            <div style={{display:"flex",gap:"5px",flexShrink:0,alignItems:"center"}}>
+              <button onClick={()=>toggleVote(it.id)} title={L("J'aime","Like")} style={{display:"flex",alignItems:"center",gap:"4px",background:voted.has(it.id)?RED:"#161616",border:`1px solid ${voted.has(it.id)?RED:"#2a2a2a"}`,borderRadius:"20px",color:voted.has(it.id)?"#000":"#ccc",fontWeight:800,fontSize:"0.68rem",padding:"4px 10px",cursor:"pointer"}}>🤘 {it.likes||0}</button>
               {e.type==="suno"&&<span style={{fontSize:"0.5rem",fontWeight:900,color:"#000",background:"#FFB36B",borderRadius:"5px",padding:"3px 7px",letterSpacing:"0.5px"}}>SUNO</span>}
               <span style={{fontSize:"0.5rem",fontWeight:900,color:"#000",background:"#7a7a7a",borderRadius:"5px",padding:"3px 7px",letterSpacing:"0.5px"}}>IA</span>
             </div>

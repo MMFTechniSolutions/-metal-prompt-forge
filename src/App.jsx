@@ -1260,6 +1260,7 @@ function galleryEmbed(url){
     if(h.includes('youtube.com')){const v=u.searchParams.get('v'); if(v) return {type:'iframe',src:`https://www.youtube.com/embed/${v}`,h:200};}
     if(h.includes('youtu.be')){const id=u.pathname.slice(1).split('/')[0]; if(id) return {type:'iframe',src:`https://www.youtube.com/embed/${id}`,h:200};}
     if(h.includes('soundcloud.com')) return {type:'iframe',src:`https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff2e2e&visual=false`,h:166};
+    if(h==='suno.com'||h.endsWith('suno.ai')){const m=u.pathname.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i); return {type:'suno',id:m?m[0]:null,src:url};}
     return {type:'link',src:url};
   }catch(e){return {type:'link',src:url};}
 }
@@ -1286,7 +1287,11 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
     if(!isPaid){onPaywall&&onPaywall();return;}
     if(!form.title.trim()||!form.url.trim()){setMsg(L("Titre et lien requis.","Title and link required."));return;}
     setMsg(L("Envoi…","Sending…"));
-    const {error}=await supabase.from('gallery').insert({title:form.title.trim(),artist:(form.artist.trim()||(user.email?user.email.split('@')[0]:"anon")),genre:form.genre,url:form.url.trim(),status:'pending'});
+    let url=form.url.trim(), audio_url=null, image_url=null;
+    if(/suno\.(com|ai)/i.test(url)){
+      try{const r=await fetch('/api/suno?url='+encodeURIComponent(url)); if(r.ok){const j=await r.json(); url=j.url||url; audio_url=j.audio||null; image_url=j.image||null;}}catch(e){}
+    }
+    const {error}=await supabase.from('gallery').insert({title:form.title.trim(),artist:(form.artist.trim()||(user.email?user.email.split('@')[0]:"anon")),genre:form.genre,url,audio_url,image_url,status:'pending'});
     if(error){setMsg(L("Erreur — réessaie.","Error — try again."));return;}
     setMsg(L("Merci ! Ta soumission sera revue avant d'apparaître. ","Thanks! Your submission will be reviewed before it appears. "));
     setForm({title:"",artist:"",genre:"Deathcore",url:""});
@@ -1300,12 +1305,12 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
       </div>
       {showForm&&<div style={S.card}>
         <div style={S.ctitle}>{L("Soumettre une chanson","Submit a track")}</div>
-        <div style={{fontSize:"0.62rem",color:"#777",marginBottom:"10px",lineHeight:1.5}}>{L("Réservé aux membres. Colle un lien Spotify, YouTube ou SoundCloud. Revue avant publication. Metal seulement.","Members only. Paste a Spotify, YouTube or SoundCloud link. Reviewed before publishing. Metal only.")}</div>
+        <div style={{fontSize:"0.62rem",color:"#777",marginBottom:"10px",lineHeight:1.5}}>{L("Réservé aux membres. Colle un lien Suno, Spotify, YouTube ou SoundCloud. Revue avant publication. Metal seulement.","Members only. Paste a Suno, Spotify, YouTube or SoundCloud link. Reviewed before publishing. Metal only.")}</div>
         <div style={{display:"flex",flexDirection:"column",gap:"9px"}}>
           <input style={inp} placeholder={L("Titre de la chanson","Track title")} value={form.title} onChange={e=>set('title',e.target.value)}/>
           <input style={inp} placeholder={L("Nom d'artiste (optionnel)","Artist name (optional)")} value={form.artist} onChange={e=>set('artist',e.target.value)}/>
           <select style={inp} value={form.genre} onChange={e=>set('genre',e.target.value)}>{GENRES.map(g=><option key={g} value={g}>{g}</option>)}</select>
-          <input style={inp} placeholder="https://open.spotify.com/... · youtube.com/... · soundcloud.com/..." value={form.url} onChange={e=>set('url',e.target.value)}/>
+          <input style={inp} placeholder="https://suno.com/... · open.spotify.com/... · youtube.com/..." value={form.url} onChange={e=>set('url',e.target.value)}/>
           <button onClick={submit} style={{background:RED,border:"none",borderRadius:"7px",color:"#000",fontWeight:900,fontSize:"0.78rem",letterSpacing:"1px",textTransform:"uppercase",padding:"11px",cursor:"pointer"}}>{L("Envoyer","Send")}</button>
           {msg&&<div style={{fontSize:"0.68rem",color:"#7fdd7f",lineHeight:1.5}}>{msg}</div>}
         </div>
@@ -1318,11 +1323,22 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
       {!loading&&shown.length===0&&<div style={{...S.card,textAlign:"center",padding:"30px 20px",color:"#555",fontSize:"0.82rem"}}>{L("Aucune chanson pour l'instant — sois le premier à soumettre la tienne. ","No tracks yet — be the first to submit yours. ")}</div>}
       {shown.map(it=>{const e=galleryEmbed(it.url); return (
         <div key={it.id} style={S.card}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:"8px",marginBottom:"8px"}}>
-            <div><div style={{color:"#fff",fontWeight:800,fontSize:"0.9rem"}}>{it.title}</div><div style={{color:"#888",fontSize:"0.66rem",marginTop:"2px"}}>{it.artist} · {it.genre}</div></div>
-            <span style={{flexShrink:0,fontSize:"0.5rem",fontWeight:900,color:"#000",background:"#7a7a7a",borderRadius:"5px",padding:"3px 7px",letterSpacing:"0.5px"}}>IA</span>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
+              {it.image_url&&<img src={it.image_url} alt="" loading="lazy" style={{width:56,height:56,borderRadius:"7px",objectFit:"cover",flexShrink:0,border:"1px solid #2a2a2a"}}/>}
+              <div style={{minWidth:0}}><div style={{color:"#fff",fontWeight:800,fontSize:"0.9rem"}}>{it.title}</div><div style={{color:"#888",fontSize:"0.66rem",marginTop:"2px"}}>{it.artist} · {it.genre}</div></div>
+            </div>
+            <div style={{display:"flex",gap:"5px",flexShrink:0}}>
+              {e.type==="suno"&&<span style={{fontSize:"0.5rem",fontWeight:900,color:"#000",background:"#FFB36B",borderRadius:"5px",padding:"3px 7px",letterSpacing:"0.5px"}}>SUNO</span>}
+              <span style={{fontSize:"0.5rem",fontWeight:900,color:"#000",background:"#7a7a7a",borderRadius:"5px",padding:"3px 7px",letterSpacing:"0.5px"}}>IA</span>
+            </div>
           </div>
-          {e.type==="iframe"
+          {e.type==="suno"&&(it.audio_url||e.id)
+            ? <div>
+                <audio controls preload="none" src={it.audio_url||`https://cdn1.suno.ai/${e.id}.mp3`} style={{width:"100%",height:"40px",colorScheme:"dark"}}/>
+                <a href={it.url} target="_blank" rel="noopener noreferrer" style={{display:"inline-block",marginTop:"6px",color:"#777",fontSize:"0.62rem",textDecoration:"none"}}>{L("Voir sur Suno ↗","View on Suno ↗")}</a>
+              </div>
+            : e.type==="iframe"
             ? <iframe src={e.src} title={it.title} loading="lazy" allow="encrypted-media; clipboard-write" style={{width:"100%",height:e.h+"px",border:"none",borderRadius:"8px"}}/>
             : <a href={e.src} target="_blank" rel="noopener noreferrer" style={{display:"inline-block",background:"#2a1208",border:`1px solid ${RED}`,borderRadius:"7px",color:"#FFB36B",fontWeight:800,fontSize:"0.74rem",padding:"9px 16px",textDecoration:"none"}}>{L("▶ Écouter","▶ Listen")}</a>}
         </div>

@@ -878,7 +878,7 @@ Créer et gérer votre compte ; fournir le Service ; traiter les paiements ; com
 En utilisant le Service, vous consentez à la collecte décrite. Vous pouvez retirer votre consentement en tout temps.
 
 6. SOUS-TRAITANTS
-Supabase (auth / base de données), Stripe (paiements), Vercel (hébergement), ElevenLabs (génération musicale par IA), Google (connexion « Se connecter avec Google » ; Google Analytics / Google Tag Manager pour la mesure d'audience, activés uniquement avec votre consentement). Certains traitent des données hors Québec ; nous procédons à une évaluation des facteurs relatifs à la vie privée avant toute communication hors Québec, conformément à la Loi 25.
+Supabase (auth / base de données), Stripe (paiements), Vercel (hébergement), Anthropic et OpenAI (analyse des noms de groupes et des descriptions saisis, aucune donnée de compte transmise), Google (génération musicale par IA via Lyria / API Gemini ; connexion « Se connecter avec Google » ; Google Analytics / Google Tag Manager pour la mesure d'audience, activés uniquement avec votre consentement). Certains traitent des données hors Québec ; nous procédons à une évaluation des facteurs relatifs à la vie privée avant toute communication hors Québec, conformément à la Loi 25.
 
 7. CONSERVATION
 Données conservées tant que le compte est actif, puis pour la durée requise par nos obligations légales. Suppression du compte possible sur demande.
@@ -906,7 +906,7 @@ Dernière mise à jour : 26 juin 2026
 En accédant au Service, édité par MMF Techni-Solutions (NEQ 2279516308), vous acceptez les présentes conditions.
 
 2. DESCRIPTION
-MetalPrompt est un outil de pré-production musicale par IA (musique uniquement) : il aide à créer des prompts, riffs, structures et sons metal. Vous pouvez (1) générer de la musique directement dans le Service via notre fournisseur ElevenLabs (Eleven Music), ou (2) exporter vos prompts vers des plateformes tierces (ex. Suno AI) pour générer sur votre propre compte. Le Service n'est PAS affilié à Suno, ElevenLabs ni à aucune plateforme tierce ; les marques citées appartiennent à leurs propriétaires.
+MetalPrompt est un outil de pré-production musicale par IA (musique uniquement) : il aide à créer des prompts, riffs, structures et sons metal. Vous pouvez (1) générer de la musique directement dans le Service via notre fournisseur Google (modèle Lyria, API Gemini), ou (2) exporter vos prompts vers des plateformes tierces (ex. Suno AI) pour générer sur votre propre compte. Le Service n'est PAS affilié à Suno, Google ni à aucune plateforme tierce ; les marques citées appartiennent à leurs propriétaires.
 
 3. COMPTE
 Vous fournissez des informations exactes, gardez votre mot de passe confidentiel et êtes responsable de l'activité de votre compte. Nous pouvons suspendre un compte en cas de violation.
@@ -915,7 +915,7 @@ Vous fournissez des informations exactes, gardez votre mot de passe confidentiel
 Interdit : usage illégal/frauduleux, contournement des limitations ou de la sécurité, revente non autorisée, surcharge/piratage de l'infrastructure, génération de contenu illégal ou portant atteinte aux droits d'autrui.
 
 5. PROPRIÉTÉ INTELLECTUELLE
-Le Service (code, design, textes, marque) appartient à MMF Techni-Solutions. Les prompts que vous générez vous appartiennent ; vous êtes seul responsable de leur usage sur des plateformes tierces. Musique générée DANS le Service : produite via ElevenLabs (Eleven Music), entraîné sur des données licenciées. Vos droits sont régis par les conditions d'ElevenLabs, notamment : (a) usage commercial permis sur les plans payants, conservé même après résiliation ; (b) interdiction d'inclure des noms d'artistes, groupes, chansons ou albums réels dans les invites ; (c) une piste 100 % générée par IA n'est généralement pas protégeable par droit d'auteur — vous obtenez un droit d'usage, non un copyright, et ne pouvez pas revendre une piste brute « telle quelle » en revendiquant un copyright original ; (d) la distribution directe des pistes brutes sur les plateformes de streaming (Spotify, Apple Music, etc.) pour percevoir des redevances n'est PAS permise ; (e) œuvres dérivées : si vous retravaillez la piste de façon créative et significative (édition, instruments réels, voix, mixage/mastering), vous créez une œuvre originale que vous pouvez protéger et exploiter — conservez vos fichiers de session comme preuve de votre apport humain. Vous êtes seul responsable de respecter les conditions d'ElevenLabs et les lois applicables.
+Le Service (code, design, textes, marque) appartient à MMF Techni-Solutions. Les prompts que vous générez vous appartiennent ; vous êtes seul responsable de leur usage sur des plateformes tierces. Musique générée DANS le Service : produite via le modèle Lyria de Google (API Gemini), et soumise aux conditions d'utilisation de Google applicables à ce service. Notamment : (a) interdiction d'inclure des noms d'artistes, groupes, chansons ou albums réels dans les invites ; (b) une piste 100 % générée par IA n'est généralement pas protégeable par droit d'auteur — vous obtenez un droit d'usage, non un copyright, et ne pouvez pas revendiquer un copyright original sur une piste brute ; (c) avant de distribuer ou monétiser une piste (streaming, vente), vérifiez les conditions de Google et de la plateforme visée ; (d) œuvres dérivées : si vous retravaillez la piste de façon créative et significative (édition, instruments réels, voix, mixage/mastering), vous créez une œuvre originale que vous pouvez protéger et exploiter — conservez vos fichiers de session comme preuve de votre apport humain. Vous êtes seul responsable de respecter les conditions de Google et les lois applicables.
 
 6. DISPONIBILITÉ
 Service fourni sans garantie d'absence d'interruption ; il peut évoluer, être suspendu ou modifié.
@@ -985,7 +985,7 @@ HÉBERGEMENT
 Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis — vercel.com
 
 SERVICES TIERS
-Supabase (auth / base de données), Stripe (paiements), ElevenLabs (génération musicale par IA), Vercel (hébergement).
+Supabase (auth / base de données), Stripe (paiements), Google (génération musicale par IA via Lyria), Anthropic et OpenAI (analyse des noms de groupes saisis), Vercel (hébergement).
 
 PROPRIÉTÉ INTELLECTUELLE
 La marque « MetalPrompt », le design, les textes et le code sont protégés. Reproduction non autorisée interdite.

@@ -1097,7 +1097,7 @@ function SiteFooter({onOpen,uiLang}){
       <button style={lk} onClick={()=>onOpen("terms")}>{fr?"Conditions d'utilisation":"Terms"}</button>
       <button style={lk} onClick={()=>onOpen("sales")}>{fr?"Conditions de vente":"Sales terms"}</button>
       <button style={lk} onClick={()=>onOpen("legal")}>{fr?"Mentions légales":"Legal notice"}</button>
-      <div style={{flexBasis:"100%",fontSize:"0.6rem",color:"#8A8F97",marginTop:"6px"}}>{fr?"MetalPrompt est un outil indépendant, non affilié à Suno, Inc.":"MetalPrompt is an independent tool, not affiliated with Suno, Inc."}</div>
+      <div style={{flexBasis:"100%",fontSize:"0.6rem",color:"#8A8F97",marginTop:"6px"}}>{fr?"MetalPrompt est un outil indépendant, non affilié à Suno, Inc. ni approuvé par aucun groupe ou artiste. Les noms de groupes servent uniquement à décrire un style musical et ne sont jamais écrits dans vos prompts.":"MetalPrompt is an independent tool, not affiliated with Suno, Inc. and not endorsed by any band or artist. Band names are used only to describe a musical style and are never written into your prompts."}</div>
     </div>
   );
 }

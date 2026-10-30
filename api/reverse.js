@@ -208,11 +208,27 @@ export default async function handler(req, res) {
       }),
       [_bl]
     ).slice(0, 4);
+    const confidence = dec ? (dec.confFamille >= 0.8 ? 'high' : 'medium')
+        : ['high', 'medium', 'low'].includes(out.confidence) ? out.confidence : (genre ? 'medium' : 'low');
+    // ── Apprentissage : chaque groupe classé avec certitude par l'IA entre dans band_cache (source 'learned').
+    // La prochaine recherche du même groupe est gratuite, instantanée et stable. Jamais d'écrasement d'une ligne existante.
+    const _words = band.split(/\s+/).filter(Boolean).length;
+    if (confidence === 'high' && matched && band.length <= 60 && _words <= 5) {
+      try {
+        const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+        if (url && key) {
+          const sb = createClient(url, key, { auth: { persistSession: false } });
+          await sb.from('band_cache').upsert({
+            name_key: normBand(band), band, genre, flavor: flavor || '', signature,
+            confidence, era: String(out.era || '').slice(0, 10), source: 'learned',
+          }, { onConflict: 'name_key', ignoreDuplicates: true });
+        }
+      } catch { /* l'apprentissage ne doit jamais bloquer la réponse */ }
+    }
     return res.status(200).json({
       genre, flavor, signature,
       label: String((source === 'decisions' ? genre : out.label) || genre || '').slice(0, 60),
-      confidence: dec ? (dec.confFamille >= 0.8 ? 'high' : 'medium')
-        : ['high', 'medium', 'low'].includes(out.confidence) ? out.confidence : (genre ? 'medium' : 'low'),
+      confidence,
       source,                                   // 'decisions' ou 'claude' (débogage)
       genres: dec ? dec.picks.map(x => x.g) : (genre ? [genre] : []),   // tous les sous-genres retenus
       matched, // true = profil sur-mesure (préréglage curé) ; false = profil générique

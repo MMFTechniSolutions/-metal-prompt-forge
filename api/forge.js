@@ -466,7 +466,7 @@ export default function handler(req, res) {
   // Genre-fusion ; dynamiques/structure ; voix ; instruments/riffs ; accordage+tonalités ; mood+émotions ; tempo/changements
   const _lc = x => String(x).toLowerCase();
   const _gl = dedup(genresSafe.map(x => String(x).trim())).filter(Boolean);
-  const genreClause = _gl.length >= 2 ? (_gl[0] + ', ' + _gl.slice(1, 3).map(_brid).join(', '))
+  const genreClause = _gl.length >= 2 ? _gl.slice(0, 3).join(', ')   // mix à égalité (oct. 2026) : « -influenced » rendait le 2e genre secondaire, v6 ne mixait plus
                     : blendAuto.length ? (_gl[0] || 'metal') + ' with ' + _joinMeters(blendAuto) + ' inflections'
                     : (_gl[0] || 'metal');
 

@@ -1,6 +1,5 @@
--- 2026-10-30 : contrainte unique email (repare webhook Stripe, codes promo, compteur)
+-- 2026-10-30 : (index unique users_email_key existait deja)
 -- + fonction serveur count_prompt (compte un prompt ou retire un credit)
-alter table public.users add constraint users_email_key unique (email);
 
 create or replace function public.count_prompt(use_credit boolean default false)
 returns json

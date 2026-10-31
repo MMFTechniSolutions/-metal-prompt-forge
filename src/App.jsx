@@ -1797,13 +1797,12 @@ export default function App({ user, onLogout, onRequestAuth }) {
     }catch(e){ alert(uiLang==="fr"?"Erreur de génération, réessaie ":"Generation error, try again "); return; }
     setConflicts(data.conflicts||[]);
     setStyleTxt(data.styleStr);setStyleTxtC(data.styleStrC);setCoverTxt(data.coverStr||"");setExtendTxt(data.extendStr||"");setEditTxt(data.editStr||"");setEditList(Array.isArray(data.editPrompts)?data.editPrompts:[]);setEditOpen(false);setSliderRec(data.sliderRec||null);setCritic(data.critic||null);setMeterInfo(data.meterLead?{lead:data.meterLead,auto:!!data.meterAuto}:null);setModelRec(data.modelRec||null);setStructTxt(data.structStr||"");setStructTxtC(data.structStrC||"");setStructNotes(data.structNotes||"");setExcludeTxt(data.excludeStr||"");setFullTxt(data.full||"");setPhoneticRec(data.phonetic||null);setTasteTxt(data.tasteStr||"");
-    if(_useCredit){
-      const cr=Math.max(0,credits-1);setCredits(cr);
-      if(user?.email) supabase.from('users').update({prompt_credits:cr}).eq('email',user.email);
-    } else {
-      const nc=promptCount+1;setPromptCount(nc);
-      if(user?.email) supabase.from('users').upsert({email:user.email,prompts_used:nc},{onConflict:'email'});
-    }
+    if(_useCredit){ setCredits(Math.max(0,credits-1)); } else { setPromptCount(promptCount+1); }
+    // compteur côté serveur (fonction count_prompt) : crée la ligne users au besoin, compte le prompt ou retire un crédit
+    if(user?.email) supabase.rpc('count_prompt',{use_credit:!!_useCredit}).then(({data,error})=>{
+      if(error){console.warn('count_prompt',error.message);return;}
+      if(data){setPromptCount(data.prompts_used||0);setCredits(data.prompt_credits||0);}
+    });
     saveToHistory(data.styleStr);
     setTab("output");
   };

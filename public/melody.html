@@ -102,6 +102,16 @@ button{font-family:'Geist',sans-serif;font-weight:600;font-size:.88rem;letter-sp
 textarea,input[type=text],input[type=number]{font-family:'Geist',sans-serif;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.10);border-radius:10px;color:#F2F1ED;padding:10px 12px;}
 textarea:focus,input[type=text]:focus{border-color:rgba(255,106,43,.55);outline:none;}
 </style>
+<style>
+.scorehead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 8px;}
+.scorehead button{padding:7px 12px;font-size:.78rem;}
+.scorebox{background:#F4F1EA;color:#15161A;border-radius:12px;padding:10px 12px;overflow-x:auto;min-height:60px;}
+.scorebox .hint{color:#55585f;}
+.scorebox svg{max-width:100%;}
+body.embed header{display:none;} body.embed main{padding-top:14px;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
+<script src="score.js"></script>
 </head>
 <body>
 <div id="gate" style="position:fixed;inset:0;background:rgba(10,10,11,0.98);z-index:9999;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;">
@@ -281,6 +291,8 @@ textarea:focus,input[type=text]:focus{border-color:rgba(255,106,43,.55);outline:
       <div class="roll" id="roll"></div>
       <div class="playhead" id="playhead"></div>
     </div>
+    <div class="scorehead"><h2 data-en="Score">Partition</h2><button class="bs" id="btnCopyAbc" type="button">⧉ Copier (ABC)</button></div>
+    <div id="scoreBox" class="scorebox"><span class="hint">Génère une mélodie pour voir la partition.</span></div>
     <p class="info">Deux fichiers pour Suno : le <strong>Beat</strong> (page Riff) + cette <strong>Mélodie</strong>. Upload les deux comme inspiration. La mélodie est exportée en son clair pour que Suno capte bien la ligne.</p>
   </div>
 </main>
@@ -787,6 +799,7 @@ function renderRoll(){
   }
   $('playhead').style.display='none';
   window.__cw=cw;
+  if(typeof updateScore==='function')updateScore();
 }
 $('roll').addEventListener('click',e=>{
   const cell=e.target.closest('.rcell');if(!cell)return;
@@ -887,6 +900,21 @@ async function checkAccess(){
 checkAccess().then(ok=>{
   if(ok){ $('gate').style.display='none'; populateRoots();populateScales();generate(); }
 });
+</script>
+<script>
+// ── Partition de la mélodie (2026-11-01) : redessinée à chaque génération / édition ──
+let __abc='';
+function updateScore(){
+  const box=document.getElementById('scoreBox'); if(!box||!window.MPScore)return;
+  if(!mel.some(v=>v!=null)){return;}
+  const notes=mel.filter(v=>v!=null), avg=notes.reduce((a,b)=>a+b,0)/notes.length;
+  __abc=MPScore.melodyABC(mel,SPB(),meterKey(),bpm(),'',avg<55?'bass':'');
+  try{MPScore.render(box,__abc);}catch(e){box.textContent='';}
+}
+document.getElementById('btnCopyAbc').addEventListener('click',()=>{if(__abc&&navigator.clipboard)navigator.clipboard.writeText(__abc);});
+if(new URLSearchParams(location.search).get('embed')==='1')document.body.classList.add('embed');
+updateScore();
+if((new URLSearchParams(location.search).get('lang')||'fr').startsWith('en')){const b=document.getElementById('btnCopyAbc');b.textContent='⧉ Copy (ABC)';const h=document.querySelector('#scoreBox .hint');if(h)h.textContent='Generate a melody to see the score.';const sh=document.querySelector('.scorehead h2');if(sh)sh.textContent='Score';}
 </script>
 </body>
 </html>

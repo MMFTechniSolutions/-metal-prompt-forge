@@ -244,7 +244,7 @@ function varyNoteSeq(base, style){
 function buildArrangement(p){
   const st=STRUCTURES[p.structure]||STRUCTURES.loop;
   const meta=STYLE_META[p.style]||{lvl:'mod',meters:M44};
-  const out={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],tempo:[],L:0};
+  const out={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],tempo:[],bars:[],L:0};
   let prevN=16;
   st.bars.forEach((bar,bi)=>{
     let dp = p.custom ? p.drum : (DRUM_PAT[bar.drum||p.drumKey]||p.drum);
@@ -261,7 +261,7 @@ function buildArrangement(p){
     const gp = (useB && p.guitB) ? p.guitB : p.guit;               // rythme de guitare A/B
     const tr=bar.transpose||0;
     const n = bar.steps || meterFor(meta,bi,prevN);                // structure d'abord, sinon mesure selon le style
-    prevN=n;
+    prevN=n; out.bars.push(n);   // longueur de chaque mesure (partitions côté client)
     const dkey = bar.drum||p.drumKey;
     const tmul = p.tempoVar ? (TEMPO_BY_DRUM[dkey]||1) : 1;         // vitesse de la section (option changements de tempo)
     const fillType = (!p.custom && bar.fill) ? (1+rint(3)) : 0;    // fill varié (jamais sur un groove MIDI importé)
@@ -502,7 +502,8 @@ export default function handler(req, res){
   const arr = buildArrangement(p);
   const leadVoice = (p.lead && p.lead !== 'none') ? (LEAD_VOICE[p.lead] || LEAD_VOICE.synth) : null;
   // Tablature/partition : réservée Elite
-  const tab = (tier === 'elite' || tier === 'eliteplus') ? buildTab(p) : '🔒 Tablature ASCII — reservee aux comptes Elite';
+  const tab = (tier && tier !== 'free') ? buildTab(p)   // un seul abonnement payant : payant = tier != free
+    : '🔒 Tablature ASCII — reservee aux comptes Elite';
 
   return res.status(200).json({
     style: p.style, bpm: p.bpm, root: p.root, dist: p.dist, scene: p.scene,

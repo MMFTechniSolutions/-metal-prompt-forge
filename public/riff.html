@@ -97,7 +97,12 @@ button{font-family:'Geist',sans-serif;font-weight:600;font-size:.88rem;letter-sp
 .rcell.on.chord{background:#FFB36B;}
 textarea,input[type=text],input[type=number]{font-family:'Geist',sans-serif;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.10);border-radius:10px;color:#F2F1ED;padding:10px 12px;}
 textarea:focus,input[type=text]:focus{border-color:rgba(255,106,43,.55);outline:none;}
+body.embed main{padding-top:14px;}
+.scorebox{background:#F4F1EA;color:#15161A;border-radius:12px;padding:10px 12px;overflow-x:auto;}
+.scorebox svg{max-width:100%;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
+<script src="score.js"></script>
 </head>
 <body>
 <header>
@@ -292,6 +297,7 @@ textarea:focus,input[type=text]:focus{border-color:rgba(255,106,43,.55);outline:
 
   <div class="panel">
     <h2 data-en="Score — Guitar · Bass · Drums">Partition — Guitare · Basse · Batterie</h2>
+    <div id="scoreBox" class="scorebox" style="display:none"></div>
     <pre id="tabOut" style="font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--bone);overflow-x:auto;white-space:pre;line-height:1.5;margin:0;" data-en="Generate a riff to see the tab">Génère un riff pour voir la tablature</pre>
     <div class="btn-row"><button class="bs" id="btnCopyTab" disabled data-en="⧉ Copy tab">⧉ Copier la tab</button></div>
   </div>
@@ -365,6 +371,26 @@ if(LANG==='en'){document.documentElement.setAttribute('lang','en');
   document.querySelectorAll('[data-en]').forEach(el=>{el.innerHTML=el.getAttribute('data-en');});
   document.querySelectorAll('[data-ph-en]').forEach(el=>{el.setAttribute('placeholder',el.getAttribute('data-ph-en'));});
   document.querySelectorAll('[data-title-en]').forEach(el=>{el.setAttribute('title',el.getAttribute('data-title-en'));});
+}
+// ── OUTIL (2026-11-01) : ?tool=beat → batterie seule · ?tool=riff → guitare + basse rythmiques seules (pas de lead, pas de pad).
+// Même moteur, deux pages. Sans paramètre = ancien comportement complet. ?embed=1 = dans l'app (pas d'en-tête).
+const _QS=new URLSearchParams(location.search);
+const TOOL=(['beat','riff'].includes(_QS.get('tool'))?_QS.get('tool'):'');
+const EMBED=_QS.get('embed')==='1';
+const TOOL_STEM=TOOL==='beat'?'drums':TOOL==='riff'?'riff':'full';
+// quelles couches jouent selon le stem
+const LAYERS=st=>({gtr:!['melody','drums'].includes(st), bass:!['melody','drums'].includes(st), drums:!['melody','riff'].includes(st), lead:!['beat','drums','riff'].includes(st), pad:!['melody','drums','riff'].includes(st)});
+// Partition selon l'outil : Beat = partition de batterie · Riff = tablature rythmique complète · sinon tab du serveur
+function fillScore(p){
+  const pre=document.getElementById('tabOut'),box=document.getElementById('scoreBox');
+  if(!p){return;}
+  if(TOOL==='beat'&&window.MPScore){
+    pre.style.display='none';box.style.display='block';
+    MPScore.render(box,MPScore.drumABC(p.arr,p.bpm,''));
+    pre.textContent=MPScore.drumABC(p.arr,p.bpm,'');   // le bouton Copier donne l'ABC (MuseScore, etc.)
+  }else if(TOOL==='riff'&&window.MPScore){
+    pre.textContent=MPScore.riffTab(p,T);
+  }else pre.textContent=p.tab||'';
 }
 // ── Patterns + arrangement + tablature : logique secrète déplacée côté serveur (/api/riff) ──
 // Le client n'envoie que des paramètres et reçoit l'arrangement déjà calculé.
@@ -675,7 +701,7 @@ function renderViz(p){
   const c=document.getElementById('tracksViz');c.innerHTML='';
   [{name:'GUITAR',data:p.guit,col:'#FF6A2B'},{name:'BASS',data:p.bass,col:'#8e44ad'},
    {name:'KICK',data:p.drum.kick,col:'#e67e22'},{name:'SNARE',data:p.drum.snare,col:'#27ae60'},
-   {name:'HIHAT',data:p.drum.hihat,col:'#2980b9'}].forEach(t=>{
+   {name:'HIHAT',data:p.drum.hihat,col:'#2980b9'}].filter(t=>TOOL==='beat'?!['GUITAR','BASS'].includes(t.name):TOOL==='riff'?['GUITAR','BASS'].includes(t.name):true).forEach(t=>{
     const row=document.createElement('div');row.className='track-row';
     const lbl=document.createElement('div');lbl.className='track-name';lbl.textContent=t.name;row.appendChild(lbl);
     const grid=document.createElement('div');grid.className='pattern-grid';grid.id='trk_'+t.name.toLowerCase();
@@ -701,7 +727,8 @@ function drawWave(){
 }
 
 async function startPlay(p, stem){
-  stem=stem||'full';   // 'full' = tout · 'beat' = batt+basse+riff · 'melody' = lead seul (clair)
+  stem=stem||TOOL_STEM;   // 'full' = tout · 'beat' = batt+basse+riff · 'melody' = lead seul · 'drums' = batterie seule · 'riff' = guitare+basse
+  const LY=LAYERS(stem);
   if(stem==='melody' && (!p.lead || p.lead==='none' || !p.leadRhy)){
     document.getElementById('txtPlay').textContent=T("⚠ Choisis un Lead (menu Lead) pour écouter la mélodie","⚠ Pick a Lead first to hear the melody");
     return;
@@ -715,15 +742,17 @@ async function startPlay(p, stem){
   seqs.forEach(s=>{try{s.stop();s.dispose();}catch(e){}});seqs=[];
   seqs.push(makeSeq((t,step)=>{
     hlStep(step%16);
-    if(stem!=='melody' && a.guit[step]){const semi=p.noteSeq[ni%p.noteSeq.length]+a.trans[step];synth.triggerAttackRelease(semFreq(root,semi),'16n',t,.8);synth.triggerAttackRelease(semFreq(root,semi+7),'16n',t,.45);ni++;}
+    if(LY.gtr && a.guit[step]){const semi=p.noteSeq[ni%p.noteSeq.length]+a.trans[step];synth.triggerAttackRelease(semFreq(root,semi),'16n',t,.8);synth.triggerAttackRelease(semFreq(root,semi+7),'16n',t,.45);ni++;}
   }));
-  if(stem!=='melody'){
+  if(LY.bass){
     seqs.push(makeSeq((t,step)=>{if(a.bass[step]){const broot=Tone.Frequency(root).transpose(a.trans[step]-12).toNote();bassSynth.triggerAttackRelease(broot,'16n',t,.65);}}));
+  }
+  if(LY.drums){
     seqs.push(makeSeq((t,step)=>{if(a.kick[step])playDrum(drumBuf.kick,t,1.0);}));
     seqs.push(makeSeq((t,step)=>{if(a.snare[step])playDrum(drumBuf.snare,t,0.9);}));
     seqs.push(makeSeq((t,step)=>{if(a.hihat[step])playDrum(drumBuf.hihat,t,0.5);}));
   }
-  if(stem!=='beat' && p.lead&&p.lead!=='none'&&p.leadRhy){
+  if(LY.lead && p.lead&&p.lead!=='none'&&p.leadRhy){
     const rawCtx=Tone.getContext().rawContext;
     const stepSec=60/p.bpm/4;
     const isGuitar=(p.lead==='guitarelec'||p.lead==='guitarclass');
@@ -742,7 +771,7 @@ async function startPlay(p, stem){
       seqs.push(makeSeq((t,step)=>{if(p.leadRhy[step%16]){const semi=p.noteSeq[li%p.noteSeq.length]+12+a.trans[step];li++;const freq=Tone.Frequency(root).transpose(semi).toFrequency();spawnLead(rawCtx,dest,p.lead,freq,t,ldur,clean);}}));
     }
   }
-  if(stem!=='melody' && p.atmos&&padSynth){
+  if(LY.pad && p.atmos&&padSynth){
     seqs.push(makeSeq((t,step)=>{if(step%16===0){padSynth.triggerAttackRelease([semFreq(root,12+a.trans[step]),semFreq(root,19+a.trans[step]),semFreq(root,24+a.trans[step])],'2n',t,.4);}}));
   }
   seqs.forEach(s=>s.start(0));
@@ -780,7 +809,8 @@ function noteFreqHz(note){return Tone.Frequency(note).toFrequency();}
 function semiHz(base,semi){return base*Math.pow(2,semi/12);}
 
 async function renderAndDownload(p, stem){
-  stem=stem||'full';   // 'full' = mix complet · 'beat' = batterie+basse+riff · 'melody' = lead seul (clair)
+  stem=stem||TOOL_STEM;   // 'full' = mix complet · 'beat' = batterie+basse+riff · 'melody' = lead seul · 'drums' · 'riff'
+  const LY=LAYERS(stem);
   if(stem==='melody' && (!p.lead || p.lead==='none' || !p.leadRhy)){
     document.getElementById('txtRec').textContent=T("⚠ Choisis un Lead (menu Lead) avant d'exporter la mélodie","⚠ Pick a Lead first to export the melody");
     return;
@@ -851,7 +881,7 @@ async function renderAndDownload(p, stem){
     const stepDur=stepDurs[step];                 // durée du pas (varie avec le tempo de la section)
     const i=step%a.L;
 
-    if(stem!=='melody' && a.guit[i]){
+    if(LY.gtr && a.guit[i]){
       const semi=p.noteSeq[gi%p.noteSeq.length]+a.trans[i];gi++;
       [0,7].forEach((interval,fi)=>{
         const freq=semiHz(rootHz,semi+interval);
@@ -871,7 +901,7 @@ async function renderAndDownload(p, stem){
         o2.start(t);o2.stop(t+stepDur+.05);
       });
     }
-    if(stem!=='melody' && a.bass[i]){
+    if(LY.bass && a.bass[i]){
       const bh=semiHz(bassHz,a.trans[i]);
       const o=off.createOscillator(),o2=off.createOscillator();
       const d=off.createWaveShaper(),g=off.createGain();
@@ -882,12 +912,12 @@ async function renderAndDownload(p, stem){
       o.connect(d);o2.connect(d);d.connect(g);g.connect(BASS_BUS);   // EQ basse = bus partagé
       o.start(t);o.stop(t+stepDur+.05);o2.start(t);o2.stop(t+stepDur+.05);
     }
-    if(stem!=='melody'){
+    if(LY.drums){
       if(a.kick[i])playOff(obuf.kick,t,1.0);
       if(a.snare[i])playOff(obuf.snare,t,0.9);
       if(a.hihat[i])playOff(obuf.hihat,t,0.5);
     }
-    if(stem!=='beat' && LEAD&&p.leadRhy[i%16]){
+    if(LY.lead && LEAD&&p.leadRhy[i%16]){
       const semi=p.noteSeq[leadI%p.noteSeq.length]+12+a.trans[i];leadI++;
       if(leadFontTone&&wafPlayer){
         // VRAIS samples (sax/violon/cuivres) dans le WAV exporté
@@ -901,7 +931,7 @@ async function renderAndDownload(p, stem){
         spawnLead(off,master,p.lead,freq,t,stepDur*(LEAD_DURMUL[p.lead]||1.8),stem==='melody');
       }
     }
-    if(stem!=='melody' && p.atmos && (step%16)===0){
+    if(LY.pad && p.atmos && (step%16)===0){
       const barDur=16*stepDur;
       [0,7,12].forEach(iv=>{
         const o=off.createOscillator(),o2=off.createOscillator(),f=off.createBiquadFilter(),g=off.createGain();
@@ -934,12 +964,12 @@ async function renderAndDownload(p, stem){
   const wav=encodeWAV(rendered);
 
   // Download — méthode robuste
-  const stemLbl=stem==='beat'?'BEAT':stem==='melody'?'MELODY':p.style;
+  const stemLbl=stem==='drums'?'BEAT':stem==='riff'?'RIFF':stem==='beat'?'BEAT-FULL':stem==='melody'?'MELODY':p.style;
   const fname=`metalprompt_${stemLbl}_${bpm}bpm_${p.root}_${dur}s.wav`;
   triggerDownload(wav,fname);
 
   document.getElementById('dotRec').className='dot';
-  const stemTxt=stem==='beat'?T('BEAT (batt+basse+riff)','BEAT'):stem==='melody'?T('MÉLODIE (lead clair)','MELODY'):p.style;
+  const stemTxt=stem==='drums'?T('BEAT (batterie)','BEAT (drums)'):stem==='riff'?T('RIFF (guitare + basse)','RIFF (guitar + bass)'):stem==='beat'?T('BEAT (batt+basse+riff)','BEAT'):stem==='melody'?T('MÉLODIE (lead clair)','MELODY'):p.style;
   document.getElementById('txtRec').textContent=`${stemTxt} · ${dur}s · ${bpm} BPM · ${p.root} — `+T('téléchargement lancé','download started');
   ['btnRender','btnRenderBeat','btnRenderMelody','btnRenderSong'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=false;});
   setTimeout(()=>{prog.style.width='0%';},2000);
@@ -986,7 +1016,7 @@ function triggerDownload(blob,filename){
 }
 
 // ── ELITE GATING (soft, via ?tier=) ──
-const IS_ELITE=['elite','eliteplus'].includes(new URLSearchParams(location.search).get('tier')||'free');
+const IS_ELITE=(new URLSearchParams(location.search).get('tier')||'free')!=='free';   // un seul abonnement payant (nov. 2026)
 (function(){
   if(!IS_ELITE){
     const g=document.getElementById('eliteGroup');
@@ -1074,12 +1104,12 @@ document.getElementById('btnGen').addEventListener('click',async()=>{
     set('drums',data.drumKey);set('structure',data.structure);set('scene',data.scene);
   }
   renderViz(currentPat);
-  document.getElementById('tabOut').textContent=currentPat.tab||'';
+  fillScore(currentPat);
   document.getElementById('btnCopyTab').disabled=!IS_ELITE;
   document.getElementById('btnPlay').disabled=false;document.getElementById('btnPlayBeat').disabled=false;document.getElementById('btnPlayMelody').disabled=false;
   document.getElementById('btnRender').disabled=false;document.getElementById('btnRenderBeat').disabled=false;document.getElementById('btnRenderMelody').disabled=false;
   document.getElementById('txtRec').textContent=T('Prêt à render','Ready to render');
-  document.getElementById('txtPlay').textContent=T('Riff généré — ','Riff generated — ')+currentPat.style+' · '+currentPat.bpm+' BPM';
+  document.getElementById('txtPlay').textContent=(TOOL==='beat'?T('Beat généré — ','Beat generated — '):T('Riff généré — ','Riff generated — '))+currentPat.style+' · '+currentPat.bpm+' BPM';
   document.getElementById('promptBox').style.display='block';
 });
 document.getElementById('btnPlay').addEventListener('click',async()=>{try{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat);}else{document.getElementById('txtPlay').textContent=T('⚠ Genere un riff d\'abord','⚠ Generate a riff first');}}catch(e){document.getElementById('txtPlay').textContent=T('⚠ ERREUR PLAY: ','⚠ PLAY ERROR: ')+(e&&e.message?e.message:e);console.error('PLAY ERROR',e);}});
@@ -1158,8 +1188,8 @@ async function riffFetch(body){
   const d=await r.json();if(!r.ok)throw new Error((d&&d.error)||'Erreur');return d;
 }
 function combineArr(clips){
-  const o={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],L:0};
-  clips.forEach(c=>{if(!c||!c.arr)return;const a=c.arr;['guit','bass','kick','snare','hihat','trans'].forEach(k=>{o[k]=o[k].concat(a[k]||[]);});});
+  const o={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],bars:[],L:0};
+  clips.forEach(c=>{if(!c||!c.arr)return;const a=c.arr;['guit','bass','kick','snare','hihat','trans','bars'].forEach(k=>{o[k]=o[k].concat(a[k]||[]);});});
   o.L=o.guit.length;return o;
 }
 function songPattern(){const base=songClips.find(Boolean);return Object.assign({},base,{arr:combineArr(songClips)});}
@@ -1167,7 +1197,7 @@ function setActiveClip(i){
   activeClip=i;
   document.querySelectorAll('.clipbtn').forEach(b=>{b.className='clipbtn '+((+b.dataset.clip-1===i)?'bp':'bs');});
   const c=songClips[i];
-  if(c){currentPat=c;renderViz(c);document.getElementById('tabOut').textContent=c.tab||'';
+  if(c){currentPat=c;renderViz(c);fillScore(c);
     document.getElementById('txtPlay').textContent='Clip '+(i+1)+' — '+c.style+' · '+c.bpm+' BPM';}
 }
 document.getElementById('btnSong').addEventListener('click',async()=>{
@@ -1217,6 +1247,42 @@ document.getElementById('btnRenderSong').addEventListener('click',async()=>{
   await renderAndDownload(sp);
 });
 
+</script>
+<script>
+// ── Adaptation de la page selon l'outil (Beat / Riff) — 2026-11-01 ──
+(function(){
+  const $=id=>document.getElementById(id);
+  const hide=el=>{if(el)el.style.display='none';};
+  const cgOf=id=>{const e=$(id);return e?e.closest('.cg'):null;};
+  if(EMBED){hide(document.querySelector('header'));document.body.classList.add('embed');}
+  if(!TOOL)return;
+  const isBeat=TOOL==='beat';
+  document.title=isBeat?'MetalPrompt – Beat':'MetalPrompt – Riff';
+  const badge=document.querySelector('.badge'); if(badge)badge.textContent=isBeat?'Beat':'Riff';
+  // pas de mélodie dans ces deux outils
+  const lead=$('lead'); if(lead)lead.value='none'; hide(cgOf('lead'));
+  ['btnPlayBeat','btnPlayMelody','btnRenderBeat','btnRenderMelody'].forEach(id=>hide($(id)));
+  hide(document.querySelector('a[href="melody.html"]'));
+  if(isBeat){
+    hide(cgOf('tuning')); hide(cgOf('dist'));
+    const h=$('tabOut')&&$('tabOut').closest('.panel').querySelector('h2'); if(h)h.textContent=T('Partition — Batterie','Score — Drums');
+    const cb=$('btnCopyTab'); if(cb)cb.textContent=T('⧉ Copier (ABC)','⧉ Copy (ABC)');
+  }else{
+    hide(cgOf('drums')); hide(cgOf('midiDrum'));
+    const h=$('tabOut')&&$('tabOut').closest('.panel').querySelector('h2'); if(h)h.textContent=T('Tablature — Guitare · Basse','Tab — Guitar · Bass');
+  }
+  const set=(id,txt)=>{const e=$(id);if(e)e.textContent=txt;};
+  const pl=document.querySelector('label[data-en^="Your prompt"]'); if(pl)pl.textContent=isBeat?T('Ton prompt — le beat suit ses précisions','Your prompt — the beat follows its details'):T('Ton prompt — le riff suit ses précisions','Your prompt — the riff follows its details');
+  set('btnPlay', isBeat?T('▶ Écouter le beat','▶ Play beat'):T('▶ Écouter le riff','▶ Play riff'));
+  set('btnRender', isBeat?T('⏺ Beat (WAV)','⏺ Beat (WAV)'):T('⏺ Riff (WAV)','⏺ Riff (WAV)'));
+  $('btnRender')&&($('btnRender').className='bp');
+  set('btnGen', isBeat?T('Générer un beat','Generate a beat'):T('Générer un riff','Generate a riff'));
+  set('txtPlay', isBeat?T('Configure et génère un beat','Set up and generate a beat'):T('Configure et génère un riff','Set up and generate a riff'));
+  const info=document.querySelector('.dl-info');
+  if(info)info.innerHTML=isBeat
+    ?T('<strong>Batterie seule.</strong> Joue ta guitare par-dessus pour pratiquer, ou importe le WAV dans Suno comme amorce (Audio Influence 25-50).','<strong>Drums only.</strong> Play your guitar over it to practice, or upload the WAV to Suno as a seed (Audio Influence 25-50).')
+    :T('<strong>Guitare + basse rythmiques, sans batterie.</strong> Apprends le riff avec la tab, ou importe le WAV dans Suno comme amorce (Audio Influence 25-50).','<strong>Rhythm guitar + bass, no drums.</strong> Learn it from the tab, or upload the WAV to Suno as a seed (Audio Influence 25-50).');
+})();
 </script>
 </body>
 </html>

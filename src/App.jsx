@@ -1932,7 +1932,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   const FINE_TABS=["drums","vocals","instrums","structure","organic","exclude"];
   const NAV_MAIN=[
     {id:"genre",label:L("Forger","Forge"),also:["output",...FINE_TABS],req:"free"},
-    {id:"melodie",label:L("Mélodie & Riff","Melody & Riff"),also:["riff"],req:"elite"},
+    {id:"melodie",label:L("Mélodie · Riff · Beat","Melody · Riff · Beat"),also:["riff","beat"],req:"elite"},
     {id:"paroles",label:t.tabs.paroles,also:[],req:"pro"},
     {id:"galerie",label:t.tabs.galerie,also:[],req:"free"},
   ];
@@ -1953,17 +1953,46 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   const CHIP_ON={...CHIP,background:"#2a1208",border:"1px solid "+RED,color:"#FFD2B8"};
   const SEG=on=>({minHeight:"44px",padding:"0 10px",borderRadius:"8px",fontSize:"0.8rem",fontWeight:on?800:600,cursor:"pointer",background:on?"#2a1208":"#1a1a1a",border:"1.5px solid "+(on?RED:"#3a3a3a"),color:on?"#FFD2B8":"#d0d0d0"});
   const autoEra=[...genres].map(g=>(GENRE_FAMILIES.find(f=>f.genres.some(x=>x.g===g))||{}).nameEn).map(n=>ERA_KEYS.find(k=>String(n||"").startsWith(k))).filter(Boolean)[0]||"";   // époque du genre principal
-  const SRC=[["none","",L("Rien","Nothing")],["seed","melodie",L("Une mélodie","A melody")],["seed","riff",L("Un riff","A riff")],["cover","",L("Un Cover","A Cover")]];
-  // Barre commune des pages Mélodie et Riff : bascule entre les deux + envoi vers la forge comme amorce.
+  const SRC=[["none","",L("Rien","Nothing")],["seed","melodie",L("Une mélodie","A melody")],["seed","riff",L("Un riff","A riff")],["seed","beat",L("Un beat","A beat")],["cover","",L("Un Cover","A Cover")]];
+  // STUDIO (nov. 2026) : 3 outils, même format — Mélodie (partition) · Riff (guitare + basse, tablature) · Beat (batterie, partition de batterie)
+  const STUDIO={
+    melodie:{lbl:L("Mélodie","Melody"),kicker:L("Inspiration mélodique","Melodic inspiration"),title:L("Mélodie","Melody"),
+      sub:L("Une ligne chantable, éditable note par note, avec sa partition. 26 thèmes, 47 gammes, vrais instruments.","A singable line, editable note by note, with its sheet music. 26 themes, 47 scales, real instruments."),
+      tags:[L("Partition","Sheet music"),L("Vrais instruments","Real instruments"),"WAV"],src:()=>`/melody.html?lang=${uiLang}&embed=1`},
+    riff:{lbl:"Riff",kicker:L("La base rythmique","The rhythm foundation"),title:"Riff",
+      sub:L("Guitare et basse rythmiques, sans batterie. Apprends-le avec la tablature, ou donne-le à Suno comme amorce.","Rhythm guitar and bass, no drums. Learn it from the tab, or give it to Suno as a seed."),
+      tags:[L("Tablature","Tab"),L("Guitare + basse","Guitar + bass"),"WAV"],src:()=>`/riff.html?tool=riff&embed=1&lang=${uiLang}&tier=${userTier}${styleTxt?`&prompt=${encodeURIComponent(styleTxt)}`:""}`},
+    beat:{lbl:"Beat",kicker:L("Ton drummer","Your drummer"),title:"Beat",
+      sub:L("Batterie seule, partition incluse. T'as pas de band? Joue par-dessus pour composer et pratiquer.","Drums only, score included. No band? Play over it to write and practice."),
+      tags:[L("Partition de batterie","Drum score"),L("Pratique","Practice"),"WAV"],src:()=>`/riff.html?tool=beat&embed=1&lang=${uiLang}&tier=${userTier}${styleTxt?`&prompt=${encodeURIComponent(styleTxt)}`:""}`},
+  };
   const studioBar=kind=>(
-    <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"11px"}}>
-      <div style={{display:"flex",gap:"6px"}}>
-        {[["melodie",L("Mélodie","Melody")],["riff",L("Riff et beat","Riff & beat")]].map(([id,lbl])=>(
-          <button key={id} aria-pressed={kind===id} onClick={()=>setTab(id)} style={{...SEG(kind===id),padding:"0 18px"}}>{lbl}</button>))}
+    <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"12px"}}>
+      <div role="tablist" style={{display:"inline-flex",gap:"4px",padding:"4px",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.09)",borderRadius:"12px"}}>
+        {["melodie","riff","beat"].map(id=>(
+          <button key={id} role="tab" aria-selected={kind===id} onClick={()=>setTab(id)} style={{minHeight:"40px",padding:"0 18px",borderRadius:"9px",border:"none",cursor:"pointer",fontFamily:"'Geist',sans-serif",fontSize:"0.86rem",fontWeight:kind===id?700:500,background:kind===id?"#FF6A2B":"transparent",color:kind===id?"#160A04":"#D4D6DA",transition:"background .15s"}}>{STUDIO[id].lbl}</button>))}
       </div>
-      <button onClick={()=>{setAudioSrc("seed");setSeedKind(kind);setTab("genre");}} style={{minHeight:"44px",padding:"0 16px",background:RED,border:"none",borderRadius:"8px",color:"#000",fontSize:"0.76rem",fontWeight:900,cursor:"pointer"}}>{L("Utiliser comme amorce → Forger","Use as a seed → Forge")}</button>
+      <button onClick={()=>{setAudioSrc("seed");setSeedKind(kind);setTab("genre");}} style={{minHeight:"40px",padding:"0 16px",background:"transparent",border:"1px solid rgba(255,106,43,.55)",borderRadius:"10px",color:"#FFB36B",fontFamily:"'Geist',sans-serif",fontSize:"0.8rem",fontWeight:600,cursor:"pointer"}}>{L("Utiliser comme amorce → Forger","Use as a seed → Forge")}</button>
     </div>
   );
+  const studioPage=kind=>{const d=STUDIO[kind];return(
+    <div style={S.page}>
+      {studioBar(kind)}
+      <div style={{position:"relative",overflow:"hidden",borderRadius:"18px",border:"1px solid rgba(255,255,255,.08)",background:"radial-gradient(700px 260px at 50% 0%,rgba(255,106,43,.16),rgba(255,106,43,0) 70%),#121317",padding:"26px 24px 22px",marginBottom:"12px",textAlign:"center"}}>
+        <div style={{fontFamily:"'Geist Mono',monospace",fontSize:"0.68rem",letterSpacing:".12em",textTransform:"uppercase",color:"#FFB36B"}}>{d.kicker}</div>
+        <div style={{fontFamily:"'Geist',sans-serif",fontSize:"2rem",fontWeight:700,letterSpacing:"-.02em",color:"#F2F1ED",margin:"6px 0 6px"}}>{d.title}</div>
+        <div style={{color:"#B9BDC4",fontSize:"0.86rem",lineHeight:1.6,maxWidth:"620px",margin:"0 auto"}}>{d.sub}</div>
+        <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px",marginTop:"14px"}}>
+          {d.tags.map(x=><span key={x} style={{fontFamily:"'Geist Mono',monospace",fontSize:"0.66rem",color:"#D4D6DA",border:"1px solid rgba(255,255,255,.14)",borderRadius:"999px",padding:"4px 10px"}}>{x}</span>)}
+        </div>
+      </div>
+      <div style={{borderRadius:"18px",border:"1px solid rgba(255,255,255,.08)",overflow:"hidden",background:"#0C0D0F"}}>
+        <iframe key={kind} src={d.src()} title={d.title} allow="autoplay" style={{width:"100%",height:"84vh",minHeight:"640px",border:"none",display:"block",background:"#0C0D0F"}}/>
+      </div>
+      <div style={{textAlign:"center",color:"#9196A0",fontSize:"0.78rem",margin:"16px 0 0"}}>{L("T'es seul pour jouer? MetalPrompt t'aide à composer et à pratiquer.","Playing alone? MetalPrompt helps you write and practice.")}</div>
+      <div style={{height:80}}/>
+    </div>);};
+
 
   return (
     <div style={S.wrap}>
@@ -2124,7 +2153,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               :audioSrc==="seed"
                 ?L("Amorce : Audio Influence entre 25 et 50 %, pour que Suno bâtisse autour au lieu de recopier.","Seed: Audio Influence between 25 and 50%, so Suno builds around it instead of copying it.")
                 :L("Aucune source audio : pas de ligne Audio Influence dans les réglages Suno.","No audio source: no Audio Influence line in the Suno settings.")}</span>
-            {audioSrc==="seed"&&<button onClick={()=>setTab(seedKind==="riff"?"riff":"melodie")} style={{background:"none",border:"none",padding:0,color:"#FFB36B",fontSize:"0.72rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{seedKind==="riff"?L("Créer le riff →","Build the riff →"):L("Créer la mélodie →","Build the melody →")}</button>}
+            {audioSrc==="seed"&&<button onClick={()=>setTab(["riff","beat"].includes(seedKind)?seedKind:"melodie")} style={{background:"none",border:"none",padding:0,color:"#FFB36B",fontSize:"0.72rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{seedKind==="riff"?L("Créer le riff →","Build the riff →"):seedKind==="beat"?L("Créer le beat →","Build the beat →"):L("Créer la mélodie →","Build the melody →")}</button>}
           </div>
         </div>
         <div style={{...S.card,padding:0,overflow:"hidden"}}>
@@ -2443,31 +2472,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* OUTPUT */}
-      {tab==="melodie"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
-        {studioBar("melodie")}
-        <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#FF6A2B44"}}>
-          <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>{L("GÉNÉRATEUR DE MÉLODIE CHANTÉE","SINGABLE MELODY GENERATOR")}</div>
-          <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("26 thèmes (refrain hit, metalcore, melodeath, doom, power, thrash gang…), 47 gammes, 10 familles, vrais instruments et voix (chœur, ooh, lead). Écoute, édite note par note, exporte un WAV pour Suno.","26 themes (hit chorus, metalcore, melodeath, doom, power, thrash gang…), 47 scales, 10 families, real instruments and voices (choir, ooh, lead). Listen, edit note by note, export a WAV for Suno.")}</div>
-        </div>
-        <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
-          <iframe src={`/melody.html?lang=${uiLang}`} title="Melody Generator" allow="autoplay" style={{width:"100%",height:"82vh",minHeight:"640px",border:"none",display:"block",background:DARK}}/>
-        </div>
-      </div>)}
-      {tab==="riff"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
-        {studioBar("riff")}
-        <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#FF6A2B44"}}>
-          <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.6rem",letterSpacing:"2px",color:"#fff"}}>RIFF / BEAT GENERATOR</div>
-          <div style={{color:"#999",fontSize:"0.78rem",marginTop:"6px",lineHeight:1.55}}>{L("Génère un riff + beat, écoute-le, et exporte un WAV prêt pour Suno (Style Reference / Custom Model). ","Generate a riff + beat, listen, and export a WAV ready for Suno (Style Reference / Custom Model). ")}</div>
-        </div>
-        <div style={{...S.card,padding:0,overflow:"hidden",borderColor:"#1e1e1e"}}>
-          <iframe src={`/riff.html?lang=${uiLang}&tier=${userTier}${styleTxt?`&prompt=${encodeURIComponent(styleTxt)}`:""}`} title="Riff Generator" allow="autoplay" style={{width:"100%",height:"78vh",minHeight:"560px",border:"none",display:"block",background:DARK}}/>
-        </div>
-        <div style={{...S.card,textAlign:"center"}}>
-          <div style={{...S.ctitle,textAlign:"center",marginBottom:"6px"}}>{L("Bientôt aussi","Also coming soon")}</div>
-          <div style={{fontSize:"0.74rem",color:"#888",lineHeight:1.7}}>{L("Idée express","Quick Idea")} · {L("Génération in-app (crédits)","In-app generation (credits)")}</div>
-        </div>
-        <div style={{height:80}}/>
-      </div>)}
+      {["melodie","riff","beat"].includes(tab)&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:studioPage(tab))}
 
       {tab==="master"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ffcc0044"}}>
@@ -2826,7 +2831,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               {false&&sliderRec&&<div style={{...S.card,borderColor:"#5a4410",background:"#141005"}}>
                 <div style={{...S.outLbl,color:"#ffbb33",marginBottom:"9px",fontSize:"0.68rem"}}>{excludeTxt?4:3} · More Options</div>
                 <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:"8px",marginBottom:"10px",fontSize:"0.68rem",color:"#aaa"}}>
-                  <span>{L("Source audio : ","Audio source: ")}<b style={{color:"#ffbb33"}}>{audioSrc==="cover"?L("un Cover","a Cover"):audioSrc==="seed"?(seedKind==="riff"?L("un riff","a riff"):L("une mélodie","a melody")):L("aucune","none")}</b></span>
+                  <span>{L("Source audio : ","Audio source: ")}<b style={{color:"#ffbb33"}}>{audioSrc==="cover"?L("un Cover","a Cover"):audioSrc==="seed"?(seedKind==="riff"?L("un riff","a riff"):seedKind==="beat"?L("un beat","a beat"):L("une mélodie","a melody")):L("aucune","none")}</b></span>
                   <button onClick={()=>setTab("genre")} style={{background:"none",border:"1px solid #3a3a3a",borderRadius:"6px",color:"#ccc",fontSize:"0.66rem",fontWeight:700,padding:"5px 10px",cursor:"pointer"}}>{L("Changer","Change")}</button>
                 </div>
                 {[...(modelRec?[[L("Modèle","Model"),modelRec.best]]:[]),["Vocal Gender",sliderRec.vocalGender],["Duration",sliderRec.duration],["Max Mode",sliderRec.maxMode?"On":"Off"],["Weirdness",sliderRec.weirdness+"%"],["Style Influence",sliderRec.styleInfluence+"%"],...(sliderRec.audioInfluence!=null?[["Audio Influence",sliderRec.audioInfluence+"%"]]:[]),["Variety",L("Désactivé (0)","Off (0)")],["Personalize (My Taste)",sliderRec.personalize?"On":"Off"]].map(([k,v])=>(

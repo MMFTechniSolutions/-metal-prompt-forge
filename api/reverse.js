@@ -10,6 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // ── Cache de groupes (table band_cache, pré-classée avec Opus) : réponse instantanée, gratuite et stable.
 // Absent / erreur / pas trouvé → on continue avec Decisions + Claude comme avant.
+import { BAND_YEARS } from './_bandYears.js';   // années d'albums studio des groupes du cache (fichier statique, 0 appel IA)
 const normBand = s => String(s).toLowerCase().normalize('NFKC').replace(/^the\s+/, '').replace(/\s+/g, ' ').trim();
 async function fromCache(band) {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;   // webhook.js utilise SUPABASE_SERVICE_KEY
@@ -139,6 +140,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       genre: hit.genre, flavor: hit.flavor || '',
       signature: cleanDescriptors((hit.signature || []).map(String), [_bl]).slice(0, 4),
+      years: BAND_YEARS[normBand(band)] || [],
       label: hit.genre, confidence: hit.confidence, source: 'cache', era: hit.era || '',
       genres: [hit.genre, hit.flavor].filter(Boolean), matched: !!GENRE_PROFILES[hit.genre],
     });

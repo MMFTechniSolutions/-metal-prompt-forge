@@ -1,0 +1,4 @@
+Guitare : Karoryfer Emilyguitar (Epiphone Emily the Strange, DI), par D. Smolken / Karoryfer Lecolds.
+Licence CC0 1.0 (domaine public) - "Royalty-free for all commercial and non-commercial use."
+Source : https://github.com/sfzinstruments/karoryfer.emilyguitar
+Fichiers convertis en MP3 mono 44,1 kHz, 2,5 s.

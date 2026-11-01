@@ -104,6 +104,8 @@ body.embed main{padding-top:14px;}
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
 <script src="score.js"></script>
 <script src="gtr.js"></script>
+<script src="drums.js"></script>
+<script src="samples.js"></script>
 </head>
 <body>
 <header>
@@ -755,9 +757,14 @@ async function startPlay(p, stem){
     seqs.push(makeSeq((t,step)=>{if(a.bass[step]){const broot=Tone.Frequency(root).transpose(a.trans[step]-12).toNote();bassSynth.triggerAttackRelease(broot,'16n',t,.65);}}));
   }
   if(LY.drums){
+    if(window.MPDrums&&drumBus){   // batterie « humaine » : variantes, accents, micro-décalages, crash, room
+      const _dk=MPDrums.kit(_grc); if(!window.__drumIn)window.__drumIn=MPDrums.bus(_grc,drumBus);
+      seqs.push(makeSeq((t,step)=>MPDrums.playStep(_grc,_dk,window.__drumIn,a,step,t)));
+    }else{
     seqs.push(makeSeq((t,step)=>{if(a.kick[step])playDrum(drumBuf.kick,t,1.0);}));
     seqs.push(makeSeq((t,step)=>{if(a.snare[step])playDrum(drumBuf.snare,t,0.9);}));
     seqs.push(makeSeq((t,step)=>{if(a.hihat[step])playDrum(drumBuf.hihat,t,0.5);}));
+    }
   }
   if(LY.lead && p.lead&&p.lead!=='none'&&p.leadRhy){
     const rawCtx=Tone.getContext().rawContext;
@@ -879,6 +886,8 @@ async function renderAndDownload(p, stem){
   };
   const GTR_BUS = _mkGtrEQ(), BASS_BUS = _mkBassEQ();
   const GTR_RIG = window.MPGtr ? MPGtr.rig(off, master, p.dist) : null;   // guitare metal dans l'export aussi
+  const DRUM_KIT = window.MPDrums ? MPDrums.kit(off) : null;              // batterie humaine dans l'export aussi
+  const DRUM_IN = DRUM_KIT ? MPDrums.bus(off, master) : null;
   const _gtrCurve = makeCurve(Math.min(1,p.dist/100*1.35)), _bassCurve = makeCurve(.55);
   const _od=genDrumData(sr);
   const obuf={kick:toDrumBuf(off,_od.kick),snare:toDrumBuf(off,_od.snare),hihat:toDrumBuf(off,_od.hihat)};
@@ -925,9 +934,12 @@ async function renderAndDownload(p, stem){
       o.start(t);o.stop(t+stepDur+.05);o2.start(t);o2.stop(t+stepDur+.05);
     }
     if(LY.drums){
+      if(DRUM_KIT){MPDrums.playStep(off,DRUM_KIT,DRUM_IN,a,i,t);}
+      else{
       if(a.kick[i])playOff(obuf.kick,t,1.0);
       if(a.snare[i])playOff(obuf.snare,t,0.9);
       if(a.hihat[i])playOff(obuf.hihat,t,0.5);
+      }
     }
     if(LY.lead && LEAD&&p.leadRhy[i%16]){
       const semi=p.noteSeq[leadI%p.noteSeq.length]+12+a.trans[i];leadI++;
@@ -1290,6 +1302,10 @@ document.getElementById('btnRenderSong').addEventListener('click',async()=>{
   $('btnRender')&&($('btnRender').className='bp');
   set('btnGen', isBeat?T('Générer un beat','Generate a beat'):T('Générer un riff','Generate a riff'));
   set('txtPlay', isBeat?T('Configure et génère un beat','Set up and generate a beat'):T('Configure et génère un riff','Set up and generate a riff'));
+  // crédits des sons (licences : AVL Drumkits CC-BY-SA 3.0, Karoryfer Emilyguitar CC0)
+  {const c=document.createElement('div');c.className='sb';c.style.marginTop='10px';c.style.opacity='.7';
+   c.textContent=T('Sons : batterie AVL Drumkits « Black Pearl » par Glen MacArthur (CC-BY-SA 3.0) · guitare Karoryfer Emilyguitar (CC0).','Sounds: AVL Drumkits "Black Pearl" drums by Glen MacArthur (CC-BY-SA 3.0) · Karoryfer Emilyguitar guitar (CC0).');
+   const pnl=document.querySelector('.dl-info');if(pnl)pnl.parentNode.appendChild(c);}
   const info=document.querySelector('.dl-info');
   if(info)info.innerHTML=isBeat
     ?T('<strong>Batterie seule.</strong> Joue ta guitare par-dessus pour pratiquer, ou importe le WAV dans Suno comme amorce (Audio Influence 25-50).','<strong>Drums only.</strong> Play your guitar over it to practice, or upload the WAV to Suno as a seed (Audio Influence 25-50).')

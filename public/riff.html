@@ -815,8 +815,10 @@ function makeCurve(amt){
   return _CURVE_CACHE[_k]=_makeCurve(amt);
 }
 function _makeCurve(amt){
-  const n=512,c=new Float32Array(n),k=amt*300;
-  for(let i=0;i<n;i++){const x=(i*2)/n-1;c[i]=((Math.PI+k)*x)/(Math.PI+k*Math.abs(x));}
+  // BUG « crescendo » (nov. 2026) : courbe de longueur paire + x=(i*2)/n-1 → le silence sortait à -0,08 (courant continu).
+  // Des centaines de notes empilaient ce décalage → l'export partait collé à -1 et « montait » pendant 30 s. Longueur impaire = 0 au centre.
+  const n=513,c=new Float32Array(n),k=amt*300;
+  for(let i=0;i<n;i++){const x=(i*2)/(n-1)-1;c[i]=((Math.PI+k)*x)/(Math.PI+k*Math.abs(x));}
   return c;
 }
 function noteFreqHz(note){return Tone.Frequency(note).toFrequency();}
@@ -853,7 +855,8 @@ async function renderAndDownload(p, stem){
   // Soft-clip final (tanh) : arrondit les pointes au lieu d'un écrêtage dur "qui griche"
   const soft=off.createWaveShaper();
   {const N=2048,c=new Float32Array(N),k=1.5;for(let i=0;i<N;i++){const x=(i/(N-1))*2-1;c[i]=Math.tanh(k*x)/Math.tanh(k);}soft.curve=c;soft.oversample='2x';}   // 2x = même rendu à l'oreille, ~2× plus rapide
-  master.connect(comp);comp.connect(outGain);outGain.connect(soft);soft.connect(off.destination);
+  const dcBlock=off.createBiquadFilter();dcBlock.type='highpass';dcBlock.frequency.value=22;dcBlock.Q.value=0.7;   // coupe-courant-continu (filet de sécurité)
+  master.connect(dcBlock);dcBlock.connect(comp);comp.connect(outGain);outGain.connect(soft);soft.connect(off.destination);
 
   const rootHz=noteFreqHz(p.root);
   const bassHz=rootHz/2;

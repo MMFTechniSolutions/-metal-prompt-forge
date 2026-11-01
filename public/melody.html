@@ -112,6 +112,8 @@ body.embed header{display:none;} body.embed main{padding-top:14px;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
 <script src="score.js"></script>
+<script src="gtr.js"></script>
+<script>if(window.MPGtr)MPGtr.fullPromise=MPGtr.diPromise.then(()=>MPGtr.loadDI(undefined,90));   // Mélodie : tout le manche</script>
 </head>
 <body>
 <div id="gate" style="position:fixed;inset:0;background:rgba(10,10,11,0.98);z-index:9999;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;">
@@ -242,6 +244,10 @@ body.embed header{display:none;} body.embed main{padding-top:14px;}
         </select></div>
       <div class="cg"><label>Instrument (réel)</label>
         <select id="inst">
+          <optgroup label="Guitare enregistrée (vraie)">
+            <option value="mp_metal">Guitare metal (vraie, ampli high gain)</option>
+            <option value="mp_clean">Guitare électrique claire (vraie)</option>
+          </optgroup>
           <optgroup label="Voix">
             <option value="choir_aahs">Chœur « Aah »</option>
             <option value="voice_oohs">Voix « Ooh »</option>
@@ -569,6 +575,8 @@ async function ensureFont(key){
 }
 // Joue une note : vrai instrument si dispo (avec glissando en mode filant), sinon synthé de secours.
 function playNote(ctx,dest,font,key,nt,t,slideOn){
+  // vraie guitare enregistrée (Karoryfer Emilyguitar, CC0) → ampli metal ou son clair
+  if(key&&key.startsWith('mp_')&&window.MPGtr&&MPGtr.DI.ready&&MPGtr.lead(ctx,dest,nt.midi,t,nt.dur,key==='mp_metal'?'metal':'clean',slideOn?nt.prevMidi:null))return;
   if(font&&wafPlayer){
     const cfg=INSTBANK[key];
     let slides=null;
@@ -820,7 +828,7 @@ async function play(){
   stopPlay();
   const key=inst();
   status('Chargement de l\'instrument…',true);
-  const font=(key in INSTBANK)?await ensureFont(key):null;
+  if(key.startsWith('mp_')&&window.MPGtr)await MPGtr.fullPromise;const font=(key in INSTBANK)?await ensureFont(key):null;
   actx=new (window.AudioContext||window.webkitAudioContext)();
   const master=actx.createGain();master.gain.value=font?0.9:0.85;const sc=softClip(actx);master.connect(sc);sc.connect(actx.destination);
   const stepDur=60/bpm()/12;const t0=actx.currentTime+0.15;playT0=t0;
@@ -840,7 +848,7 @@ async function exportWav(){
   if(!mel.some(v=>v!=null)){status('⚠ Génère une mélodie d\'abord',false);return;}
   const key=inst();
   $('dot').className='dot rec';status('Chargement de l\'instrument…',true);$('btnExport').disabled=true;
-  const font=(key in INSTBANK)?await ensureFont(key):null;
+  if(key.startsWith('mp_')&&window.MPGtr)await MPGtr.fullPromise;const font=(key in INSTBANK)?await ensureFont(key):null;
   status('Render…',true);
   const sr=44100,stepDur=60/bpm()/12,total=Math.ceil((steps*stepDur+1.4)*sr);
   const off=new OfflineAudioContext(1,total,sr);

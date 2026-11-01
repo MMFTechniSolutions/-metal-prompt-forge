@@ -42,17 +42,20 @@ const MPGtr = (() => {
 
   // ── Vraie guitare DI (Karoryfer Emilyguitar, CC0) : une note aux tierces mineures, 2 forces, 3 variantes ──
   const DI = { ready: false, notes: [], ir: null };
-  const DI_NOTES = { db2: 37, e2: 40, gb2: 42, a2: 45, c3: 48, eb3: 51, gb3: 54, a3: 57, c4: 60, eb4: 63 };
+  const DI_NOTES = { db2: 37, e2: 40, gb2: 42, a2: 45, c3: 48, eb3: 51, gb3: 54, a3: 57, c4: 60, eb4: 63, gb4: 66, a4: 69, c5: 72, eb5: 75, gb5: 78, a5: 81, c6: 84, d6: 86 };
+  const _loaded = new Set();
   function trimLead(buf) {   // le MP3 ajoute un petit silence au début
     const d = buf.getChannelData(0); let pk = 0; for (let i = 0; i < Math.min(d.length, 20000); i++) pk = Math.max(pk, Math.abs(d[i]));
     let st = 0; while (st < d.length && Math.abs(d[st]) < pk * 0.05) st++; st = Math.max(0, st - 40);
     if (st < 16) return buf;
     const o = new AudioBuffer({ length: buf.length - st, numberOfChannels: 1, sampleRate: buf.sampleRate }); o.copyToChannel(d.subarray(st), 0); return o;
   }
-  async function loadDI(base) {
-    base = base || 'samples/guitar/';
-    const ctx = new OfflineAudioContext(1, 1, 44100), list = [];
-    await Promise.all(Object.entries(DI_NOTES).map(async ([n, m]) => {
+  // maxMidi : le Riff (rythmique) n'a besoin que des notes graves (≤ Eb4) ; la Mélodie charge tout le manche
+  async function loadDI(base, maxMidi) {
+    base = base || 'samples/guitar/'; maxMidi = maxMidi || 63;
+    const ctx = new OfflineAudioContext(1, 1, 44100), list = DI.notes.slice();
+    await Promise.all(Object.entries(DI_NOTES).filter(([n, m]) => m <= maxMidi && !_loaded.has(n)).map(async ([n, m]) => {
+      _loaded.add(n);
       const e = { midi: m, f: [], mf: [] };
       for (const v of ['f', 'mf']) for (const r of [1, 2, 3]) {
         try { const res = await fetch(base + n + '_' + v + '_' + r + '.mp3'); if (!res.ok) continue; e[v].push(trimLead(await ctx.decodeAudioData(await res.arrayBuffer()))); } catch (x) {}
@@ -60,7 +63,7 @@ const MPGtr = (() => {
       if (e.f.length || e.mf.length) list.push(e);
     }));
     list.sort((a, b) => a.midi - b.midi); DI.notes = list; DI.ready = list.length > 0;
-    try { const r = await fetch(base + '../cab.wav'); if (r.ok) DI.ir = await ctx.decodeAudioData(await r.arrayBuffer()); } catch (x) {}   // IR de baffle optionnel (samples/cab.wav)
+    if (!DI.ir && !DI._irTried) try { DI._irTried = true; const r = await fetch(base + '../cab.wav'); if (r.ok) DI.ir = await ctx.decodeAudioData(await r.arrayBuffer()); } catch (x) {}   // IR de baffle optionnel (samples/cab.wav)
     return DI;
   }
   function diNote(midi) { let best = null; for (const e of DI.notes) if (!best || Math.abs(e.midi - midi) < Math.abs(best.midi - midi)) best = e; return best; }
@@ -168,7 +171,31 @@ const MPGtr = (() => {
     });
   }
 
-  return { rig, dispose, play, string, loadDI, DI };
+  // ── Note de mélodie (page Mélodie) : vraie guitare DI, en son metal (ampli) ou clair ──
+  const _leadRigs = new WeakMap();
+  function leadRig(ctx, dest, mode) {
+    let m = _leadRigs.get(dest); if (!m) { m = {}; _leadRigs.set(dest, m); }
+    if (m[mode]) return m[mode];
+    let input;
+    if (mode === 'metal') input = amp(ctx, dest, 0, 70).input;   // un seul ampli, au centre, gain un peu moins fort pour que la ligne chante
+    else { const lp = bq(ctx, 'lowpass', 6500, 0.7), hp = bq(ctx, 'highpass', 90, 0.7), g = ctx.createGain(); g.gain.value = 0.9; hp.connect(lp); lp.connect(g); g.connect(dest); input = hp; }
+    return (m[mode] = input);
+  }
+  function lead(ctx, dest, midi, t, dur, mode, prevMidi) {
+    const e = diNote(midi); if (!e) return false;
+    const arr = e.f.length ? e.f : e.mf;
+    const s = ctx.createBufferSource(); s.buffer = arr[Math.floor(Math.random() * arr.length)];
+    const rate = Math.pow(2, (midi - e.midi) / 12);
+    if (prevMidi != null && prevMidi !== midi) {   // glissé (phrasé « Filant »)
+      s.playbackRate.setValueAtTime(rate * Math.pow(2, (prevMidi - midi) / 12), t);
+      s.playbackRate.linearRampToValueAtTime(rate, t + Math.min(dur * 0.4, 0.12));
+    } else s.playbackRate.value = rate;
+    const g = ctx.createGain(), len = Math.min(dur * 1.05, 2.3), vol = mode === 'metal' ? 1.4 : 1.1;
+    g.gain.setValueAtTime(vol, t); g.gain.setValueAtTime(vol, t + Math.max(0.02, len - 0.05)); g.gain.linearRampToValueAtTime(0.0001, t + len);
+    s.connect(g); g.connect(leadRig(ctx, dest, mode)); s.start(t); s.stop(t + len + 0.05);
+    return true;
+  }
+  return { rig, dispose, play, string, loadDI, DI, lead };
 })();
 window.MPGtr = MPGtr;
 MPGtr.diPromise = MPGtr.loadDI();

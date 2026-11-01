@@ -493,13 +493,13 @@ const TAB_REQ = {genre:"free",melodie:"elite",drums:"free",vocals:"free",guitar:
 const ERA_KEYS = ["60s-70s","80s","90s","2000s","2010s","2020s"];
 // Repère une année (« 1993 ») ou une décennie (« 90s », « années 90 ») dans le texte libre.
 function parseEra(txt){
-  let rest=String(txt||""), era="";
+  let rest=String(txt||""), era="", year="";
   const dec=y=>y<1980?"60s-70s":y<1990?"80s":y<2000?"90s":y<2010?"2000s":y<2020?"2010s":"2020s";
   let m=rest.match(/\b(19[6-9]\d|20[0-2]\d)(?:'?s)?\b/);
-  if(m){ era=dec(+m[1]); rest=rest.replace(m[0]," "); }
+  if(m){ era=dec(+m[1]); if(!/s$/i.test(m[0]))year=m[1]; rest=rest.replace(m[0]," "); }   // « 1996 » = année précise ; « 1990s » = décennie
   else if((m=rest.match(/(?:ann[ée]es\s+)?\b([6-9]0)'?s\b|ann[ée]es\s+([6-9]0)\b/i))){ era=dec(1900+(+(m[1]||m[2]))); rest=rest.replace(m[0]," "); }
   rest=rest.replace(/\s+/g," ").replace(/^[\s,;·–-]+|[\s,;·–-]+$/g,"").trim();
-  return {era,rest};
+  return {era,rest,year};
 }
 // Genre tapé tel quel (« djent », « thrash » → « thrash metal ») : trouvé sans appel serveur.
 const GENRE_INDEX=(()=>{const m={};GENRE_FAMILIES.forEach(f=>f.genres.forEach(x=>{m[String(x.g).toLowerCase()]=x;}));return m;})();
@@ -1480,6 +1480,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [ideaBusy,setIdeaBusy]=useState(false);
   const [ideaMsg,setIdeaMsg]=useState(null);            // {ok, text}
   const [eraPick,setEraPick]=useState("");              // "" = époque déduite du genre
+  const [exactYear,setExactYear]=useState("");          // année tapée (« 1996 ») → « 1996 production »
+  const [bandYears,setBandYears]=useState([]);          // années d'albums du groupe (reverse) → une pigée au hasard à chaque forge
   const [pendingForge,setPendingForge]=useState(false); // forge au prochain rendu, une fois la détection appliquée
   const [finsOpen,setFinsOpen]=useState(false);
   const [adjustOpen,setAdjustOpen]=useState(false);
@@ -1608,6 +1610,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(!genres.has(d.genre))tGenre(d.genre);   // ajoute le sous-genre comme tag
       if(d.flavor&&!genres.has(d.flavor))tGenre(d.flavor);   // 2e genre = couleur (fusion « flavor-influenced » côté forge)
       setSignature(Array.isArray(d.signature)?d.signature:[]);
+      setBandYears(Array.isArray(d.years)?d.years:[]);
       const _prof=await autoFillGenre(d.genre,{seedEmo:true});  // applique BPM/drums/voix/sliders + base d'emotions selon le style reel
       const _ta=seedThemesFromMood((_prof&&_prof.mood)||[]);   // + thème principal & atmosphère (paroles) selon le style
       if(_ta){ setThemes(_ta.themes); setLatmo(_ta.atmo); }
@@ -1628,8 +1631,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
     if(raw===lastIdea&&genres.size){generate();return;}   // texte déjà détecté : on forge avec les réglages actuels
     setIdeaBusy(true);setIdeaMsg(null);
     try{
-      const {era,rest}=parseEra(raw);
-      if(era||rest)setEraPick(era);   // nouvelle idée sans année = époque remise en auto ; année seule = on garde le genre
+      const {era,rest,year}=parseEra(raw);
+      if(era||rest){setEraPick(era);setExactYear(year||"");}   // nouvelle idée sans année = époque remise en auto ; année seule = on garde le genre
       if(!rest){   // une année seule
         if(genres.size){setLastIdea(raw);setIdeaMsg({ok:true,text:L("Époque : ","Era: ")+era});setPendingForge(true);}
         else setIdeaMsg({ok:false,text:L("Époque réglée sur ","Era set to ")+era+L(". Ajoute un genre ou un groupe.",". Add a genre or a band.")});
@@ -1640,7 +1643,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       const known=parts.map(findGenre);
       if(parts.length&&parts.length<=3&&known.every(Boolean)){
         const pick=[...new Set(known.map(x=>x.g))].slice(0,2);
-        setGenres(pick);setSignature([]);
+        setGenres(pick);setSignature([]);setBandYears([]);
         await autoFillGenre(pick[0]);
         setLastIdea(raw);
         setIdeaMsg({ok:true,text:pick.join(" + ")+(era?" · "+era:"")});
@@ -1657,6 +1660,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
           setGenres(gs);
           if(!era&&ds[0].era)setEraPick(ds[0].era);   // époque du groupe (cache)
           setSignature([...new Set(ds.flatMap(x=>(Array.isArray(x.signature)?x.signature:[]).slice(0,2)))].slice(0,4));
+          setBandYears([...new Set(ds.flatMap(x=>Array.isArray(x.years)?x.years:[]))]);
           const _prof=await autoFillGenre(gs[0]);
           const _ta=seedThemesFromMood((_prof&&_prof.mood)||[]);
           if(_ta){setThemes(_ta.themes);setLatmo(_ta.atmo);}
@@ -1674,6 +1678,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       setGenres([d.genre,d.flavor].filter(Boolean));
       if(!era&&d.era)setEraPick(d.era);   // époque du groupe (cache) : Gojira = 2000s, pas l'époque du prog
       setSignature(Array.isArray(d.signature)?d.signature:[]);
+      setBandYears(Array.isArray(d.years)?d.years:[]);
       const _prof=await autoFillGenre(d.genre);
       const _ta=seedThemesFromMood((_prof&&_prof.mood)||[]);   // thème + atmosphère des paroles selon le style
       if(_ta){setThemes(_ta.themes);setLatmo(_ta.atmo);}
@@ -1787,6 +1792,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       structs:autoStructs,blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions:{},tier:userTier,   // émotions retirées de l'interface (oct. 2026) : plus rien d'invisible ne teinte le prompt
       eras:eraPick?[eraPick]:[...new Set([...genres].map(g=>(GENRE_FAMILIES.find(f=>f.genres.some(x=>x.g===g))||{}).nameEn).filter(Boolean))],   // ordre = genre principal d'abord   // couche Époque → /api/forge
       signature,   // anchors sonores du reverse (vides si pas de reverse)
+      year:exactYear||null, years:bandYears,   // année précise : tapée, sinon pigée parmi les albums du groupe (côté serveur)
       audioSrc,    // source audio : rien / Cover / amorce (riff, mélodie, beatbox)
     };
     let data;
@@ -2051,7 +2057,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
             <div>
               <label htmlFor="mpf-era" style={FL}>{L("Époque","Era")}{eraPick?"":" · auto"}</label>
-              <select id="mpf-era" value={eraPick} onChange={e=>setEraPick(e.target.value)} style={FC}>
+              <select id="mpf-era" value={eraPick} onChange={e=>{setEraPick(e.target.value);setExactYear("");}} style={FC}>
                 <option value="">{L("Auto","Auto")}{autoEra?" ("+autoEra+")":""}</option>
                 {ERA_KEYS.map(k=><option key={k} value={k}>{k}</option>)}
               </select>

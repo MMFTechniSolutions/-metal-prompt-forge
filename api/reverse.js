@@ -115,7 +115,8 @@ Also capture what makes the band's sound DISTINCT beyond the main sub-genre:
   For the singer, describe the mechanics — register, rasp, attack, phrasing, effects — e.g. "mid-range rasped shouts with bluesy swagger and ragged upper-register screams".
 
 Rules:
-- Respond with STRICT JSON only, no prose, no markdown: {"genre":"<sub-genre>","flavor":"<second genre or empty>","signature":["<anchor>","<anchor>"],"label":"<short human label>","confidence":"high|medium|low"}
+- Respond with STRICT JSON only, no prose, no markdown: {"genre":"<sub-genre>","flavor":"<second genre or empty>","signature":["<anchor>","<anchor>"],"years":[<year>,<year>],"label":"<short human label>","confidence":"high|medium|low"}
+- "years": release years of the band's studio albums you are confident about (integers, oldest first, max 25). Empty [] for a description or if unsure. Never invent a year.
 - "genre" and "flavor" must be genre names only — NEVER an artist/band/album/song name.
 - If the band shifted styles across its career, pick the sound it is most known for.
 - If the input is a description rather than a name: classify the sound it describes. "signature" then carries the concrete details the description itself states (instruments, vocal type, production, tempo feel), translated to English — do not add a band's traits, and never guess a band from a description.
@@ -164,7 +165,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 260,
+        max_tokens: 360,
         system: SYSTEM,
         messages: [{ role: 'user', content: `Input (band/artist name, or a description of a sound): ${band}` }],
       }),
@@ -208,6 +209,8 @@ export default async function handler(req, res) {
       }),
       [_bl]
     ).slice(0, 4);
+    const _NOW = new Date().getFullYear();
+    const years = [...new Set((Array.isArray(out.years) ? out.years : []).map(Number).filter(y => Number.isInteger(y) && y >= 1965 && y <= _NOW))].sort((a, b) => a - b).slice(0, 25);
     const confidence = dec ? (dec.confFamille >= 0.8 ? 'high' : 'medium')
         : ['high', 'medium', 'low'].includes(out.confidence) ? out.confidence : (genre ? 'medium' : 'low');
     // ── Apprentissage : chaque groupe classé avec certitude par l'IA entre dans band_cache (source 'learned').
@@ -226,7 +229,7 @@ export default async function handler(req, res) {
       } catch { /* l'apprentissage ne doit jamais bloquer la réponse */ }
     }
     return res.status(200).json({
-      genre, flavor, signature,
+      genre, flavor, signature, years,
       label: String((source === 'decisions' ? genre : out.label) || genre || '').slice(0, 60),
       confidence,
       source,                                   // 'decisions' ou 'claude' (débogage)

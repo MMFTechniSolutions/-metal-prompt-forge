@@ -272,8 +272,22 @@ export default function handler(req, res) {
   // Époque (couche 3 du style stack) : le client envoie les familles d'époque des genres choisis
   const ERA_TAG = { '60s-70s':'1970s analog tape production', '80s':'1980s production', '90s':'1990s production', '2000s':'2000s production', '2010s':'2010s modern production', '2020s':'2020s modern production' };
   const _eras = A('eras').map(x => String(x));
-  const _eraKey = _eras.map(e => Object.keys(ERA_TAG).find(k => e.startsWith(k))).find(Boolean);
-  const eraTag = _eraKey ? ERA_TAG[_eraKey] : '';
+  let _eraKey = _eras.map(e => Object.keys(ERA_TAG).find(k => e.startsWith(k))).find(Boolean);
+  // ANNÉE PRÉCISE (2026-10-31) : « 1996 production » sonne beaucoup plus juste que « 1990s production ».
+  // Priorité : année tapée > année d'album du groupe (pigée au hasard → chaque clic = un autre son) > année au hasard dans la décennie.
+  const _NOW = new Date().getFullYear();
+  const _okY = y => Number.isInteger(y) && y >= 1965 && y <= _NOW;
+  const _DEC_RANGE = { '60s-70s':[1970,1979], '80s':[1980,1989], '90s':[1990,1999], '2000s':[2000,2009], '2010s':[2010,2019], '2020s':[2020,_NOW] };
+  const _decOf = y => y < 1980 ? '60s-70s' : y < 1990 ? '80s' : y < 2000 ? '90s' : y < 2010 ? '2000s' : y < 2020 ? '2010s' : '2020s';
+  const _bandYears = [...new Set(A('years').map(Number).filter(_okY))];
+  const _typedYear = Number(b.year);
+  const _bandYearsInEra = _eraKey ? _bandYears.filter(y => _decOf(y) === _eraKey) : _bandYears;
+  let pickedYear = null;
+  if (_okY(_typedYear)) pickedYear = _typedYear;
+  else if (_bandYears.length) { const pool = _bandYearsInEra.length ? _bandYearsInEra : _bandYears; pickedYear = pool[Math.floor(Math.random() * pool.length)]; }
+  else if (_eraKey && _DEC_RANGE[_eraKey]) { const [lo, hi] = _DEC_RANGE[_eraKey]; pickedYear = lo + Math.floor(Math.random() * (hi - lo + 1)); }
+  if (pickedYear) _eraKey = _decOf(pickedYear);
+  const eraTag = pickedYear ? pickedYear + (pickedYear < 1980 ? ' analog tape production' : ' production') : (_eraKey ? ERA_TAG[_eraKey] : '');
   const _vintageEra = /^(60s-70s|80s|90s)$/.test(_eraKey || '');
   const blockRhythm = b.blockRhythm || {};
   // BUG : « +b.x || 5 » traitait 0 comme absent — un curseur mis à 0 repartait à 5 (le milieu).
@@ -536,13 +550,13 @@ export default function handler(req, res) {
   const PRIORITY = [
     meterLead,                       // 1. identité rythmique
     genreClause,                     // 2. genre + influences historiques
-    bpmTag,                          // 3. tempo
-    ...(_sigVox.length ? _sigVox.slice(0, 1) : harshVox ? vocals.slice(0, 1) : []),   // 4. voix (celle du groupe d'abord)
-    ..._sigRest.slice(0, 3),         // 5. ancrages sonores (groupe ou sous-genre)
-    _tunP, keyTag,                   // 6. accordage et tonalité
+    ...(_sigVox.length ? _sigVox.slice(0, 1) : harshVox ? vocals.slice(0, 1) : []),   // 3. voix (celle du groupe d'abord) — tôt, sinon v6 rate les gutturaux (test 2026-10-31)
+    eraTag,                          // 4. année précise de production — gros effet sur le son (test 2026-10-31)
+    bpmTag,                          // 5. tempo
+    ..._sigRest.slice(0, 3),         // 6. ancrages sonores (groupe ou sous-genre)
+    _tunP, keyTag,                   // 7. accordage et tonalité
     ...drums.slice(0, 1),
     ...guitar.slice(0, 1),
-    eraTag,                          // 9. production d'époque
     ...emotionTags.slice(0, 1),      // 10. émotion dominante (termes de production)
     ...(harshVox || _sigVox.length ? [] : vocals.slice(0, 1)),
     scaleTag,
@@ -815,5 +829,5 @@ export default function handler(req, res) {
   // magique du champ Styles ; son effet sur la réécriture de Variety n'est PAS vérifié.
   const tasteStr = "Extreme and underground metal above all: death, black, doom, thrash, progressive, sludge, hardcore and their fusions. Dark, heavy, intense moods; never glossy or radio-friendly.\n\nSound: a real band tracked live in a room. Natural untriggered acoustic drums with room mic bleed and human velocity, kick and snare that pound instead of click. Guitars from cranked tube amps through a mic'd 4x12 cabinet: thick mid-range bite, pick attack, fret buzz, low tunings that crush rather than sparkle. Overdriven bass locked to the kick, audible and gritty. Vocals placed in front of the band, dry and close-miked, harsh or clean as the song asks.\n\nMix: dry, dynamic, analog. Tape saturation, console warmth, wide room mics, no brickwall limiting, no pitch correction, no quantized perfection.\n\nWriting: riff-driven songs with tempo changes, breakdowns and dynamics rather than verse-chorus pop structure. Minor, phrygian and diminished colors.\n\nAvoid: pop, EDM, trap, synthwave textures, autotune, bright polished guitars, programmed-sounding drums, glossy modern radio production, electronic sheen unless explicitly requested.";
 
-  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, tasteStr, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, critic, blendAuto, meterLead, meterAuto, coverStr, extendStr, editStr, editPrompts, sliderRec, timeSig, modelRec, phonetic, rhythmStructTags });
+  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, tasteStr, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, critic, blendAuto, meterLead, meterAuto, coverStr, extendStr, editStr, editPrompts, sliderRec, timeSig, modelRec, phonetic, rhythmStructTags, year: pickedYear });
 }

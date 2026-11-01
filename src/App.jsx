@@ -1217,7 +1217,7 @@ function WhatsNew({onClose,uiLang}){
   const fr=uiLang!=="en";
   const items = fr ? [
     ["🔍 Tape ton band, c'est tout","L'accueil, c'est maintenant une seule boîte : un groupe, une année, un genre ou une description, puis Forger. Tous les réglages sont rangés sous « Ajuster » pour ceux qui veulent jouer dedans."],
-    ["🤝 Mixe tes groupes","« Gojira + Meshuggah », « Despised Icon x Slipknot » : chaque groupe est analysé, puis leurs styles sont combinés dans un seul prompt."],
+    ["🤝 Mixe tes groupes","« Emperor + Dark Tranquillity », « Despised Icon x Slipknot » : chaque groupe est analysé, puis leurs styles sont combinés dans un seul prompt."],
     ["⚡ 2 000+ groupes reconnus d'avance","Les groupes les plus cherchés sont déjà analysés : réponse instantanée, et toujours le même résultat pour le même groupe."],
     ["🎯 Détection plus juste","Nouveau moteur de classement : le bon sous-genre beaucoup plus souvent, et quand il ne connaît pas un groupe, il le dit au lieu d'inventer."],
     ["🎛️ 151 sous-genres avec leur vrai son","Chaque sous-genre a maintenant son propre profil (tempo, accordage, batterie, voix, exclusions) au lieu d'un réglage générique."],
@@ -1225,7 +1225,7 @@ function WhatsNew({onClose,uiLang}){
     ["🎲 Rappel","Suno est aléatoire par design : génère 2-3 fois le même prompt avant de conclure."],
   ] : [
     ["🔍 Type your band, that's it","The home screen is now a single box: a band, a year, a genre or a description, then Forge. Every setting lives under \"Adjust\" for those who want to dig in."],
-    ["🤝 Mix your bands","\"Gojira + Meshuggah\", \"Despised Icon x Slipknot\": each band is analyzed, then their styles are blended into one prompt."],
+    ["🤝 Mix your bands","\"Emperor + Dark Tranquillity\", \"Despised Icon x Slipknot\": each band is analyzed, then their styles are blended into one prompt."],
     ["⚡ 2,000+ bands known in advance","The most searched bands are pre-analyzed: instant answer, and always the same result for the same band."],
     ["🎯 Sharper detection","New classification engine: the right sub-genre far more often, and when it doesn't know a band it says so instead of guessing."],
     ["🎛️ 151 sub-genres with their real sound","Every sub-genre now has its own profile (tempo, tuning, drums, vocals, exclusions) instead of a generic default."],
@@ -1651,7 +1651,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
         setPendingForge(true);return;
       }
       // 2) groupe ou description libre → /api/reverse (le nom n'est jamais écrit dans le prompt)
-      // Mix de groupes (« Gojira + Meshuggah ») : un reverse par groupe, puis on combine (genre principal de chacun)
+      // Mix de groupes (« Emperor + Dark Tranquillity ») : un reverse par groupe, puis on combine (genre principal de chacun)
       const mixParts=rest.split(/\s*\+\s*|\s+\/\s+|\s+x\s+|\s+vs\.?\s+/i).map(s=>s.trim()).filter(Boolean);   // seulement « + », « / » espacé, « x », « vs » (pas AC/DC, pas les virgules ni « et » d'une description)
       if(mixParts.length>=2&&mixParts.length<=3&&!known.every(Boolean)){
         const _rh=await revHeaders();
@@ -2022,7 +2022,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               <path d={MP_WAVE} fill="none" stroke="url(#mpWave)" strokeWidth="5" filter="url(#mpGlow)" opacity="0.75"/>
               <path d={MP_WAVE} fill="none" stroke="url(#mpWave)" strokeWidth="1.4"/>
             </svg>
-            <input id="mpf-idee" autoComplete="off" value={ideaInput} maxLength={160} onFocus={()=>{loadBands();setSugOpen(true);}} onBlur={()=>setTimeout(()=>setSugOpen(false),150)} onChange={e=>{setIdeaInput(e.target.value);setSugOpen(true);}} onKeyDown={e=>{if(e.key==='Enter'){setSugOpen(false);smartForge();}if(e.key==='Tab'&&bandSugs.length){e.preventDefault();pickSug(bandSugs[0]);}}} placeholder={L("ex. : Gojira · Despised Icon + Meshuggah · doom lent avec orgue, 1993","e.g. Gojira · Despised Icon + Meshuggah · slow doom with organ, 1993")} style={{flex:"999 1 300px",minWidth:0,height:"58px",background:"rgba(22,24,28,0.86)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:"1px solid rgba(255,255,255,0.14)",borderRadius:"14px",padding:"0 18px",color:"#F2F1ED",fontSize:"1.05rem",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}}/>
+            <input id="mpf-idee" autoComplete="off" value={ideaInput} maxLength={160} onFocus={()=>{loadBands();setSugOpen(true);}} onBlur={()=>setTimeout(()=>setSugOpen(false),150)} onChange={e=>{setIdeaInput(e.target.value);setSugOpen(true);}} onKeyDown={e=>{if(e.key==='Enter'){setSugOpen(false);smartForge();}if(e.key==='Tab'&&bandSugs.length){e.preventDefault();pickSug(bandSugs[0]);}}} placeholder={L("ex. : Lamb of God · Despised Icon + Meshuggah · doom lent avec orgue, 1993","e.g. Lamb of God · Despised Icon + Meshuggah · slow doom with organ, 1993")} style={{flex:"999 1 300px",minWidth:0,height:"58px",background:"rgba(22,24,28,0.86)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:"1px solid rgba(255,255,255,0.14)",borderRadius:"14px",padding:"0 18px",color:"#F2F1ED",fontSize:"1.05rem",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}}/>
             <button onClick={smartForge} disabled={ideaBusy} style={{flex:"1 0 auto",height:"58px",padding:"0 30px",background:"#F2F1ED",border:"none",borderRadius:"14px",color:"#0C0D0F",fontWeight:600,fontSize:"1.05rem",cursor:ideaBusy?"default":"pointer",opacity:ideaBusy?0.6:1}}>{ideaBusy?L("Analyse…","Analyzing…"):L("Forger","Forge")}</button>
             <button onClick={randomBand} title={L("Groupe au hasard","Random band")} aria-label={L("Groupe au hasard","Random band")} style={{height:"58px",width:"58px",background:"rgba(22,24,28,0.86)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:"14px",fontSize:"1.4rem",cursor:"pointer"}}>🎲</button>
           </div>
@@ -2033,7 +2033,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {styleTxt&&<button onClick={()=>setTab("output")} style={{display:"block",margin:"-30px auto 18px",background:"none",border:"none",padding:0,color:"#FFB36B",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{L("Voir la dernière sortie →","See the last output →")}</button>}
         </div>
         {!adjustOpen&&!ideaInput&&<div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"7px",margin:"-4px 0 18px"}}>
-          {["Gojira","Slipknot","Despised Icon","Mayhem","Gojira + Meshuggah"].map(x=>(
+          {["Lamb of God","Slipknot","Despised Icon","Mayhem","Emperor + Dark Tranquillity"].map(x=>(
             <button key={x} onClick={()=>setIdeaInput(x)} style={{...CHIP,borderRadius:"8px"}}>{x}</button>))}
         </div>}
         <div style={{textAlign:"center",fontSize:"0.72rem",color:"#9CA3AF",margin:"-8px 0 16px",lineHeight:1.5}}><span style={{color:"#FF6A2B",fontWeight:700}}>{L("Inspiré, jamais copié.","Influenced, never copied.")}</span> {L("Aucun nom d'artiste, aucune mélodie ni parole existante dans tes prompts.","No artist names, melodies or existing lyrics ever end up in your prompts.")}</div>
@@ -2532,8 +2532,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={S.ctitle}>{L("1 · Forger ton prompt","1 · Forge your prompt")}</div>
           {[
             L("Crée ton compte (gratuit). C'est tout ce qu'il faut pour forger.","Create your account (free). That's all you need to forge."),
-            L("Dans la boîte d'accueil, tape un groupe (« Gojira »), une année (« 1993 »), un genre ou une description (« doom lent avec orgue »). 2 000+ groupes et 151 sous-genres sont déjà reconnus.","In the home box, type a band (\"Gojira\"), a year (\"1993\"), a genre or a description (\"slow doom with organ\"). 2,000+ bands and 151 sub-genres are already known."),
-            L("Mixe des groupes avec « + » ou « x » (« Gojira + Meshuggah ») : chaque groupe est analysé, puis leurs styles sont combinés dans un seul prompt. Essaie des mix que personne a jamais entendus.","Mix bands with \"+\" or \"x\" (\"Gojira + Meshuggah\"): each band is analyzed, then their styles are blended into one prompt. Try mixes nobody has ever heard."),
+            L("Dans la boîte d'accueil, tape un groupe (« Lamb of God »), une année (« 1993 »), un genre ou une description (« doom lent avec orgue »). 2 000+ groupes et 151 sous-genres sont déjà reconnus.","In the home box, type a band (\"Gojira\"), a year (\"1993\"), a genre or a description (\"slow doom with organ\"). 2,000+ bands and 151 sub-genres are already known."),
+            L("Mixe des groupes avec « + » ou « x » (« Emperor + Dark Tranquillity ») : chaque groupe est analysé, puis leurs styles sont combinés dans un seul prompt. Essaie des mix que personne a jamais entendus.","Mix bands with \"+\" or \"x\" (\"Gojira + Meshuggah\"): each band is analyzed, then their styles are blended into one prompt. Try mixes nobody has ever heard."),
             L("Clique sur Forger. Les réglages (BPM, accordage, batterie, voix, exclusions) se calibrent tout seuls.","Hit Forge. The settings (BPM, tuning, drums, vocals, exclusions) calibrate themselves."),
             L("Tu veux le contrôle fin ? Ouvre « Ajuster » : genre, batterie, voix, guitare, structure et exclude.","Want fine control? Open \"Adjust\": genre, drums, vocals, guitar, structure and exclude."),
             L("Tes 3 prompts t'attendent dans la sortie (« Voir la dernière sortie »).","Your 3 prompts are waiting in the output (\"See the last output\")."),

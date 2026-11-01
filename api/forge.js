@@ -136,9 +136,12 @@ export default function handler(req, res) {
   // VARIÉTÉ DES TEMPS (2026-10-31) : sans temps choisi à la main, on en pige un qui fitte le style.
   // Styles prog/math : 2-3 temps de leur séquence, dans un ordre pigé. Autres : 4/4 la plupart du temps, parfois un temps impair.
   const _rnd = a => a[Math.floor(Math.random() * a.length)];
-  const _seqBase = (!meters.length && _sidEarly && METER_SEQ[_sidEarly]) ? METER_SEQ[_sidEarly] : null;
+  // MODE GROUPE (2026-11-01) : un groupe (reverse/cache) donne sa signature → le prompt suit le groupe,
+  // pas le profil générique du sous-genre (Gojira 2008 sortait en 7/4 flottant, legato, shred, « melodic and atmospheric »).
+  const _bandMode = A('signature').filter(x => String(x).trim()).length >= 2;
+  const _seqBase = (!_bandMode && !meters.length && _sidEarly && METER_SEQ[_sidEarly]) ? METER_SEQ[_sidEarly] : null;
   let _autoSeq = _seqBase ? [..._seqBase].sort(() => Math.random() - 0.5).slice(0, 2 + (Math.random() < 0.5 ? 1 : 0)) : null;
-  if (!meters.length && !_autoSeq && !b.meterLocked) {
+  if (!_bandMode && !meters.length && !_autoSeq && !b.meterLocked) {
     const _pool = /doom|sludge|stoner|drone|funeral/.test(_gtxtEarly) ? ['6/8','12/8','3/4']
                 : /death|black|grind|thrash|brutal|slam/.test(_gtxtEarly) ? ['7/4','5/4','6/8','7/8']
                 : /core|hardcore|djent|prog|math/.test(_gtxtEarly) ? ['7/8','5/4','6/8']
@@ -152,7 +155,7 @@ export default function handler(req, res) {
                   : '';
   const meterAuto = !!_autoSeq;
   // Défense en profondeur : le client peut renvoyer une signature d'une session précédente.
-  let signature = cleanDescriptors(A('signature').map(x => String(x).trim())).slice(0, 4);
+  let signature = cleanDescriptors(A('signature').map(x => String(x).trim())).slice(0, 5);
   // ── SIGNATURES PAR SOUS-GENRE ──
   // Calibrées sur ce que font réellement les groupes de référence de chaque style, mais écrites
   // en pure description sonore : AUCUN nom de groupe ne sort jamais d'ici (règle Suno, et de toute
@@ -309,7 +312,14 @@ export default function handler(req, res) {
   // VARIÉTÉ DU BPM (2026-10-31) : BPM tapé à la main = intouchable; BPM automatique = ±10 %, arrondi à 5.
   const _bpmIn = +b.bpm || 180;
   const _bpmJit = b.bpmManual ? _bpmIn : Math.round(_bpmIn * (0.9 + Math.random() * 0.2) / 5) * 5;
-  const bpm = Math.max(60, Math.min(280, _bpmJit));
+  // Mode groupe : le tempo suit les mots de la signature (« slow crushing half-time grooves » → 85-110), sauf BPM tapé.
+  const _sigTxtB = signature.join(' ').toLowerCase();
+  let _bpmB = _bpmJit;
+  if (_bandMode && !b.bpmManual) {
+    if (/\bslow|half-?time|crawl|plodding|doom|dirge/.test(_sigTxtB)) _bpmB = Math.round((85 + Math.random() * 25) / 5) * 5;
+    else if (/\bfast|blast|frantic|hyper|thrash|d-?beat/.test(_sigTxtB)) _bpmB = Math.max(_bpmJit, 160);
+  }
+  const bpm = Math.max(60, Math.min(280, _bpmB));
   const lang = b.lang || 'en';
   const L = (fr, en) => lang === 'fr' ? fr : en;
 
@@ -497,7 +507,7 @@ export default function handler(req, res) {
   const _lc = x => String(x).toLowerCase();
   const _gl = dedup(genresSafe.map(x => String(x).trim())).filter(Boolean);
   const genreClause = _gl.length >= 2 ? _gl.slice(0, 3).join(', ')   // mix à égalité (oct. 2026) : « -influenced » rendait le 2e genre secondaire, v6 ne mixait plus
-                    : blendAuto.length ? (_gl[0] || 'metal') + ' with ' + _joinMeters(blendAuto) + ' inflections'
+                    : (blendAuto.length && !_bandMode) ? (_gl[0] || 'metal') + ' with ' + _joinMeters(blendAuto) + ' inflections'
                     : (_gl[0] || 'metal');
 
   const _hasAtmos = melody >= 6 || structs.some(s => /atmospheric|interlude|intro|clean/.test(s)) || allOrganic.some(o => /acoustic|clean|ambient/.test(_lc(o)));
@@ -567,7 +577,16 @@ export default function handler(req, res) {
   // On ne touche jamais au genre, à la voix ni au BPM choisis : seulement l'ordre/le choix parmi les options déjà retenues.
   const _shuf = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const _one = arr => arr.length ? [arr[Math.floor(Math.random() * arr.length)]] : [];
-  const PRIORITY = [
+  // Mode groupe = format court validé (Florida death 1996, 2026-10-31) : genre, voix, année, BPM, ancrages du groupe. Rien du profil générique.
+  const PRIORITY = _bandMode ? [
+    meters.length ? meterLead : '',   // une mesure choisie à la main reste
+    genreClause,
+    ...(_sigVox.length ? _sigVox.slice(0, 1) : harshVox ? vocals.slice(0, 1) : vocals.slice(0, 1)),
+    eraTag,
+    bpmTag,
+    ..._shuf(_sigRest),               // TOUS les ancrages du groupe, ordre pigé
+    _sigTun ? '' : _tunP,
+  ].filter(x => x && String(x).trim()) : [
     meterLead,                       // 1. identité rythmique
     genreClause,                     // 2. genre + influences historiques
     ...(_sigVox.length ? _sigVox.slice(0, 1) : harshVox ? vocals.slice(0, 1) : []),   // 3. voix (celle du groupe d'abord) — tôt, sinon v6 rate les gutturaux (test 2026-10-31)

@@ -139,7 +139,7 @@ export default async function handler(req, res) {
     const _bl = band.toLowerCase();
     return res.status(200).json({
       genre: hit.genre, flavor: hit.flavor || '',
-      signature: cleanDescriptors((hit.signature || []).map(String), [_bl]).slice(0, 4),
+      signature: cleanDescriptors((hit.signature || []).map(String), [_bl]).slice(0, 5),
       years: BAND_YEARS[normBand(band)] || [],
       label: hit.genre, confidence: hit.confidence, source: 'cache', era: hit.era || '',
       genres: [hit.genre, hit.flavor].filter(Boolean), matched: !!GENRE_PROFILES[hit.genre],

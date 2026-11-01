@@ -1480,6 +1480,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [ideaBusy,setIdeaBusy]=useState(false);
   const [ideaMsg,setIdeaMsg]=useState(null);            // {ok, text}
   const [eraPick,setEraPick]=useState("");              // "" = époque déduite du genre
+  const [bpmManual,setBpmManual]=useState(false);       // BPM tapé à la main = pas de variation aléatoire
   const [exactYear,setExactYear]=useState("");          // année tapée (« 1996 ») → « 1996 production »
   const [bandYears,setBandYears]=useState([]);          // années d'albums du groupe (reverse) → une pigée au hasard à chaque forge
   const [pendingForge,setPendingForge]=useState(false); // forge au prochain rendu, une fois la détection appliquée
@@ -1632,7 +1633,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
     setIdeaBusy(true);setIdeaMsg(null);
     try{
       const {era,rest,year}=parseEra(raw);
-      if(era||rest){setEraPick(era);setExactYear(year||"");}   // nouvelle idée sans année = époque remise en auto ; année seule = on garde le genre
+      if(era||rest){setEraPick(era);setExactYear(year||"");setBpmManual(false);}   // nouvelle idée sans année = époque remise en auto ; année seule = on garde le genre
       if(!rest){   // une année seule
         if(genres.size){setLastIdea(raw);setIdeaMsg({ok:true,text:L("Époque : ","Era: ")+era});setPendingForge(true);}
         else setIdeaMsg({ok:false,text:L("Époque réglée sur ","Era set to ")+era+L(". Ajoute un genre ou un groupe.",". Add a genre or a band.")});
@@ -1792,7 +1793,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       structs:autoStructs,blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions:{},tier:userTier,   // émotions retirées de l'interface (oct. 2026) : plus rien d'invisible ne teinte le prompt
       eras:eraPick?[eraPick]:[...new Set([...genres].map(g=>(GENRE_FAMILIES.find(f=>f.genres.some(x=>x.g===g))||{}).nameEn).filter(Boolean))],   // ordre = genre principal d'abord   // couche Époque → /api/forge
       signature,   // anchors sonores du reverse (vides si pas de reverse)
-      year:exactYear||null, years:bandYears, eraLocked:!!eraPick,   // année précise : tapée, sinon pigée parmi les albums du groupe (côté serveur)
+      year:exactYear||null, years:bandYears, eraLocked:!!eraPick, bpmManual,   // année précise : tapée, sinon pigée parmi les albums du groupe (côté serveur)
       audioSrc,    // source audio : rien / Cover / amorce (riff, mélodie, beatbox)
     };
     let data;
@@ -2065,7 +2066,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
             <div>
               <label htmlFor="mpf-bpm" style={FL}>Tempo (BPM)</label>
-              <input id="mpf-bpm" type="number" min="60" max="280" value={bpm} onChange={e=>setBpmVal(+e.target.value||0)} onBlur={e=>setBPM(+e.target.value||180)} style={FC}/>
+              <input id="mpf-bpm" type="number" min="60" max="280" value={bpm} onChange={e=>{setBpmVal(+e.target.value||0);setBpmManual(true);}} onBlur={e=>setBPM(+e.target.value||180)} style={FC}/>
             </div>
             <div>
               <label htmlFor="mpf-tuning" style={FL}>{L("Accordage","Tuning")}{tuning.size?"":" · auto"}</label>

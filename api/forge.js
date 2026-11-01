@@ -133,7 +133,18 @@ export default function handler(req, res) {
   };
   const _gtxtEarly = genres.map(x => String(x).toLowerCase()).join(' ');
   const _sidEarly = (STYLE_ID_MAP.find(([re]) => re.test(_gtxtEarly)) || [])[1];
-  const _autoSeq = (!meters.length && _sidEarly && METER_SEQ[_sidEarly]) ? METER_SEQ[_sidEarly] : null;
+  // VARIÉTÉ DES TEMPS (2026-10-31) : sans temps choisi à la main, on en pige un qui fitte le style.
+  // Styles prog/math : 2-3 temps de leur séquence, dans un ordre pigé. Autres : 4/4 la plupart du temps, parfois un temps impair.
+  const _rnd = a => a[Math.floor(Math.random() * a.length)];
+  const _seqBase = (!meters.length && _sidEarly && METER_SEQ[_sidEarly]) ? METER_SEQ[_sidEarly] : null;
+  let _autoSeq = _seqBase ? [..._seqBase].sort(() => Math.random() - 0.5).slice(0, 2 + (Math.random() < 0.5 ? 1 : 0)) : null;
+  if (!meters.length && !_autoSeq && !b.meterLocked) {
+    const _pool = /doom|sludge|stoner|drone|funeral/.test(_gtxtEarly) ? ['6/8','12/8','3/4']
+                : /death|black|grind|thrash|brutal|slam/.test(_gtxtEarly) ? ['7/4','5/4','6/8','7/8']
+                : /core|hardcore|djent|prog|math/.test(_gtxtEarly) ? ['7/8','5/4','6/8']
+                : ['6/8','3/4','12/8'];
+    if (Math.random() < 0.3) _autoSeq = [_rnd(_pool)];   // ~1 forge sur 3 sort un temps impair; sinon 4/4 implicite
+  }
   const _mList = meters.length ? meters : (_autoSeq || []);
   // Formulation calquée sur la réécriture de Suno lui-même : « in alternating 7/8 (2+2+3) and 5/4 (3+2) »
   const meterLead = _mList.length >= 2 ? 'in alternating ' + _joinMeters(_mList.map(m => METERS[m]).filter(Boolean))
@@ -295,7 +306,10 @@ export default function handler(req, res) {
   // BUG : « +b.x || 5 » traitait 0 comme absent — un curseur mis à 0 repartait à 5 (le milieu).
   const _slider = v => { const n = Number(v); return Number.isFinite(n) ? Math.max(0, Math.min(10, n)) : 5; };
   const heavy = _slider(b.heavy), groove = _slider(b.groove), chaos = _slider(b.chaos), melody = _slider(b.melody);
-  const bpm = Math.max(60, Math.min(280, +b.bpm || 180));
+  // VARIÉTÉ DU BPM (2026-10-31) : BPM tapé à la main = intouchable; BPM automatique = ±10 %, arrondi à 5.
+  const _bpmIn = +b.bpm || 180;
+  const _bpmJit = b.bpmManual ? _bpmIn : Math.round(_bpmIn * (0.9 + Math.random() * 0.2) / 5) * 5;
+  const bpm = Math.max(60, Math.min(280, _bpmJit));
   const lang = b.lang || 'en';
   const L = (fr, en) => lang === 'fr' ? fr : en;
 
@@ -835,5 +849,5 @@ export default function handler(req, res) {
   // magique du champ Styles ; son effet sur la réécriture de Variety n'est PAS vérifié.
   const tasteStr = "Extreme and underground metal above all: death, black, doom, thrash, progressive, sludge, hardcore and their fusions. Dark, heavy, intense moods; never glossy or radio-friendly.\n\nSound: a real band tracked live in a room. Natural untriggered acoustic drums with room mic bleed and human velocity, kick and snare that pound instead of click. Guitars from cranked tube amps through a mic'd 4x12 cabinet: thick mid-range bite, pick attack, fret buzz, low tunings that crush rather than sparkle. Overdriven bass locked to the kick, audible and gritty. Vocals placed in front of the band, dry and close-miked, harsh or clean as the song asks.\n\nMix: dry, dynamic, analog. Tape saturation, console warmth, wide room mics, no brickwall limiting, no pitch correction, no quantized perfection.\n\nWriting: riff-driven songs with tempo changes, breakdowns and dynamics rather than verse-chorus pop structure. Minor, phrygian and diminished colors.\n\nAvoid: pop, EDM, trap, synthwave textures, autotune, bright polished guitars, programmed-sounding drums, glossy modern radio production, electronic sheen unless explicitly requested.";
 
-  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, tasteStr, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, critic, blendAuto, meterLead, meterAuto, coverStr, extendStr, editStr, editPrompts, sliderRec, timeSig, modelRec, phonetic, rhythmStructTags, year: pickedYear });
+  return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, tasteStr, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, critic, blendAuto, meterLead, meterAuto, coverStr, extendStr, editStr, editPrompts, sliderRec, timeSig, modelRec, phonetic, rhythmStructTags, year: pickedYear, bpm, meters: _mList });
 }

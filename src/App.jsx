@@ -1483,6 +1483,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [bpmManual,setBpmManual]=useState(false);       // BPM tapé à la main = pas de variation aléatoire
   const [exactYear,setExactYear]=useState("");          // année tapée (« 1996 ») → « 1996 production »
   const [bandYears,setBandYears]=useState([]);          // années d'albums du groupe (reverse) → une pigée au hasard à chaque forge
+  const [bandScene,setBandScene]=useState(null);       // scène régionale du groupe (ex. florida death metal) + années où elle s'applique
   const [pendingForge,setPendingForge]=useState(false); // forge au prochain rendu, une fois la détection appliquée
   const [finsOpen,setFinsOpen]=useState(false);
   const [adjustOpen,setAdjustOpen]=useState(false);
@@ -1611,7 +1612,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(!genres.has(d.genre))tGenre(d.genre);   // ajoute le sous-genre comme tag
       if(d.flavor&&!genres.has(d.flavor))tGenre(d.flavor);   // 2e genre = couleur (fusion « flavor-influenced » côté forge)
       setSignature(Array.isArray(d.signature)?d.signature:[]);
-      setBandYears(Array.isArray(d.years)?d.years:[]);
+      setBandYears(Array.isArray(d.years)?d.years:[]);setBandScene(d.scene||null);
       const _prof=await autoFillGenre(d.genre,{seedEmo:true});  // applique BPM/drums/voix/sliders + base d'emotions selon le style reel
       const _ta=seedThemesFromMood((_prof&&_prof.mood)||[]);   // + thème principal & atmosphère (paroles) selon le style
       if(_ta){ setThemes(_ta.themes); setLatmo(_ta.atmo); }
@@ -1644,7 +1645,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       const known=parts.map(findGenre);
       if(parts.length&&parts.length<=3&&known.every(Boolean)){
         const pick=[...new Set(known.map(x=>x.g))].slice(0,2);
-        setGenres(pick);setSignature([]);setBandYears([]);
+        setGenres(pick);setSignature([]);setBandYears([]);setBandScene(null);
         await autoFillGenre(pick[0]);
         setLastIdea(raw);
         setIdeaMsg({ok:true,text:pick.join(" + ")+(era?" · "+era:"")});
@@ -1661,7 +1662,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
           setGenres(gs);
           if(!era&&ds[0].era)setEraPick(ds[0].era);   // époque du groupe (cache)
           setSignature([...new Set(ds.flatMap(x=>(Array.isArray(x.signature)?x.signature:[]).slice(0,2)))].slice(0,4));
-          setBandYears([...new Set(ds.flatMap(x=>Array.isArray(x.years)?x.years:[]))]);
+          setBandYears([...new Set(ds.flatMap(x=>Array.isArray(x.years)?x.years:[]))]);setBandScene(null);
           const _prof=await autoFillGenre(gs[0]);
           const _ta=seedThemesFromMood((_prof&&_prof.mood)||[]);
           if(_ta){setThemes(_ta.themes);setLatmo(_ta.atmo);}
@@ -1679,7 +1680,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       setGenres([d.genre,d.flavor].filter(Boolean));
       if(!era&&d.era)setEraPick(d.era);   // époque du groupe (cache) : Gojira = 2000s, pas l'époque du prog
       setSignature(Array.isArray(d.signature)?d.signature:[]);
-      setBandYears(Array.isArray(d.years)?d.years:[]);
+      setBandYears(Array.isArray(d.years)?d.years:[]);setBandScene(d.scene||null);
       const _prof=await autoFillGenre(d.genre);
       const _ta=seedThemesFromMood((_prof&&_prof.mood)||[]);   // thème + atmosphère des paroles selon le style
       if(_ta){setThemes(_ta.themes);setLatmo(_ta.atmo);}
@@ -1793,7 +1794,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       structs:autoStructs,blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions:{},tier:userTier,   // émotions retirées de l'interface (oct. 2026) : plus rien d'invisible ne teinte le prompt
       eras:eraPick?[eraPick]:[...new Set([...genres].map(g=>(GENRE_FAMILIES.find(f=>f.genres.some(x=>x.g===g))||{}).nameEn).filter(Boolean))],   // ordre = genre principal d'abord   // couche Époque → /api/forge
       signature,   // anchors sonores du reverse (vides si pas de reverse)
-      year:exactYear||null, years:bandYears, eraLocked:!!eraPick, bpmManual,   // année précise : tapée, sinon pigée parmi les albums du groupe (côté serveur)
+      year:exactYear||null, years:bandYears, scene:bandScene, eraLocked:!!eraPick, bpmManual,   // année précise : tapée, sinon pigée parmi les albums du groupe (côté serveur)
       audioSrc,    // source audio : rien / Cover / amorce (riff, mélodie, beatbox)
     };
     let data;

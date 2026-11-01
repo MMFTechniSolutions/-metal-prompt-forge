@@ -506,9 +506,15 @@ export default function handler(req, res) {
   // Genre-fusion ; dynamiques/structure ; voix ; instruments/riffs ; accordage+tonalités ; mood+émotions ; tempo/changements
   const _lc = x => String(x).toLowerCase();
   const _gl = dedup(genresSafe.map(x => String(x).trim())).filter(Boolean);
-  const genreClause = _gl.length >= 2 ? _gl.slice(0, 3).join(', ')   // mix à égalité (oct. 2026) : « -influenced » rendait le 2e genre secondaire, v6 ne mixait plus
+  let genreClause = _gl.length >= 2 ? _gl.slice(0, 3).join(', ')   // mix à égalité (oct. 2026) : « -influenced » rendait le 2e genre secondaire, v6 ne mixait plus
                     : (blendAuto.length && !_bandMode) ? (_gl[0] || 'metal') + ' with ' + _joinMeters(blendAuto) + ' inflections'
                     : (_gl[0] || 'metal');
+  // SCÈNE SELON L'ÉPOQUE (2026-11-01) : Deicide 1992 → « florida death metal », Deicide 2018 → « death metal ».
+  // Mode groupe seulement; la scène remplace le 1er genre si l'année pigée tombe dans sa fenêtre (ou si aucune année).
+  const _sc = (b.scene && typeof b.scene === 'object') ? b.scene : null;
+  const _scLabel = _sc ? String(_sc.label || '').toLowerCase().replace(/[^a-z0-9 -]/g, '').trim().slice(0, 40) : '';
+  const _scIn = _sc && (!pickedYear || ((!_sc.from || pickedYear >= Number(_sc.from)) && (!_sc.to || pickedYear <= Number(_sc.to))));
+  if (_bandMode && _scLabel && _scIn) genreClause = genreClause.startsWith(_gl[0] || 'metal') ? _scLabel + genreClause.slice((_gl[0] || 'metal').length) : _scLabel + ', ' + genreClause;
 
   const _hasAtmos = melody >= 6 || structs.some(s => /atmospheric|interlude|intro|clean/.test(s)) || allOrganic.some(o => /acoustic|clean|ambient/.test(_lc(o)));
   const _hasHeavy = heavy >= 6 || drums.some(d => /blast|double/.test(_lc(d))) || structs.some(s => /breakdown|blast|drop|halftime/.test(s));

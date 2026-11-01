@@ -142,6 +142,7 @@ export default async function handler(req, res) {
       signature: cleanDescriptors((hit.signature || []).map(String), [_bl]).slice(0, 5),
       years: BAND_YEARS[normBand(band)] || [],
       label: hit.genre, confidence: hit.confidence, source: 'cache', era: hit.era || '',
+      scene: hit.scene ? { label: hit.scene, from: hit.scene_from || null, to: hit.scene_to || null } : null,   // scène régionale selon l'époque (2026-11-01)
       genres: [hit.genre, hit.flavor].filter(Boolean), matched: !!GENRE_PROFILES[hit.genre],
     });
   }

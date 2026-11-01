@@ -1220,27 +1220,25 @@ function Manifesto({onClose,uiLang}){
 function WhatsNew({onClose,uiLang}){
   const fr=uiLang!=="en";
   const items = fr ? [
-    ["🔍 Tape ton band, c'est tout","L'accueil, c'est maintenant une seule boîte : un groupe, une année, un genre ou une description, puis Forger. Tous les réglages sont rangés sous « Ajuster » pour ceux qui veulent jouer dedans."],
-    ["🤝 Mixe tes groupes","« Emperor + Dark Tranquillity », « Despised Icon x Slipknot » : chaque groupe est analysé, puis leurs styles sont combinés dans un seul prompt."],
-    ["⚡ 2 000+ groupes reconnus d'avance","Les groupes les plus cherchés sont déjà analysés : réponse instantanée, et toujours le même résultat pour le même groupe."],
-    ["🎯 Détection plus juste","Nouveau moteur de classement : le bon sous-genre beaucoup plus souvent, et quand il ne connaît pas un groupe, il le dit au lieu d'inventer."],
-    ["🎛️ 151 sous-genres avec leur vrai son","Chaque sous-genre a maintenant son propre profil (tempo, accordage, batterie, voix, exclusions) au lieu d'un réglage générique."],
-    ["🧹 Prompts plus propres","Plus de mots hors-sujet (flamenco, jazzy…) dans un prompt metal, cris plus naturels à la place des pig squeals, bonne époque selon ton genre principal, Pre-Chorus toujours avant le Chorus."],
-    ["🎲 Rappel","Suno est aléatoire par design : génère 2-3 fois le même prompt avant de conclure."],
+    ["🔥 La meilleure façon de composer","L'outil Suno metal ultime : tape un groupe, forge ton prompt, puis bâtis ta toune avec Mélodie, Riff et Beat. De l'idée à Suno, au même endroit."],
+    ["🎸 Le Studio a de vrais sons","Fini le son synthétique : une vraie guitare électrique enregistrée, passée dans un ampli high gain, et une vraie batterie enregistrée (5 forces de frappe par pièce). Dans Riff, Beat et Mélodie, à l'écoute comme dans l'export WAV."],
+    ["🥁 3 outils, un seul Studio","Mélodie (avec sa partition) · Riff (guitare + basse rythmiques, avec la tablature complète) · Beat (batterie seule, avec la partition de batterie)."],
+    ["🤘 T'es seul pour jouer?","Lance un Beat et joue par-dessus pour pratiquer, ou apprends un Riff avec sa tab. MetalPrompt t'aide à composer et à pratiquer."],
+    ["🎯 Les groupes sonnent comme eux","Le prompt suit maintenant la signature du groupe (sa voix, son tempo, son époque) au lieu d'un profil générique. Korn chuchote puis explose, Gojira écrase lentement."],
+    ["🔧 Export WAV réparé","Le faux « crescendo » au début des exports Riff est réglé : le son est stable du début à la fin, prêt pour Suno."],
   ] : [
-    ["🔍 Type your band, that's it","The home screen is now a single box: a band, a year, a genre or a description, then Forge. Every setting lives under \"Adjust\" for those who want to dig in."],
-    ["🤝 Mix your bands","\"Emperor + Dark Tranquillity\", \"Despised Icon x Slipknot\": each band is analyzed, then their styles are blended into one prompt."],
-    ["⚡ 2,000+ bands known in advance","The most searched bands are pre-analyzed: instant answer, and always the same result for the same band."],
-    ["🎯 Sharper detection","New classification engine: the right sub-genre far more often, and when it doesn't know a band it says so instead of guessing."],
-    ["🎛️ 151 sub-genres with their real sound","Every sub-genre now has its own profile (tempo, tuning, drums, vocals, exclusions) instead of a generic default."],
-    ["🧹 Cleaner prompts","No more off-topic words (flamenco, jazzy…) in a metal prompt, more natural screams instead of pig squeals, the right era for your main genre, Pre-Chorus always before the Chorus."],
-    ["🎲 Reminder","Suno is random by design: run the same prompt 2-3 times before judging."],
+    ["🔥 The best way to write","The ultimate Suno metal tool: type a band, forge your prompt, then build your song with Melody, Riff and Beat. From idea to Suno, in one place."],
+    ["🎸 The Studio has real sounds","No more synthetic tone: a real recorded electric guitar through a high-gain amp, and a real recorded drum kit (5 velocity layers per piece). In Riff, Beat and Melody, both playback and WAV export."],
+    ["🥁 3 tools, one Studio","Melody (with sheet music) · Riff (rhythm guitar + bass, with the full tab) · Beat (drums only, with a drum score)."],
+    ["🤘 Playing alone?","Start a Beat and play over it to practice, or learn a Riff from its tab. MetalPrompt helps you write and practice."],
+    ["🎯 Bands sound like themselves","The prompt now follows the band's signature (its voice, tempo and era) instead of a generic profile. Korn whispers then explodes, Gojira crushes slowly."],
+    ["🔧 WAV export fixed","The fake \"crescendo\" at the start of Riff exports is gone: steady level from start to finish, ready for Suno."],
   ];
   return (
     <div style={{position:"fixed",inset:0,background:"#000000ee",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",overflowY:"auto"}}>
       <div style={{maxWidth:"580px",width:"100%",background:"linear-gradient(180deg,#120000,#0a0a0b)",border:"1px solid #5a0000",borderRadius:"14px",padding:"28px 24px",boxShadow:"0 0 50px #000",margin:"auto"}}>
         <div style={{textAlign:"center",fontFamily:"'Geist',sans-serif",fontSize:"0.72rem",letterSpacing:"4px",color:RED,marginBottom:"6px"}}>{fr?"NOUVEAUTÉS":"WHAT'S NEW"}</div>
-        <div className="forge-title" style={{textAlign:"center",fontSize:"1.6rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"Version 3.1 — tape ton band 🤘":"Version 3.1 — just type your band 🤘"}</div>
+        <div className="forge-title" style={{textAlign:"center",fontSize:"1.6rem",color:"#fff",lineHeight:1.15,marginBottom:"16px"}}>{fr?"T'as pas de band? 🤘":"No band? 🤘"}</div>
         <div style={{display:"flex",flexDirection:"column",gap:"9px",marginBottom:"20px"}}>
           {items.map((p,i)=>(<div key={i} style={{background:"#0d0000",border:"1px solid #2a1208",borderRadius:"8px",padding:"10px 12px"}}>
             <div style={{color:"#FFB36B",fontWeight:800,fontSize:"0.8rem"}}>{p[0]}</div>
@@ -1562,8 +1560,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [emotions,setEmotions]=useState(SV.emotions ?? {});
   const [advanced,setAdvanced]=useState(false);
   const [showManifesto,setShowManifesto]=useState(false);
-  useEffect(()=>{try{if(!localStorage.getItem('mpf_news_202610_v31')){setShowManifesto(true);localStorage.setItem('mp_manifesto_seen','1');}}catch(e){}},[]);
-  const closeManifesto=()=>{try{localStorage.setItem('mpf_news_202610_v31','1');}catch(e){}setShowManifesto(false);};
+  useEffect(()=>{try{if(!localStorage.getItem('mpf_news_202611_v32')){setShowManifesto(true);localStorage.setItem('mp_manifesto_seen','1');}}catch(e){}},[]);
+  const closeManifesto=()=>{try{localStorage.setItem('mpf_news_202611_v32','1');}catch(e){}setShowManifesto(false);};
   const [groove,setGroove]=useState(SV.groove ?? 6);
   const [chaos,setChaos]=useState(SV.chaos ?? 7);
   const [melody,setMelody]=useState(SV.melody ?? 3);
@@ -1993,7 +1991,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       <div style={{borderRadius:"18px",border:"1px solid rgba(255,255,255,.08)",overflow:"hidden",background:"#0C0D0F"}}>
         <iframe key={kind} src={d.src()} title={d.title} allow="autoplay" style={{width:"100%",height:"84vh",minHeight:"640px",border:"none",display:"block",background:"#0C0D0F"}}/>
       </div>
-      <div style={{textAlign:"center",color:"#9196A0",fontSize:"0.78rem",margin:"16px 0 0"}}>{L("T'es seul pour jouer? MetalPrompt t'aide à composer et à pratiquer.","Playing alone? MetalPrompt helps you write and practice.")}</div>
+      <div style={{textAlign:"center",color:"#9196A0",fontSize:"0.78rem",margin:"16px 0 0"}}>{L("T'as pas de band? Voici la meilleure façon de composer. L'outil Suno metal ultime.","No band? Here's the best way to write. The ultimate Suno metal tool.")}</div>
       <div style={{height:80}}/>
     </div>);};
 
@@ -2063,14 +2061,16 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {bandSugs.length>0&&<div role="listbox" style={{display:"flex",flexWrap:"wrap",gap:"6px",marginTop:"8px"}}>
             {bandSugs.map(b=>(<button key={b} role="option" onMouseDown={e=>e.preventDefault()} onClick={()=>pickSug(b)} style={{...CHIP,borderRadius:"8px",borderColor:"#5a2a14",color:"#FFD2B8"}}>{b}</button>))}
           </div>}
-          {ideaMsg&&<div role="status" style={{fontSize:"0.74rem",marginTop:"9px",lineHeight:1.5,color:ideaMsg.ok?"#7bd88f":"#e6b08a"}}>{ideaMsg.ok?"✓ ":""}{ideaMsg.text}</div>}
-          {styleTxt&&<button onClick={()=>setTab("output")} style={{display:"block",margin:"-30px auto 18px",background:"none",border:"none",padding:0,color:"#FFB36B",fontSize:"0.74rem",fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>{L("Voir la dernière sortie →","See the last output →")}</button>}
+          {(ideaMsg||styleTxt)&&<div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",alignItems:"center",gap:"10px",margin:"-34px 0 22px"}}>   {/* statut centré, sur une ligne (nov. 2026 : avant, les deux textes se chevauchaient) */}
+            {ideaMsg&&<span role="status" style={{fontSize:"0.78rem",lineHeight:1.4,padding:"7px 14px",borderRadius:"999px",background:ideaMsg.ok?"rgba(123,216,143,0.10)":"rgba(230,176,138,0.10)",border:"1px solid "+(ideaMsg.ok?"rgba(123,216,143,0.35)":"rgba(230,176,138,0.35)"),color:ideaMsg.ok?"#9be3ab":"#f0c4a2"}}>{ideaMsg.ok?"✓ ":""}{ideaMsg.text}</span>}
+            {styleTxt&&<button onClick={()=>setTab("output")} style={{padding:"7px 14px",borderRadius:"999px",background:"rgba(255,106,43,0.10)",border:"1px solid rgba(255,106,43,0.45)",color:"#FFB36B",fontSize:"0.78rem",fontWeight:600,cursor:"pointer"}}>{L("Voir la dernière sortie →","See the last output →")}</button>}
+          </div>}
         </div>
         {!adjustOpen&&!ideaInput&&<div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"7px",margin:"-4px 0 18px"}}>
           {["Lamb of God","Slipknot","Despised Icon","Mayhem","Emperor + Dark Tranquillity"].map(x=>(
             <button key={x} onClick={()=>setIdeaInput(x)} style={{...CHIP,borderRadius:"8px"}}>{x}</button>))}
         </div>}
-        <div style={{textAlign:"center",fontSize:"0.72rem",color:"#9CA3AF",margin:"-8px 0 16px",lineHeight:1.5}}><span style={{color:"#FF6A2B",fontWeight:700}}>{L("Inspiré, jamais copié.","Influenced, never copied.")}</span> {L("Aucun nom d'artiste, aucune mélodie ni parole existante dans tes prompts.","No artist names, melodies or existing lyrics ever end up in your prompts.")}</div>
+        <div style={{textAlign:"center",fontSize:"0.74rem",color:"#9CA3AF",margin:"4px auto 20px",lineHeight:1.6,maxWidth:"60ch"}}><span style={{color:"#FF6A2B",fontWeight:700}}>{L("Inspiré, jamais copié.","Influenced, never copied.")}</span> {L("Aucun nom d'artiste, aucune mélodie ni parole existante dans tes prompts.","No artist names, melodies or existing lyrics ever end up in your prompts.")}</div>
         <button onClick={()=>setAdjustOpen(o=>!o)} aria-expanded={adjustOpen} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",minHeight:"48px",background:"#111",border:"1px solid #262626",borderRadius:"10px",padding:"0 14px",cursor:"pointer",textAlign:"left",marginBottom:"14px"}}>
           <span><span style={{fontSize:"0.86rem",fontWeight:800,color:"#e6e6e6"}}>{L("Ajuster","Adjust")}</span>
           <span style={{fontSize:"0.68rem",color:"#aaa",marginLeft:"8px"}}>{genres.size?[...genres].join(" + ")+" · "+bpm+" BPM":L("genre, époque, tempo, accordage, réglages fins","genre, era, tempo, tuning, fine tuning")}</span></span>

@@ -103,6 +103,7 @@ body.embed main{padding-top:14px;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
 <script src="score.js"></script>
+<script src="gtr.js"></script>
 </head>
 <body>
 <header>
@@ -396,7 +397,7 @@ function fillScore(p){
 // Le client n'envoie que des paramètres et reçoit l'arrangement déjà calculé.
 
 let toneReady=false,synth=null,bassSynth=null,drumKit=null,leadSynth=null,leadFilter=null,padSynth=null;
-let drumBuf=null,drumBus=null;
+let drumBuf=null,drumBus=null,gtrOut=null;   // gtrOut : sortie de la guitare metal (MPGtr)
 let importedDrum=null;
 
 // ═══════════════════════════════════════════════════════════════════
@@ -674,6 +675,7 @@ async function initTone(){
   const _dd=genDrumData(_rc.sampleRate);
   drumBuf={kick:toDrumBuf(_rc,_dd.kick),snare:toDrumBuf(_rc,_dd.snare),hihat:toDrumBuf(_rc,_dd.hihat)};
   drumBus=_rc.createGain();drumBus.gain.value=1.15;Tone.connect(drumBus,lim);
+  gtrOut=_rc.createGain();gtrOut.gain.value=1.0;Tone.connect(gtrOut,lim);
   // Sortie des vrais instruments échantillonnés (WebAudioFont) -> limiteur
   leadWafGain=_rc.createGain();leadWafGain.gain.value=1.0;Tone.connect(leadWafGain,lim);
   // Lead (sax / violon / synth / cuivres)
@@ -739,10 +741,15 @@ async function startPlay(p, stem){
   const root=p.root;
   const a=p.arr;
   const makeSeq=(cb)=>new Tone.Sequence(cb,[...Array(a.L).keys()],'16n');
+  const _grc=Tone.getContext().rawContext;
+  if(window.MPGtr&&gtrOut){MPGtr.dispose(window.__gtrRig);window.__gtrRig=MPGtr.rig(_grc,gtrOut,p.dist);}   // guitare metal (corde + ampli + baffle)
   seqs.forEach(s=>{try{s.stop();s.dispose();}catch(e){}});seqs=[];
   seqs.push(makeSeq((t,step)=>{
     hlStep(step%16);
-    if(LY.gtr && a.guit[step]){const semi=p.noteSeq[ni%p.noteSeq.length]+a.trans[step];synth.triggerAttackRelease(semFreq(root,semi),'16n',t,.8);synth.triggerAttackRelease(semFreq(root,semi+7),'16n',t,.45);ni++;}
+    if(LY.gtr && a.guit[step]){const semi=p.noteSeq[ni%p.noteSeq.length]+a.trans[step];
+      if(window.MPGtr&&window.__gtrRig){let n=1;while(n<8&&!a.guit[(step+n)%a.L])n++;MPGtr.play(_grc,window.__gtrRig,Tone.Frequency(root).transpose(semi).toFrequency(),t,(60/p.bpm/4)*n*0.95,n<=2);}   // n<=2 = palm mute (chug), sinon accord qui sonne
+      else{synth.triggerAttackRelease(semFreq(root,semi),'16n',t,.8);synth.triggerAttackRelease(semFreq(root,semi+7),'16n',t,.45);}
+      ni++;}
   }));
   if(LY.bass){
     seqs.push(makeSeq((t,step)=>{if(a.bass[step]){const broot=Tone.Frequency(root).transpose(a.trans[step]-12).toNote();bassSynth.triggerAttackRelease(broot,'16n',t,.65);}}));
@@ -871,6 +878,7 @@ async function renderAndDownload(p, stem){
     return lo;
   };
   const GTR_BUS = _mkGtrEQ(), BASS_BUS = _mkBassEQ();
+  const GTR_RIG = window.MPGtr ? MPGtr.rig(off, master, p.dist) : null;   // guitare metal dans l'export aussi
   const _gtrCurve = makeCurve(Math.min(1,p.dist/100*1.35)), _bassCurve = makeCurve(.55);
   const _od=genDrumData(sr);
   const obuf={kick:toDrumBuf(off,_od.kick),snare:toDrumBuf(off,_od.snare),hihat:toDrumBuf(off,_od.hihat)};
@@ -881,7 +889,11 @@ async function renderAndDownload(p, stem){
     const stepDur=stepDurs[step];                 // durée du pas (varie avec le tempo de la section)
     const i=step%a.L;
 
-    if(LY.gtr && a.guit[i]){
+    if(LY.gtr && a.guit[i] && GTR_RIG){
+      const semi=p.noteSeq[gi%p.noteSeq.length]+a.trans[i];gi++;
+      let n=1,dsum=stepDur;while(n<8&&step+n<totalSteps&&!a.guit[(i+n)%a.L]){dsum+=stepDurs[step+n];n++;}
+      MPGtr.play(off,GTR_RIG,semiHz(rootHz,semi),t,dsum*0.95,n<=2);
+    } else if(LY.gtr && a.guit[i]){
       const semi=p.noteSeq[gi%p.noteSeq.length]+a.trans[i];gi++;
       [0,7].forEach((interval,fi)=>{
         const freq=semiHz(rootHz,semi+interval);

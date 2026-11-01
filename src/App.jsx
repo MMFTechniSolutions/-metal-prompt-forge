@@ -2035,6 +2035,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {["Gojira","Slipknot","Despised Icon","Mayhem","Gojira + Meshuggah"].map(x=>(
             <button key={x} onClick={()=>setIdeaInput(x)} style={{...CHIP,borderRadius:"8px"}}>{x}</button>))}
         </div>}
+        <div style={{textAlign:"center",fontSize:"0.72rem",color:"#9CA3AF",margin:"-8px 0 16px",lineHeight:1.5}}><span style={{color:"#FF6A2B",fontWeight:700}}>{L("Inspiré, jamais copié.","Influenced, never copied.")}</span> {L("Aucun nom d'artiste, aucune mélodie ni parole existante dans tes prompts.","No artist names, melodies or existing lyrics ever end up in your prompts.")}</div>
         <button onClick={()=>setAdjustOpen(o=>!o)} aria-expanded={adjustOpen} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",minHeight:"48px",background:"#111",border:"1px solid #262626",borderRadius:"10px",padding:"0 14px",cursor:"pointer",textAlign:"left",marginBottom:"14px"}}>
           <span><span style={{fontSize:"0.86rem",fontWeight:800,color:"#e6e6e6"}}>{L("Ajuster","Adjust")}</span>
           <span style={{fontSize:"0.68rem",color:"#aaa",marginLeft:"8px"}}>{genres.size?[...genres].join(" + ")+" · "+bpm+" BPM":L("genre, époque, tempo, accordage, réglages fins","genre, era, tempo, tuning, fine tuning")}</span></span>
@@ -2517,6 +2518,12 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </div>
           ))}
           <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Prompting gratuit et illimité avec un compte. L'abonnement débloque Mélodie, Riff et Paroles IA.","Prompting is free and unlimited with an account. The subscription unlocks Melody, Riff and AI Lyrics.")}</div>
+        </div>
+
+        {/* INSPIRÉ, JAMAIS COPIÉ */}
+        <div style={{...S.card,borderColor:"#FF6A2B44"}}>
+          <div style={S.ctitle}>{L("Inspiré, jamais copié","Influenced, never copied")}</div>
+          <div style={{fontSize:"0.78rem",color:"#ccc",lineHeight:1.6}}>{L("MetalPrompt capte l'esprit d'une époque et d'un style, pas la musique d'un groupe. Quand tu tapes un groupe, on traduit son son en traits génériques : sous-genre, année de production, rythme, voix. Aucun nom d'artiste, aucune mélodie, aucune parole existante ne se retrouve dans tes prompts. Tu crées ton propre son.","MetalPrompt captures the spirit of an era and a style, not a band's music. When you type a band, we translate its sound into generic traits: sub-genre, production year, rhythm, vocals. No artist names, melodies or existing lyrics ever end up in your prompts. You create your own sound.")}</div>
         </div>
 
         {/* ETAPE PAR ETAPE FORGE */}

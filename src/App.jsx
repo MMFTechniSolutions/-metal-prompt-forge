@@ -1792,7 +1792,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       structs:autoStructs,blockRhythm,heavy,groove,chaos,melody,bpm,lang:uiLang,emotions:{},tier:userTier,   // émotions retirées de l'interface (oct. 2026) : plus rien d'invisible ne teinte le prompt
       eras:eraPick?[eraPick]:[...new Set([...genres].map(g=>(GENRE_FAMILIES.find(f=>f.genres.some(x=>x.g===g))||{}).nameEn).filter(Boolean))],   // ordre = genre principal d'abord   // couche Époque → /api/forge
       signature,   // anchors sonores du reverse (vides si pas de reverse)
-      year:exactYear||null, years:bandYears,   // année précise : tapée, sinon pigée parmi les albums du groupe (côté serveur)
+      year:exactYear||null, years:bandYears, eraLocked:!!eraPick,   // année précise : tapée, sinon pigée parmi les albums du groupe (côté serveur)
       audioSrc,    // source audio : rien / Cover / amorce (riff, mélodie, beatbox)
     };
     let data;

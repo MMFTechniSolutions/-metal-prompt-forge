@@ -268,7 +268,9 @@ export default function handler(req, res) {
   // Époque = celle du GENRE PRINCIPAL (1er de la liste), pas la plus ancienne (deathcore + industrial donnait « 1990s », 2026-10-27)
   const _eraKeyEarly = A('eras').map(e => ['60s-70s','80s','90s','2000s','2010s','2020s'].find(k => String(e).startsWith(k))).find(Boolean);
   const _blendEra = (_sidEarly && _eraKeyEarly && BLEND_BY_ERA[_sidEarly] && BLEND_BY_ERA[_sidEarly][_eraKeyEarly]) ? BLEND_BY_ERA[_sidEarly][_eraKeyEarly] : null;
-  const blendAuto = genres.length === 1 ? (_blendEra || (_sidEarly && GENRE_BLEND[_sidEarly]) || []).slice(0, 2) : [];   // anchors sonores du « reverse » (groupe → style)
+  const _blendPool = genres.length === 1 ? (_blendEra || (_sidEarly && GENRE_BLEND[_sidEarly]) || []) : [];
+  // variété : 1 ou 2 influences, dans un ordre pigé (2026-10-31)
+  const blendAuto = [..._blendPool].sort(() => Math.random() - 0.5).slice(0, _blendPool.length > 1 && Math.random() < 0.5 ? 1 : 2);   // anchors sonores du « reverse » (groupe → style)
   // Époque (couche 3 du style stack) : le client envoie les familles d'époque des genres choisis
   const ERA_TAG = { '60s-70s':'1970s analog tape production', '80s':'1980s production', '90s':'1990s production', '2000s':'2000s production', '2010s':'2010s modern production', '2020s':'2020s modern production' };
   const _eras = A('eras').map(x => String(x));
@@ -281,7 +283,7 @@ export default function handler(req, res) {
   const _decOf = y => y < 1980 ? '60s-70s' : y < 1990 ? '80s' : y < 2000 ? '90s' : y < 2010 ? '2000s' : y < 2020 ? '2010s' : '2020s';
   const _bandYears = [...new Set(A('years').map(Number).filter(_okY))];
   const _typedYear = Number(b.year);
-  const _bandYearsInEra = _eraKey ? _bandYears.filter(y => _decOf(y) === _eraKey) : _bandYears;
+  const _bandYearsInEra = (_eraKey && b.eraLocked) ? _bandYears.filter(y => _decOf(y) === _eraKey) : _bandYears;   // époque auto = toute la carrière du groupe
   let pickedYear = null;
   if (_okY(_typedYear)) pickedYear = _typedYear;
   else if (_bandYears.length) { const pool = _bandYearsInEra.length ? _bandYearsInEra : _bandYears; pickedYear = pool[Math.floor(Math.random() * pool.length)]; }
@@ -547,26 +549,30 @@ export default function handler(req, res) {
   const _sigRest = signature.filter(x => !_VOXRE.test(x));
   const _sigTun = /down-?tuned|low-?tuned|drop[- ]?[a-g]\b|7-string|8-string|baritone/i.test(signature.join(' '));
   const _tunP = (_sigTun && /^standard( e)?( tuning)?$/i.test(String(_tun).trim())) ? '' : _tun;
+  // VARIÉTÉ (2026-10-31) : 8 forges du même réglage ne doivent pas donner 8 prompts identiques.
+  // On ne touche jamais au genre, à la voix ni au BPM choisis : seulement l'ordre/le choix parmi les options déjà retenues.
+  const _shuf = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const _one = arr => arr.length ? [arr[Math.floor(Math.random() * arr.length)]] : [];
   const PRIORITY = [
     meterLead,                       // 1. identité rythmique
     genreClause,                     // 2. genre + influences historiques
     ...(_sigVox.length ? _sigVox.slice(0, 1) : harshVox ? vocals.slice(0, 1) : []),   // 3. voix (celle du groupe d'abord) — tôt, sinon v6 rate les gutturaux (test 2026-10-31)
     eraTag,                          // 4. année précise de production — gros effet sur le son (test 2026-10-31)
     bpmTag,                          // 5. tempo
-    ..._sigRest.slice(0, 3),         // 6. ancrages sonores (groupe ou sous-genre)
+    ..._shuf(_sigRest).slice(0, 2 + (Math.random() < 0.5 ? 1 : 0)),  // 6. 2 ou 3 ancrages, pigés ancrages sonores (groupe ou sous-genre)
     _tunP, keyTag,                   // 7. accordage et tonalité
-    ...drums.slice(0, 1),
-    ...guitar.slice(0, 1),
+    ..._one(drums),
+    ..._one(guitar),
     ...emotionTags.slice(0, 1),      // 10. émotion dominante (termes de production)
     ...(harshVox || _sigVox.length ? [] : vocals.slice(0, 1)),
     scaleTag,
     ..._prodClean.slice(0, 1),
-    ...leadInst.slice(0, 1),
-    ..._secretClean.slice(0, 1),
+    ..._one(leadInst),
+    ..._one(_secretClean),
     _tonality,
     scrub(dynamicsClause),
     ...scrubList(mood.slice(0, 2)),
-    ...rhythmTags.slice(0, 1),
+    ..._one(rhythmTags),
     ...bassInst.slice(0, 1),
     ...allOrganic.slice(0, 2),
   ].filter(x => x && String(x).trim());

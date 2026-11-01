@@ -120,9 +120,10 @@ const MPDrums = (() => {
     if (arr.length > 1 && i === k.last[name]) i = (i + 1) % arr.length;   // jamais deux fois la même variante de suite
     k.last[name] = i;
     }
-    const tj = t + (name === 'hihat' ? (Math.random() - 0.5) * 0.008 : (Math.random() - 0.5) * 0.005);   // micro-décalage humain
+    const jit = UNI ? 2 : 1;
+    const tj = t + (name === 'hihat' ? (Math.random() - 0.5) * 0.008 * jit : (Math.random() - 0.5) * 0.005 * jit);   // micro-décalage humain
     const s = ctx.createBufferSource(); s.buffer = arr[i];
-    s.playbackRate.value = 1 + (Math.random() - 0.5) * 0.02;
+    s.playbackRate.value = (1 + (Math.random() - 0.5) * 0.02) * (UNI && UNI.rate[name] || 1);   // mode Suno : chaque pièce accordée autrement
     const g = ctx.createGain(); g.gain.value = v;
     s.connect(g);
     if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = PAN[name] || 0; g.connect(p); p.connect(input); }
@@ -130,9 +131,19 @@ const MPDrums = (() => {
     s.start(Math.max(0, tj));
   }
   // Une case du séquenceur : a = arrangement, step = index absolu, bars = longueurs des mesures
+  // ── Mode « empreinte unique » (export drum seul pour Suno) ──
+  // Le filtre de Suno prend un drum générique pour une toune existante. Ici, chaque export a son propre kit
+  // (pièces réaccordées), des fills de toms, plus de jeu humain, et aucune mesure n'est rejouée à l'identique.
+  let UNI = null;
+  function setUnique(on) {
+    if (!on) { UNI = null; return; }
+    const r = () => 1 + (Math.random() * 2 - 1) * 0.06;   // ±6 % (± 1 demi-ton) par pièce
+    UNI = { rate: { kick: r(), snare: r(), hihat: r(), ohat: r(), crash: r(), china: r(), tom: r(), floortom: r() }, fillEvery: 2 + Math.floor(Math.random() * 3) };
+  }
   function playStep(ctx, k, input, a, step, t, gain) {
     gain = gain || 1;
     const L = a.L || a.kick.length, s = step % L;
+    if (UNI) return playStepUnique(ctx, k, input, a, step, t, gain, L, s);
     // début de mesure ? (crash au début de la séquence et toutes les 4 mesures, si la grosse caisse frappe)
     let barStart = false, barIdx = 0;
     if (a.bars && a.bars.length) { let acc = 0; for (let b = 0; b < a.bars.length; b++) { if (acc === s) { barStart = true; barIdx = b; break; } acc += a.bars[b]; if (acc > s) break; } }
@@ -146,6 +157,24 @@ const MPDrums = (() => {
       const open = s % 8 === 6 && !a.hihat[(s + 1) % L] && Math.random() < 0.5;   // charleston ouvert de temps en temps
       hit(ctx, k, input, open ? 'ohat' : 'hihat', t, vel('hihat', s) * 0.8 * gain);
     }
+  }
+
+  function playStepUnique(ctx, k, input, a, step, t, gain, L, s) {
+    const bars = (a.bars && a.bars.length) ? a.bars : Array(Math.ceil(L / 16)).fill(16);
+    let acc = 0, bi = 0; while (bi < bars.length && acc + bars[bi] <= s) { acc += bars[bi]; bi++; }
+    const pos = s - acc, n = bars[bi] || 16, barAbs = Math.floor(step / L) * bars.length + bi;
+    const fill = (barAbs + 1) % UNI.fillEvery === 0 && pos >= n - 4;          // fill de toms à la fin de certaines mesures
+    if (pos === 0 && (barAbs % 4 === 0 || (barAbs % UNI.fillEvery === 0 && Math.random() < 0.5)) && a.kick[s])
+      hit(ctx, k, input, Math.random() < 0.3 ? 'china' : 'crash', t, 0.75 * gain);
+    if (fill) {
+      if (a.snare[s] || a.kick[s] || Math.random() < 0.6) hit(ctx, k, input, (pos - (n - 4)) < 2 ? 'tom' : 'floortom', t, (0.7 + Math.random() * 0.3) * gain);
+      if (a.kick[s]) hit(ctx, k, input, 'kick', t, vel('kick', s) * gain);
+      return;
+    }
+    if (a.kick[s] && !(pos % 4 !== 0 && Math.random() < 0.06)) hit(ctx, k, input, 'kick', t, vel('kick', s) * gain);   // de temps en temps un coup de pied en moins
+    if (a.snare[s]) hit(ctx, k, input, 'snare', t, vel('snare', s) * 0.95 * gain);
+    else if (!a.kick[s] && pos % 2 === 1 && Math.random() < 0.12) hit(ctx, k, input, 'snare', t, (0.1 + Math.random() * 0.1) * gain);   // notes fantômes
+    if (a.hihat[s]) hit(ctx, k, input, (pos % 8 === 6 && Math.random() < 0.35) ? 'ohat' : 'hihat', t, vel('hihat', s) * (0.7 + Math.random() * 0.2) * gain);
   }
 
   // ── Vrai kit (public/samples/drums/{pièce}-{1..5}.mp3, du plus doux au plus fort) ──
@@ -166,7 +195,7 @@ const MPDrums = (() => {
     }));
     return REC;
   }
-  return { kit, bus, hit, playStep, loadRec, REC };
+  return { kit, bus, hit, playStep, loadRec, REC, setUnique };
 })();
 window.MPDrums = MPDrums;
 MPDrums.recPromise = MPDrums.loadRec();

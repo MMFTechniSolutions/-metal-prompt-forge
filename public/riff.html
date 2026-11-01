@@ -991,7 +991,7 @@ async function renderAndDownload(p, stem){
   const wav=encodeWAV(rendered);
 
   // Download — méthode robuste
-  const stemLbl=stem==='drums'?'BEAT':stem==='riff'?'RIFF':stem==='beat'?'BEAT-FULL':stem==='melody'?'MELODY':p.style;
+  const stemLbl=stem==='drums'?(window.__sunoExp?'BEAT-SUNO':'BEAT'):stem==='riff'?'RIFF':stem==='beat'?'BEAT-SUNO':stem==='melody'?'MELODY':p.style;
   const fname=`metalprompt_${stemLbl}_${bpm}bpm_${p.root}_${dur}s.wav`;
   triggerDownload(wav,fname);
 
@@ -1303,6 +1303,17 @@ document.getElementById('btnRenderSong').addEventListener('click',async()=>{
   set('btnPlay', isBeat?T('▶ Écouter le beat','▶ Play beat'):T('▶ Écouter le riff','▶ Play riff'));
   set('btnRender', isBeat?T('⏺ Beat (WAV)','⏺ Beat (WAV)'):T('⏺ Riff (WAV)','⏺ Riff (WAV)'));
   $('btnRender')&&($('btnRender').className='bp');
+  // Beat seul = trop générique pour le filtre d'empreinte de Suno (« enregistrement existant »). Version avec le riff = empreinte unique.
+  if(isBeat&&$('btnRender')){
+    const sb=document.createElement('button');sb.id='btnRenderSuno';sb.className='bs';sb.type='button';
+    sb.textContent=T('⏺ Export pour Suno (drum seul, empreinte unique)','⏺ Suno export (drums only, unique fingerprint)');
+    sb.title=T('Chaque export a son propre kit accordé, des fills de toms et un jeu plus humain : aucune mesure rejouée à l\'identique.','Each export gets its own tuned kit, tom fills and looser playing: no bar repeats exactly.');
+    sb.addEventListener('click',async()=>{if(!currentPat){set('txtRec',T("Génère un beat d'abord","Generate a beat first"));return;}if(isPlaying)stopPlay();window.__sunoExp=true;if(window.MPDrums)MPDrums.setUnique(true);try{await renderAndDownload(currentPat,'drums');}finally{if(window.MPDrums)MPDrums.setUnique(false);window.__sunoExp=false;}});
+    $('btnRender').insertAdjacentElement('afterend',sb);
+    const hint=document.createElement('div');hint.className='sb';hint.style.marginTop='8px';
+    hint.textContent=T('Suno refuse ton beat (« enregistrement existant ») ? Prends l\'export pour Suno : le même groove, avec une empreinte unique à chaque export.','Suno refuses your beat ("existing recording")? Use the Suno export: same groove, a unique fingerprint every time.');
+    sb.parentNode.insertAdjacentElement('afterend',hint);
+  }
   set('btnGen', isBeat?T('Générer un beat','Generate a beat'):T('Générer un riff','Generate a riff'));
   set('txtPlay', isBeat?T('Configure et génère un beat','Set up and generate a beat'):T('Configure et génère un riff','Set up and generate a riff'));
   // crédits des sons (licences : AVL Drumkits CC-BY-SA 3.0, Karoryfer Emilyguitar CC0)

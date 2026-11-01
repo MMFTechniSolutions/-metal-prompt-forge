@@ -2843,6 +2843,17 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               </div>}
             </div>
           </div>
+          {/* PROCHAINE ÉTAPE (2026-10-31) — les nouveaux faisaient 1 prompt puis partaient : on montre quoi faire ensuite */}
+          <div style={{...S.card,borderColor:"#FF6A2B66",background:"#140a05",display:"flex",flexWrap:"wrap",gap:"14px",alignItems:"center",justifyContent:"space-between"}}>
+            <div style={{flex:"1 1 260px",minWidth:0}}>
+              <div style={{fontSize:"0.86rem",fontWeight:900,color:"#fff"}}>{L("Pas encore le bon son? Forge encore.","Not quite the sound? Forge again.")}</div>
+              <div style={{fontSize:"0.72rem",color:"#bbb",lineHeight:1.55,marginTop:"4px"}}>{L("Chaque clic donne une autre année, d'autres influences, un autre son — même style. Une fois ta toune faite dans Suno, reviens la soumettre dans la galerie.","Every click gives another year, other influences, another sound — same style. Once your track is done in Suno, come back and submit it to the gallery.")}</div>
+            </div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
+              <button onClick={generate} style={{background:RED,border:"none",borderRadius:"10px",color:"#000",fontSize:"0.9rem",fontWeight:900,padding:"13px 22px",cursor:"pointer"}}>{L("🎲 Forger encore","🎲 Forge again")}</button>
+              <button onClick={()=>setTab("galerie")} style={{background:"#1a1a1a",border:"1px solid #3a3a3a",borderRadius:"10px",color:"#e0e0e0",fontSize:"0.82rem",fontWeight:800,padding:"13px 18px",cursor:"pointer"}}>{L("Soumettre ma toune","Submit my track")}</button>
+            </div>
+          </div>
           {/* PLUS TARD — replié : retouche par section, Cover / Extend, notes de prod */}
           {(editList.length>0||coverTxt||extendTxt||structNotes||tasteTxt)&&<div style={{...S.card,padding:0,overflow:"hidden"}}>
             {editList.length>0&&<div>

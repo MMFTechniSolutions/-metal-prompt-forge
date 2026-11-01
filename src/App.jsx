@@ -84,6 +84,7 @@ const GENRE_FAMILIES = [
     {g:"progressive rock",req:"forge"},{g:"psychedelic rock",req:"forge"},{g:"70s progressive rock",req:"forge"},
   ]},
   {name:"Années 80", nameEn:"80s", icon:"",genres:[
+    {g:"deathrock",req:"forge"},
     {g:"traditional heavy metal",req:"forge"},{g:"nwobhm",req:"forge"},{g:"speed metal",req:"forge"},{g:"power metal",req:"forge"},{g:"glam metal",req:"forge"},
     {g:"thrash metal",req:"forge"},{g:"hardcore punk",req:"forge"},{g:"crossover thrash",req:"forge"},{g:"d-beat",req:"forge"},
     {g:"death metal",req:"free"},{g:"black metal",req:"forge"},{g:"doom metal",req:"forge"},{g:"grindcore",req:"forge"},
@@ -91,6 +92,7 @@ const GENRE_FAMILIES = [
     {g:"youth crew hardcore",req:"forge"},{g:"nyhc",req:"forge"},{g:"straight edge hardcore",req:"forge"},{g:"thrashcore",req:"forge"},{g:"oi!",req:"forge"},
   ]},
   {name:"Années 90", nameEn:"90s", icon:"", genres:[
+    {g:"war metal",req:"forge"},
     {g:"groove metal",req:"free"},{g:"metalcore",req:"free"},{g:"nu-metal",req:"forge"},{g:"rapcore",req:"forge"},{g:"alternative metal",req:"forge"},{g:"powerviolence",req:"forge"},
     {g:"melodic death metal",req:"forge"},{g:"technical death metal",req:"forge"},{g:"mathcore",req:"forge"},{g:"beatdown hardcore",req:"forge"},{g:"industrial metal",req:"forge"},{g:"symphonic metal",req:"forge"},
     {g:"blackened death metal",req:"forge"},{g:"atmospheric black metal",req:"forge"},{g:"funeral doom",req:"forge"},{g:"sludge metal",req:"forge"},{g:"post-metal",req:"forge"},{g:"progressive metal",req:"forge"},
@@ -104,10 +106,12 @@ const GENRE_FAMILIES = [
     {g:"blackened deathcore",req:"forge"},
     {g:"slam metal",req:"forge"},{g:"dissonant death metal",req:"forge"},{g:"avant-garde metal",req:"forge"},
     {g:"atmospheric sludge metal",req:"forge"},{g:"depressive black metal",req:"elite"},
-    {g:"technical brutal death metal",req:"forge"},{g:"cavernous death metal",req:"forge"},{g:"war metal",req:"forge"},{g:"metallic hardcore",req:"forge"},{g:"cybergrind",req:"forge"},{g:"nu metalcore",req:"forge"},{g:"deathrock",req:"forge"},
+    {g:"technical brutal death metal",req:"forge"},{g:"metallic hardcore",req:"forge"},{g:"cybergrind",req:"forge"},
     {g:"easycore",req:"forge"},{g:"mosh metal",req:"forge"},{g:"grindviolence",req:"forge"},
   ]},
   {name:"Années 2010", nameEn:"2010s", icon:"", genres:[
+    {g:"cavernous death metal",req:"forge"},
+    {g:"nu metalcore",req:"forge"},
     {g:"djent",req:"forge"},{g:"modern metalcore",req:"forge"},
     {g:"progressive metalcore",req:"forge"},{g:"electronicore",req:"forge"},{g:"arena metalcore",req:"forge"},{g:"atmospheric metalcore",req:"forge"},
     {g:"post-black metal",req:"forge"},{g:"blackgaze",req:"forge"},{g:"technical deathcore",req:"forge"},

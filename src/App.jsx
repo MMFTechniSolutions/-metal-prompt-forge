@@ -942,10 +942,10 @@ La version en vigueur est celle publiée avec sa date. L'usage continu vaut acce
 mmftechnisolutions@gmail.com`,
 
   sales: `CONDITIONS GÉNÉRALES DE VENTE — MetalPrompt
-Dernière mise à jour : 28 juin 2026
+Dernière mise à jour : 1er novembre 2026
 
 1. OBJET
-Vente des abonnements payants du Service, édité par MMF Techni-Solutions (NEQ 2279516308), 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1, sur https://metalprompt.com.
+Vente des abonnements payants et des crédits Studio du Service, édité par MMF Techni-Solutions (NEQ 2279516308), 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1, sur https://metalprompt.com.
 
 2. INFOS AVANT L'ACHAT (CONTRAT À DISTANCE)
 Avant votre paiement, nous indiquons : notre identité et nos coordonnées, la description du plan, le prix total en USD (dollars américains ; taxes applicables indiquées au paiement), la fréquence de facturation et le renouvellement, les modalités de résiliation et de remboursement. Après l'achat, vous recevez par courriel une confirmation tenant lieu de copie du contrat.
@@ -953,8 +953,11 @@ Avant votre paiement, nous indiquons : notre identité et nos coordonnées, la d
 3. PLANS ET PAIEMENT
 Abonnement unique donnant accès à l'ensemble du Service, offert en formule mensuelle (2,99 $ US/mois). Une formule « à vie » (paiement unique) peut être offerte pour une durée limitée lors de promotions ; elle donne accès au Service tant qu'il est exploité. TOUS LES PRIX SONT EN DOLLARS AMÉRICAINS (USD). Si vous payez avec une carte libellée dans une autre devise (ex. CAD), votre institution financière peut appliquer des frais de conversion qui ne sont PAS perçus par MetalPrompt. Paiements sécurisés par Stripe ; aucune donnée complète de carte n'est stockée. Vous autorisez le prélèvement récurrent jusqu'à résiliation. Prix modifiables pour les périodes futures, avec préavis.
 
-3.1 CRÉDITS DE GÉNÉRATION
-L'abonnement donne un accès ILLIMITÉ au générateur de prompts, au générateur de riffs et au module de mastering. La génération de musique audio DANS le Service, si et quand cette fonction sera activée, fonctionnera par crédits dont les modalités seront affichées sur la page des tarifs au moment de l'activation. L'export de prompts vers des plateformes tierces (ex. Suno) n'utilise aucun crédit.
+3.1 PROMPTS GRATUITS ET ABONNEMENT
+Le générateur de prompts est gratuit avec un compte. L'abonnement donne un accès ILLIMITÉ au Studio (Mélodie, Riff, Beat, tablatures, partitions et export WAV), aux Paroles IA et au module de mastering. L'export de prompts vers des plateformes tierces (ex. Suno) n'utilise aucun crédit.
+
+3.2 CRÉDITS STUDIO (PAIEMENT UNIQUE)
+Des crédits Studio sont offerts en paquets à paiement unique, sans abonnement ni renouvellement : 10 crédits (5 $ US), 30 crédits (10 $ US) et 50 crédits (15 $ US). Un crédit permet l'une des actions suivantes : 1 génération de Paroles IA, 1 export WAV de Mélodie (avec partition), ou le déblocage d'un riff ou d'un beat (tablature ou partition de batterie et export WAV ; une séquence de 4 clips compte pour 1 crédit). L'écoute dans le Studio ne consomme aucun crédit, et une confirmation est demandée avant d'utiliser un crédit pour un riff ou un beat. Les crédits sont ajoutés au compte associé au courriel utilisé lors du paiement, n'expirent pas tant que le Service est exploité, ne sont pas transférables et n'ont aucune valeur monétaire. Les abonnés ne consomment aucun crédit.
 
 4. RENOUVELLEMENT AUTOMATIQUE
 Renouvellement automatique par périodes identiques au tarif en vigueur, sauf résiliation avant l'échéance. Un avis de renouvellement est transmis lorsque la loi l'exige. Vous pouvez désactiver le renouvellement en tout temps.
@@ -963,7 +966,7 @@ Renouvellement automatique par périodes identiques au tarif en vigueur, sauf r�
 Possible à tout moment depuis votre compte ; effet à la fin de la période déjà payée, sans nouveau prélèvement.
 
 6. REMBOURSEMENTS
-La période déjà entamée n'est pas remboursée. Cette politique ne restreint pas vos droits prévus par la loi : rien dans les présentes ne limite les droits d'annulation, de résiliation ou de remboursement accordés au consommateur par la Loi sur la protection du consommateur du Québec ou toute autre loi applicable. En cas de conflit, la loi prévaut. Demandes : mmftechnisolutions@gmail.com.
+La période déjà entamée n'est pas remboursée. Les crédits Studio non utilisés peuvent être remboursés sur demande dans les 30 jours suivant l'achat ; un crédit déjà utilisé n'est pas remboursable. Cette politique ne restreint pas vos droits prévus par la loi : rien dans les présentes ne limite les droits d'annulation, de résiliation ou de remboursement accordés au consommateur par la Loi sur la protection du consommateur du Québec ou toute autre loi applicable. En cas de conflit, la loi prévaut. Demandes : mmftechnisolutions@gmail.com.
 
 7. GARANTIES ET RESPONSABILITÉ
 Service « tel quel », aucun résultat garanti. Cette clause ne porte pas atteinte aux garanties légales ni aux droits du consommateur. Dans la seule mesure permise par la loi, la responsabilité totale est limitée au montant payé sur les 12 derniers mois.

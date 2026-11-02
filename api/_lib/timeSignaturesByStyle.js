@@ -89,7 +89,7 @@ export const TIME_SIGNATURES_BY_STYLE = {
     },
     suno: {
       styleTags: ["fast palm-muted riffing", "aggressive up-tempo thrash", "tight downpicking"],
-      structureTags: ["[Fast thrash riff]", "[Skank beat section]"],
+      structureTags: ["[Fast thrash riff]", "[Up-tempo thrash beat section]"],
     },
   },
 

@@ -846,6 +846,7 @@ async function play(){
 // ═══════════════ EXPORT WAV (clair) ═══════════════
 async function exportWav(){
   if(!mel.some(v=>v!=null)){status('⚠ Génère une mélodie d\'abord',false);return;}
+  if(CREDIT_MODE&&!(await spendMelodyCredit()))return;   // compte gratuit : 1 crédit Studio par export
   const key=inst();
   $('dot').className='dot rec';status('Chargement de l\'instrument…',true);$('btnExport').disabled=true;
   if(key.startsWith('mp_')&&window.MPGtr)await MPGtr.fullPromise;const font=(key in INSTBANK)?await ensureFont(key):null;
@@ -858,7 +859,7 @@ async function exportWav(){
   let buf;try{buf=await off.startRendering();}catch(e){status('Erreur: '+e.message,false);$('dot').className='dot';$('btnExport').disabled=false;return;}
   const wav=encodeWAV(buf);const dur=Math.round(steps*stepDur);
   triggerDownload(wav,`melody_${key}_${NAMES[rootPc()].replace('#','s')}_${bpm()}bpm_${dur}s.wav`);
-  $('dot').className='dot';$('btnExport').disabled=false;status((font?'Mélodie (vrai instrument) exportée · ':'Mélodie exportée · ')+dur+'s',false);
+  $('dot').className='dot';$('btnExport').disabled=false;status((font?'Mélodie (vrai instrument) exportée · ':'Mélodie exportée · ')+dur+'s'+(CREDIT_MODE?' · '+creditLabel():''),false);
 }
 
 function status(msg,active){$('status').textContent=msg;}
@@ -880,11 +881,24 @@ const SUPA_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 const OWNER_EMAILS=['rzlajoie@gmail.com'];   // accès garanti (propriétaire), même sans abonnement
 let _sb=null;
 function supaClient(){ if(!_sb && window.supabase && window.supabase.createClient) _sb=window.supabase.createClient(SUPA_URL,SUPA_ANON); return _sb; }
+// ── Crédits Studio (nov. 2026) : un compte gratuit avec des crédits peut utiliser la Mélodie; chaque export WAV coûte 1 crédit.
+let CREDIT_MODE=false, CREDITS=0;
+function tellParent(){try{if(window.parent!==window)window.parent.postMessage({type:'mp-credits',credits:CREDITS},location.origin);}catch(e){}}
+function creditLabel(){return CREDITS+(CREDITS>1?' crédits Studio restants':' crédit Studio restant');}
+async function spendMelodyCredit(){
+  const sb=supaClient();
+  if(!sb){status('⚠ Connexion impossible, réessaie',false);return false;}
+  const {data,error}=await sb.rpc('use_studio_credit',{kind:'melodie'});
+  if(error||!data){status('⚠ Impossible d\'utiliser un crédit, réessaie',false);return false;}
+  CREDITS=data.prompt_credits||0;tellParent();
+  if(!data.ok){status('⚠ Plus de crédits Studio — recharge ou passe à Plus',false);return false;}
+  return true;
+}
 function showPaywall(kind){
   const msg=$('gateMsg'),act=$('gateActions');
   const plansBtn='<a href="/" class="bp" style="text-decoration:none;padding:12px 22px;">Voir les plans →</a>';
-  if(kind==='connect'){msg.innerHTML='Le générateur de mélodie est réservé aux <strong style="color:#c8c8d0;">abonnés payants</strong>. Connecte-toi avec un compte payant, ou choisis un plan.';act.innerHTML=plansBtn;}
-  else if(kind==='upgrade'){msg.innerHTML='Ton compte n\'a pas d\'abonnement actif. Ce générateur est réservé aux <strong style="color:#c8c8d0;">abonnés</strong>.';act.innerHTML=plansBtn;}
+  if(kind==='connect'){msg.innerHTML='Connecte-toi pour utiliser le générateur de mélodie. Il faut l\'abonnement <strong style="color:#c8c8d0;">Plus</strong> ou des <strong style="color:#c8c8d0;">crédits Studio</strong> (1 crédit = 1 export).';act.innerHTML=plansBtn;}
+  else if(kind==='upgrade'){msg.innerHTML='Le générateur de mélodie demande l\'abonnement <strong style="color:#c8c8d0;">Plus</strong> ou des <strong style="color:#c8c8d0;">crédits Studio</strong> (1 crédit = 1 export WAV avec partition).';act.innerHTML=plansBtn;}
   else{msg.innerHTML='Impossible de vérifier l\'accès pour l\'instant.';act.innerHTML='<button class="bp" onclick="location.reload()">Réessayer</button> '+plansBtn;}
 }
 // Vérifie l'abonnement EXACTEMENT comme l'app (App.jsx lit users.tier via Supabase).
@@ -897,11 +911,13 @@ async function checkAccess(){
     const email=session&&session.user&&session.user.email;
     if(!email){showPaywall('connect');return false;}
     if(OWNER_EMAILS.includes(email.toLowerCase()))return true;         // propriétaire
-    const {data,error}=await sb.from('users').select('tier').eq('email',email).single();
+    const {data,error}=await sb.from('users').select('tier,prompt_credits').eq('email',email).single();
     if(error){showPaywall('error');return false;}
     const tier=((data&&data.tier)||'free').toString().trim().toLowerCase();
     if(tier && tier!=='free')return true;                             // abonné
-    showPaywall('upgrade');return false;                              // gratuit
+    CREDITS=(data&&data.prompt_credits)||0;
+    if(CREDITS>0){CREDIT_MODE=true;setTimeout(()=>status('Mode crédits · '+creditLabel()+' (1 crédit = 1 export)',false),300);return true;}   // gratuit avec crédits
+    showPaywall('upgrade');return false;                              // gratuit sans crédit
   }catch(e){showPaywall('error');return false;}
 }
 // init (seulement APRÈS contrôle d'accès payant)

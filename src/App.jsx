@@ -459,19 +459,20 @@ const STRIPE_MENSUEL = "https://buy.stripe.com/9B66oJ1kI1avgb83obfQI07";        
 // Promo « À VIE » : paiement unique, visible seulement pendant la fenêtre (Black Friday → Cyber Monday 2026, heure de l'Est).
 // Pour tester avant : ajoute ?avie=1 à l'adresse du site.
 const LIFETIME = { price:"$50", regular:"$120", stripe:"https://buy.stripe.com/bJefZj4wU06r4sq7ErfQI08", start:"2026-11-27T00:00:00-05:00", end:"2026-12-01T00:00:00-05:00" };
-// Recharges de prompts (paiement unique, n'expirent jamais) — oct. 2026
+// Crédits Studio (paiement unique, n'expirent jamais) — nov. 2026 : le prompt est gratuit,
+// 1 crédit = 1 Paroles IA, 1 export Mélodie ou 1 riff/beat débloqué (tab/partition + WAV).
 const PACKS = [
   {n:10, price:"5 $",  per:"0,50 $", stripe:"https://buy.stripe.com/aFaaEZgfC3iD6AycYLfQI09"},
   {n:30, price:"10 $", per:"0,33 $", stripe:"https://buy.stripe.com/6oUdRb0gE9H18IG9MzfQI0a", best:true},
-  {n:50, price:"20 $", per:"0,40 $", stripe:"https://buy.stripe.com/6oU5kFfbydXh2ki6AnfQI0b"},
+  {n:50, price:"15 $", per:"0,30 $", stripe:"https://buy.stripe.com/bJe7sNbZmbP9aQO2k7fQI0c"},
 ];
 const lifetimeActive=()=>{try{if(new URLSearchParams(location.search).get('avie')==='1')return true;}catch(e){}const n=Date.now();return n>=Date.parse(LIFETIME.start)&&n<Date.parse(LIFETIME.end);};
 const lifetimeLeft=()=>{const ms=Date.parse(LIFETIME.end)-Date.now();if(ms<=0)return "";const d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5);return d>0?`${d} j ${h} h`:`${h} h`;};
 // ── TIERS ──
 const TIERS = {
   free: {id:"free", label:"FREE", price:"$0", color:"#444", badge:null,
-    features:["✅ Prompts illimités (compte gratuit)","✅ 2 000+ groupes connus · 151 sous-genres","✅ Tous les réglages (Ajuster)","✅ Galerie : 2 chansons/mois + votes","❌ Mélodie, Riff et Paroles IA"],
-    featuresEn:["✅ Unlimited prompts (free account)","✅ 2,000+ known bands · 151 sub-genres","✅ All settings (Adjust)","✅ Gallery: 2 tracks/month + votes","❌ Melody, Riff and AI Lyrics"]},
+    features:["✅ Prompts illimités (compte gratuit)","✅ 2 000+ groupes connus · 151 sous-genres","✅ Tous les réglages (Ajuster)","✅ Galerie : 2 chansons/mois + votes","🎟️ Mélodie, Riff et Paroles IA : avec crédits Studio ou Plus"],
+    featuresEn:["✅ Unlimited prompts (free account)","✅ 2,000+ known bands · 151 sub-genres","✅ All settings (Adjust)","✅ Gallery: 2 tracks/month + votes","🎟️ Melody, Riff and AI Lyrics: with Studio credits or Plus"]},
   // Oct. 2026 : un seul abonnement à 2,99 $/mois (plus d'annuel). Lien Stripe dans STRIPE_MENSUEL.
   pro: {id:"pro", label:"METALPROMPT", price:"$2.99/mois", color:"#FF6A2B", badge:"PRO",
     stripe:STRIPE_MENSUEL,
@@ -716,15 +717,16 @@ function PaywallModal({onClose,email,uiLang}) {
         <button onClick={onClose} aria-label={L("Fermer","Close")} style={{position:"absolute",top:"14px",right:"16px",background:"none",border:"none",color:"#8A8F97",fontSize:"1.4rem",cursor:"pointer"}}>×</button>
         <div style={{textAlign:"center",display:"flex",flexDirection:"column",gap:"10px",marginBottom:"26px"}}>
           <span style={MONO}>{L("Forfaits","Plans")}</span>
-          <div className="forge-title" style={{fontSize:"clamp(1.9rem,5vw,2.9rem)",color:"#FFFFFF",lineHeight:1.05}}>{L("Recharge ou forge sans limite.","Top up or forge without limits.")}</div>
-          <div style={{fontSize:"1rem",color:"#D4D6DA"}}>{L("Pas d'abonnement obligé. Les prompts achetés n'expirent jamais.","No subscription required. Bought prompts never expire.")}</div>
+          <div className="forge-title" style={{fontSize:"clamp(1.9rem,5vw,2.9rem)",color:"#FFFFFF",lineHeight:1.05}}>{L("Le prompt est gratuit. Le Studio, à ton rythme.","Prompts are free. The Studio, at your pace.")}</div>
+          <div style={{fontSize:"1rem",color:"#D4D6DA"}}>{L("Achète des crédits Studio au besoin, ou prends Plus pour tout illimité. Les crédits n'expirent jamais.","Buy Studio credits when you need them, or go Plus for everything unlimited. Credits never expire.")}</div>
         </div>
         <div style={{display:"flex",flexWrap:"wrap",gap:"18px",alignItems:"stretch"}}>
           <section style={CARDS}>
-            <span style={{fontWeight:600,fontSize:"1.15rem",color:"#F2F1ED"}}>{L("Recharges","Top-ups")}</span>
+            <span style={{fontWeight:600,fontSize:"1.15rem",color:"#F2F1ED"}}>{L("Crédits Studio","Studio credits")}</span>
+            <span style={{fontSize:"0.78rem",color:"#B9BDC4",lineHeight:1.5}}>{L("1 crédit = 1 Paroles IA, 1 Mélodie exportée ou 1 riff/beat débloqué (tab + WAV).","1 credit = 1 AI lyrics, 1 exported Melody or 1 unlocked riff/beat (tab + WAV).")}</span>
             <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
               {PACKS.map(pk=><a key={pk.n} href={payUrl(pk.stripe,email)} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",textDecoration:"none",padding:"12px 14px",borderRadius:"12px",border:`1px solid ${pk.best?"rgba(255,106,43,0.6)":"rgba(255,255,255,0.10)"}`,background:pk.best?"rgba(255,106,43,0.10)":"rgba(255,255,255,0.03)",color:"#F2F1ED"}}>
-                <span style={{display:"flex",flexDirection:"column"}}><span style={{fontWeight:600}}>{pk.n} prompts{pk.best&&<span style={{...MONO,fontSize:"0.58rem",marginLeft:"8px"}}>{L("Populaire","Popular")}</span>}</span><span style={{fontSize:"0.72rem",color:"#9A9DA3",fontFamily:"'Geist Mono',monospace"}}>{pk.per} {L("le prompt","each")}</span></span>
+                <span style={{display:"flex",flexDirection:"column"}}><span style={{fontWeight:600}}>{pk.n} {L("crédits","credits")}{pk.best&&<span style={{...MONO,fontSize:"0.58rem",marginLeft:"8px"}}>{L("Populaire","Popular")}</span>}</span><span style={{fontSize:"0.72rem",color:"#9A9DA3",fontFamily:"'Geist Mono',monospace"}}>{pk.per} {L("le crédit","each")}</span></span>
                 <span style={{fontSize:"1.3rem",fontWeight:600}}>{pk.price}</span>
               </a>)}
             </div>
@@ -733,7 +735,7 @@ function PaywallModal({onClose,email,uiLang}) {
           <section style={{...CARDS,borderColor:"rgba(255,255,255,0.22)"}}>
             <span style={{fontWeight:600,fontSize:"1.15rem",color:"#F2F1ED"}}>Forge Plus</span>
             <span style={{display:"flex",alignItems:"baseline",gap:"8px"}}><span style={big}>2,99 $</span><span style={{color:"#B9BDC4"}}>US / {L("mois","month")}</span></span>
-            <ul style={UL}>{LI(L("Prompts illimités","Unlimited prompts"))}{LI(L("Paroles complètes en anglais","Full English lyrics"))}{LI(L("Mélodie et riff, export WAV","Melody & riff, WAV export"))}{LI(L("Galerie et réglages fins","Gallery & fine tuning"))}</ul>
+            <ul style={UL}>{LI(L("Studio illimité : Mélodie, Riff, Beat","Unlimited Studio: Melody, Riff, Beat"))}{LI(L("Tablatures, partitions et export WAV","Tabs, scores and WAV export"))}{LI(L("Paroles IA illimitées","Unlimited AI lyrics"))}{LI(L("Galerie et réglages fins","Gallery & fine tuning"))}</ul>
             <a href={payUrl(STRIPE_MENSUEL,email)} target="_blank" rel="noreferrer" style={{...btnW,marginTop:"auto",background:"#F2F1ED",color:"#0C0D0F"}}>{L("Passer à Plus","Go Plus")}</a>
           </section>
           {lifetimeActive()&&<section style={{...CARDS,background:"linear-gradient(160deg, rgba(255,106,43,0.18), rgba(22,24,28,0.85) 55%)",border:"1px solid rgba(255,106,43,0.55)",boxShadow:"0 0 60px rgba(255,106,43,0.18)"}}>
@@ -828,7 +830,7 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
           <div style={{background:CARD,border:"1px solid #222",borderRadius:"10px",padding:"16px"}}>
             <div style={{fontSize:"0.6rem",color:"#555",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"6px"}}>{L("GRATUIT","FREE")}</div>
             <div style={{fontSize:"1.4rem",fontWeight:900,color:"#fff",marginBottom:"10px"}}>$0</div>
-            {(uiLang==="fr"?["Prompts illimités","Tous les réglages + 2 000+ groupes","❌ Mélodie · Riff","❌ Paroles IA"]:["Unlimited prompts","All settings + 2,000+ bands","❌ Melody · Riff","❌ AI lyrics"]).map((f,i)=><div key={f} style={{fontSize:"0.68rem",color:i<2?"#bbb":"#333",padding:"3px 0"}}>{f}</div>)}
+            {(uiLang==="fr"?["Prompts illimités","Tous les réglages + 2 000+ groupes","🎟️ Studio : crédits ou Plus","🎟️ Paroles IA : crédits ou Plus"]:["Unlimited prompts","All settings + 2,000+ bands","🎟️ Studio: credits or Plus","🎟️ AI lyrics: credits or Plus"]).map((f,i)=><div key={f} style={{fontSize:"0.68rem",color:i<2?"#bbb":"#333",padding:"3px 0"}}>{f}</div>)}
             <button onClick={onEnter} style={{width:"100%",marginTop:"12px",padding:"9px",background:"#1a1a1a",border:"1px solid #333",borderRadius:"6px",color:"#777",fontSize:"0.72rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>{L("ESSAYER","TRY")}</button>
           </div>
           {["forge","pro","elite"].map(id=>{
@@ -1416,7 +1418,13 @@ export default function App({ user, onLogout, onRequestAuth }) {
 
   // ── TIER ──
   const [promptCount,setPromptCount]=useState(0);
-  const [credits,setCredits]=useState(0);   // prompts achetés (recharges), utilisés après les 3 gratuits
+  const [credits,setCredits]=useState(0);   // crédits Studio achetés (nov. 2026) : Paroles IA, export Mélodie, tab
+  // La page Mélodie (iframe, même domaine) dépense ses crédits elle-même et nous renvoie le solde.
+  // Une fois qu'un compte a eu des crédits pendant la session, le Studio et les Paroles restent ouverts
+  // (sinon dépenser le DERNIER crédit refermerait la page et ferait perdre le riff ou les paroles débloqués).
+  const [creditAccess,setCreditAccess]=useState(false);
+  useEffect(()=>{if(credits>0)setCreditAccess(true);},[credits]);
+  useEffect(()=>{const f=e=>{if(e.origin===location.origin&&e.data&&e.data.type==='mp-credits'&&typeof e.data.credits==='number')setCredits(e.data.credits);};window.addEventListener('message',f);return()=>window.removeEventListener('message',f);},[]);
   const [userTier,setUserTier]=useState("free");
   const [musicPrompt,setMusicPrompt]=useState("");
   const [musicUrl,setMusicUrl]=useState("");
@@ -1817,9 +1825,20 @@ export default function App({ user, onLogout, onRequestAuth }) {
     setTab("output");
   };
 
+  // ── CRÉDITS STUDIO (nov. 2026) : 1 crédit = 1 Paroles IA, 1 export Mélodie ou 1 tab. Les abonnés ne dépensent rien.
+  const spendCredit=async(kind)=>{
+    if(isPro)return true;
+    if(!user){onRequestAuth&&onRequestAuth();return false;}
+    if(credits<=0){setShowPaywall(true);return false;}
+    const {data,error}=await supabase.rpc('use_studio_credit',{kind});
+    if(error||!data){alert(L("Impossible d'utiliser un crédit, réessaie.","Couldn't use a credit, try again."));return false;}
+    setCredits(data.prompt_credits||0);
+    if(!data.ok){setShowPaywall(true);return false;}
+    return true;
+  };
   // ── GENERATE LYRICS ──
   const generateLyrics=async()=>{
-    if(!isPro){setShowPaywall(true);return;}
+    if(!isPro&&!(await spendCredit('paroles')))return;
     setLyricsLoading(true);setLyricsErr("");setLyricsTxt("");
     const selectedLang=[...lang][0]||"en";
     const langStr=LYRIC_LANG_MAP[selectedLang]||"english";
@@ -1963,10 +1982,10 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       tags:[L("Partition","Sheet music"),L("Vrais instruments","Real instruments"),"WAV"],src:()=>`/melody.html?lang=${uiLang}&embed=1`},
     riff:{lbl:"Riff",kicker:L("La base rythmique","The rhythm foundation"),title:"Riff",
       sub:L("Guitare et basse rythmiques, sans batterie. Apprends-le avec la tablature, ou donne-le à Suno comme amorce.","Rhythm guitar and bass, no drums. Learn it from the tab, or give it to Suno as a seed."),
-      tags:[L("Tablature","Tab"),L("Guitare + basse","Guitar + bass"),"WAV"],src:()=>`/riff.html?tool=riff&embed=1&lang=${uiLang}&tier=${userTier}${styleTxt?`&prompt=${encodeURIComponent(styleTxt)}`:""}`},
+      tags:[L("Tablature","Tab"),L("Guitare + basse","Guitar + bass"),"WAV"],src:()=>`/riff.html?tool=riff&embed=1&lang=${uiLang}&tier=${userTier}${!isPro&&creditAccess?"&cr=1":""}${styleTxt?`&prompt=${encodeURIComponent(styleTxt)}`:""}`},
     beat:{lbl:"Beat",kicker:L("Ton drummer","Your drummer"),title:"Beat",
       sub:L("Batterie seule, partition incluse. T'as pas de band? Joue par-dessus pour composer et pratiquer.","Drums only, score included. No band? Play over it to write and practice."),
-      tags:[L("Partition de batterie","Drum score"),L("Pratique","Practice"),"WAV"],src:()=>`/riff.html?tool=beat&embed=1&lang=${uiLang}&tier=${userTier}${styleTxt?`&prompt=${encodeURIComponent(styleTxt)}`:""}`},
+      tags:[L("Partition de batterie","Drum score"),L("Pratique","Practice"),"WAV"],src:()=>`/riff.html?tool=beat&embed=1&lang=${uiLang}&tier=${userTier}${!isPro&&creditAccess?"&cr=1":""}${styleTxt?`&prompt=${encodeURIComponent(styleTxt)}`:""}`},
   };
   const studioBar=kind=>(
     <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"12px"}}>
@@ -2377,7 +2396,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* PAROLES */}
-      {tab==="paroles"&&(!canAccess("pro")?<LockedOverlay req="pro" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
+      {tab==="paroles"&&(!canAccess("pro")&&!creditAccess?<LockedOverlay req="pro" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <Collapse title={L("Thème principal","Main theme")} n={THEMES.length} selCount={themes.size}><Tags list={THEMES} sel={themes} toggle={tTheme} tr={uiLang==="en"?THEME_TR:null}/></Collapse>
         <Collapse title={L("Atmosphère","Atmosphere")} n={LYRIC_ATMO.length} selCount={latmo.size}><Tags list={LYRIC_ATMO} sel={latmo} toggle={tLatmo} tr={uiLang==="en"?ATMO_TR:null}/></Collapse>
         <div style={S.card}>
@@ -2476,7 +2495,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* OUTPUT */}
-      {["melodie","riff","beat"].includes(tab)&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:studioPage(tab))}
+      {["melodie","riff","beat"].includes(tab)&&(!canAccess("elite")&&!creditAccess?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:studioPage(tab))}
 
       {tab==="master"&&(!canAccess("elite")?<LockedOverlay req="elite" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"22px",borderColor:"#ffcc0044"}}>

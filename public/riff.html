@@ -1326,5 +1326,53 @@ document.getElementById('btnRenderSong').addEventListener('click',async()=>{
     :T('<strong>Guitare + basse rythmiques, sans batterie.</strong> Apprends le riff avec la tab, ou importe le WAV dans Suno comme amorce (Audio Influence 25-50).','<strong>Rhythm guitar + bass, no drums.</strong> Learn it from the tab, or upload the WAV to Suno as a seed (Audio Influence 25-50).');
 })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ── CRÉDITS STUDIO (nov. 2026) ── compte gratuit avec crédits (?cr=1) : on écoute gratuitement,
+// et 1 crédit débloque un riff/beat (tablature ou partition + exports WAV). Une séquence de 4 clips = 1 crédit.
+(function(){
+  if(new URLSearchParams(location.search).get('cr')!=='1')return;
+  const SUPA_URL='https://wlnttrzmjfefyghxlbyb.supabase.co';
+  const SUPA_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndsbnR0cnptamZlZnlnaHhsYnliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDM2MjksImV4cCI6MjA5NzgxOTYyOX0.VtHoMxrejhIgq046uv4JE1pvHyzRxjUbPqHZ39kiMBw';
+  let sb=null; const client=()=>{if(!sb&&window.supabase)sb=window.supabase.createClient(SUPA_URL,SUPA_ANON);return sb;};
+  const UNL=new WeakSet();
+  const isBeat=()=>TOOL==='beat';
+  const what=()=>isBeat()?T('ce beat','this beat'):T('ce riff','this riff');
+  const unlocked=p=>!!p&&(UNL.has(p)||(p.__song&&songClips.some(Boolean)&&songClips.filter(Boolean).every(c=>UNL.has(c))));
+  const RENDER_IDS=['btnRender','btnRenderBeat','btnRenderMelody','btnRenderSong','btnCopyTab'];
+  function setLockedUI(p){
+    const pre=document.getElementById('tabOut'),box=document.getElementById('scoreBox');
+    if(box)box.style.display='none';
+    pre.style.display='block';
+    pre.textContent=T('🔒 Écoute gratuite. 1 crédit Studio débloque ','🔒 Listening is free. 1 Studio credit unlocks ')+what()+(isBeat()?T(' : partition de batterie + export WAV.',': drum score + WAV export.'):T(' : tablature complète + export WAV.',': full tab + WAV export.'));
+    let b=document.getElementById('btnUnlockCredit');
+    if(!b){b=document.createElement('button');b.id='btnUnlockCredit';b.className='bp';b.style.margin='10px 0';pre.insertAdjacentElement('beforebegin',b);b.addEventListener('click',()=>unlock(currentPat));}
+    b.style.display='';b.disabled=false;b.textContent=T('🔓 Débloquer ','🔓 Unlock ')+what()+T(' (1 crédit)',' (1 credit)');
+  }
+  function setUnlockedUI(){const b=document.getElementById('btnUnlockCredit');if(b)b.style.display='none';
+    const c=document.getElementById('btnCopyTab');if(c)c.disabled=false;}
+  async function unlock(p){
+    if(!p)return false; if(unlocked(p))return true;
+    const c=client(); const msg=document.getElementById('txtRec');
+    if(!c){if(msg)msg.textContent=T('⚠ Connexion impossible','⚠ Connection failed');return false;}
+    const b=document.getElementById('btnUnlockCredit');if(b)b.disabled=true;
+    const {data,error}=await c.rpc('use_studio_credit',{kind:isBeat()?'beat':'riff'});
+    if(b)b.disabled=false;
+    if(error||!data){if(msg)msg.textContent=T('⚠ Impossible d\'utiliser un crédit, réessaie','⚠ Could not use a credit, try again');return false;}
+    try{window.parent.postMessage({type:'mp-credits',credits:data.prompt_credits||0},location.origin);}catch(e){}
+    if(!data.ok){if(msg)msg.textContent=T('⚠ Plus de crédits Studio — recharge ou passe à Plus','⚠ No Studio credits left — top up or go Plus');return false;}
+    UNL.add(p); if(p.__song)songClips.filter(Boolean).forEach(x=>UNL.add(x));
+    _fill(p); setUnlockedUI();
+    if(msg)msg.textContent=T('Débloqué · ','Unlocked · ')+(data.prompt_credits||0)+T(' crédit(s) restant(s)',' credit(s) left');
+    return true;
+  }
+  const _fill=fillScore;
+  fillScore=function(p){ if(!p)return; if(unlocked(p)){_fill(p);setUnlockedUI();} else setLockedUI(p); };
+  const _song=songPattern;
+  songPattern=function(){const o=_song();o.__song=true;return o;};
+  const _render=renderAndDownload;
+  renderAndDownload=async function(p,stem){ if(!unlocked(p)){ if(!confirm(T('Utiliser 1 crédit Studio pour débloquer ','Use 1 Studio credit to unlock ')+what()+' ?'))return; if(!(await unlock(p)))return; } return _render(p,stem); };
+})();
+</script>
 </body>
 </html>

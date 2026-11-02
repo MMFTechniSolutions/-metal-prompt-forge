@@ -48,7 +48,8 @@ export default async function handler(req, res) {
     const PACK_LINKS = {
       plink_1UVaugP7FMUYG6wCM6axWWlK: 10,
       plink_1UVauhP7FMUYG6wC8GDVyFIv: 30,
-      plink_1UVauiP7FMUYG6wCMNFEsAKX: 50,
+      plink_1UVauiP7FMUYG6wCMNFEsAKX: 50,   // ancien lien 20 $ (désactivé nov. 2026)
+      plink_1UXAixP7FMUYG6wCKXp56SG8: 50,   // 50 crédits Studio à 15 $ (nov. 2026)
     }
     const LIFETIME_LINK = 'plink_1UVZw2P7FMUYG6wCvOZ7yJcS'
     const md = session.metadata || {}
@@ -56,7 +57,7 @@ export default async function handler(req, res) {
       md.kind === 'pack' ? parseInt(md.prompts, 10) || 0 : PACK_LINKS[session.payment_link] || 0
 
     if (email && packPrompts > 0) {
-      // Recharge de prompts : on AJOUTE des crédits, on ne touche pas au tier.
+      // Crédits Studio : on AJOUTE des crédits, on ne touche pas au tier.
       const { data: u } = await supabase
         .from('users').select('prompt_credits').eq('email', email).maybeSingle()
       const credits = (u?.prompt_credits || 0) + packPrompts

@@ -1919,9 +1919,17 @@ ${duet?`DUET PROTOCOL (critical — keeps two stable voices in Suno):
 - A call-and-response line inside one section can prefix the switching voice inline, e.g. Male: ... / Female: ... — but the primary control is the section header label.`:""}
 STRUCTURE:\n${blockInstr}
 RULES:
-- NEVER: darkness, blood, pain, rise, fall, burning, ashes, chains, void, shadows, broken, shattered
-- NO SOFT AI-POETRY WORDS (they sound fake in metal): flicker, flickering, whisper (as a word), echo, echoes, ember, embers, neon, shimmer, glimmer, glow, glowing, fading, tapestry, symphony, dance, dancing, ethereal, haunting, serenity, embrace, yearning, solace, tender, gentle
-- Write like a real metal lyricist: blunt, physical, gritty, short hard words. Concrete nouns and strong verbs, not pretty adjectives.
+- CRAFT — write like a professional metal lyricist, never like an AI (pro songwriting rules, nov. 2026):
+- BANNED clichés: darkness, blood, pain, rise, fall, burning, ashes, chains, void, shadows, broken, shattered, flicker, echo, echoes, whisper (as a word), ember, embers, neon, shimmer, glimmer, glow, fading, tapestry, symphony, dance, ethereal, haunting, embrace, solace, yearning, tender, gentle, soul, destiny, wings, endless, forever, heart, desire. If one of them IS literally the theme, use it once at most.
+- BANNED stock phrases: rise from the ashes, lost in the darkness, break the chains, torn apart, can't let go, new dawn, endless night, spread my wings, set me free.
+- BANNED lazy rhymes: fire/desire, inside/alive, away/stay, heart/apart, alone/gone, pain/rain, night/light. Prefer slant rhyme, assonance and consonance over predictable perfect rhymes.
+- SHOW, DON'T TELL: never name the emotion. Show it through a physical action, an object, a place or a sound.
+- Every verse needs at least one real, specific detail (object, place, sound, body action) and one surprising word.
+- STRONG VERBS: avoid is/are/was/be. Use verbs that hit (grind, gut, haul, weld, choke, split, drag, gnaw).
+- PROSODY: hard consonants (k, t, g, d, p) on harsh lines; open vowels (oh, ah) on held or clean lines.
+- ONE STORY with a clear arc: verse 2 moves the story forward, it never repeats verse 1. Keep quality up through the bridge and the last chorus.
+- One hook line a crowd would shout back.
+- PLAIN SPEECH TEST: if a line sounds like a greeting card or a fantasy novel, rewrite it in blunt everyday words.
 - FORBIDDEN WORDS: ${allBanned.slice(0,25).join(", ")||"none"}
 - Each section = completely different metaphors
 - Breakdown lines = under 6 words each
@@ -1930,7 +1938,6 @@ RULES:
 - Gang chants: ALL CAPS, short, ending with an exclamation mark, written directly under their tag.
 - 6-10 syllables per line (Suno rushes or truncates longer lines); keep syllable counts similar within a section
 - Chorus repeated 3 times MAXIMUM in the whole song; each chorus repeat can vary 1 line
-- Be SPECIFIC and CONCRETE, not vague
 OUTPUT: ONLY raw lyrics. Zero commentary.`;
     try {
       const lyricsBody={prompt};

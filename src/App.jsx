@@ -1508,7 +1508,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const bandSugs=(()=>{if(!bandList||!sugOpen)return[];const t=_lastPart(ideaInput).tail.toLowerCase();if(t.length<2)return[];
     const st=[],inn=[];for(const b of bandList){const l=b.toLowerCase();if(l===t)return[];if(l.startsWith(t))st.push(b);else if(l.includes(t))inn.push(b);if(st.length>=6)break;}return [...st,...inn].slice(0,6);})();
   const pickSug=b=>{setIdeaInput(_lastPart(ideaInput).head+b);setSugOpen(false);};
-  const randomBand=async()=>{const l=await loadBands();if(!l.length)return;const r=()=>l[Math.floor(Math.random()*l.length)];setIdeaInput(Math.random()<0.35?r()+' + '+r():r());setSugOpen(false);};   // écran d'accueil = juste la boîte ; tout le reste derrière « Ajuster »
+  // 🎲 Surprends-moi (nov. 2026) : pige un groupe (ou une fusion de deux) et FORGE tout de suite — l'année est pigée côté serveur.
+  const randomBand=async()=>{const l=await loadBands();if(!l.length)return;const r=()=>l[Math.floor(Math.random()*l.length)];const v=Math.random()<0.35?r()+' + '+r():r();setIdeaInput(v);setSugOpen(false);setLyricCard(null);smartForge(v);};   // écran d'accueil = juste la boîte ; tout le reste derrière « Ajuster »
   const [pickerOpen,setPickerOpen]=useState(false);
   const [soundsOpen,setSoundsOpen]=useState(false);
   const [meterOpen,setMeterOpen]=useState(false);
@@ -1553,6 +1554,9 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [lyricsAngle,setLyricsAngle]=useState(SV.lyricsAngle ?? "");
   const [lyricsNarrator,setLyricsNarrator]=useState(SV.lyricsNarrator ?? "first");
   const [lyricsTense,setLyricsTense]=useState(SV.lyricsTense ?? "present");
+  const [lyricCard,setLyricCard]=useState(null);              // carte de paroles pigée (/api/lyric-card)
+  const [lyricCardLoading,setLyricCardLoading]=useState(false);
+  const lyricSeen=useRef([]);                                   // anti-répétition : ids des dernières cartes
   const [vocalMix,setVocalMix]=useState(SV.vocalMix ?? "harsh");   // harsh | mix | clean — mixe guttural et chant clair
   const [duet,setDuet]=useState(SV.duet ?? false);   // protocole duo male/female (God Mode 3 ancrages)
   const [bannedWords,setBannedWords]=useState(SV.bannedWords ?? "");
@@ -1634,10 +1638,10 @@ export default function App({ user, onLogout, onRequestAuth }) {
     finally{setReverseLoading(false);}
   };
   // ── FORGER v2 : une seule boîte — année, genre connu, groupe ou description → détecte, applique, forge ──
-  const smartForge=async()=>{
+  const smartForge=async(override)=>{
     if(!user){onRequestAuth&&onRequestAuth();return;}
     if(ideaBusy)return;
-    const raw=ideaInput.trim();
+    const raw=(typeof override==="string"?override:ideaInput).trim();   // 🎲 Surprends-moi passe son idée directement
     if(!raw){
       if(genres.size){generate();}
       else setIdeaMsg({ok:false,text:L("Écris un groupe, une année, un genre ou une description — ou choisis un genre juste en dessous.","Type a band, a year, a genre or a description — or pick a genre just below.")});
@@ -1839,6 +1843,19 @@ export default function App({ user, onLogout, onRequestAuth }) {
     if(!data.ok){setShowPaywall(true);return false;}
     return true;
   };
+  // ── CARTE DE PAROLES ── pige serveur selon le genre (zéro token). La banque reste côté serveur.
+  const drawLyricCard=async()=>{
+    setLyricCardLoading(true);
+    try{
+      const r=await fetch('/api/lyric-card',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({genres:[...genres],avoid:lyricSeen.current})});
+      const d=await r.json();
+      if(r.ok&&d&&d.theme){setLyricCard(d);lyricSeen.current=[...lyricSeen.current,d.theme.id,d.atmo?.id,d.pov?.id,d.arc?.id,...(d.images||[]).map(x=>x.id)].filter(Boolean).slice(-24);}
+    }catch(e){}
+    setLyricCardLoading(false);
+  };
+  useEffect(()=>{if(tab==="paroles"&&!lyricCard&&!lyricCardLoading)drawLyricCard();},[tab]);   // eslint-disable-line
+  const _genreKey=[...genres].join("|");
+  useEffect(()=>{setLyricCard(null);},[_genreKey]);   // nouveau genre = nouvelle carte à la prochaine visite des Paroles
   // ── GENERATE LYRICS ──
   const generateLyrics=async()=>{
     if(!isPro&&!(await spendCredit('paroles')))return;
@@ -1882,11 +1899,16 @@ export default function App({ user, onLogout, onRequestAuth }) {
     const narratorMap={first:"First person (I/We)",second:"Second person (You — accusatory)",third:"Third person — detached observer"};
     const tenseMap={present:"Present tense — immediate, visceral",past:"Past tense — aftermath",future:"Future tense — prophetic doom"};
     const prompt=`You are a creative ${genreList} metal lyricist. Write lyrics in ${langStr}.
-NARRATOR: ${narratorMap[lyricsNarrator]||narratorMap.first}.
+${lyricCard?`THEME: ${lyricsAngle.trim()||lyricCard.theme.en}.
+POINT OF VIEW: ${lyricCard.pov?.en||"first person"}.
+TENSE: ${tenseMap[lyricsTense]||tenseMap.present}.
+ATMOSPHERE: ${lyricCard.atmo?.en||"dark"} — express it ONLY through word choice, imagery and delivery tags in the lyrics (e.g. [Whispered], [Screamed]); never name the mood directly.
+STORY ARC: ${lyricCard.arc?.en||"build, collapse, quiet ending"} — the sections must follow this arc.
+CONCRETE IMAGES to weave in (use at least two, literally): ${(lyricCard.images||[]).map(x=>x.en).join("; ")}.`:`NARRATOR: ${narratorMap[lyricsNarrator]||narratorMap.first}.
 TENSE: ${tenseMap[lyricsTense]||tenseMap.present}.
 THEMES: ${[...themes].join(", ")||"death, chaos, darkness"}.
 ATMOSPHERE: ${[...latmo].join(", ")||"dark, menacing"}.
-${lyricsAngle?`ANGLE: ${lyricsAngle}`:`CREATIVE ANGLE: ${creativeSeed}`}
+${lyricsAngle?`ANGLE: ${lyricsAngle}`:`CREATIVE ANGLE: ${creativeSeed}`}`}
 ${keywords?`MUST USE: ${keywords}.`:""}
 ${vocalMix==="mix"?"VOCALS: Mix harsh growls and clean singing. Clean sections must be melodic, catchy, singable with open sustained vowels; harsh sections stay aggressive and percussive. OUTPUT FORMAT (critical): put the vocal style INSIDE the section header with a pipe, e.g. [Chorus | clean singing] or [Verse | harsh growls]. NEVER use parentheses for vocal style — in Suno, ( ) are SUNG as backing vocals and [ ] are instructions.":vocalMix==="clean"?"VOCALS: All clean melodic singing — soaring, catchy, singable, open vowels. Section headers stay simple, e.g. [Chorus].":""}
 ${vocalMix!=="clean"?"SCREAMS: on the hardest lines (breakdowns, scream sections), put 1-3 KEY words in ALL CAPS and STRETCH the vowels for impact (e.g. AAAAAH, RAAAAH, DOWWWN) — never whole lines in caps.":""}
@@ -2078,7 +2100,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             </svg>
             <input id="mpf-idee" autoComplete="off" value={ideaInput} maxLength={160} onFocus={()=>{loadBands();setSugOpen(true);}} onBlur={()=>setTimeout(()=>setSugOpen(false),150)} onChange={e=>{setIdeaInput(e.target.value);setSugOpen(true);}} onKeyDown={e=>{if(e.key==='Enter'){setSugOpen(false);smartForge();}if(e.key==='Tab'&&bandSugs.length){e.preventDefault();pickSug(bandSugs[0]);}}} placeholder={L("ex. : Lamb of God · Despised Icon + Meshuggah · doom lent avec orgue, 1993","e.g. Lamb of God · Despised Icon + Meshuggah · slow doom with organ, 1993")} style={{flex:"999 1 300px",minWidth:0,height:"58px",background:"rgba(22,24,28,0.86)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:"1px solid rgba(255,255,255,0.14)",borderRadius:"14px",padding:"0 18px",color:"#F2F1ED",fontSize:"1.05rem",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}}/>
             <button onClick={smartForge} disabled={ideaBusy} style={{flex:"1 0 auto",height:"58px",padding:"0 30px",background:"#F2F1ED",border:"none",borderRadius:"14px",color:"#0C0D0F",fontWeight:600,fontSize:"1.05rem",cursor:ideaBusy?"default":"pointer",opacity:ideaBusy?0.6:1}}>{ideaBusy?L("Analyse…","Analyzing…"):L("Forger","Forge")}</button>
-            <button onClick={randomBand} title={L("Groupe au hasard","Random band")} aria-label={L("Groupe au hasard","Random band")} style={{height:"58px",width:"58px",background:"rgba(22,24,28,0.86)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:"14px",fontSize:"1.4rem",cursor:"pointer"}}>🎲</button>
+            <button onClick={randomBand} title={L("Surprends-moi : un groupe ou une fusion au hasard, forgé direct","Surprise me: a random band or fusion, forged right away")} aria-label={L("Surprends-moi","Surprise me")} style={{height:"58px",width:"58px",background:"rgba(22,24,28,0.86)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:"14px",fontSize:"1.4rem",cursor:"pointer"}}>🎲</button>
           </div>
           {bandSugs.length>0&&<div role="listbox" style={{display:"flex",flexWrap:"wrap",gap:"6px",marginTop:"8px"}}>
             {bandSugs.map(b=>(<button key={b} role="option" onMouseDown={e=>e.preventDefault()} onClick={()=>pickSug(b)} style={{...CHIP,borderRadius:"8px",borderColor:"#5a2a14",color:"#FFD2B8"}}>{b}</button>))}
@@ -2400,28 +2422,35 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
       {/* PAROLES */}
       {tab==="paroles"&&(!canAccess("pro")&&!creditAccess?<LockedOverlay req="pro" t={t} email={user?.email} onRequestAuth={onRequestAuth}/>:<div style={S.page}>
-        <Collapse title={L("Thème principal","Main theme")} n={THEMES.length} selCount={themes.size}><Tags list={THEMES} sel={themes} toggle={tTheme} tr={uiLang==="en"?THEME_TR:null}/></Collapse>
-        <Collapse title={L("Atmosphère","Atmosphere")} n={LYRIC_ATMO.length} selCount={latmo.size}><Tags list={LYRIC_ATMO} sel={latmo} toggle={tLatmo} tr={uiLang==="en"?ATMO_TR:null}/></Collapse>
+        {/* CARTE DE PAROLES (nov. 2026) : pigée au hasard selon le genre, zéro token. Atmosphère = boîte Lyrics seulement. */}
+        <div style={{...S.card,borderColor:"#FF6A2B55",background:"radial-gradient(500px 160px at 50% 0%,rgba(255,106,43,.12),rgba(255,106,43,0) 70%),#121317"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"10px"}}>
+            <div style={S.ctitle}>{L("Ta carte","Your card")}</div>
+            <button onClick={()=>drawLyricCard()} disabled={lyricCardLoading} style={{minHeight:"36px",padding:"0 14px",background:"#2a1208",border:"1px solid #FF6A2B",borderRadius:"8px",color:"#FFD2B8",fontSize:"0.78rem",fontWeight:700,cursor:"pointer"}}>{lyricCardLoading?"…":L("🎲 Relancer","🎲 Reroll")}</button>
+          </div>
+          {lyricCard?<div style={{display:"grid",gap:"7px",fontSize:"0.78rem",color:"#D4D6DA",lineHeight:1.45}}>
+            {[[L("Thème","Theme"),lyricsAngle.trim()?<span><s style={{color:"#666"}}>{lyricCard.theme?.[uiLang==="fr"?"fr":"en"]}</s> → <b style={{color:"#FFD2B8"}}>{lyricsAngle.trim()}</b></span>:lyricCard.theme?.[uiLang==="fr"?"fr":"en"]],
+              [L("Atmosphère","Atmosphere"),lyricCard.atmo?.[uiLang==="fr"?"fr":"en"]],
+              [L("Point de vue","Point of view"),lyricCard.pov?.[uiLang==="fr"?"fr":"en"]],
+              [L("Arc","Arc"),lyricCard.arc?.[uiLang==="fr"?"fr":"en"]],
+              [L("Images","Images"),(lyricCard.images||[]).map(x=>x[uiLang==="fr"?"fr":"en"]).join(" · ")]].map(([k,v])=>(
+              <div key={k} style={{display:"flex",gap:"10px"}}><span style={{minWidth:"92px",color:"#FFB36B",fontFamily:"'Geist Mono',monospace",fontSize:"0.66rem",textTransform:"uppercase",letterSpacing:".06em",paddingTop:"2px"}}>{k}</span><span>{v}</span></div>))}
+          </div>:<div style={{color:"#777",fontSize:"0.75rem"}}>{lyricCardLoading?L("On pige ta carte…","Drawing your card…"):L("Clique Relancer pour piger une carte.","Click Reroll to draw a card.")}</div>}
+          <div style={{fontSize:"0.62rem",color:"#777",marginTop:"10px"}}>{L("Relancer est gratuit. La carte suit le genre de ton prompt.","Rerolling is free. The card follows your prompt's genre.")}</div>
+        </div>
         <div style={S.card}>
           <div style={S.ctitle}>{L("Angle créatif (optionnel)","Creative angle (optional)")}</div>
-          <input value={lyricsAngle} onChange={e=>setLyricsAngle(e.target.value)} placeholder={L("ex: vue d'une machine qui s'éveille, métaphores de noyade...","e.g. a machine waking up, drowning metaphors...")}
-            style={{width:"100%",background:"#111",border:"1px solid #222",borderRadius:"6px",padding:"10px",color:"#e0e0e0",fontSize:"0.78rem"}}/>
-          <div style={{fontSize:"0.57rem",color:"#333",marginTop:"4px"}}>{L("Si vide → angle aléatoire différent à chaque fois","If empty → a different random angle each time")}</div>
+          <input value={lyricsAngle} onChange={e=>setLyricsAngle(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!lyricsLoading)generateLyrics();}} placeholder={L("Ton idée en quelques mots, puis Entrée (remplace le thème)","Your idea in a few words, then Enter (replaces the theme)")}
+            style={{width:"100%",background:"#111",border:"1px solid #333",borderRadius:"6px",padding:"12px",color:"#e0e0e0",fontSize:"0.85rem"}}/>
+          <div style={{fontSize:"0.6rem",color:"#777",marginTop:"5px"}}>{L("Vide = on écrit à partir de la carte.","Empty = we write from the card.")}</div>
         </div>
-        <div style={{display:"flex",gap:"10px"}}>
-          <div style={{...S.card,flex:1}}>
-            <div style={S.ctitle}>{L("Narrateur","Narrator")}</div>
-            {[["first",L("1ère pers.","1st person")],["second",L("2ème pers.","2nd person")],["third",L("3ème pers.","3rd person")]].map(([v,l])=>(
-              <div key={v} onClick={()=>setLyricsNarrator(v)} style={{padding:"7px 10px",borderRadius:"6px",marginBottom:"5px",cursor:"pointer",fontSize:"0.72rem",background:lyricsNarrator===v?"#2a1208":"#111",border:`1px solid ${lyricsNarrator===v?RED:"#222"}`,color:lyricsNarrator===v?"#FFB36B":"#666"}}>{l}</div>
-            ))}
-          </div>
-          <div style={{...S.card,flex:1}}>
+        <Collapse title={L("Options avancées","Advanced options")} n={3}>
+          <div style={S.card}>
             <div style={S.ctitle}>{L("⏱️ Temps verbal","⏱️ Tense")}</div>
             {[["present",L("Présent","Present")],["past",L("Passé","Past")],["future",L("Futur","Future")]].map(([v,l])=>(
               <div key={v} onClick={()=>setLyricsTense(v)} style={{padding:"7px 10px",borderRadius:"6px",marginBottom:"5px",cursor:"pointer",fontSize:"0.72rem",background:lyricsTense===v?"#2a1208":"#111",border:`1px solid ${lyricsTense===v?RED:"#222"}`,color:lyricsTense===v?"#FFB36B":"#666"}}>{l}</div>
             ))}
           </div>
-        </div>
         <div style={S.card}><div style={S.ctitle}>{L("Mots-clés","Keywords")}</div>
           <input value={keywords} onChange={e=>setKeywords(e.target.value)} placeholder={L("ex: acier, fracture, signal, abîme...","e.g. steel, fracture, signal, abyss...")}
             style={{width:"100%",background:"#111",border:"1px solid #222",borderRadius:"6px",padding:"10px",color:"#e0e0e0",fontSize:"0.8rem"}}/>
@@ -2431,6 +2460,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
             style={{width:"100%",background:"#111",border:"1px solid #5a1100",borderRadius:"6px",padding:"10px",color:"#FFB36B",fontSize:"0.8rem"}}/>
           {lyricsHistory.length>0&&<button onClick={()=>setLyricsHistory([])} style={{marginTop:"7px",padding:"5px 12px",background:"#2a1208",border:"1px solid #5a0000",borderRadius:"5px",color:"#ff5555",fontSize:"0.65rem",cursor:"pointer"}}>{L("Effacer mémoire","Clear memory")} ({lyricsHistory.length})</button>}
         </div>
+        </Collapse>
         <Collapse title={L("Langue des paroles","Lyrics language")} n={LYRIC_LANGS.length} selCount={lang.size} defaultOpen={true}><Tags list={LYRIC_LANGS} sel={lang} toggle={tLang}/></Collapse>
         <Collapse title={L("Blocs à générer","Blocks to generate")} n={LYRIC_BLOCKS.length} selCount={lblocks.size}><div style={{marginBottom:"10px"}}><SelAll all={LYRIC_BLOCKS.map(b=>b.v)} set={setLblocks} L={L}/></div><Tags list={LYRIC_BLOCKS} sel={lblocks} toggle={tLblock}/></Collapse>
         <div style={S.card}><div style={S.ctitle}>{L("Voix","Vocals")}</div>

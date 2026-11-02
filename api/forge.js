@@ -139,9 +139,10 @@ export default function handler(req, res) {
   // MODE GROUPE (2026-11-01) : un groupe (reverse/cache) donne sa signature → le prompt suit le groupe,
   // pas le profil générique du sous-genre (Gojira 2008 sortait en 7/4 flottant, legato, shred, « melodic and atmospheric »).
   const _bandMode = A('signature').filter(x => String(x).trim()).length >= 2;
-  const _seqBase = (!_bandMode && !meters.length && _sidEarly && METER_SEQ[_sidEarly]) ? METER_SEQ[_sidEarly] : null;
+  const _seqBase = (!_bandMode && !meters.length && _sidEarly && METER_SEQ[_sidEarly] && /prog|math|djent|avant|jazz|fusion/.test(_gtxtEarly)) ? METER_SEQ[_sidEarly] : null;   // test 2026-11-02 : prog/math seulement
   let _autoSeq = _seqBase ? [..._seqBase].sort(() => Math.random() - 0.5).slice(0, 2 + (Math.random() < 0.5 ? 1 : 0)) : null;
-  if (!_bandMode && !meters.length && !_autoSeq && !b.meterLocked) {
+  // Test Suno 2026-11-02 : 7/4 ignoré dans 100 % des générations (tout sort en 4/4) → temps impair auto seulement pour prog/math.
+  if (!_bandMode && !meters.length && !_autoSeq && !b.meterLocked && /prog|math|djent|avant|jazz|fusion/.test(_gtxtEarly)) {
     const _pool = /doom|sludge|stoner|drone|funeral/.test(_gtxtEarly) ? ['6/8','12/8','3/4']
                 : /death|black|grind|thrash|brutal|slam/.test(_gtxtEarly) ? ['7/4','5/4','6/8','7/8']
                 : /core|hardcore|djent|prog|math/.test(_gtxtEarly) ? ['7/8','5/4','6/8']
@@ -375,7 +376,7 @@ export default function handler(req, res) {
   // Recommandation de modèle Suno par genre (mieux / bon / moins bon)
   let modelRec;
   // Suno v6 (9 sept. 2026) : v6 / v6-wild / v6-mini — TOUS les modèles précédents (v5.5, v5, v4.5) sont retirés.
-  if (/raw|kvlt|old.?school|grind|crust|d.?beat|war metal|primitive|dsbm|lo.?fi/.test(_gtxt))
+  if (/raw|kvlt|old.?school|grind|crust|d.?beat|war metal|primitive|dsbm|lo.?fi|death(?!core)|black|thrash|brutal|slam|sludge/.test(_gtxt))   // métal extrême → wild (test 2026-11-02 : plus de grain, moins électronique)
     modelRec = { best:'v6-wild', good:'v6', weak:'v6-mini', why: L('sorties moins prévisibles = le grain cru et l\'imperfection', 'less predictable output = raw grit and imperfection') };
   else if (/avant|experimental|dissonant|math|noise/.test(_gtxt))
     modelRec = { best:'v6-wild', good:'v6', weak:'v6-mini', why: L('variation recherchée sur les genres tordus', 'wanted variance on the weird genres') };
@@ -489,7 +490,17 @@ export default function handler(req, res) {
   const genresSafe = _doomFast ? genres.map(g => /doom/i.test(String(g)) ? 'progressive ' + g : g) : genres;
   if (_doomFast) conf.push(L('Doom à ' + bpm + ' BPM : contradiction — le prompt dit « progressive doom » pour rester cohérent.', 'Doom at ' + bpm + ' BPM: contradiction — the prompt says "progressive doom" to stay coherent.'));
   if (bpm > 140) scaleTag = scaleTag.replace(/\bslow\s+/gi, '').replace(/\s+dragging behind the beat/gi, '');
-  const bpmTag = bpm + ' BPM';
+  // Test Suno 2026-11-02 : « 180 BPM » seul → 92-131 mesuré (half-time); + « fast tempo … relentless double-time » → 164. Les mots pilotent le tempo.
+  const _halfSec = structs.some(s => /half/i.test(String(s)));
+  // Mots de tempo pigés au hasard (variété); genres « toujours dans le tapis » = toujours les mots rapides.
+  const _tapis = /grind|powerviolence|brutal|war metal|blackened death|slam|speed metal|d-?beat/.test(_gtxt);
+  const _FAST_W = [['fast tempo', 'relentless double-time'], ['fast tempo', 'driving double-time'], ['breakneck tempo', 'relentless double-time'], ['fast tempo', 'non-stop double-time drumming']];
+  const _SLOW_W = [['slow crushing half-time feel'], ['slow dragging half-time feel'], ['slow, heavy half-time pulse']];
+  const _fw = _FAST_W[Math.floor(Math.random() * _FAST_W.length)], _sw = _SLOW_W[Math.floor(Math.random() * _SLOW_W.length)];
+  const _isFast = bpm >= 160 || (_tapis && bpm >= 130);
+  const bpmTag = _isFast ? _fw[0] + ' ' + bpm + ' BPM, ' + _fw[1]
+               : bpm <= 100 ? bpm + ' BPM, ' + _sw[0]
+               : bpm + ' BPM';
   const _brid = g => String(g).trim() + '-influenced';   // bridge de fusion (guide 2026-07-28) : « black metal » → « black metal-influenced »
   // Clé explicite (guide v5.5 : tonalité en tag plain, ex. "E minor") — dérivée du tuning
   const _tunTxt = String(tuning[0] || autoTuning || '').toLowerCase();
@@ -577,6 +588,9 @@ export default function handler(req, res) {
   const _VOXRE = /vocal|scream|growl|roar|shout|shriek|singing|croon|guttural|bark|rasp/i;
   const _sigVox = signature.filter(x => _VOXRE.test(x));
   const _sigRest = signature.filter(x => !_VOXRE.test(x));
+  // VOIX D'ÉPOQUE (test 2026-11-02) : l'année change le mix, pas la voix. Death 1985-1998 → growl rauque mi-registre noyé de réverb (préféré à l'oreille par François).
+  const _eraDeathVox = !!pickedYear && pickedYear >= 1985 && pickedYear <= 1998 && /death/.test(_gtxt) && !/deathcore|melodic death/.test(_gtxt);
+  const _ERA_VOX = 'raspy mid-range death growl, reverb-drenched';
   const _sigTun = /down-?tuned|low-?tuned|drop[- ]?[a-g]\b|7-string|8-string|baritone/i.test(signature.join(' '));
   const _tunP = (_sigTun && /^standard( e)?( tuning)?$/i.test(String(_tun).trim())) ? '' : _tun;
   // VARIÉTÉ (2026-10-31) : 8 forges du même réglage ne doivent pas donner 8 prompts identiques.
@@ -587,7 +601,7 @@ export default function handler(req, res) {
   const PRIORITY = _bandMode ? [
     meters.length ? meterLead : '',   // une mesure choisie à la main reste
     genreClause,
-    ...(_sigVox.length ? _sigVox.slice(0, 1) : harshVox ? vocals.slice(0, 1) : vocals.slice(0, 1)),
+    ...(_eraDeathVox ? [_ERA_VOX] : _sigVox.length ? _sigVox.slice(0, 1) : harshVox ? vocals.slice(0, 1) : vocals.slice(0, 1)),
     eraTag,
     bpmTag,
     ..._shuf(_sigRest),               // TOUS les ancrages du groupe, ordre pigé
@@ -595,7 +609,7 @@ export default function handler(req, res) {
   ].filter(x => x && String(x).trim()) : [
     meterLead,                       // 1. identité rythmique
     genreClause,                     // 2. genre + influences historiques
-    ...(_sigVox.length ? _sigVox.slice(0, 1) : harshVox ? vocals.slice(0, 1) : []),   // 3. voix (celle du groupe d'abord) — tôt, sinon v6 rate les gutturaux (test 2026-10-31)
+    ...(_eraDeathVox ? [_ERA_VOX] : _sigVox.length ? _sigVox.slice(0, 1) : harshVox ? vocals.slice(0, 1) : []),   // 3. voix (celle du groupe d'abord) — tôt, sinon v6 rate les gutturaux (test 2026-10-31)
     eraTag,                          // 4. année précise de production — gros effet sur le son (test 2026-10-31)
     bpmTag,                          // 5. tempo
     ..._shuf(_sigRest).slice(0, 2 + (Math.random() < 0.5 ? 1 : 0)),  // 6. 2 ou 3 ancrages, pigés ancrages sonores (groupe ou sous-genre)
@@ -603,7 +617,7 @@ export default function handler(req, res) {
     ..._one(drums),
     ..._one(guitar),
     ...emotionTags.slice(0, 1),      // 10. émotion dominante (termes de production)
-    ...(harshVox || _sigVox.length ? [] : vocals.slice(0, 1)),
+    ...(_eraDeathVox || harshVox || _sigVox.length ? [] : vocals.slice(0, 1)),
     scaleTag,
     ..._prodClean.slice(0, 1),
     ..._one(leadInst),
@@ -694,7 +708,7 @@ export default function handler(req, res) {
     if (_harshCtx && /growl|guttural|scream|shriek|harsh/.test(t)) return false;
     return !t.split(/[^a-z]+/).filter(w => w.length >= 5 && !_STOP.has(w)).some(w => _posTxt.includes(w));
   };
-  const excStr = dedup([...allExclude, ...autoExcl]).filter(_keepExcl).slice(0, 8).join(', ');
+  const excStr = dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl).slice(0, 8).join(', ');
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)
   const NAME = { intro: 'Intro', buildup: 'Build-up', verse: 'Verse', prechorus: 'Pre-Chorus', chorus: 'Chorus', breakdown: 'Breakdown', halftime: 'Half-Time', blastsection: 'Blast Section', drop: 'Drop', solo: 'Guitar Solo', interlude: 'Interlude', atmosphericbreak: 'Atmospheric Break', spokenword: 'Spoken Word', gangchant: 'Gang Chant', scream: 'Scream Section', riffbreak: 'Riff Break', bridge: 'Bridge', outro: 'Outro' };

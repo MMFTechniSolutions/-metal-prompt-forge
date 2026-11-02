@@ -304,7 +304,9 @@ export default function handler(req, res) {
   else if (_bandYears.length) { const pool = _bandYearsInEra.length ? _bandYearsInEra : _bandYears; pickedYear = pool[Math.floor(Math.random() * pool.length)]; }
   else if (_eraKey && _DEC_RANGE[_eraKey]) { const [lo, hi] = _DEC_RANGE[_eraKey]; pickedYear = lo + Math.floor(Math.random() * (hi - lo + 1)); }
   if (pickedYear) _eraKey = _decOf(pickedYear);
-  const eraTag = pickedYear ? pickedYear + (pickedYear < 1980 ? ' analog tape production' : ' production') : (_eraKey ? ERA_TAG[_eraKey] : '');
+  // Test Suno 2026-11-02 : black 2e vague (1990-1996) = voix lointaine noyée de réverb + production lo-fi (préféré à l'oreille par François).
+  const _eraBlack = !!pickedYear && pickedYear >= 1990 && pickedYear <= 1996 && /black/.test(_gtxtEarly) && !/blackened.?death|deathcore|symphonic|blackgaze|post.?black|atmospheric|death/.test(_gtxtEarly);
+  const eraTag = pickedYear ? pickedYear + (pickedYear < 1980 ? ' analog tape production' : _eraBlack ? ' lo-fi production' : ' production') : (_eraKey ? ERA_TAG[_eraKey] : '');
   const _vintageEra = /^(60s-70s|80s|90s)$/.test(_eraKey || '');
   const blockRhythm = b.blockRhythm || {};
   // BUG : « +b.x || 5 » traitait 0 comme absent — un curseur mis à 0 repartait à 5 (le milieu).
@@ -589,8 +591,9 @@ export default function handler(req, res) {
   const _sigVox = signature.filter(x => _VOXRE.test(x));
   const _sigRest = signature.filter(x => !_VOXRE.test(x));
   // VOIX D'ÉPOQUE (test 2026-11-02) : l'année change le mix, pas la voix. Death 1985-1998 → growl rauque mi-registre noyé de réverb (préféré à l'oreille par François).
-  const _eraDeathVox = !!pickedYear && pickedYear >= 1985 && pickedYear <= 1998 && /death/.test(_gtxt) && !/deathcore|melodic death/.test(_gtxt);
-  const _ERA_VOX = 'raspy mid-range death growl, reverb-drenched';
+  const _isEraDeath = !!pickedYear && pickedYear >= 1985 && pickedYear <= 1998 && /death/.test(_gtxt) && !/deathcore|melodic death/.test(_gtxt);
+  const _eraDeathVox = _isEraDeath || _eraBlack;   // voix d'époque : death 85-98 et black 90-96 (thrash : la générique gagne, test 2026-11-02)
+  const _ERA_VOX = _isEraDeath ? 'raspy mid-range death growl, reverb-drenched' : 'raspy distant high shrieks, drenched in reverb';
   const _sigTun = /down-?tuned|low-?tuned|drop[- ]?[a-g]\b|7-string|8-string|baritone/i.test(signature.join(' '));
   const _tunP = (_sigTun && /^standard( e)?( tuning)?$/i.test(String(_tun).trim())) ? '' : _tun;
   // VARIÉTÉ (2026-10-31) : 8 forges du même réglage ne doivent pas donner 8 prompts identiques.

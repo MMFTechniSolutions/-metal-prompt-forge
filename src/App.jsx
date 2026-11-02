@@ -1920,6 +1920,8 @@ ${duet?`DUET PROTOCOL (critical — keeps two stable voices in Suno):
 STRUCTURE:\n${blockInstr}
 RULES:
 - NEVER: darkness, blood, pain, rise, fall, burning, ashes, chains, void, shadows, broken, shattered
+- NO SOFT AI-POETRY WORDS (they sound fake in metal): flicker, flickering, whisper (as a word), echo, echoes, ember, embers, neon, shimmer, glimmer, glow, glowing, fading, tapestry, symphony, dance, dancing, ethereal, haunting, serenity, embrace, yearning, solace, tender, gentle
+- Write like a real metal lyricist: blunt, physical, gritty, short hard words. Concrete nouns and strong verbs, not pretty adjectives.
 - FORBIDDEN WORDS: ${allBanned.slice(0,25).join(", ")||"none"}
 - Each section = completely different metaphors
 - Breakdown lines = under 6 words each

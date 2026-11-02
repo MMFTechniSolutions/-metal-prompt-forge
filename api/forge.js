@@ -711,7 +711,11 @@ export default function handler(req, res) {
     if (_harshCtx && /growl|guttural|scream|shriek|harsh/.test(t)) return false;
     return !t.split(/[^a-z]+/).filter(w => w.length >= 5 && !_STOP.has(w)).some(w => _posTxt.includes(w));
   };
-  const excStr = dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl).slice(0, 8).join(', ');
+  // ANTI-VOIX GRAVE (test 2026-11-02, Gojira/Meshuggah) : la voix criée par défaut de Suno tombe trop grave (« personne gueule comme ça »).
+  // Si la voix du prompt est criée (yell/scream/shout/bark/rasp) sans growl, on exclut les voix graves — passe AVANT le filtre _keepExcl.
+  const _voxUsed = (PRIORITY.find(x => _VOXRE.test(String(x))) || '').toLowerCase();
+  const _antiLow = (/yell|scream|shout|bark|shriek|rasp/.test(_voxUsed) && !/growl|guttural|\blow\b|deep|death growl/.test(_voxUsed)) ? ['low growls', 'deep vocals', 'guttural'] : [];
+  const excStr = dedup([..._antiLow, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, 8).join(', ');
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)
   const NAME = { intro: 'Intro', buildup: 'Build-up', verse: 'Verse', prechorus: 'Pre-Chorus', chorus: 'Chorus', breakdown: 'Breakdown', halftime: 'Half-Time', blastsection: 'Blast Section', drop: 'Drop', solo: 'Guitar Solo', interlude: 'Interlude', atmosphericbreak: 'Atmospheric Break', spokenword: 'Spoken Word', gangchant: 'Gang Chant', scream: 'Scream Section', riffbreak: 'Riff Break', bridge: 'Bridge', outro: 'Outro' };

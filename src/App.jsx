@@ -1847,7 +1847,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const drawLyricCard=async()=>{
     setLyricCardLoading(true);
     try{
-      const r=await fetch('/api/lyrics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'card',genres:[...genres],avoid:lyricSeen.current})});
+      const r=await fetch('/api/lyrics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'card',genres:[...genres],era:exactYear||eraPick||autoEra||'',avoid:lyricSeen.current})});
       const d=await r.json();
       if(r.ok&&d&&d.theme){setLyricCard(d);lyricSeen.current=[...lyricSeen.current,d.theme.id,d.atmo?.id,d.pov?.id,d.arc?.id,...(d.images||[]).map(x=>x.id)].filter(Boolean).slice(-24);}
     }catch(e){}
@@ -1904,7 +1904,7 @@ POINT OF VIEW: ${lyricCard.pov?.en||"first person"}.
 TENSE: ${tenseMap[lyricsTense]||tenseMap.present}.
 ATMOSPHERE: ${lyricCard.atmo?.en||"dark"} — express it ONLY through word choice, imagery and delivery tags in the lyrics (e.g. [Whispered], [Screamed]); never name the mood directly.
 STORY ARC: ${lyricCard.arc?.en||"build, collapse, quiet ending"} — the sections must follow this arc.
-CONCRETE IMAGES to weave in (use at least two, literally): ${(lyricCard.images||[]).map(x=>x.en).join("; ")}.`:`NARRATOR: ${narratorMap[lyricsNarrator]||narratorMap.first}.
+CONCRETE IMAGES to weave in (use at least two, literally): ${(lyricCard.images||[]).map(x=>x.en).join("; ")}.${lyricCard.words?.length?`\nVOCABULARY PALETTE for this genre and era (use 4-6 of these words naturally, never as a list): ${lyricCard.words.join(", ")}. Strong verbs available: ${(lyricCard.verbs||[]).join(", ")}.`:""}`:`NARRATOR: ${narratorMap[lyricsNarrator]||narratorMap.first}.
 TENSE: ${tenseMap[lyricsTense]||tenseMap.present}.
 THEMES: ${[...themes].join(", ")||"death, chaos, darkness"}.
 ATMOSPHERE: ${[...latmo].join(", ")||"dark, menacing"}.
@@ -2442,7 +2442,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               [L("Atmosphère","Atmosphere"),lyricCard.atmo?.[uiLang==="fr"?"fr":"en"]],
               [L("Point de vue","Point of view"),lyricCard.pov?.[uiLang==="fr"?"fr":"en"]],
               [L("Arc","Arc"),lyricCard.arc?.[uiLang==="fr"?"fr":"en"]],
-              [L("Images","Images"),(lyricCard.images||[]).map(x=>x[uiLang==="fr"?"fr":"en"]).join(" · ")]].map(([k,v])=>(
+              [L("Images","Images"),(lyricCard.images||[]).map(x=>x[uiLang==="fr"?"fr":"en"]).join(" · ")],
+              ...(lyricCard.words?.length?[[L("Vocabulaire","Vocabulary"),[...lyricCard.words,...(lyricCard.verbs||[])].join(" · ")]]:[])].map(([k,v])=>(
               <div key={k} style={{display:"flex",gap:"10px"}}><span style={{minWidth:"92px",color:"#FFB36B",fontFamily:"'Geist Mono',monospace",fontSize:"0.66rem",textTransform:"uppercase",letterSpacing:".06em",paddingTop:"2px"}}>{k}</span><span>{v}</span></div>))}
           </div>:<div style={{color:"#777",fontSize:"0.75rem"}}>{lyricCardLoading?L("On pige ta carte…","Drawing your card…"):L("Clique Relancer pour piger une carte.","Click Reroll to draw a card.")}</div>}
           <div style={{fontSize:"0.62rem",color:"#777",marginTop:"10px"}}>{L("Relancer est gratuit. La carte suit le genre de ton prompt.","Rerolling is free. The card follows your prompt's genre.")}</div>

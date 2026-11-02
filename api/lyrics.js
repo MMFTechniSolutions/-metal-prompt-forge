@@ -2,6 +2,7 @@
 // (l'appel direct depuis le navigateur est bloqué par CORS et exposerait la clé).
 
 import { phoneticize } from './_lib/phoneticize.js'
+import { lyricCard } from './_lib/lyricCard.js'
 
 // Consignes d'écriture par intensité vocale (recette — validé 2026-07-04) :
 // le générateur doit écrire POUR le style vocal, pas juste déformer après.
@@ -25,6 +26,9 @@ export default async function handler(req, res) {
     try { body = JSON.parse(body) } catch { body = {} }
   }
   if (!body) body = {}
+
+  // Carte de paroles pigée (thème, atmosphère, etc.) : aucun appel IA
+  if (body.mode === 'card') return lyricCard(body, res)
 
   let prompt = body.prompt
   if (!prompt) {

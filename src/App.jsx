@@ -1847,7 +1847,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const drawLyricCard=async()=>{
     setLyricCardLoading(true);
     try{
-      const r=await fetch('/api/lyric-card',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({genres:[...genres],avoid:lyricSeen.current})});
+      const r=await fetch('/api/lyrics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'card',genres:[...genres],avoid:lyricSeen.current})});
       const d=await r.json();
       if(r.ok&&d&&d.theme){setLyricCard(d);lyricSeen.current=[...lyricSeen.current,d.theme.id,d.atmo?.id,d.pov?.id,d.arc?.id,...(d.images||[]).map(x=>x.id)].filter(Boolean).slice(-24);}
     }catch(e){}

@@ -1,4 +1,5 @@
-// Carte de paroles (nov. 2026) : pige au hasard un thème, une atmosphère, un point de vue,
+// Carte de paroles (nov. 2026) — servie par /api/lyrics (mode « card ») : limite de 12 fonctions sur Vercel Hobby.
+// Carte de paroles : pige au hasard un thème, une atmosphère, un point de vue,
 // un arc et 2-3 images concrètes, selon le genre du prompt. Zéro appel IA.
 // La banque (table lyric_seeds) est lue seulement ici, avec la clé service : le client ne voit
 // jamais la liste complète, juste la carte pigée (recette protégée).
@@ -51,9 +52,7 @@ function pick(rows, fams, avoid, n = 1) {
 
 const pub = r => r ? { id: r.id, en: r.en, fr: r.fr } : null;
 
-export default async function handler(req, res) {
-  let b = req.method === 'POST' ? req.body : (req.query || {});
-  if (typeof b === 'string') { try { b = JSON.parse(b); } catch { b = {}; } }
+export async function lyricCard(b, res) {
   b = b || {};
   let rows;
   try { rows = await loadSeeds(); } catch (e) { return res.status(500).json({ error: 'config' }); }

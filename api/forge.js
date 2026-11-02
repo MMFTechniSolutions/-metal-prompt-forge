@@ -362,7 +362,7 @@ export default function handler(req, res) {
     [/neoclassical/, {ts:'4/4', scale:'harmonic minor, diminished-7 arpeggios, sweep picking, pedal point', prod:'virtuosic baroque shred', tuning:'standard'}],
     [/power/, {ts:'4/4', scale:'harmonic minor galloping leads', prod:'bombastic, continuous double kick', tuning:'standard'}],
     [/metalcore/, {ts:'4/4', scale:'aeolian melodic riffs with breakdowns', prod:'tight mix, compressed kick/snare, guitars panned 100%', tuning:'Drop C'}],
-    [/nu.?metal/, {ts:'4/4', scale:'bouncy syncopated groove', prod:'turntables, samples, industrial textures', tuning:'Drop, 7-string'}],
+    [/nu.?metal/, {ts:'4/4', scale:'bouncy syncopated groove', prod:'turntables, samples, industrial textures', tuning:'drop A 7-string'}],
     [/industrial/, {ts:'4/4', scale:'rigid repetitive mechanical riffs', prod:'electronic drums, machine samples, cold synths', tuning:'Drop C'}],
     [/groove/, {ts:'4/4', scale:'syncopated chugging riffs', prod:'colossal punchy drums', tuning:'D standard'}],
     [/crossover/, {ts:'4/4', scale:'punk-thrash riffs with mosh parts', prod:'raw fast mix', tuning:'E standard'}],

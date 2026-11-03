@@ -591,7 +591,7 @@ export default function handler(req, res) {
   // Maintenant le compact est le DÉBUT de cette liste — couper ne retire que le décor.
   // Signature d'un GROUPE (reverse/cache) = plus précise que le profil générique du sous-genre :
   // sa voix passe avant celle du profil, et si elle dit « down-tuned », on n'écrit pas « standard E » (Gojira, 2026-10-28).
-  const _VOXRE = /vocal|scream|growl|roar|shout|shriek|singing|croon|guttural|bark|rasp/i;
+  const _VOXRE = /vocal|scream|growl|roar|shout|shriek|singing|singer|croon|guttural|bark|rasp|yell|baritone|tenor|soprano/i;
   const _sigVox = signature.filter(x => _VOXRE.test(x));
   const _sigRest = signature.filter(x => !_VOXRE.test(x));
   // VOIX D'ÉPOQUE (test 2026-11-02) : l'année change le mix, pas la voix. Death 1985-1998 → growl rauque mi-registre noyé de réverb (préféré à l'oreille par François).

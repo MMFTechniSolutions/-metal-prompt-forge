@@ -1,6 +1,12 @@
 // Années de sortie des albums studio, par nom de groupe normalisé (comme band_cache.name_key).
 // Rempli une seule fois (31 oct. 2026) : aucun appel IA au moment de forger.
 export const BAND_YEARS = {
+  "nirvana": [1989,1991,1993],
+  "pearl jam": [1991,1993,1994,1996,1998,2000,2002,2006,2009,2013,2020,2024],
+  "stone temple pilots": [1992,1994,1996,1999,2001,2010,2018,2020],
+  "mudhoney": [1989,1991,1992,1995,1998,2002,2006,2008,2013,2018,2023],
+  "screaming trees": [1986,1987,1988,1989,1991,1992,1996],
+  "seether": [2002,2005,2007,2011,2014,2017,2020,2024],
   "$uicideboy$": [2018,2020,2022,2024],
   "(hed) p.e.": [1997,2000,2003],
   "100 gecs": [2019,2023],

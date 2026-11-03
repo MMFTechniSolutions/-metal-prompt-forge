@@ -500,7 +500,10 @@ export default function handler(req, res) {
   const _SLOW_W = [['slow crushing half-time feel'], ['slow dragging half-time feel'], ['slow, heavy half-time pulse']];
   const _fw = _FAST_W[Math.floor(Math.random() * _FAST_W.length)], _sw = _SLOW_W[Math.floor(Math.random() * _SLOW_W.length)];
   const _isFast = bpm >= 160 || (_tapis && bpm >= 130);
-  const bpmTag = _isFast ? _fw[0] + ' ' + bpm + ' BPM, ' + _fw[1]
+  // Heavy classique/NWOBHM/power/speed : galop, pas double-time (test Iron Maiden 2026-11-02 : « driving 160 BPM » gagne).
+  const _classic = /nwobhm|heavy metal|power metal|speed metal|hard rock|trad/.test(_gtxt) && !/death|black|thrash|grind|core|doom|sludge/.test(_gtxt);
+  const bpmTag = (_isFast && _classic) ? 'driving ' + bpm + ' BPM'
+               : _isFast ? _fw[0] + ' ' + bpm + ' BPM, ' + _fw[1]
                : (bpm <= 85 || (bpm <= 100 && /doom|sludge|stoner|funeral|drone/.test(_gtxt))) ? bpm + ' BPM, ' + _sw[0]   // nu-metal/groove à 96 = bounce, pas doom (test Linkin Park 2026-11-02)
                : bpm + ' BPM';
   const _brid = g => String(g).trim() + '-influenced';   // bridge de fusion (guide 2026-07-28) : « black metal » → « black metal-influenced »
@@ -651,7 +654,8 @@ export default function handler(req, res) {
     }
     return out;
   };
-  const ORDERED = _collapse(PRIORITY);
+  // Acronymes de genre écrits au long (Suno comprend mal « nwobhm ») — test Iron Maiden 2026-11-02
+  const ORDERED = _collapse(PRIORITY).map(x => String(x).replace(/\bnwobhm\b/gi, 'new wave of british heavy metal, classic heavy metal').replace(/\bnwothm\b/gi, 'new wave of traditional heavy metal'));
 
   const RICH_BUDGET = 420;   // mesuré : au-delà on empile des synonymes, pas de l'information
   const _fit = (arr, budget) => { const o = []; for (const t of arr) { if (o.length && (o.join(', ') + ', ' + t).length > budget) break; o.push(t); } return o; };
@@ -715,6 +719,9 @@ export default function handler(req, res) {
   // Si la voix du prompt est criée (yell/scream/shout/bark/rasp) sans growl, on exclut les voix graves — passe AVANT le filtre _keepExcl.
   const _voxUsed = (PRIORITY.find(x => _VOXRE.test(String(x))) || '').toLowerCase();
   const _antiLow = (/yell|scream|shout|bark|shriek|rasp/.test(_voxUsed) && !/growl|guttural|\blow\b|deep|death growl/.test(_voxUsed)) ? ['low growls', 'deep vocals', 'guttural'] : [];
+  // Voix claire (chant, ténor, opératique) sans cri → on exclut growls/cris; heavy classique → pas de chœurs empilés (sonnait Blind Guardian, test Maiden 2026-11-02).
+  const _cleanVox = /clean|sung|singing|tenor|operatic|melodic|croon|siren/.test(_voxUsed) && !/scream|growl|harsh|rasp|shriek|bark|yell|rap|guttural/.test(_voxUsed);
+  if (_cleanVox) _antiLow.push('growls', 'screams', ...(_classic && !/power|symphonic/.test(_gtxt) ? ['choir', 'layered vocal harmonies'] : []));
   const excStr = dedup([..._antiLow, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, 8).join(', ');
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)

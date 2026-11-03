@@ -655,7 +655,7 @@ export default function handler(req, res) {
     return out;
   };
   // Acronymes de genre écrits au long (Suno comprend mal « nwobhm ») — test Iron Maiden 2026-11-02
-  const ORDERED = _collapse(PRIORITY).map(x => String(x).replace(/\bnwobhm\b/gi, 'new wave of british heavy metal, classic heavy metal').replace(/\bnwothm\b/gi, 'new wave of traditional heavy metal'));
+  const ORDERED = _collapse(PRIORITY).map(x => String(x).replace(/\bnwobhm\b/gi, 'new wave of british heavy metal, classic heavy metal').replace(/\bnwothm\b/gi, 'new wave of traditional heavy metal').replace(/\bskank(ing)? beats?\b/gi, 'fast punk-style beat'));   // « skank » = nom d'artiste pour Suno → génération REFUSÉE (test 2026-11-03)
 
   const RICH_BUDGET = 420;   // mesuré : au-delà on empile des synonymes, pas de l'information
   const _fit = (arr, budget) => { const o = []; for (const t of arr) { if (o.length && (o.join(', ') + ', ' + t).length > budget) break; o.push(t); } return o; };

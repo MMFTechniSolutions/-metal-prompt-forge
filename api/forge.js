@@ -720,8 +720,9 @@ export default function handler(req, res) {
   const _voxUsed = (PRIORITY.find(x => _VOXRE.test(String(x))) || '').toLowerCase();
   const _antiLow = (/yell|scream|shout|bark|shriek|rasp/.test(_voxUsed) && !/growl|guttural|\blow\b|deep|death growl/.test(_voxUsed)) ? ['low growls', 'deep vocals', 'guttural'] : [];
   // Voix claire (chant, ténor, opératique) sans cri → on exclut growls/cris; heavy classique → pas de chœurs empilés (sonnait Blind Guardian, test Maiden 2026-11-02).
-  const _cleanVox = /clean|sung|singing|tenor|operatic|melodic|croon|siren/.test(_voxUsed) && !/scream|growl|harsh|rasp|shriek|bark|yell|rap|guttural/.test(_voxUsed);
+  const _cleanVox = /clean|sung|singing|tenor|soprano|operatic|melodic|croon|siren/.test(_voxUsed) && !/scream|growl|harsh|rasp|shriek|bark|yell|rap|guttural/.test(_voxUsed);
   if (_cleanVox) _antiLow.push('growls', 'screams', ...(_classic && !/power|symphonic/.test(_gtxt) ? ['choir', 'layered vocal harmonies'] : []));
+  if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/hard rock|glam/.test(_gtxt)) _antiLow.push('hard rock', 'boogie');   // sans « epic », NWOBHM retombait en AC/DC (test Maiden 2026-11-02)
   const excStr = dedup([..._antiLow, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, 8).join(', ');
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)

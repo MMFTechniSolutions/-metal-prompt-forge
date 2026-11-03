@@ -501,7 +501,7 @@ export default function handler(req, res) {
   const _fw = _FAST_W[Math.floor(Math.random() * _FAST_W.length)], _sw = _SLOW_W[Math.floor(Math.random() * _SLOW_W.length)];
   const _isFast = bpm >= 160 || (_tapis && bpm >= 130);
   const bpmTag = _isFast ? _fw[0] + ' ' + bpm + ' BPM, ' + _fw[1]
-               : bpm <= 100 ? bpm + ' BPM, ' + _sw[0]
+               : (bpm <= 85 || (bpm <= 100 && /doom|sludge|stoner|funeral|drone/.test(_gtxt))) ? bpm + ' BPM, ' + _sw[0]   // nu-metal/groove à 96 = bounce, pas doom (test Linkin Park 2026-11-02)
                : bpm + ' BPM';
   const _brid = g => String(g).trim() + '-influenced';   // bridge de fusion (guide 2026-07-28) : « black metal » → « black metal-influenced »
   // Clé explicite (guide v5.5 : tonalité en tag plain, ex. "E minor") — dérivée du tuning

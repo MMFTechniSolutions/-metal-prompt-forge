@@ -724,7 +724,9 @@ export default function handler(req, res) {
   const _cleanVox = /clean|sung|singing|tenor|soprano|operatic|melodic|croon|siren/.test(_voxUsed) && !/scream|growl|harsh|rasp|shriek|bark|yell|rap|guttural/.test(_voxUsed);
   if (_cleanVox) _antiLow.push('growls', 'screams', ...(_classic && !/power|symphonic/.test(_gtxt) ? ['choir', 'layered vocal harmonies'] : []));
   if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/hard rock|glam/.test(_gtxt)) _antiLow.push('hard rock', 'boogie');
-  if (/thrash/.test(_gtxt) && !/death|black|grind/.test(_gtxt)) _antiLow.push('blast beats');   // sans « epic », NWOBHM retombait en AC/DC (test Maiden 2026-11-02)
+  if (/thrash/.test(_gtxt) && !/death|black|grind/.test(_gtxt)) _antiLow.push('blast beats');
+  // Voix criée mi-grave voulue (baritone/chesty/low-mid) : on bloque l'aigu et le guttural, pas le grave (test Pantera 1992 : « c'est mieux »).
+  if (/baritone|chesty|low-mid/.test(_voxUsed) && !/growl|guttural/.test(_voxUsed)) _antiLow.push('high-pitched vocals', 'shrieks', 'falsetto', 'guttural');   // sans « epic », NWOBHM retombait en AC/DC (test Maiden 2026-11-02)
   const excStr = dedup([..._antiLow, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, 8).join(', ');
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)

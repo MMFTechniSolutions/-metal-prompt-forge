@@ -1393,7 +1393,18 @@ function Gallery({user,onRequestAuth,uiLang,isPaid,onPaywall}){
   );
 }
 
+// Leçons en bêta privée : visibles seulement en local, pour le compte du propriétaire, ou avec ?lecons=1 (retenu dans ce navigateur).
+const LECONS_OWNERS=["rzlajoie@gmail.com"];
+function leconsBeta(user){
+  if(IS_LOCAL) return true;
+  try{ const q=new URLSearchParams(window.location.search).get("lecons");
+    if(q==="1") localStorage.setItem("mp_lecons_beta","1"); if(q==="0") localStorage.removeItem("mp_lecons_beta");
+    if(localStorage.getItem("mp_lecons_beta")==="1") return true; }catch{ /* stockage indisponible */ }
+  return !!(user&&LECONS_OWNERS.includes((user.email||"").toLowerCase()));
+}
+
 export default function App({ user, onLogout, onRequestAuth }) {
+  const SHOW_LECONS=leconsBeta(user);
   const [view,setView]=useState("app");
   const [tab,setTab]=useState("genre");
   const [showPaywall,setShowPaywall]=useState(false);
@@ -1991,7 +2002,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
     {id:"melodie",label:L("Mélodie · Riff · Beat","Melody · Riff · Beat"),also:["riff","beat"],req:"elite"},
     {id:"paroles",label:t.tabs.paroles,also:[],req:"pro"},
     {id:"galerie",label:t.tabs.galerie,also:[],req:"free"},
-    {id:"lecons",label:L("Leçons","Lessons"),also:[],req:"free"},
+    ...(SHOW_LECONS?[{id:"lecons",label:L("Leçons","Lessons"),also:[],req:"free"}]:[]),
   ];
   const NAV_MORE=[...(isPro?["history"]:[]),"master","aimusic","masterclass","tuto"];
   const MORE_REQ={history:"pro",master:"elite",aimusic:"forge",masterclass:"free",tuto:"free"};
@@ -2569,7 +2580,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* LEÇONS (nov. 2026) — guitare, basse, penta saxo/violon, méthodes par époque */}
-      {tab==="lecons"&&<Lecons uiLang={uiLang} canAccess={canAccess} onPaywall={()=>setShowPaywall(true)} isMember={!!user} onRequestAuth={onRequestAuth}/>}
+      {SHOW_LECONS&&tab==="lecons"&&<Lecons uiLang={uiLang} canAccess={canAccess} onPaywall={()=>setShowPaywall(true)} isMember={!!user} onRequestAuth={onRequestAuth}/>}
 
       {tab==="tuto"&&<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"26px 22px",borderColor:"#FF6A2B44"}}>

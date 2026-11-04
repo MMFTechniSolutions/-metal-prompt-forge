@@ -857,10 +857,15 @@ async function exportMidiRiff(p){
     tracks.push(track(ev));
   }
   if(LY.bass){
+    // La basse DOUBLE le riff (mêmes coups, mêmes durées, fondamentale une octave plus bas) — test Suno 2026-11-04 :
+    // avec son propre rythme, « ça suit pas bien la guit » et c'était trop sec. Sans guitare : rythme de basse du générateur.
     const ev=[{t:0,b:txt(0x03,'Bass')},{t:0,b:[0xC1,34]}];
-    for(let s=0;s<total;s++){const i=s%L;if(!a.bass[i])continue;
-      const k=clamp(rootMidi-12+((a.bnote&&a.bnote[i]!=null)?a.bnote[i]:0)+a.trans[i]);
-      ev.push({t:s*TS,b:[0x91,k,100]});ev.push({t:s*TS+Math.round(TS*0.85),b:[0x81,k,0]});
+    const src=a.guit&&a.guit.some(Boolean)?a.guit:a.bass;let gi=0;
+    for(let s=0;s<total;s++){const i=s%L;if(!src[i])continue;
+      const semi=src===a.guit?((a.note&&a.note[i]!=null)?a.note[i]:p.noteSeq[gi%p.noteSeq.length]):((a.bnote&&a.bnote[i]!=null)?a.bnote[i]:0);gi++;   // même compteur que la guitare
+      const k=clamp(rootMidi-12+semi+a.trans[i]);
+      let n=1;while(n<8&&s+n<total&&!src[(s+n)%L])n++;
+      ev.push({t:s*TS,b:[0x91,k,100]});ev.push({t:s*TS+Math.max(60,Math.round(n*TS*0.95)),b:[0x81,k,0]});
     }
     tracks.push(track(ev));
   }

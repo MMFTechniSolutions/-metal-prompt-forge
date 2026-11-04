@@ -833,6 +833,10 @@ function semiHz(base,semi){return base*Math.pow(2,semi/12);}
 async function exportMidiRiff(p){
   if(!p){document.getElementById('txtRec').textContent=T('Génère d\'abord','Generate first');return;}
   const LY=LAYERS(TOOL_STEM), a=p.arr, TPQ=480, TS=TPQ/4;
+  // NWOBHM : galop en TRIOLETS (« ta-ga-dam », chaque temps en 3) comme Maiden — demande de François 2026-11-04.
+  // Les 4 doubles-croches d'un temps sont replacées sur la grille de triolets : 0 → 0, 1 et 2 → 1/3, 3 → 2/3.
+  const TRIP=p.style==='nwobhm', _TR=[0,160,160,320];
+  const tk=s=>TRIP?Math.floor(s/4)*TPQ+_TR[s%4]:s*TS;
   const dur=Math.min(30, Math.max(6, parseInt(document.getElementById('dur').value)||15));
   const _tempo=(a.tempo&&a.tempo.length)?a.tempo:null, L=a.L||16, base=(60/p.bpm)/4;
   let total=0,acc=0; while(acc<dur&&total<20000){acc+=base/(_tempo?(_tempo[total%L]||1):1);total++;}
@@ -844,7 +848,7 @@ async function exportMidiRiff(p){
   // piste 0 : tempo + mesure
   const t0=[{t:0,b:[0xFF,0x58,0x04,4,2,24,8]},{t:0,b:txt(0x03,'MetalPrompt '+(p.style||'')+' '+p.bpm+' BPM')}];
   let lastTm=null;
-  for(let s=0;s<total;s++){const tm=_tempo?(_tempo[s%L]||1):1;if(tm!==lastTm){const us=Math.round(60000000/(p.bpm*tm));t0.push({t:s*TS,b:[0xFF,0x51,0x03,(us>>16)&255,(us>>8)&255,us&255]});lastTm=tm;}}
+  for(let s=0;s<total;s++){const tm=_tempo?(_tempo[s%L]||1):1;if(tm!==lastTm){const us=Math.round(60000000/(p.bpm*tm));t0.push({t:tk(s),b:[0xFF,0x51,0x03,(us>>16)&255,(us>>8)&255,us&255]});lastTm=tm;}}
   const tracks=[track(t0)];
   const rootMidi=Tone.Frequency(p.root).toMidi();
   if(LY.gtr){
@@ -852,7 +856,7 @@ async function exportMidiRiff(p){
     for(let s=0;s<total;s++){const i=s%L;if(!a.guit[i])continue;
       const semi=((a.note&&a.note[i]!=null)?a.note[i]:p.noteSeq[gi%p.noteSeq.length])+a.trans[i];gi++;
       let n=1;while(n<8&&s+n<total&&!a.guit[(s+n)%L])n++;
-      const on=s*TS,len=Math.max(30,Math.round(n*TS*0.95));
+      const on=tk(s),len=Math.max(30,Math.round((tk(s+n)-tk(s))*0.95));
       [0,7].forEach(iv=>{const k=clamp(rootMidi+semi+iv);ev.push({t:on,b:[0x90,k,iv?82:104]});ev.push({t:on+len,b:[0x80,k,0]});});   // power chord (fondamentale + quinte)
     }
     tracks.push(track(ev));
@@ -866,14 +870,14 @@ async function exportMidiRiff(p){
       const semi=src===a.guit?((a.note&&a.note[i]!=null)?a.note[i]:p.noteSeq[gi%p.noteSeq.length]):((a.bnote&&a.bnote[i]!=null)?a.bnote[i]:0);gi++;   // même compteur que la guitare
       const k=clamp(rootMidi-12+semi+a.trans[i]);
       let n=1;while(n<8&&s+n<total&&!src[(s+n)%L])n++;
-      ev.push({t:s*TS,b:[0x91,k,100]});ev.push({t:s*TS+Math.max(60,Math.round(n*TS*0.95)),b:[0x81,k,0]});
+      ev.push({t:tk(s),b:[0x91,k,100]});ev.push({t:tk(s)+Math.max(60,Math.round((tk(s+n)-tk(s))*0.95)),b:[0x81,k,0]});
     }
     tracks.push(track(ev));
   }
   if(LY.drums){
     const ev=[{t:0,b:txt(0x03,'Drums')}];
     for(let s=0;s<total;s++){const i=s%L;
-      [[a.kick,36,112],[a.snare,38,104],[a.hihat,42,72]].forEach(([arr,k,v])=>{if(arr&&arr[i]){ev.push({t:s*TS,b:[0x99,k,v]});ev.push({t:s*TS+60,b:[0x89,k,0]});}});
+      [[a.kick,36,112],[a.snare,38,104],[a.hihat,42,72]].forEach(([arr,k,v])=>{if(arr&&arr[i]){ev.push({t:tk(s),b:[0x99,k,v]});ev.push({t:tk(s)+60,b:[0x89,k,0]});}});
     }
     tracks.push(track(ev));
   }

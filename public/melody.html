@@ -290,6 +290,7 @@ body.embed header{display:none;} body.embed main{padding-top:14px;}
       <button class="bp" id="btnPlay">▶ Écouter</button>
       <button class="bs" id="btnStop" disabled>■ Stop</button>
       <button class="bp" id="btnExport">⏺ Export mélodie (WAV clair)</button>
+      <button class="bp" id="btnMidi" title="Fichier .mid à donner à Suno Studio (MIDI → audio)">🎹 Export MIDI (pour Suno)</button>
       <span class="sb"><span class="dot" id="dot"></span><span id="status">Clique « Générer »</span></span>
     </div>
     <div class="hint">Clic dans la grille = pose/enlève une note (une note par colonne). Ligne dorée = fondamentale. Régénère autant de fois que tu veux — jamais deux fois pareil.</div>
@@ -862,6 +863,42 @@ async function exportWav(){
   $('dot').className='dot';$('btnExport').disabled=false;status((font?'Mélodie (vrai instrument) exportée · ':'Mélodie exportée · ')+dur+'s'+(CREDIT_MODE?' · '+creditLabel():''),false);
 }
 
+// ═══════════════ EXPORT MIDI (nov. 2026) ═══════════════
+// Suno Studio joue un .mid importé (MIDI → audio) : MetalPrompt compose, Suno fait le son.
+// Grille : PPB=12 pas par noire → 480 ticks par noire = 40 ticks par pas. Fichier format 0, une piste.
+function buildMidi(){
+  const TPQ=480,TPS=TPQ/PPB,stepDur=60/bpm()/12;
+  const vlq=n=>{const b=[n&0x7f];while(n>>=7)b.unshift((n&0x7f)|0x80);return b;};
+  const ev=[];   // {t, bytes}
+  const us=Math.round(60000000/bpm());
+  ev.push({t:0,b:[0xFF,0x51,0x03,(us>>16)&255,(us>>8)&255,us&255]});
+  const [num,den]=meterKey().split('/').map(Number);
+  ev.push({t:0,b:[0xFF,0x58,0x04,num||4,Math.round(Math.log2(den||4)),24,8]});
+  const name='MetalPrompt '+NAMES[rootPc()]+' '+meterKey();
+  ev.push({t:0,b:[0xFF,0x03,...vlq(name.length),...[...name].map(c=>c.charCodeAt(0)&127)]});
+  const k=String(inst()).toLowerCase();
+  const prog=/dist|metal|lead.?g|gtr|guit|mp_/.test(k)?30:/violin|fiddle/.test(k)?40:/cello/.test(k)?42:/flute/.test(k)?73:/sax/.test(k)?65:/organ/.test(k)?19:/string/.test(k)?48:0;
+  ev.push({t:0,b:[0xC0,prog]});
+  noteList(stepDur).forEach(nt=>{
+    const on=nt.i*TPS, len=Math.max(1,Math.round(nt.dur/stepDur*TPS)), n=Math.max(0,Math.min(127,nt.midi|0));
+    ev.push({t:on,b:[0x90,n,100]}); ev.push({t:on+len-1,b:[0x80,n,0]});
+  });
+  ev.sort((x,y)=>x.t-y.t||((x.b[0]===0x80)?-1:(y.b[0]===0x80)?1:0));
+  const trk=[];let last=0;
+  ev.forEach(e=>{trk.push(...vlq(e.t-last),...e.b);last=e.t;});
+  trk.push(0,0xFF,0x2F,0x00);
+  const u32=n=>[(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255],u16=n=>[(n>>8)&255,n&255];
+  const bytes=[0x4D,0x54,0x68,0x64,...u32(6),...u16(0),...u16(1),...u16(TPQ),0x4D,0x54,0x72,0x6B,...u32(trk.length),...trk];
+  return new Blob([new Uint8Array(bytes)],{type:'audio/midi'});
+}
+async function exportMidi(){
+  if(!mel.some(v=>v!=null)){status('⚠ Génère une mélodie d\'abord',false);return;}
+  if(CREDIT_MODE&&!(await spendMelodyCredit()))return;   // même règle que le WAV : 1 crédit Studio par export
+  const dur=Math.round(steps*60/bpm()/12);
+  triggerDownload(buildMidi(),`melody_${NAMES[rootPc()].replace('#','s')}_${meterKey().replace('/','-')}_${bpm()}bpm_${dur}s.mid`);
+  status('MIDI exporté — importe-le dans Suno Studio'+(CREDIT_MODE?' · '+creditLabel():''),false);
+}
+
 function status(msg,active){$('status').textContent=msg;}
 
 // ═══════════════ WIRING ═══════════════
@@ -874,6 +911,7 @@ $('btnGen').addEventListener('click',generate);
 $('btnPlay').addEventListener('click',()=>{play().catch(e=>{status('⚠ '+e.message,false);});});
 $('btnStop').addEventListener('click',()=>{stopPlay();status('Arrêté',false);});
 $('btnExport').addEventListener('click',exportWav);
+$('btnMidi').addEventListener('click',exportMidi);
 
 // ═══════════════ CONTRÔLE D'ACCÈS — abonnés payants seulement ═══════════════
 const SUPA_URL='https://wlnttrzmjfefyghxlbyb.supabase.co';

@@ -11,7 +11,7 @@ const CARD = "#141518";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",melodie:"🎤 Melody",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",lecons:"Lessons",galerie:"Gallery",riff:"Riff",master:"Master",aimusic:"AI Music",history:"History"},
+    tabs:{genre:"Genre",melodie:"🎤 Melody",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",lecons:"Lessons",galerie:"Radio",riff:"Riff",master:"Master",aimusic:"AI Music",history:"History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → CLEAR the "Style of Music" field, then paste (limit 1000 chars · sweet spot ≤ 600)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -23,7 +23,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",melodie:"🎤 Mélodie",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",lecons:"Leçons",galerie:"Galerie",riff:"Riff",master:"Master",aimusic:"Musique IA",history:"Historique"},
+    tabs:{genre:"Genre",melodie:"🎤 Mélodie",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",lecons:"Leçons",galerie:"Radio",riff:"Riff",master:"Master",aimusic:"Musique IA",history:"Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → VIDE le champ "Style of Music" puis colle (limite 1000 car. · idéal ≤ 600)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -1227,7 +1227,7 @@ function Manifesto({onClose,uiLang}){
 function WhatsNew({onClose,uiLang}){
   const fr=uiLang!=="en";
   const items = fr ? [
-    ["🔥 La meilleure façon de composer","L'outil Suno metal ultime : tape un groupe, forge ton prompt, puis bâtis ta toune avec Mélodie, Riff et Beat. De l'idée à Suno, au même endroit."],
+    ["🔥 La meilleure façon de composer","L'outil Suno metal ultime : tape un groupe, forge ton prompt, puis bâtis ta chanson avec Mélodie, Riff et Beat. De l'idée à Suno, au même endroit."],
     ["🎸 Le Studio a de vrais sons","Fini le son synthétique : une vraie guitare électrique enregistrée, passée dans un ampli high gain, et une vraie batterie enregistrée (5 forces de frappe par pièce). Dans Riff, Beat et Mélodie, à l'écoute comme dans l'export WAV."],
     ["🥁 3 outils, un seul Studio","Mélodie (avec sa partition) · Riff (guitare + basse rythmiques, avec la tablature complète) · Beat (batterie seule, avec la partition de batterie)."],
     ["🤘 T'es seul pour jouer?","Lance un Beat et joue par-dessus pour pratiquer, ou apprends un Riff avec sa tab. MetalPrompt t'aide à composer et à pratiquer."],
@@ -2562,7 +2562,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <div style={{...S.card,textAlign:"center",padding:"48px 22px",borderColor:"#ffcc0033"}}>
           <div style={{fontSize:"2.2rem",marginBottom:"10px"}}>🔨</div>
           <div style={{fontFamily:"'Geist',sans-serif",fontSize:"1.5rem",letterSpacing:"3px",color:"#ffcc00"}}>{L("BIENTÔT DISPONIBLE","COMING SOON")}</div>
-          <div style={{color:"#888",fontSize:"0.78rem",marginTop:"10px",lineHeight:1.7,maxWidth:"420px",margin:"10px auto 0"}}>{L("Le mastering intégré est en forge — EQ, compression pis limiteur directement dans MetalPrompt. En attendant, exporte ta toune Suno pis masterise dans ton DAW.","Integrated mastering is being forged — EQ, compression and limiter right inside MetalPrompt. Meanwhile, export your Suno track and master it in your DAW.")}</div>
+          <div style={{color:"#888",fontSize:"0.78rem",marginTop:"10px",lineHeight:1.7,maxWidth:"420px",margin:"10px auto 0"}}>{L("Le mastering intégré est en forge — EQ, compression pis limiteur directement dans MetalPrompt. En attendant, exporte ta chanson Suno et masterise dans ton DAW.","Integrated mastering is being forged — EQ, compression and limiter right inside MetalPrompt. Meanwhile, export your Suno track and master it in your DAW.")}</div>
         </div>
         <div style={{height:80}}/>
       </div>)}
@@ -2937,11 +2937,11 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{...S.card,borderColor:"#FF6A2B66",background:"#140a05",display:"flex",flexWrap:"wrap",gap:"14px",alignItems:"center",justifyContent:"space-between"}}>
             <div style={{flex:"1 1 260px",minWidth:0}}>
               <div style={{fontSize:"0.86rem",fontWeight:900,color:"#fff"}}>{L("Pas encore le bon son? Forge encore.","Not quite the sound? Forge again.")}</div>
-              <div style={{fontSize:"0.72rem",color:"#bbb",lineHeight:1.55,marginTop:"4px"}}>{L("Chaque clic donne une autre année, d'autres influences, un autre son — même style. Une fois ta toune faite dans Suno, reviens la soumettre dans la galerie.","Every click gives another year, other influences, another sound — same style. Once your track is done in Suno, come back and submit it to the gallery.")}</div>
+              <div style={{fontSize:"0.72rem",color:"#bbb",lineHeight:1.55,marginTop:"4px"}}>{L("Chaque clic donne une autre année, d'autres influences, un autre son — même style. Une fois ta chanson faite dans Suno, reviens la soumettre à la radio.","Every click gives another year, other influences, another sound — same style. Once your track is done in Suno, come back and submit it to the radio.")}</div>
             </div>
             <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
               <button onClick={generate} style={{background:RED,border:"none",borderRadius:"10px",color:"#000",fontSize:"0.9rem",fontWeight:900,padding:"13px 22px",cursor:"pointer"}}>{L("🎲 Forger encore","🎲 Forge again")}</button>
-              <button onClick={()=>setTab("galerie")} style={{background:"#1a1a1a",border:"1px solid #3a3a3a",borderRadius:"10px",color:"#e0e0e0",fontSize:"0.82rem",fontWeight:800,padding:"13px 18px",cursor:"pointer"}}>{L("Soumettre ma toune","Submit my track")}</button>
+              <button onClick={()=>setTab("galerie")} style={{background:"#1a1a1a",border:"1px solid #3a3a3a",borderRadius:"10px",color:"#e0e0e0",fontSize:"0.82rem",fontWeight:800,padding:"13px 18px",cursor:"pointer"}}>{L("Passer ma chanson à la radio","Get my track on the radio")}</button>
             </div>
           </div>
           {/* PLUS TARD — replié : retouche par section, Cover / Extend, notes de prod */}

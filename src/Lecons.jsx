@@ -70,7 +70,8 @@ const CSS = `
 .mpl-pad{min-width:74px;padding:10px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;transition:background .08s}
 .mpl-pad b{font-size:20px;font-weight:800}.mpl-pad span{font-size:11px;color:var(--muted);font-family:var(--mono);text-align:center}
 .mpl-pad.root{border-color:#5a3a26}.mpl-pad.blue{border-style:dashed}
-.mpl-pad.on{background:var(--ember);border-color:var(--ember)}.mpl-pad.on b,.mpl-pad.on span{color:var(--bg)}
+.mpl-sax{color:var(--fg);margin-top:4px;opacity:.9}
+.mpl-pad.on{background:var(--ember);border-color:var(--ember)}.mpl-pad.on b,.mpl-pad.on span,.mpl-pad.on .mpl-sax{color:var(--bg)}
 .mpl-seq{display:flex;flex-wrap:wrap;gap:4px;font-family:var(--mono);font-size:13px}
 .mpl-seq span{padding:3px 7px;border-radius:6px;background:var(--panel2);color:var(--muted)}
 .mpl-seq span.on{background:var(--fg);color:var(--bg)}
@@ -423,6 +424,30 @@ function violinFinger(m, fr) {
   return "";
 }
 
+// Doigtés saxophone (notes écrites : identiques pour alto, ténor, soprano, baryton).
+// [main gauche 1-2-3, main droite 1-2-3, clé d'octave, clé supplémentaire]
+const SAX_FING = {
+  62: ["111", "111", 0, ""], 63: ["111", "111", 0, "Mib"], 64: ["111", "110", 0, ""], 65: ["111", "100", 0, ""], 66: ["111", "010", 0, ""],
+  67: ["111", "000", 0, ""], 68: ["111", "000", 0, "Sol#"], 69: ["110", "000", 0, ""], 70: ["100", "000", 0, "bis"], 71: ["100", "000", 0, ""],
+  72: ["010", "000", 0, ""], 73: ["000", "000", 0, ""],
+};
+for (let m = 74; m <= 85; m++) { const b = SAX_FING[m - 12]; SAX_FING[m] = [b[0], b[1], 1, b[3]]; }
+const KEY_EN = { "Mib": "E♭", "Sol#": "G#", "bis": "bis" };
+function SaxFinger({ m, fr }) {
+  const f = SAX_FING[m]; if (!f) return null;
+  const dot = (on, cy, k) => <circle key={k} cx="17" cy={cy} r="5.2" fill={on ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.4" />;
+  const lbl = (fr ? "doigté : " : "fingering: ") + (f[2] ? (fr ? "octave + " : "octave + ") : "") + "MG " + f[0] + " MD " + f[1] + (f[3] ? " + " + f[3] : "");
+  return <svg className="mpl-sax" viewBox="0 0 34 104" width="38" height="116" role="img" aria-label={lbl}>
+    <title>{lbl}</title>
+    <circle cx="6" cy="7" r="4" fill={f[2] ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.2" />
+    <text x="12" y="10" fontSize="7" fill="currentColor">8va</text>
+    {[...f[0]].map((c, i) => dot(c === "1", 22 + i * 13, "l" + i))}
+    <line x1="8" y1="56" x2="26" y2="56" stroke="currentColor" strokeWidth="1" opacity=".5" />
+    {[...f[1]].map((c, i) => dot(c === "1", 66 + i * 13, "r" + i))}
+    {f[3] && <text x="17" y="103" fontSize="8" textAnchor="middle" fill="currentColor" fontWeight="700">{fr ? f[3] : KEY_EN[f[3]]}</text>}
+  </svg>;
+}
+
 // ───────── Composant ─────────
 export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywall = () => {}, isMember = true, onRequestAuth = () => {} }) {
   const fr = uiLang === "fr", L = (a, b) => (fr ? a : b);
@@ -557,7 +582,7 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
   const nm = m => names[((m % 12) + 12) % 12];
   const pads = scale.map((iv, d) => {
     const real = leadRoot + iv, written = real + tr;
-    return { d, name: nm(written), sub: voice === "vln" ? violinFinger(real, fr) : (tr ? L("sonne ", "sounds ") + nm(real) : ""), root: iv % 12 === 0, blue: iv === 6 };
+    return { d, w: written, name: nm(written), sub: voice === "vln" ? violinFinger(real, fr) : (tr ? L("sonne ", "sounds ") + nm(real) : ""), root: iv % 12 === 0, blue: iv === 6 };
   });
   const curEv = melodic ? pattern.ev.find(e => active >= e.step && active < e.step + e.len) : null;
 
@@ -643,12 +668,12 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
             {melodic ? <>
               <div className="mpl-pads">
                 {pads.map(p => <div key={p.d} className={"mpl-pad" + (p.root ? " root" : "") + (p.blue ? " blue" : "") + (curEv && curEv.deg === p.d && leadOn ? " on" : "")}>
-                  <b>{p.name}</b>{p.sub && <span>{p.sub}</span>}</div>)}
+                  <b>{p.name}</b>{p.sub && <span>{p.sub}</span>}{inst === "sax" && <SaxFinger m={p.w} fr={fr} />}</div>)}
               </div>
               {pattern.ev.length > 0 ? <div className="mpl-seq" aria-label={L("Séquence", "Sequence")}>
                 {pattern.ev.map(e => <span key={e.idx} className={curEv && curEv.idx === e.idx ? "on" : ""}>{pads[Math.min(e.deg, pads.length - 1)].name}</span>)}
               </div> : <p className="mpl-small">{L("Pas de partition : le band joue 4 mesures en boucle, tu improvises avec les 5 notes ci-dessus.", "No score: the band loops 4 bars, you improvise with the 5 notes above.")}</p>}
-              <div className="mpl-legend"><span><b>{L("bordure orange", "orange border")}</b> {L("note de base (la tonique)", "root note")}</span>{lessonType === "blues" && <span><b>{L("pointillé", "dashed")}</b> {L("la blue note", "the blue note")}</span>}</div>
+              <div className="mpl-legend"><span><b>{L("bordure orange", "orange border")}</b> {L("note de base (la tonique)", "root note")}</span>{lessonType === "blues" && <span><b>{L("pointillé", "dashed")}</b> {L("la blue note", "the blue note")}</span>}{inst === "sax" && <span><b>●</b> {L("clé enfoncée · main gauche en haut, main droite en bas · 8va = clé d'octave", "key pressed · left hand on top, right hand below · 8va = octave key")}</span>}</div>
             </> : <>
               {def.tuner && <Tuner fr={fr} tune={inst === "bass" ? BASS_TUNE : GTR_TUNE} labels={inst === "bass" ? BASS_LBL : GTR_LBL} getAudio={() => { if (!audio.current) audio.current = makeAudio(); if (audio.current.ctx.state === "suspended") audio.current.ctx.resume(); return audio.current; }} />}
               <div className="mpl-box"><StrTab pattern={pattern} active={active} labels={inst === "bass" ? BASS_LBL : GTR_LBL} /></div>

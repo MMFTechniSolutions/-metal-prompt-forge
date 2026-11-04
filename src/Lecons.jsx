@@ -135,6 +135,16 @@ const CSS = `
 .mpl-needle-bar{position:relative;height:14px;border-radius:9px;background:linear-gradient(90deg,#3a2216,var(--panel2) 40%,#1d3326 50%,var(--panel2) 60%,#3a2216)}
 .mpl-needle-bar i{position:absolute;top:-4px;width:4px;height:22px;margin-left:-2px;border-radius:3px;background:var(--ember);transition:left .08s}.mpl-needle-bar i.ok{background:var(--ok)}
 .mpl-needle-lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.mpl-listen{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding-top:10px;border-top:1px solid var(--line)}
+.mpl-listen p{flex:1 1 300px;margin:0}
+.mpl-listen button[aria-pressed="true"]{border-color:var(--ok);color:var(--ok)}
+.mpl-score{display:flex;align-items:baseline;gap:10px}.mpl-score b{font-family:var(--mono);font-size:26px}.mpl-score b.ok{color:var(--ok)}.mpl-score span{font-size:12px;color:var(--muted)}
+.mpl-tab .pk.m-ok{box-shadow:inset 0 -3px 0 var(--ok)}.mpl-tab .pk.m-bad{box-shadow:inset 0 -3px 0 var(--ember2)}.mpl-tab .pk.m-miss{box-shadow:inset 0 -3px 0 #E5484D}
+.mpl-seq span.m-ok{box-shadow:inset 0 -3px 0 var(--ok)}.mpl-seq span.m-bad{box-shadow:inset 0 -3px 0 var(--ember2)}.mpl-seq span.m-miss{box-shadow:inset 0 -3px 0 #E5484D}
+.mpl-keys{width:100%;max-width:700px;height:auto}
+.mpl-keys .w{fill:#E9E7E1;stroke:#0C0D0F}.mpl-keys .b{fill:#111316;stroke:#0C0D0F}
+.mpl-keys .w.sc{fill:#F6D2B8}.mpl-keys .w.root{fill:#FFB36B}.mpl-keys .b.sc,.mpl-keys .b.root{fill:#7a3a1c}
+.mpl-keys .on{fill:var(--ember)!important}.mpl-keys .kl{font:600 10px var(--mono);fill:#0C0D0F}.mpl-keys .bd{fill:var(--ember2)}
 .mpl-pack{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px 14px;border:1px dashed #5a3a26;border-radius:12px}
 .mpl-pack p{margin:0;flex:1 1 260px;font-size:14px;color:var(--muted)}.mpl-pack p b{color:var(--fg)}
 .mpl-note{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;margin:0}
@@ -149,15 +159,34 @@ const PENTA = [0, 3, 5, 7, 10, 12];
 const BLUES = [0, 3, 5, 6, 7, 10, 12];
 const KEYS = { E: 4, D: 2, C: 0 };                    // tonalité de la toune (accordage)
 const KEY_LBL = { E: ["Mi · standard", "E · standard"], D: ["Ré · drop D", "D · drop D"], C: ["Do · drop C", "C · drop C"] };
-const TRANSPO = { alto: 9, tenor: 14, vln: 0 };         // écrit = réel + n demi-tons
-const LEAD_BASE = { alto: 60, tenor: 48, vln: 60 };     // Do réel de base du registre
+const TRANSPO = { alto: 9, tenor: 14, vln: 0, piano: 0 };         // écrit = réel + n demi-tons
+const LEAD_BASE = { alto: 60, tenor: 48, vln: 60, piano: 60 };     // Do réel de base du registre
 const VLN_STR = [[55, "Sol", "G"], [62, "Ré", "D"], [69, "La", "A"], [76, "Mi", "E"]];
 
 // ───────── Guitare & basse : 10 leçons jouables chacune ─────────
 // Événement : { step, len, n:[[corde, frette]...], lab, pm, acc, ghost, pinch, slap, pop, stac }
 // Cordes indexées du haut (0 = plus aiguë) vers le bas, comme une tab.
-const GTR_TUNE = [64, 59, 55, 50, 45, 38], GTR_LBL = ["e", "B", "G", "D", "A", "D"];   // drop D
-const BASS_TUNE = [43, 38, 33, 26], BASS_LBL = ["G", "D", "A", "D"];                   // drop D 4 cordes
+// Accordages : cordes de la plus aiguë à la plus grave. drop = la grave est une quinte sous la 5e corde (power chord à un doigt).
+const GTR_TUNINGS = [
+  { id: "E", fr: "Standard (Mi)", en: "E standard", m: [64, 59, 55, 50, 45, 40], l: ["e", "B", "G", "D", "A", "E"], drop: false },
+  { id: "D", fr: "Drop D", en: "Drop D", m: [64, 59, 55, 50, 45, 38], l: ["e", "B", "G", "D", "A", "D"], drop: true },
+  { id: "Eb", fr: "Mi♭ (½ ton plus bas)", en: "E♭ standard", m: [63, 58, 54, 49, 44, 39], l: ["e♭", "B♭", "G♭", "D♭", "A♭", "E♭"], drop: false },
+  { id: "Dst", fr: "Ré standard", en: "D standard", m: [62, 57, 53, 48, 43, 38], l: ["d", "A", "F", "C", "G", "D"], drop: false },
+  { id: "C", fr: "Drop C", en: "Drop C", m: [62, 57, 53, 48, 43, 36], l: ["d", "A", "F", "C", "G", "C"], drop: true },
+  { id: "B", fr: "Drop B", en: "Drop B", m: [61, 56, 52, 47, 42, 35], l: ["c#", "G#", "E", "B", "F#", "B"], drop: true },
+];
+const BASS_TUNINGS = [
+  { id: "E", fr: "Standard (Mi)", en: "E standard", m: [43, 38, 33, 28], l: ["G", "D", "A", "E"], drop: false },
+  { id: "D", fr: "Drop D", en: "Drop D", m: [43, 38, 33, 26], l: ["G", "D", "A", "D"], drop: true },
+  { id: "Eb", fr: "Mi♭ (½ ton plus bas)", en: "E♭ standard", m: [42, 37, 32, 27], l: ["G♭", "D♭", "A♭", "E♭"], drop: false },
+  { id: "Dst", fr: "Ré standard", en: "D standard", m: [41, 36, 31, 26], l: ["F", "C", "G", "D"], drop: false },
+  { id: "C", fr: "Drop C", en: "Drop C", m: [41, 36, 31, 24], l: ["F", "C", "G", "C"], drop: true },
+];
+// Power chord écrit en drop (même frette sur 3 cordes) → en standard : 2 frettes plus loin sur les 2 cordes du dessus.
+function adaptChords(p, drop) {
+  if (drop) return p;
+  return { ...p, ev: p.ev.map(e => (e.n.length >= 2 && e.n.some(x => x[0] === 5) ? { ...e, n: e.n.map(([st, f]) => [st, st === 5 ? f : f + 2]) } : e)) };
+}
 const rnd = a => a[Math.floor(Math.random() * a.length)];
 function line(items) {                          // items : [len, n, opts] joués à la suite
   let step = 0; const ev = [];
@@ -178,9 +207,9 @@ function gallopCells(str, chordFn, fingers) {
 }
 const T = (fr, en) => [fr, en];
 const GTR_LESSONS = [
-  { t: T("Accordage drop D & posture", "Drop D tuning & posture"), tag: "free", bpm: 60, tuner: true,
-    mk: () => line([5, 4, 3, 2, 1, 0].map(s => [8, [[s, 0]], { lab: GTR_LBL[s] }])),
-    goal: T("accorder les 6 cordes en drop D (Ré La Ré Sol Si Mi), puis jouer chaque corde à vide sur le tempo. Utilise les notes de référence ou l'accordeur micro.", "tune all 6 strings to drop D (D A D G B E), then play each open string in time. Use the reference notes or the mic tuner."),
+  { t: T("Accordage & posture", "Tuning & posture"), tag: "free", bpm: 60, tuner: true,
+    mk: () => line([5, 4, 3, 2, 1, 0].map(s => [8, [[s, 0]], { openLbl: true }])),
+    goal: T("choisis ton accordage plus haut, accorde les 6 cordes, puis joue chaque corde à vide sur le tempo. Utilise les notes de référence ou l'accordeur micro.", "pick your tuning above, tune all 6 strings, then play each open string in time. Use the reference notes or the mic tuner."),
     tips: [T("Assis : la guitare sur la jambe droite, le manche un peu relevé.", "Seated: guitar on the right leg, neck slightly raised."), T("Le pouce derrière le manche, pas par-dessus.", "Thumb behind the neck, not over it."), T("Accorde toujours en montant vers la note.", "Always tune up to the note.")] },
   { t: T("Palm mute sur corde à vide", "Palm mute on the open string"), tag: "free", bpm: 120,
     mk: () => line([...Array(4)].map(() => [4, [[G5, 0]], { pm: true, lab: "↓" }]).concat([...Array(8)].map(() => [2, [[G5, 0]], { pm: true, lab: "↓" }]))),
@@ -194,11 +223,11 @@ const GTR_LESSONS = [
     mk: () => line([0, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, 0, 6, 5, 3, 0].map(f => [2, [[G5, f]], { pm: f === 0, lab: "↓" }])),
     goal: T("tenir des croches rapides tout en coups vers le bas, deux mesures sans ralentir. C'est l'endurance des riffs thrash des années 80.", "hold fast eighth notes, all downstrokes, two bars without slowing down. That's the stamina of 80s thrash riffs."),
     tips: [T("Petits coups venant du poignet.", "Small strokes from the wrist."), T("Respire et relâche les épaules.", "Breathe and drop your shoulders."), T("Si ça brûle, baisse de 10 % et remonte.", "If it burns, drop 10% and build back up.")] },
-  { t: T("Power chords une barre", "One-finger power chords"), tag: "pro", bpm: 120,
+  { t: T("Power chords", "Power chords"), tag: "pro", bpm: 120,
     mk: () => line([[4, pc(0), { lab: "↓", acc: true }], [2, [[G5, 0]], { pm: true, lab: "↓" }], [2, [[G5, 0]], { pm: true, lab: "↓" }], [4, pc(5), { lab: "↓", acc: true }], [4, pc(3), { lab: "↓", acc: true }],
       [4, pc(0), { lab: "↓", acc: true }], [2, [[G5, 0]], { pm: true, lab: "↓" }], [2, [[G5, 0]], { pm: true, lab: "↓" }], [4, pc(7), { lab: "↓", acc: true }], [4, pc(5), { lab: "↓", acc: true }]]),
-    goal: T("en drop D, un seul doigt couche les 3 cordes graves. Enchaîne les accords et les chugs sans trou entre les deux.", "in drop D, one finger covers the 3 low strings. Move between chords and chugs with no gap."),
-    tips: [T("Un doigt à plat sur les 3 cordes, juste derrière la frette.", "One finger flat on the 3 strings, right behind the fret."), T("Relâche la pression pour glisser, pas pour lever.", "Release pressure to slide, don't lift."), T("Les autres cordes : étouffées par la main gauche.", "Other strings: muted by the fretting hand.")] },
+    goal: T("en accordage drop, un seul doigt couche les 3 cordes graves. En standard, index sur la grave, annulaire sur les deux autres, 2 frettes plus loin (la tab s'ajuste). Enchaîne accords et chugs sans trou.", "in a drop tuning, one finger covers the 3 low strings. In standard, index on the low string, ring finger on the other two, 2 frets up (the tab adjusts). Move between chords and chugs with no gap."),
+    tips: [T("Drop : un doigt à plat sur 3 cordes. Standard : index + annulaire.", "Drop: one finger flat on 3 strings. Standard: index + ring finger."), T("Relâche la pression pour glisser, pas pour lever.", "Release pressure to slide, don't lift."), T("Les autres cordes : étouffées par la main gauche.", "Other strings: muted by the fretting hand.")] },
   { t: T("Alternate picking", "Alternate picking"), tag: "pro", bpm: 140,
     mk: () => line([...Array(32)].map((_, i) => [1, [[Math.floor(i / 8) % 2 ? GA : G5, [0, 0, 0, 0, 3, 3, 5, 5][i % 8]]], { lab: alt(i), pm: true }])),
     goal: T("alterner bas-haut en doubles croches sans jamais casser le mouvement, même quand le médiator change de corde.", "alternate down-up in sixteenths without breaking the motion, even when the pick changes strings."),
@@ -224,8 +253,8 @@ const GTR_LESSONS = [
 const B3 = 3, B2 = 2, B1 = 1;                    // basse : Ré grave, La, Ré
 const BASS_LESSONS = [
   { t: T("Accordage & posture, sangle à la bonne hauteur", "Tuning & posture, strap at the right height"), tag: "free", bpm: 60, tuner: true,
-    mk: () => line([3, 2, 1, 0].map(s => [8, [[s, 0]], { lab: BASS_LBL[s] }])),
-    goal: T("accorder la basse en drop D (Ré La Ré Sol), puis jouer chaque corde à vide sur le tempo.", "tune the bass to drop D (D A D G), then play each open string in time."),
+    mk: () => line([3, 2, 1, 0].map(s => [8, [[s, 0]], { openLbl: true }])),
+    goal: T("choisis ton accordage plus haut, accorde la basse, puis joue chaque corde à vide sur le tempo.", "pick your tuning above, tune the bass, then play each open string in time."),
     tips: [T("Sangle : la basse à la même hauteur assis et debout.", "Strap: the bass at the same height seated and standing."), T("Poignet gauche droit, pas cassé.", "Fretting wrist straight, not bent."), T("Accorde en montant vers la note.", "Tune up to the note.")] },
   { t: T("Jeu aux doigts : alternance index-majeur", "Fingerstyle: index-middle alternation"), tag: "free", bpm: 100,
     mk: () => line([...Array(16)].map((_, i) => [2, [[i < 8 ? B3 : B2, 0]], { lab: i % 2 ? "M" : "I" }])),
@@ -322,7 +351,7 @@ const METHOD_ITEMS = {
   },
 };
 const M_INST = [["gtr", "Guitare", "Guitar", "string"], ["bass", "Basse", "Bass", "bass"], ["drum", "Batterie", "Drums", "drums"],
-  ["keys", "Clavier", "Keys", "melodic"], ["sax", "Saxo", "Sax", "melodic"], ["vln", "Violon", "Violin", "melodic"]];
+  ["keys", "Piano", "Piano", "melodic"], ["sax", "Saxo", "Sax", "melodic"], ["vln", "Violon", "Violin", "melodic"]];
 
 // ───────── Générateurs de patterns (pas = double croche) ─────────
 function seqFrom(degIdx, stepLen) {           // degIdx : index dans la gamme ; durées égales, complétées à la mesure
@@ -367,7 +396,14 @@ function makeAudio() {
       lp.connect(g); g.connect(shaper);
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime((pm ? 0.5 : 0.42) * vol, t + 0.004); g.gain.exponentialRampToValueAtTime(0.001, t + (pm ? Math.min(0.11, dur) : dur));
     },
-    lead(t, f, dur, timbre) {                      // saxo : anche filtrée ; violon : archet lent + vibrato
+    lead(t, f, dur, timbre) {                      // saxo : anche filtrée ; violon : archet lent + vibrato ; piano : marteau + déclin
+      if (timbre === "piano") {
+        const g = ctx.createGain(), lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.setValueAtTime(5000, t); lp.frequency.exponentialRampToValueAtTime(1200, t + 0.6);
+        [[1, "triangle", 0.5], [2, "sine", 0.25], [3, "sine", 0.08], [1.002, "sine", 0.3]].forEach(([h, ty, a]) => { const o = ctx.createOscillator(), og = ctx.createGain(); o.type = ty; o.frequency.value = f * h; og.gain.value = a; o.connect(og); og.connect(lp); o.start(t); o.stop(t + Math.max(dur, 0.4) + 0.6); });
+        lp.connect(g); g.connect(master); const end = t + Math.max(dur, 0.4) + 0.5;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.32, t + 0.004); g.gain.exponentialRampToValueAtTime(0.12, t + 0.35); g.gain.setValueAtTime(0.12, t + Math.max(dur, 0.36)); g.gain.exponentialRampToValueAtTime(0.001, end);
+        return;
+      }
       const vln = timbre === "vln", o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
       o.type = "sawtooth"; o2.type = vln ? "sawtooth" : "square"; o.frequency.value = f; o2.frequency.value = f; o2.detune.value = vln ? 6 : -4;
       const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = vln ? 5.6 : 4.8; vg.gain.value = f * (vln ? 0.006 : 0.004);
@@ -448,6 +484,32 @@ function SaxFinger({ m, fr }) {
   </svg>;
 }
 
+// Détection de hauteur par autocorrélation (monophonique). Retourne la note MIDI (fractionnaire) ou null.
+function detectPitch(buf, sr) {
+  let rms = 0; for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
+  if (Math.sqrt(rms / buf.length) < 0.01) return null;
+  const minL = Math.floor(sr / 1100), maxL = Math.min(Math.floor(sr / 30), buf.length - 1024); let best = -1, bestC = 0;
+  for (let lag = minL; lag < maxL; lag++) { let c = 0; for (let i = 0; i < 1024; i++) c += buf[i] * buf[i + lag]; if (c > bestC) { bestC = c; best = lag; } }
+  return best > 0 ? 69 + 12 * Math.log2(sr / best / 440) : null;
+}
+
+// Clavier : 2 octaves, notes de la gamme marquées, note jouée allumée.
+function PianoKeys({ scale, root, cur, names }) {
+  const start = root - (root % 12), keys = [], W = 26;
+  const isBlack = m => [1, 3, 6, 8, 10].includes(m % 12);
+  let x = 0; const whites = [], blacks = [];
+  for (let m = start; m < start + 25; m++) {
+    if (!isBlack(m)) { whites.push({ m, x }); x += W; } else blacks.push({ m, x: x - W * 0.32 });
+  }
+  const inScale = m => scale.includes(m), cls = m => (m === cur ? "on" : inScale(m) ? (m === root || m === root + 12 ? "root" : "sc") : "");
+  return <svg className="mpl-keys" viewBox={`0 0 ${x + 2} 92`} role="img" aria-label="Clavier">
+    {whites.map(k => <g key={k.m}><rect x={k.x + 1} y="1" width={W - 2} height="88" rx="3" className={"w " + cls(k.m)} />
+      {inScale(k.m) && <text x={k.x + W / 2} y="80" textAnchor="middle" className="kl">{names[k.m % 12]}</text>}</g>)}
+    {blacks.map(k => <g key={k.m}><rect x={k.x} y="1" width={W * 0.64} height="54" rx="2" className={"b " + cls(k.m)} />
+      {inScale(k.m) && <circle cx={k.x + W * 0.32} cy="44" r="4" className="bd" />}</g>)}
+  </svg>;
+}
+
 // ───────── Composant ─────────
 export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywall = () => {}, isMember = true, onRequestAuth = () => {} }) {
   const fr = uiLang === "fr", L = (a, b) => (fr ? a : b);
@@ -468,10 +530,18 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
   const [toast, setToast] = useState("");
   const [mInst, setMInst] = useState("gtr");
   const [method, setMethod] = useState(null);
+  const [micOn, setMicOn] = useState(false);
+  const [micErr, setMicErr] = useState("");
+  const [score, setScore] = useState(null);
+  const [marks, setMarks] = useState({});
+  const [calib, setCalib] = useState(false);
+  const [latency, setLatency] = useState(() => { try { return +localStorage.getItem("mp_les_lat") || 0; } catch { return 0; } });
+  const [tun, setTunState] = useState(() => { try { return JSON.parse(localStorage.getItem("mp_les_tun") || "null") || { gtr: "D", bass: "D" }; } catch { return { gtr: "D", bass: "D" }; } });
+  const setTun = (k, id) => setTunState(t => { const n = { ...t, [k]: id }; try { localStorage.setItem("mp_les_tun", JSON.stringify(n)); } catch { /* stockage indisponible */ } return n; });
   const [passed, setPassed] = useState(() => { try { return JSON.parse(localStorage.getItem("mp_les_done") || "[]"); } catch { return []; } });
 
-  const melodic = inst === "sax" || inst === "vln";
-  const voice = inst === "vln" ? "vln" : saxType;
+  const melodic = inst === "sax" || inst === "vln" || inst === "keys";
+  const voice = inst === "vln" ? "vln" : inst === "keys" ? "piano" : saxType;
   const path = melodic ? PENTA_PATH : inst === "bass" ? BASS_PATH : GTR_PATH;
   const li = lesson[inst] ?? 0;
   const cur = path[li];
@@ -484,14 +554,17 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
   const bandRoot = 36 + KEYS[key];              // Do2 / Ré2 / Mi2 : la guitare du band
   const bestKey = "mp_les_" + inst + "_" + li;
 
-  const pattern = useMemo(() => (melodic ? genMelodic(lessonType) : def.mk()), [melodic, lessonType, inst, li, seed]); // eslint-disable-line react-hooks/exhaustive-deps
+  const tunList = inst === "bass" ? BASS_TUNINGS : GTR_TUNINGS;
+  const tunObj = melodic ? null : (tunList.find(x => x.id === tun[inst]) || tunList[1]);
+  const pattern = useMemo(() => (melodic ? genMelodic(lessonType) : adaptChords(def.mk(), inst === "bass" || tunObj.drop)), [melodic, lessonType, inst, li, seed, tunObj && tunObj.drop]); // eslint-disable-line react-hooks/exhaustive-deps
   const backing = melodic && (mode === "play" || mode === "challenge" || lessonType === "phrase" || lessonType === "impro");
   const leadOn = !(melodic && mode === "challenge");
 
   // refs lus par l'ordonnanceur
   const R = useRef({});
-  R.current = { bass: inst === "bass", tune: inst === "bass" ? BASS_TUNE : GTR_TUNE, sband: !melodic && (mode === "play" || !!def.band), kicks: def && def.kicks, pattern, bpm, metro, mode, melodic, voice, scale, leadRoot, bandRoot, backing, leadOn, target, auto, pct };
+  R.current = { mic: micOn, latency, bass: inst === "bass", tune: tunObj ? tunObj.m : null, sband: !melodic && (mode === "play" || !!def.band), kicks: def && def.kicks, pattern, bpm, metro, mode, melodic, voice, scale, leadRoot, bandRoot, backing, leadOn, target, auto, pct };
   const audio = useRef(null), timer = useRef(null), st = useRef({ step: 0, next: 0, loops: 0 }), stopDrone = useRef(null);
+  const mic = useRef({}), exp = useRef([]), cal = useRef(null);
 
   useEffect(() => { try { setBest(+localStorage.getItem(bestKey) || 0); } catch { setBest(0); } setClean(0); }, [bestKey]);
   useEffect(() => () => { clearInterval(timer.current); stopDrone.current && stopDrone.current(); }, []);
@@ -510,16 +583,75 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
   function loopDone() {
     const r = R.current; st.current.loops++;
     setBest(b => { if (r.bpm > b) { try { localStorage.setItem(bestKey, String(r.bpm)); } catch { /* stockage indisponible */ } return r.bpm; } return b; });
-    if (r.bpm >= r.target) setClean(c => Math.min(3, c + 1));
+    if (r.mic) {                                   // le site écoute : la boucle compte seulement si elle est jouée juste
+      const k = st.current.loops - 1, endT = st.current.next, ctx = audio.current.ctx;
+      setTimeout(() => evalLoop(k), Math.max(0, (endT - ctx.currentTime + 0.25) * 1000));
+    } else if (r.bpm >= r.target) setClean(c => Math.min(3, c + 1));
     if (r.auto && st.current.loops % 2 === 0 && r.pct < 110) setPct(p => Math.min(110, p + 5));
   }
+  function evalLoop(k) {
+    const r = R.current, items = exp.current.filter(x => x.loop === k);
+    exp.current = exp.current.filter(x => x.loop > k);
+    if (!items.length) return;
+    const hits = items.filter(x => x.hit).length, chk = items.filter(x => x.check), okN = chk.filter(x => x.hit && x.pitchOk).length;
+    const good = items.filter(x => x.hit && (!x.check || x.pitchOk)).length, total = Math.round(good / items.length * 100);
+    setScore({ total, rhythm: Math.round(hits / items.length * 100), notes: chk.length ? Math.round(okN / chk.length * 100) : null });
+    const mk = {}; items.forEach(x => { mk[x.step] = !x.hit ? "miss" : x.check && !x.pitchOk ? "bad" : "ok"; }); setMarks(mk);
+    if (total >= 90 && r.bpm >= r.target) setClean(c => Math.min(3, c + 1));
+  }
+  function onOnset(raw) {
+    if (cal.current) { cal.current.hits.push(raw); return; }
+    const t = raw - R.current.latency / 1000;
+    let best = null, bd = 0.08;
+    for (const x of exp.current) { if (x.hit) continue; const d = Math.abs(x.t - t); if (d < bd) { bd = d; best = x; } }
+    if (!best) return;
+    best.hit = true;
+    if (best.check) setTimeout(() => {                // hauteur lue 50 ms après l'attaque
+      const m = mic.current; if (!m.anP) return; m.anP.getFloatTimeDomainData(m.bufP);
+      const pm = detectPitch(m.bufP, audio.current.ctx.sampleRate);
+      if (pm != null) { const d = ((pm - best.midi) % 12 + 18) % 12 - 6; best.pitchOk = Math.abs(d) <= 0.6; }
+    }, 50);
+  }
+  async function startMic() {
+    setMicErr("");
+    try {
+      if (!audio.current) audio.current = makeAudio();
+      const ctx = audio.current.ctx; if (ctx.state === "suspended") ctx.resume();
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      const src = ctx.createMediaStreamSource(stream), an = ctx.createAnalyser(), anP = ctx.createAnalyser();
+      an.fftSize = 512; anP.fftSize = 4096; src.connect(an); src.connect(anP);
+      const m = { stream, an, anP, buf: new Float32Array(512), bufP: new Float32Array(4096), avg: 0, prev: 0, last: 0 };
+      m.timer = setInterval(() => {
+        an.getFloatTimeDomainData(m.buf); let e = 0; for (let i = 0; i < 512; i++) e += m.buf[i] * m.buf[i]; const rms = Math.sqrt(e / 512), now = ctx.currentTime;
+        if (rms > 0.015 && rms > m.avg * 2.2 && rms > m.prev * 1.25 && now - m.last > 0.07) { m.last = now; onOnset(now - 0.012); }
+        m.prev = rms; m.avg = m.avg * 0.95 + rms * 0.05;
+      }, 5);
+      mic.current = m; setMicOn(true); setScore(null); setMarks({});
+    } catch { setMicErr(L("Micro refusé ou indisponible. Autorise le micro, ou branche ta carte de son et réessaie.", "Mic blocked or unavailable. Allow the mic, or plug in your audio interface and try again.")); }
+  }
+  function stopMic() { const m = mic.current; clearInterval(m.timer); m.stream && m.stream.getTracks().forEach(t => t.stop()); mic.current = {}; setMicOn(false); setScore(null); setMarks({}); }
+  function calibrate() {                            // 8 clics : le joueur gratte sur chaque clic, on mesure le délai moyen
+    const A = audio.current, ctx = A.ctx, t0 = ctx.currentTime + 0.6, clicks = [];
+    stop(); for (let i = 0; i < 8; i++) { const t = t0 + i * 0.6; clicks.push(t); A.click(t, i % 4 === 0); }
+    cal.current = { hits: [] }; setCalib(true);
+    setTimeout(() => {
+      const d = cal.current.hits.map(h => { const c = clicks.reduce((a, b) => (Math.abs(b - h) < Math.abs(a - h) ? b : a)); return h - c; }).filter(x => Math.abs(x) < 0.3).sort((a, b) => a - b);
+      cal.current = null; setCalib(false);
+      if (d.length >= 4) { const ms = Math.round(d[Math.floor(d.length / 2)] * 1000); setLatency(ms); try { localStorage.setItem("mp_les_lat", String(ms)); } catch { /* stockage indisponible */ } setToast(L(`Calibré : ${ms} ms de délai.`, `Calibrated: ${ms} ms latency.`)); }
+      else setToast(L("Pas assez de coups entendus. Monte le volume de ta guitare et recommence.", "Not enough hits heard. Turn your guitar up and try again."));
+    }, (8 * 0.6 + 1.2) * 1000);
+  }
+  useEffect(() => () => { const m = mic.current; clearInterval(m.timer); m.stream && m.stream.getTracks().forEach(t => t.stop()); }, []);
+  useEffect(() => { exp.current = []; setScore(null); setMarks({}); }, [inst, li, seed, mode]);
+
   function schedule() {
     const A = audio.current, ctx = A.ctx;
     while (st.current.next < ctx.currentTime + 0.12) {
-      const r = R.current, t = st.current.next, sp = 60 / r.bpm / 4, s = st.current.step % r.pattern.len;
+      const r = R.current, t = st.current.next, sp = 60 / r.bpm / 4, s = st.current.step % r.pattern.len, loopK = Math.floor(st.current.step / r.pattern.len);
       if (r.melodic) {
         const e = r.pattern.ev.find(n => n.step === s);
-        if (e && r.leadOn) A.lead(t, mhz(r.leadRoot + r.scale[Math.min(e.deg, r.scale.length - 1)]), sp * e.len * 0.95, r.voice);
+        if (e && r.mic) exp.current.push({ t, loop: loopK, step: s, midi: r.leadRoot + r.scale[Math.min(e.deg, r.scale.length - 1)], check: true });
+        if (e && r.leadOn && !r.mic) A.lead(t, mhz(r.leadRoot + r.scale[Math.min(e.deg, r.scale.length - 1)]), sp * e.len * 0.95, r.voice);
         if (r.backing) {
           const bs = s % 16; if (bs % 4 === 0 || bs % 4 === 2 || bs % 4 === 3) A.gtr(t, [mhz(r.bandRoot)], true, sp * (bs % 4 === 0 ? 2 : 1), 0.7);
           if (bs % 8 === 0 || bs === 14) A.kick(t); if (bs % 8 === 4) A.snare(t); if (bs % 2 === 0) A.hat(t);
@@ -527,7 +659,8 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
         if (r.metro && !r.backing && s % 4 === 0) A.click(t, s % 16 === 0);
       } else {
         const e = r.pattern.ev.find(n => n.step === s);
-        if (e) {
+        if (e && r.mic) { const lo = e.n.reduce((a, b) => (b[0] > a[0] ? b : a)); exp.current.push({ t, loop: loopK, step: s, midi: r.tune[lo[0]] + lo[1], check: !e.pm && !e.ghost && e.n.length === 1 }); }
+        if (e && !r.mic) {
           const fq = e.n.map(([str, f]) => mhz(r.tune[str] + f)), dur = sp * e.len * (e.stac ? 0.45 : 0.95);
           if (r.bass) fq.forEach(f => A.bass(t, f, e.ghost ? sp * 0.5 : dur, e.ghost ? 0.25 : e.acc ? 1.1 : 1, e.slap ? 1 : e.pop ? 2 : 0));
           else { A.gtr(t, fq, !!e.pm, e.pm ? sp * e.len : dur, e.acc ? 1.15 : 1); if (e.pinch) A.pinch(t, fq[0] * 6, dur); }
@@ -545,7 +678,8 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
   function start() {
     if (!audio.current) audio.current = makeAudio();
     if (audio.current.ctx.state === "suspended") audio.current.ctx.resume();
-    st.current = { step: 0, next: audio.current.ctx.currentTime + 0.06, loops: 0 };
+    exp.current = [];
+    st.current = { step: 0, next: audio.current.ctx.currentTime + (R.current.mic ? 1.2 : 0.06), loops: 0 };   // avec le micro : 1 s pour se placer
     clearInterval(timer.current); timer.current = setInterval(schedule, 25); setPlaying(true);
   }
   function stop() { clearInterval(timer.current); timer.current = null; setPlaying(false); setActive(-1); }
@@ -582,7 +716,7 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
   const nm = m => names[((m % 12) + 12) % 12];
   const pads = scale.map((iv, d) => {
     const real = leadRoot + iv, written = real + tr;
-    return { d, w: written, name: nm(written), sub: voice === "vln" ? violinFinger(real, fr) : (tr ? L("sonne ", "sounds ") + nm(real) : ""), root: iv % 12 === 0, blue: iv === 6 };
+    return { d, w: written, name: nm(written), sub: voice === "vln" ? violinFinger(real, fr) : voice === "piano" ? L("doigt ", "finger ") + (scale.length === 7 ? [1, 2, 3, 4, 1, 2, 3] : [1, 2, 3, 1, 2, 3])[d] : (tr ? L("sonne ", "sounds ") + nm(real) : ""), root: iv % 12 === 0, blue: iv === 6 };
   });
   const curEv = melodic ? pattern.ev.find(e => active >= e.step && active < e.step + e.len) : null;
 
@@ -601,6 +735,7 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
           <button aria-pressed={inst === "bass"} onClick={() => pickInst("bass")}>{L("Basse", "Bass")}</button>
           <button aria-pressed={inst === "sax"} onClick={() => pickInst("sax")}>{L("Saxo", "Sax")}</button>
           <button aria-pressed={inst === "vln"} onClick={() => pickInst("vln")}>{L("Violon", "Violin")}</button>
+          <button aria-pressed={inst === "keys"} onClick={() => pickInst("keys")}>Piano</button>
           
           <button disabled>{L("Batterie", "Drums")}<small>{L("bientôt", "soon")}</small></button>
           <button disabled>{L("Chant", "Vocals")}<small>{L("bientôt", "soon")}</small></button>
@@ -632,12 +767,20 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
               <h1>{fr ? cur[0] : cur[1]}</h1>
             </div>
             <div className="mpl-meta">
-              <span className="mpl-chip">{melodic ? (fr ? KEY_LBL[key][0] : KEY_LBL[key][1]) : inst === "bass" ? L("Drop D · 4 cordes", "Drop D · 4-string") : "Drop D"}</span>
+              <span className="mpl-chip">{melodic ? (fr ? KEY_LBL[key][0] : KEY_LBL[key][1]) : (fr ? tunObj.fr : tunObj.en) + (inst === "bass" ? L(" · 4 cordes", " · 4-string") : "")}</span>
               <span className="mpl-chip">{L("Cible", "Target")} {target} BPM</span>
             </div>
           </div>
           <p className="mpl-goal"><b>{L("Objectif :", "Goal:")}</b> {melodic ? PENTA_GOAL[lessonType][fr ? 0 : 1]
             : def.goal[fr ? 0 : 1]}</p>
+
+          {!melodic && <div className="mpl-stage">
+            <div className="mpl-row">
+              <label>{L("Accordage", "Tuning")}</label>
+              {tunList.map(x => <button key={x.id} className="mpl-pill" aria-pressed={tunObj.id === x.id} onClick={() => { stop(); setTun(inst, x.id); }}>{fr ? x.fr : x.en}</button>)}
+            </div>
+            <p className="mpl-small">{L(`Cordes : ${[...tunObj.l].reverse().join(" ")}. `, `Strings: ${[...tunObj.l].reverse().join(" ")}. `)}{tunObj.drop || inst === "bass" ? L("Les tabs restent les mêmes : seul le son descend.", "Tabs stay the same: only the pitch drops.") : L("Accordage standard : les power chords se jouent à 2 doigts, la tab s'ajuste.", "Standard tuning: power chords use 2 fingers, the tab adjusts.")}</p>
+          </div>}
 
           {melodic && <div className="mpl-stage">
             <div className="mpl-row">
@@ -652,6 +795,7 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
             </div>
             <p className="mpl-small">{inst === "sax"
               ? L(`Notes écrites pour sax ${saxType === "alto" ? "alto" : "ténor"} : on transpose pour toi. Tu lis « ${pads[0].name} », ça sonne ${nm(leadRoot)}.`, `Notes written for ${saxType} sax: we transpose for you. You read “${pads[0].name}”, it sounds ${nm(leadRoot)}.`)
+              : inst === "keys" ? L("Main droite, une octave au-dessus de la guitare. Les chiffres sous les notes sont les doigts (1 = pouce). La main gauche peut tenir la note de base en bas.", "Right hand, an octave above the guitar. Numbers under the notes are fingers (1 = thumb). The left hand can hold the root down low.")
               : L("Le violon joue une octave au-dessus de la guitare (les riffs en drop descendent plus bas que la corde de Sol). Position 1.", "The violin plays an octave above the guitar (drop-tuned riffs go below the G string). First position.")}</p>
           </div>}
 
@@ -670,13 +814,14 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
                 {pads.map(p => <div key={p.d} className={"mpl-pad" + (p.root ? " root" : "") + (p.blue ? " blue" : "") + (curEv && curEv.deg === p.d && leadOn ? " on" : "")}>
                   <b>{p.name}</b>{p.sub && <span>{p.sub}</span>}{inst === "sax" && <SaxFinger m={p.w} fr={fr} />}</div>)}
               </div>
+              {inst === "keys" && <PianoKeys scale={scale.map(iv => leadRoot + iv)} root={leadRoot} cur={curEv && leadOn ? leadRoot + scale[Math.min(curEv.deg, scale.length - 1)] : null} names={names} />}
               {pattern.ev.length > 0 ? <div className="mpl-seq" aria-label={L("Séquence", "Sequence")}>
-                {pattern.ev.map(e => <span key={e.idx} className={curEv && curEv.idx === e.idx ? "on" : ""}>{pads[Math.min(e.deg, pads.length - 1)].name}</span>)}
+                {pattern.ev.map(e => <span key={e.idx} className={(curEv && curEv.idx === e.idx ? "on" : "") + (marks[e.step] ? " m-" + marks[e.step] : "")}>{pads[Math.min(e.deg, pads.length - 1)].name}</span>)}
               </div> : <p className="mpl-small">{L("Pas de partition : le band joue 4 mesures en boucle, tu improvises avec les 5 notes ci-dessus.", "No score: the band loops 4 bars, you improvise with the 5 notes above.")}</p>}
               <div className="mpl-legend"><span><b>{L("bordure orange", "orange border")}</b> {L("note de base (la tonique)", "root note")}</span>{lessonType === "blues" && <span><b>{L("pointillé", "dashed")}</b> {L("la blue note", "the blue note")}</span>}{inst === "sax" && <span><b>●</b> {L("clé enfoncée · main gauche en haut, main droite en bas · 8va = clé d'octave", "key pressed · left hand on top, right hand below · 8va = octave key")}</span>}</div>
             </> : <>
-              {def.tuner && <Tuner fr={fr} tune={inst === "bass" ? BASS_TUNE : GTR_TUNE} labels={inst === "bass" ? BASS_LBL : GTR_LBL} getAudio={() => { if (!audio.current) audio.current = makeAudio(); if (audio.current.ctx.state === "suspended") audio.current.ctx.resume(); return audio.current; }} />}
-              <div className="mpl-box"><StrTab pattern={pattern} active={active} labels={inst === "bass" ? BASS_LBL : GTR_LBL} /></div>
+              {def.tuner && <Tuner fr={fr} tune={tunObj.m} labels={tunObj.l} getAudio={() => { if (!audio.current) audio.current = makeAudio(); if (audio.current.ctx.state === "suspended") audio.current.ctx.resume(); return audio.current; }} />}
+              <div className="mpl-box"><StrTab pattern={pattern} active={active} labels={tunObj.l} marks={marks} /></div>
               <div className="mpl-legend">{inst === "bass"
                 ? <><span><b>I M</b> {L("index · majeur", "index · middle")}</span><span><b>T P</b> {L("pouce (slap) · pop", "thumb (slap) · pop")}</span><span><b>x</b> {L("note fantôme", "ghost note")}</span><span><b>0</b> {L("corde à vide", "open string")}</span></>
                 : <><span><b>↓ ↑</b> {L("coup bas · coup haut", "downstroke · upstroke")}</span><span><b>{L("orange", "orange")}</b> {L("palm mute", "palm mute")}</span><span><b>&gt;</b> accent</span><span><b>PH</b> {L("harmonique pincée", "pinch harmonic")}</span></>}</div>
@@ -695,12 +840,20 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
                 <label><input type="checkbox" checked={auto} onChange={e => setAuto(e.target.checked)} /> {L("+5 % auto", "+5% auto")}</label>
               </div>
             </div>
+            <div className="mpl-listen">
+              <button className="mpl-ghost" aria-pressed={micOn} onClick={() => (micOn ? stopMic() : startMic())}>{micOn ? L("■ Arrêter l'écoute", "■ Stop listening") : L("🎙 Le site m'écoute", "🎙 Let the site listen")}</button>
+              {micOn && <button className="mpl-ghost" disabled={calib} onClick={calibrate}>{calib ? L("Gratte sur chaque clic…", "Strum on every click…") : L(`Calibrer · ${latency} ms`, `Calibrate · ${latency} ms`)}</button>}
+              <p className="mpl-small">{micOn ? L("Mets des écouteurs. Ta partie est coupée : c'est toi qui la joues. Chaque note est vérifiée (à temps ± 80 ms, et la bonne note quand c'est une note seule). Une boucle compte à 90 % et plus.", "Wear headphones. Your part is muted: you play it. Every note is checked (on time ± 80 ms, and the right pitch for single notes). A loop counts at 90% and up.")
+                : L("Branche ta carte de son (ou utilise le micro) : le site entend ce que tu joues et valide tes boucles tout seul.", "Plug in your audio interface (or use the mic): the site hears what you play and validates your loops itself.")}</p>
+              {micErr && <p className="mpl-small" style={{ color: "var(--ember2)" }}>{micErr}</p>}
+            </div>
           </section>
 
           <div className="mpl-coach">
             <div className="mpl-card">
               <h4>{L("Boucles propres à 100 %", "Clean loops at 100%")}</h4>
               <div className="mpl-dots">{[0, 1, 2].map(i => <i key={i} className={i < clean ? "on" : ""} />)}</div>
+              {micOn && <div className="mpl-score"><b className={score && score.total >= 90 ? "ok" : ""}>{score ? score.total + " %" : "—"}</b><span>{score ? L("rythme ", "rhythm ") + score.rhythm + " %" + (score.notes != null ? L(" · notes ", " · notes ") + score.notes + " %" : "") : L("Joue une boucle…", "Play a loop…")}</span></div>}
               {clean >= 3 ? <span className="mpl-okmsg">{L("Leçon réussie. La suivante est débloquée.", "Lesson passed. The next one is unlocked.")}</span>
                 : <p>{L(`Atteins ${target} BPM pour qu'une boucle compte.`, `Reach ${target} BPM for a loop to count.`)}</p>}
             </div>
@@ -712,7 +865,8 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
             <div className="mpl-card">
               <h4>{L("Conseils", "Tips")}</h4>
               <ul className="mpl-tips">{(melodic
-                ? (inst === "sax" ? [L("Souffle constant, appuie avec le ventre.", "Steady air, support from the belly."), L("Langue légère : « tu » sur chaque note.", "Light tongue: “tu” on each note."), L("Coins de bouche fermes, pas les dents.", "Firm mouth corners, not teeth.")]
+                ? (inst === "keys" ? [L("Poignet souple, doigts arrondis.", "Loose wrist, curved fingers."), L("Le pouce passe sous le 3e doigt pour continuer la gamme.", "The thumb passes under the 3rd finger to keep going."), L("Même force sur chaque touche : écoute l'égalité.", "Same weight on every key: listen for evenness.")]
+                  : inst === "sax" ? [L("Souffle constant, appuie avec le ventre.", "Steady air, support from the belly."), L("Langue légère : « tu » sur chaque note.", "Light tongue: “tu” on each note."), L("Coins de bouche fermes, pas les dents.", "Firm mouth corners, not teeth.")]
                   : [L("Archet droit, parallèle au chevalet.", "Straight bow, parallel to the bridge."), L("Écoute le bourdon : la note doit « se fondre » dedans.", "Listen to the drone: the note should blend into it."), L("Doigts arrondis, bout du doigt sur la corde.", "Curved fingers, fingertip on the string.")])
                 : def.tips.map(x => x[fr ? 0 : 1])
               ).map((x, i) => <li key={i}>{x}</li>)}</ul>
@@ -749,7 +903,7 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
   );
 }
 
-function StrTab({ pattern, active, labels }) {
+function StrTab({ pattern, active, labels, marks = {} }) {
   const N = labels.length, cells = [], at = {};
   pattern.ev.forEach(e => { at[e.step] = e; });
   let curE = null;
@@ -763,7 +917,7 @@ function StrTab({ pattern, active, labels }) {
       const hit = e && e.n.find(x => x[0] === s);
       cells.push(<div key={stp + "-" + s} className={"c" + (e && e.pm ? " pm" : "") + (on ? " on" : "")}><span>{hit ? (e.ghost ? "x" : String(hit[1])) + (e.stac ? "·" : "") : ""}</span></div>);
     }
-    cells.push(<div key={stp + "-pk"} className={"pk" + (e ? (e.lab === "↑" || e.lab === "M" || e.lab === "P" ? " u" : " d") : "") + (on ? " on" : "")}>{e ? (e.acc ? ">" : "") + (e.lab || "") : ""}</div>);
+    cells.push(<div key={stp + "-pk"} className={"pk" + (e ? (e.lab === "↑" || e.lab === "M" || e.lab === "P" ? " u" : " d") : "") + (on ? " on" : "") + (marks[stp] ? " m-" + marks[stp] : "")}>{e ? (e.acc ? ">" : "") + (e.openLbl ? labels[e.n[0][0]] : (e.lab || "")) : ""}</div>);
   }
   return <div className="mpl-tab" style={{ gridTemplateRows: `repeat(${N},22px) 18px` }} aria-label="Tablature">{cells}</div>;
 }

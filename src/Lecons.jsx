@@ -145,6 +145,10 @@ const CSS = `
 .mpl-keys .w{fill:#E9E7E1;stroke:#0C0D0F}.mpl-keys .b{fill:#111316;stroke:#0C0D0F}
 .mpl-keys .w.sc{fill:#F6D2B8}.mpl-keys .w.root{fill:#FFB36B}.mpl-keys .b.sc,.mpl-keys .b.root{fill:#7a3a1c}
 .mpl-keys .on{fill:var(--ember)!important}.mpl-keys .kl{font:600 10px var(--mono);fill:#0C0D0F}.mpl-keys .bd{fill:var(--ember2)}
+.mpl-modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.66);display:grid;place-items:center;padding:16px}
+.mpl-modal-box{position:relative;width:min(440px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.mpl-modal-box h3{margin:0;font-size:24px;font-weight:800;letter-spacing:-.01em}
+.mpl-modal-x{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--muted);font-size:24px;cursor:pointer;line-height:1}
 .mpl-pack{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px 14px;border:1px dashed #5a3a26;border-radius:12px}
 .mpl-pack p{margin:0;flex:1 1 260px;font-size:14px;color:var(--muted)}.mpl-pack p b{color:var(--fg)}
 .mpl-note{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;margin:0}
@@ -571,7 +575,7 @@ function PianoKeys({ scale, root, cur, names }) {
 }
 
 // ───────── Composant ─────────
-export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywall = () => {}, isMember = true, onRequestAuth = () => {}, sampleBase = "/samples/" }) {
+export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywall = () => {}, isMember = true, onRequestAuth = () => {}, sampleBase = "/samples/", onBuyMethod = null }) {
   const fr = uiLang === "fr", L = (a, b) => (fr ? a : b);
   const [inst, setInst] = useState("gtr");
   const [saxType, setSaxType] = useState("alto");
@@ -590,6 +594,7 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
   const [toast, setToast] = useState("");
   const [mInst, setMInst] = useState("gtr");
   const [method, setMethod] = useState(null);
+  const [buy, setBuy] = useState(null);   // { era, inst } ou { pack: true, inst }
   const [kitReady, setKitReady] = useState(KIT.ready);
   useEffect(() => { loadKit(sampleBase).then(k => setKitReady(k.ready)); }, [sampleBase]);
   const [micOn, setMicOn] = useState(false);
@@ -784,8 +789,9 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
 
   const methodFamily = M_INST.find(x => x[0] === mInst)[3];
 
+  const buyModal = buy && <BuyModal fr={fr} item={buy} onClose={() => setBuy(null)} onBuy={onBuyMethod} />;
   if (method) return <div className="mpl"><style>{CSS}</style>
-    <MethodModule fr={fr} canAccess={canAccess} onPaywall={onPaywall} onBack={() => setMethod(null)} /></div>;
+    <MethodModule fr={fr} canAccess={canAccess} onBuy={() => setBuy({ era: "80s", inst: "gtr" })} onBack={() => setMethod(null)} />{buyModal}</div>;
 
   return (
     <div className="mpl">
@@ -805,6 +811,7 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
       </div>
 
       {toast && <div className="mpl-toast" role="status">{toast}</div>}
+      {buyModal}
 
       <div className="mpl-grid">
         <aside className="mpl-rail" aria-label={L("Parcours", "Path")}>
@@ -948,12 +955,12 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
                 <div className="mpl-era">{era}<small>{fr ? sub[0] : sub[1]}</small></div>
                 <ul>{METHOD_ITEMS[methodFamily][era].map(([a, b]) => <li key={a}>{a} <span>· {b}</span></li>)}</ul>
                 <button className="mpl-ghost mpl-peek" onClick={() => openMethod(era)}>{L("Voir l'aperçu", "Preview")}{mInst === "gtr" && era === "80s" ? " ★" : ""}</button>
-                <div className="mpl-buy"><span className="mpl-price">9,99 $</span><button onClick={onPaywall}>{L("Débloquer", "Unlock")}</button></div>
+                <div className="mpl-buy"><span className="mpl-price">9,99 $</span><button onClick={() => setBuy({ era, inst: mInst })}>{L("Débloquer", "Unlock")}</button></div>
               </div>)}
             </div>
             <div className="mpl-pack">
               <p><b>{L("Pack 5 époques", "5-era pack")}</b> · {L("tout l'instrument, des 70s à aujourd'hui", "the whole instrument, 70s to today")}</p>
-              <span className="mpl-price">39,99 $</span><button className="mpl-cta" onClick={onPaywall}>{L("Prendre le pack", "Get the pack")}</button>
+              <span className="mpl-price">39,99 $</span><button className="mpl-cta" onClick={() => setBuy({ pack: true, inst: mInst })}>{L("Prendre le pack", "Get the pack")}</button>
             </div>
           </section>
 
@@ -1032,6 +1039,32 @@ function Tuner({ fr, tune, labels, getAudio }) {
   </div>;
 }
 
+// Achat d'une méthode par époque (ou du pack). Paiement branché par la prop onBuyMethod ; sinon « bientôt en vente ».
+function BuyModal({ fr, item, onClose, onBuy }) {
+  const L = (a, b) => (fr ? a : b);
+  const inst = M_INST.find(x => x[0] === item.inst) || M_INST[0], instName = fr ? inst[1] : inst[2];
+  const fam = METHOD_ITEMS[inst[3]];
+  const title = item.pack ? L(`Pack 5 époques · ${instName}`, `5-era pack · ${instName}`) : L(`Méthode ${item.era} · ${instName}`, `${item.era} method · ${instName}`);
+  const price = item.pack ? "39,99 $" : "9,99 $";
+  useEffect(() => { const k = e => { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [onClose]);
+  return <div className="mpl-modal" role="dialog" aria-modal="true" aria-label={title} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="mpl-modal-box">
+      <button className="mpl-modal-x" onClick={onClose} aria-label={L("Fermer", "Close")}>×</button>
+      <div className="mpl-eyebrow">{L("Méthode par époque", "Era method")}</div>
+      <h3>{title}</h3>
+      <div className="mpl-big" style={{ color: "var(--ember2)" }}>{price} <small style={{ fontSize: 13, color: "var(--muted)" }}>{L("paiement unique, à vie", "one-time, lifetime")}</small></div>
+      {item.pack
+        ? <p className="mpl-small">{L("Les 5 époques (70s, 80s, 90s, 00s, 10s) pour cet instrument : 20 modules, une centaine d'exercices, riffs générés à l'infini et play-alongs.", "All 5 eras (70s to 10s) for this instrument: 20 modules, about a hundred exercises, endless generated riffs and play-alongs.")}</p>
+        : <ul className="mpl-tips">{(fam[item.era] || []).map(([a, b]) => <li key={a}><b style={{ color: "var(--fg)" }}>{a}</b> · {b}</li>)}<li>{L("Défi final + badge de l'époque", "Final challenge + era badge")}</li></ul>}
+      <p className="mpl-small">{L("Environ 20 exercices progressifs, tempo cible, riffs d'exercice générés dans le son de l'époque, validation par le micro ou la carte de son.", "About 20 progressive exercises, target tempo, practice riffs generated in the era's sound, mic or audio-interface checking.")}</p>
+      {onBuy
+        ? <button className="mpl-play" style={{ width: "100%" }} onClick={() => onBuy(item)}>{L("Acheter", "Buy")} · {price}</button>
+        : <><button className="mpl-play" style={{ width: "100%", opacity: .55, cursor: "not-allowed" }} disabled>{L("Bientôt en vente", "Coming soon")}</button>
+          <p className="mpl-small" style={{ textAlign: "center" }}>{L("Les méthodes ouvrent avec la section Leçons. Le module 1 de la méthode 80s guitare est déjà jouable en aperçu.", "Methods open with the Lessons section. Module 1 of the 80s guitar method is already playable as a preview.")}</p></>}
+    </div>
+  </div>;
+}
+
 // ───────── Méthode 80s · Guitare — module 1 : Alternate picking ─────────
 const STD = [64, 59, 55, 50, 45, 40];          // e B G D A E (accordage standard, son des 80s)
 const STD_LBL = ["e", "B", "G", "D", "A", "E"];
@@ -1067,7 +1100,7 @@ const M80_EX = [
 ];
 const M80_MODS = [["Alternate picking", "Alternate picking", "free"], ["Mineur harmonique + sweep", "Harmonic minor + sweep", "pro"], ["Tapping", "Tapping", "pro"], ["Tremolo picking", "Tremolo picking", "pro"], ["Défi final : solo 16 mesures", "Final challenge: 16-bar solo", "pro"]];
 
-function MethodModule({ fr, canAccess, onPaywall, onBack }) {
+function MethodModule({ fr, canAccess, onBuy, onBack }) {
   const L = (a, b) => (fr ? a : b);
   const [ex, setEx] = useState(0);
   const [seed, setSeed] = useState(0);
@@ -1106,7 +1139,7 @@ function MethodModule({ fr, canAccess, onPaywall, onBack }) {
   }
   function stop() { clearInterval(timer.current); timer.current = null; setPlaying(false); setActive(-1); }
   function pickEx(i) { stop(); setEx(i); setPct(70); setSeed(x => x + 1); }
-  function pickMod(i) { if (i > 0) onPaywall(); }   // modules 2-5 : achat de la méthode
+  function pickMod(i) { if (i > 0) onBuy(); }   // modules 2-5 : achat de la méthode (9,99 $ pour la méthode complète)
 
   // tab
   const cells = [];
@@ -1128,7 +1161,7 @@ function MethodModule({ fr, canAccess, onPaywall, onBack }) {
         <ol className="mpl-path">
           {M80_MODS.map((m, i) => <li key={i}><button aria-current={i === 0} className={i > 0 && !canAccess("forge") ? "lock" : ""} onClick={() => pickMod(i)}>
             <span className="n">{String(i + 1).padStart(2, "0")}</span><span>{fr ? m[0] : m[1]}</span>
-            <span className={"mpl-tag " + m[2]}>{m[2] === "free" ? L("aperçu", "preview") : "9,99 $"}</span></button></li>)}
+            <span className={"mpl-tag " + m[2]}>{m[2] === "free" ? L("aperçu", "preview") : "🔒"}</span></button></li>)}
         </ol>
         <p className="mpl-note">{L("Le module 1 est offert en aperçu. La méthode complète : 9,99 $, ou incluse dans le pack 5 époques.", "Module 1 is a free preview. Full method: $9.99, or included in the 5-era pack.")}</p>
       </aside>

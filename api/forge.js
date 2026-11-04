@@ -748,12 +748,12 @@ export default function handler(req, res) {
   const _cleanVox = /clean|sung|singing|tenor|soprano|operatic|melodic|croon|siren/.test(_voxUsed) && !/scream|growl|harsh|rasp|shriek|bark|yell|rap|guttural/.test(_voxUsed);
   if (_cleanVox) _antiLow.push('growls', 'screams', ...(_classic && !/power|symphonic/.test(_gtxt) ? ['choir', 'layered vocal harmonies'] : []));
   if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/hard rock|glam/.test(_gtxt)) _antiLow.push('hard rock', 'boogie');
-  if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) _antiLow.push('power metal', 'speed metal');   // Maiden sonnait Gamma Ray (test 2026-11-04)
+  if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) _antiLow.push('power metal', 'speed metal', 'gang vocals', 'group vocals', 'backing vocals');   // Maiden sonnait Gamma Ray / Blind Guardian, gang shouts et chœurs = pas Maiden (tests 2026-11-04)
   if (/thrash/.test(_gtxt) && !/death|black|grind/.test(_gtxt)) _antiLow.push('blast beats');
   if (/\bgrunge\b/.test(_gtxt) && !/post-grunge/.test(_gtxt)) _antiLow.push('pop punk', 'skate punk', 'polished vocals');   // sans ça, le grunge sonnait Green Day (test 2026-11-03)
   // Voix criée mi-grave voulue (baritone/chesty/low-mid) : on bloque l'aigu et le guttural, pas le grave (test Pantera 1992 : « c'est mieux »).
   if (/baritone|chesty|low-mid/.test(_voxUsed) && !/growl|guttural/.test(_voxUsed)) _antiLow.push('high-pitched vocals', 'shrieks', 'falsetto', 'guttural');   // sans « epic », NWOBHM retombait en AC/DC (test Maiden 2026-11-02)
-  const excStr = dedup([..._antiLow, ..._antiEcho, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, 8 + _antiEcho.length).join(', ');
+  const excStr = dedup([..._antiLow, ..._antiEcho, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, Math.max(8, _antiLow.length) + _antiEcho.length).join(', ');   // les anti-voix ne doivent jamais être coupés
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)
   const NAME = { intro: 'Intro', buildup: 'Build-up', verse: 'Verse', prechorus: 'Pre-Chorus', chorus: 'Chorus', breakdown: 'Breakdown', halftime: 'Half-Time', blastsection: 'Blast Section', drop: 'Drop', solo: 'Guitar Solo', interlude: 'Interlude', atmosphericbreak: 'Atmospheric Break', spokenword: 'Spoken Word', gangchant: 'Gang Chant', scream: 'Scream Section', riffbreak: 'Riff Break', bridge: 'Bridge', outro: 'Outro' };

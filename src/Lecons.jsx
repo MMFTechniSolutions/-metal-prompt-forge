@@ -35,7 +35,7 @@ const CSS = `
 .mpl-path button[aria-current="true"] .n{color:var(--ember)}
 .mpl-path .lock{color:var(--muted)}
 .mpl-tag{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border-radius:6px;padding:2px 6px;border:1px solid var(--line);color:var(--muted)}
-.mpl-tag.free{border-color:#3a4b3f;color:var(--ok)}.mpl-tag.pro{border-color:#5a3a26;color:var(--ember2)}
+.mpl-tag.free{border-color:#3a4b3f;color:var(--ok)}.mpl-tag.pro{border-color:#2f4256;color:#8fb2f0}
 .mpl-main{display:flex;flex-direction:column;gap:16px;min-width:0}
 .mpl-head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 20px}
 .mpl-eyebrow{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ember);font-weight:600}
@@ -424,7 +424,7 @@ function violinFinger(m, fr) {
 }
 
 // ───────── Composant ─────────
-export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywall = () => {} }) {
+export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywall = () => {}, isMember = true, onRequestAuth = () => {} }) {
   const fr = uiLang === "fr", L = (a, b) => (fr ? a : b);
   const [inst, setInst] = useState("gtr");
   const [saxType, setSaxType] = useState("alto");
@@ -532,7 +532,7 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
   function pickInst(id) { stop(); setInst(id); setMInst(id); setMode("practice"); setPct(70); setDrone(true); }
   function pickLesson(i) {
     const row = path[i];
-    if (row[2] === "pro" && !canAccess("forge")) { onPaywall(); return; }
+    if (row[2] === "pro" && !isMember) { setToast(L("Crée ton compte gratuit pour débloquer tout le parcours de base.", "Create your free account to unlock the full base path.")); onRequestAuth(); return; }
     stop(); setLesson(l => ({ ...l, [inst]: i })); setMode("practice"); setPct(70); setSeed(x => x + 1);
   }
   function pickMode(m) { setMode(m); if (m === "demo") setPct(100); if (m === "challenge") setSeed(x => x + 1); }
@@ -591,13 +591,13 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
           <p className="mpl-small">{done} {L("leçons sur", "lessons of")} {path.length} {L("réussies", "completed")}</p>
           <ol className="mpl-path">
             {path.map((row, i) => {
-              const locked = row[2] === "pro" && !canAccess("forge"), isDone = passed.includes(inst + ":" + i);
+              const locked = row[2] === "pro" && !isMember, isDone = passed.includes(inst + ":" + i);
               return <li key={i}><button aria-current={i === li} className={isDone ? "done" : locked ? "lock" : ""} onClick={() => pickLesson(i)}>
                 <span className="n">{isDone ? "✓" : String(i + 1).padStart(2, "0")}</span><span>{fr ? row[0] : row[1]}</span>
-                <span className={"mpl-tag " + row[2]}>{row[2] === "free" ? L("gratuit", "free") : "plus"}</span></button></li>;
+                <span className={"mpl-tag " + row[2]}>{row[2] === "free" ? L("gratuit", "free") : L("membres", "members")}</span></button></li>;
             })}
           </ol>
-          <p className="mpl-note">{L("Les 3 premières leçons de chaque instrument sont gratuites. La suite : Forge Plus.", "The first 3 lessons of each instrument are free. The rest: Forge Plus.")}</p>
+          <p className="mpl-note">{L("Le parcours de base est gratuit pour les membres (compte gratuit). Les méthodes par époque se vendent à part.", "The base path is free for members (free account). Era methods are sold separately.")}</p>
         </aside>
 
         <main className="mpl-main">

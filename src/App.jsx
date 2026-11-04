@@ -2569,7 +2569,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>)}
 
       {/* LEÇONS (nov. 2026) — guitare, basse, penta saxo/violon, méthodes par époque */}
-      {tab==="lecons"&&<Lecons uiLang={uiLang} canAccess={canAccess} onPaywall={()=>setShowPaywall(true)}/>}
+      {tab==="lecons"&&<Lecons uiLang={uiLang} canAccess={canAccess} onPaywall={()=>setShowPaywall(true)} isMember={!!user} onRequestAuth={onRequestAuth}/>}
 
       {tab==="tuto"&&<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"26px 22px",borderColor:"#FF6A2B44"}}>

@@ -419,9 +419,10 @@ function makeAudio() {
   const ws = (drive, asym) => { const n = 2048, c = new Float32Array(n), off = asym ? 0.12 : 0, norm = Math.tanh(drive * (1 + off)) - Math.tanh(drive * off);
     for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = (Math.tanh(drive * (x + off)) - Math.tanh(drive * off)) / norm; } const w = ctx.createWaveShaper(); w.curve = c; w.oversample = "4x"; return w; };
   const amp = (pan) => {
-    const nodes = [ctx.createGain(), bq("highpass", 120, 0.7), bq("peaking", 760, 0.9, 7), ws(23, true), bq("highpass", 80, 0.7), bq("lowpass", 7000, 0.7), ws(6, false),
-      bq("highpass", 75, 0.8), bq("peaking", 115, 1, 4), bq("peaking", 480, 1, -5), bq("peaking", 2400, 1.2, 4), bq("lowpass", 5200, 0.9), bq("lowpass", 6500, 0.6)];
-    nodes[0].gain.value = 2.2; const og = ctx.createGain(); og.gain.value = 0.32;
+    // moins de gain, aigus coupés avant la saturation, baffle plus sombre : fin du « fuzz » (nov. 2026)
+    const nodes = [ctx.createGain(), bq("highpass", 110, 0.7), bq("peaking", 800, 0.8, 6), bq("lowpass", 4500, 0.7), ws(11.8, true), bq("highpass", 80, 0.7), bq("lowpass", 5500, 0.7), ws(2.6, false),
+      bq("highpass", 80, 0.8), bq("peaking", 110, 1, 3), bq("peaking", 420, 1, -4), bq("peaking", 1800, 1, 3), bq("highshelf", 3500, null, -7), bq("lowpass", 4300, 0.8), bq("lowpass", 5000, 0.6)];
+    nodes[0].gain.value = 2.0; const og = ctx.createGain(); og.gain.value = 0.44;
     for (let i = 0; i < nodes.length - 1; i++) nodes[i].connect(nodes[i + 1]); nodes[nodes.length - 1].connect(og);
     if (ctx.createStereoPanner) { const pn = ctx.createStereoPanner(); pn.pan.value = pan; og.connect(pn); pn.connect(master); } else og.connect(master);
     return nodes[0];

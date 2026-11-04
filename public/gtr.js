@@ -81,27 +81,31 @@ const MPGtr = (() => {
 
   // Un ampli + baffle. dist = 10..100 (curseur Distorsion).
   function amp(ctx, out, pan, dist) {
+    // nov. 2026 : moins de gain (le « fuzz » venait de 2 étages trop poussés), coupe des aigus AVANT la saturation
+    // (moins de grésillement généré) et baffle plus sombre (un vrai 4x12 coupe vers 4-5 kHz).
     const d = Math.max(0.1, Math.min(1, (dist || 80) / 100));
     const nodes = [
       ctx.createGain(),
-      bq(ctx, 'highpass', 120, 0.7),            // serre le bas avant le gain (pas de bouette)
-      bq(ctx, 'peaking', 760, 0.9, 7),          // boost « tube screamer »
-      shaper(ctx, 6 + 22 * d, true),            // étage 1 (lampes, asymétrique)
+      bq(ctx, 'highpass', 110, 0.7),            // serre le bas avant le gain (pas de bouette)
+      bq(ctx, 'peaking', 800, 0.8, 6),          // boost « tube screamer »
+      bq(ctx, 'lowpass', 4500, 0.7),            // pas d'aigus dans la saturation = pas de fizz
+      shaper(ctx, 3 + 11 * d, true),            // étage 1 (lampes, asymétrique)
       bq(ctx, 'highpass', 80, 0.7),
-      bq(ctx, 'lowpass', 7000, 0.7),
-      shaper(ctx, 2 + 5 * d, false),            // étage 2
+      bq(ctx, 'lowpass', 5500, 0.7),
+      shaper(ctx, 1.2 + 1.8 * d, false),        // étage 2, léger
     ];
     if (DI.ir) { const cv = ctx.createConvolver(); cv.buffer = DI.ir; nodes.push(cv, bq(ctx, 'highpass', 70, 0.7)); }   // vrai baffle (IR)
     else nodes.push(
       // ── baffle 4x12 + micro (simulé) ──
-      bq(ctx, 'highpass', 75, 0.8),
-      bq(ctx, 'peaking', 115, 1.0, 4),          // thump du baffle
-      bq(ctx, 'peaking', 480, 1.0, -5),         // creux des mids metal
-      bq(ctx, 'peaking', 2400, 1.2, 4),         // mordant
-      bq(ctx, 'lowpass', 5200, 0.9),            // le haut-parleur coupe le fizz
-      bq(ctx, 'lowpass', 6500, 0.6));
-    nodes[0].gain.value = 2.2;
-    const og = ctx.createGain(); og.gain.value = 0.16;
+      bq(ctx, 'highpass', 80, 0.8),
+      bq(ctx, 'peaking', 110, 1.0, 3),          // thump du baffle
+      bq(ctx, 'peaking', 420, 1.0, -4),         // creux des mids metal
+      bq(ctx, 'peaking', 1800, 1.0, 3),         // mordant, plus bas = moins agressif
+      bq(ctx, 'highshelf', 3500, null, -7),     // le haut-parleur tombe après 3,5 kHz
+      bq(ctx, 'lowpass', 4300, 0.8),
+      bq(ctx, 'lowpass', 5000, 0.6));
+    nodes[0].gain.value = 2.0;
+    const og = ctx.createGain(); og.gain.value = 0.22;
     for (let i = 0; i < nodes.length - 1; i++) nodes[i].connect(nodes[i + 1]);
     nodes[nodes.length - 1].connect(og);
     if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = pan; og.connect(p); p.connect(out); }
@@ -136,7 +140,7 @@ const MPGtr = (() => {
     }
     if (DI.ready) {   // vraie guitare DI → ampli → baffle
       const len = mute ? Math.min(dur, 0.17) : dur;
-      const notes = [[rootHz, 1], [rootHz * 1.4983, 0.85]]; if (!mute) notes.push([rootHz * 2, 0.5]);
+      const notes = [[rootHz, 1], [rootHz * 1.4983, 0.75]]; if (!mute) notes.push([rootHz * 2, 0.3]);   // moins de notes empilées = moins d'intermodulation (fizz)
       [[r.L, 0], [r.R, 0.009]].forEach(([a, dt], side) => {
         const dest = mute ? (() => { const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1100; lp.connect(a.input); return lp; })() : a.input;   // palm mute : la paume étouffe
         notes.forEach(([f, g]) => {

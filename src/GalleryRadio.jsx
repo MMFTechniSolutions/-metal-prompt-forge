@@ -283,21 +283,6 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
         </section>
       </div>
 
-      <section className="mpr-card mpr-all" aria-label={L("Toutes les chansons", "All tracks")}>
-        <h3>{L("Toutes les chansons", "All tracks")} · {songsOnly.length}</h3>
-        {songsOnly.length === 0 && !loading ? <div className="mpr-empty">{L("Sois le premier à soumettre ta chanson.", "Be the first to submit your track.")}</div> :
-          <ul>{songsOnly.map(it => <li key={it.id}>
-            <div className="mpr-row" aria-current={cur && cur.id === it.id} style={{ cursor: "default" }}>
-              {it.image_url ? <img className="mpr-thumb" src={it.image_url} alt="" loading="lazy" /> : <span className="mpr-thumb" />}
-              <span className="mpr-rt"><b>{it.title}</b><span>{it.artist}{it.genre ? " · " + it.genre : ""}{cur && cur.id === it.id ? L(" · en ondes", " · on air") : ""}</span></span>
-              <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                <button className="mpr-pill" aria-pressed={voted.has(it.id)} onClick={() => toggleVote(it.id)}>🤘</button>
-                <a className="mpr-ext" href={it.url} target="_blank" rel="noopener noreferrer">{sunoId(it) ? "Suno ↗" : L("Écouter ↗", "Listen ↗")}</a>
-              </span>
-            </div>
-          </li>)}</ul>}
-      </section>
-
       <section className="mpr-card">
         <div className="mpr-cta">
           <button className="mpr-primary" onClick={() => setShowForm(v => !v)}>{showForm ? L("Fermer", "Close") : L("Passer ma chanson à la radio", "Get my track on the radio")}</button>

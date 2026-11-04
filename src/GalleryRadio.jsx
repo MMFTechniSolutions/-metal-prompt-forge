@@ -76,12 +76,34 @@ const CSS = `
 .mpr-form{display:flex;flex-direction:column;gap:9px}
 .mpr-form input,.mpr-form select{background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--fg);font:inherit;font-size:14px;padding:10px 12px;width:100%}
 .mpr-small{font-size:12px;color:var(--muted);margin:0}
+
+/* lecteur Suno caché : le son joue, l'animation prend sa place */
+.mpr-hidden-frame{position:fixed;left:0;bottom:0;width:2px;height:2px;border:0;opacity:0.01;pointer-events:none;z-index:-1}
+.mpr-viz{height:110px;border-radius:12px;background:radial-gradient(120% 90% at 50% 100%,#2a1208 0%,var(--panel2) 60%);display:flex;align-items:flex-end;justify-content:center;gap:4px;padding:14px 12px 10px;overflow:hidden}
+.mpr-viz i{flex:1 1 0;max-width:12px;min-width:3px;height:12%;border-radius:3px 3px 1px 1px;background:linear-gradient(to top,var(--ember),var(--ember2));opacity:.35;transform-origin:bottom}
+.mpr-viz.on i{opacity:1;animation:mprbar var(--d,0.9s) ease-in-out infinite alternate;animation-delay:var(--dl,0s)}
+@keyframes mprbar{0%{height:10%}35%{height:var(--h1,70%)}70%{height:var(--h2,35%)}100%{height:var(--h3,90%)}}
+.mpr-cover.on{box-shadow:0 0 0 2px var(--ember),0 0 28px -4px var(--ember);animation:mprglow 2.4s ease-in-out infinite}
+@keyframes mprglow{50%{box-shadow:0 0 0 2px var(--ember2),0 0 40px 0 var(--ember)}}
+.mpr-mini{position:fixed;right:16px;bottom:16px;z-index:60;display:flex;align-items:center;gap:10px;max-width:min(420px,calc(100vw - 32px));background:#15171B;border:1px solid #5a2a14;border-radius:14px;padding:8px 10px;box-shadow:0 10px 30px rgba(0,0,0,.5);color:#F2F1ED;font-family:"Geist",system-ui,sans-serif}
+.mpr-mini img,.mpr-mini .ph{width:40px;height:40px;border-radius:8px;object-fit:cover;background:#1C1F24;flex-shrink:0}
+.mpr-mini .t{min-width:0;flex:1;cursor:pointer;background:none;border:0;color:inherit;text-align:left;padding:0}
+.mpr-mini .t small{display:block;font:600 10px "Geist Mono",monospace;letter-spacing:.1em;color:#FF6A2B}
+.mpr-mini .t b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mpr-mini .mini-viz{display:flex;align-items:flex-end;gap:2px;height:18px}
+.mpr-mini .mini-viz i{width:3px;height:30%;background:#FF6A2B;border-radius:2px;animation:mprbar .8s ease-in-out infinite alternate}
+.mpr-mini .mini-viz i:nth-child(2){animation-delay:-.3s}.mpr-mini .mini-viz i:nth-child(3){animation-delay:-.55s}
+.mpr-mini button.x{border:0;background:#FF6A2B;color:#0C0D0F;border-radius:999px;width:32px;height:32px;cursor:pointer;flex-shrink:0}
+@media (prefers-reduced-motion:reduce){.mpr-viz.on i,.mpr-cover.on,.mpr-mini .mini-viz i{animation:none}.mpr-viz.on i{height:var(--h1,60%)}}
 `;
 
 const GENRES = ["Deathcore", "Metalcore", "Djent", "Death Metal", "Black Metal", "Thrash", "Groove", "Doom", "Melodic Death", "Blackgaze", "Power Metal", "Nu-Metal", "Grunge", "Autre"];
 const fmt = s => (!isFinite(s) ? "0:00" : Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0"));
 
-export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", discordUrl }) {
+// barres de l'animation : hauteurs et vitesses fixes (pas de hasard à chaque rendu)
+const BARS = Array.from({ length: 28 }, (_, i) => { const r = k => ((Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1 + 1) % 1; return { "--h1": 35 + r(1) * 60 + "%", "--h2": 15 + r(2) * 45 + "%", "--h3": 45 + r(3) * 55 + "%", "--d": 0.55 + r(4) * 0.7 + "s", "--dl": -r(5) + "s" }; });
+
+export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", discordUrl, visible = true, onOpen }) {
   const L = (fr, en) => (uiLang === "fr" ? fr : en);
   const [items, setItems] = useState([]);
   const [chart, setChart] = useState(null);          // { id: {week, prev} } ou null si la fonction n'existe pas
@@ -227,9 +249,19 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   const top = ranked.slice(0, 10);
   const curRank = cur ? ranked.find(r => r.it.id === cur.id) : null;
 
-  return (
-    <div className="mpr">
-      <style>{CSS}</style>
+  return (<>
+    <style>{CSS}</style>
+    {playing && cur && <iframe key={slot} className="mpr-hidden-frame" title={cur.title} src={`https://suno.com/embed/${cur.sunoId}?autoplay=1`} allow="autoplay; encrypted-media" aria-hidden="true" tabIndex={-1} />}
+    {!visible && playing && cur && <div className="mpr-mini" role="region" aria-label={L("Radio MetalPrompt en direct", "MetalPrompt Radio live")}>
+      {cur.image_url ? <img src={cur.image_url} alt="" /> : <span className="ph" />}
+      <button className="t" onClick={() => onOpen && onOpen()} title={L("Ouvrir la radio", "Open the radio")}>
+        <small>● {L("RADIO EN DIRECT", "RADIO LIVE")}</small>
+        <b>{isJingle(cur) ? L("Annonce MetalPrompt", "MetalPrompt station ID") : cur.title + " — " + cur.artist}</b>
+      </button>
+      <span className="mini-viz" aria-hidden="true"><i /><i /><i /></span>
+      <button className="x" onClick={() => setPlaying(false)} aria-label={L("Arrêter la radio", "Stop the radio")}>■</button>
+    </div>}
+    <div className="mpr" style={visible ? undefined : { display: "none" }}>
       <div className="mpr-head">
         <div>
           <span className={"mpr-onair" + (cur ? " live" : "")}><i />{cur ? L("EN DIRECT 24/7", "LIVE 24/7") : L("RADIO", "RADIO")}</span>
@@ -244,7 +276,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
             : !cur ? <div className="mpr-empty">{L("Aucune chanson à la radio pour l'instant. Soumets la tienne!", "No tracks on the radio yet. Submit yours!")}</div>
             : <>
               <div className="mpr-nowtop">
-                {cur.image_url ? <img className="mpr-cover" src={cur.image_url} alt="" /> : <div className="mpr-cover" />}
+                {cur.image_url ? <img className={"mpr-cover" + (playing ? " on" : "")} src={cur.image_url} alt="" /> : <div className={"mpr-cover" + (playing ? " on" : "")} />}
                 <div className="mpr-meta">
                   <div className="mpr-eyebrow">{isJingle(cur) ? L("Annonce MetalPrompt", "MetalPrompt station ID") : <>{air.show ? (air.show.titre || air.show.genre) + " · " : ""}{curRank ? "#" + curRank.rank + L(" au palmarès", " on the chart") : ""}{cur.genre ? " · " + cur.genre : ""}</>}</div>
                   <div className="mpr-title">{cur.title}</div>
@@ -252,7 +284,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
                   <a className="mpr-link" href={cur.url} target="_blank" rel="noopener noreferrer">{L("Voir sur Suno ↗", "View on Suno ↗")}</a>
                 </div>
               </div>
-              {playing && <iframe key={slot} className="mpr-frame" title={cur.title} src={`https://suno.com/embed/${cur.sunoId}?autoplay=1`} allow="autoplay; encrypted-media" />}
+              <div className={"mpr-viz" + (playing ? " on" : "")} aria-hidden="true">{BARS.map((st, i) => <i key={i} style={st} />)}</div>
               {!playing && <div className="mpr-small">{L("La radio joue en direct pour tout le monde. Appuie sur ▶ pour embarquer.", "The radio is live for everyone. Press ▶ to tune in.")}</div>}
               {playing && joinedLate && <div className="mpr-small">{L("T'embarques en cours de chanson : elle part du début pour toi, t'es en synchro dès la prochaine.", "You tuned in mid-song: it starts from the top for you, you're in sync from the next one.")}</div>}
               {dur > 0 && <div>
@@ -299,5 +331,5 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
         </div>}
       </section>
     </div>
-  );
+  </>);
 }

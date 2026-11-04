@@ -1408,6 +1408,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const SHOW_LECONS=leconsBeta(user);
   const [view,setView]=useState("app");
   const [tab,setTab]=useState("genre");
+  const [radioSeen,setRadioSeen]=useState(false);   // la radio reste montée (joue en arrière-plan) une fois ouverte
+  useEffect(()=>{if(tab==="galerie")setRadioSeen(true);},[tab]);
   const [showPaywall,setShowPaywall]=useState(false);
   const [legalDoc,setLegalDoc]=useState(null);
   const [uiLang,setUiLang]=useState(()=>(navigator.language||"en").startsWith("fr")?"fr":"en");
@@ -2752,7 +2754,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <div style={{height:80}}/>
       </div>}
 
-      {tab==="galerie"&&<GalleryRadio user={user} onRequestAuth={onRequestAuth} uiLang={uiLang} discordUrl={DISCORD_URL}/>}
+      {(tab==="galerie"||radioSeen)&&<GalleryRadio visible={tab==="galerie"} onOpen={()=>setTab("galerie")} user={user} onRequestAuth={onRequestAuth} uiLang={uiLang} discordUrl={DISCORD_URL}/>}
 
       {tab==="masterclass"&&<div style={S.page}>
         {/* HERO */}

@@ -82,7 +82,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   const [items, setItems] = useState([]);
   const [chart, setChart] = useState(null);          // { id: {week, prev} } ou null si la fonction n'existe pas
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState("chart");          // chart | shuffle | genre:<g>
+  const [mode, setMode] = useState("shuffle");     // par défaut : chansons mélangées          // chart | shuffle | genre:<g>
   const [queue, setQueue] = useState([]);
   const [qi, setQi] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -171,7 +171,11 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
     }, 500);
     return () => { alive = false; clearInterval(tick.current); };
   }, [playing, cur && cur.id, frameKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  const next = () => { if (queue.length) setQi(i => (i + 1) % queue.length); };
+  const next = () => {                               // fin de la liste en mode mélangé : on remélange
+    if (!queue.length) return;
+    if (qi + 1 >= queue.length && mode === "shuffle" && queue.length > 2) { const last = queue[qi]; let q = shuffle(playable); if (q[0] && last && q[0].id === last.id) q = [...q.slice(1), q[0]]; setQueue(q); setQi(0); return; }
+    setQi(i => (i + 1) % queue.length);
+  };
   function pickMode(m) { setMode(m); const q = buildQueue(m, m === "chart" ? null : cur && cur.id); setQueue(q); setQi(0); }
   function playItem(id) { const q = buildQueue(mode, id); if (!q.length || q[0].id !== id) { const all = buildQueue("chart", id); setMode("chart"); setQueue(all); } else setQueue(q); setQi(0); setPlaying(true); }
 
@@ -257,8 +261,8 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
               </div>
               {msg && <div className="mpr-msg" role="status">{msg}</div>}
               <div className="mpr-modes" role="group" aria-label={L("Mode de la radio", "Radio mode")}>
-                <button className="mpr-pill" aria-pressed={mode === "chart"} onClick={() => pickMode("chart")}>{L("Palmarès", "Chart")}</button>
                 <button className="mpr-pill" aria-pressed={mode === "shuffle"} onClick={() => pickMode("shuffle")}>{L("Aléatoire", "Shuffle")}</button>
+                <button className="mpr-pill" aria-pressed={mode === "chart"} onClick={() => pickMode("chart")}>{L("Palmarès", "Chart")}</button>
                 {genres.map(g => <button key={g} className="mpr-pill" aria-pressed={mode === "genre:" + g} onClick={() => pickMode("genre:" + g)}>{g}</button>)}
               </div>
               {nxt && <div className="mpr-next">{L("Prochaine : ", "Up next: ")}<b>{nxt.title}</b> · {nxt.artist}</div>}

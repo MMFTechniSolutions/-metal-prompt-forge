@@ -378,8 +378,8 @@ export default function handler(req, res) {
   // Recommandation de modèle Suno par genre (mieux / bon / moins bon)
   let modelRec;
   // Suno v6 (9 sept. 2026) : v6 / v6-wild / v6-mini — TOUS les modèles précédents (v5.5, v5, v4.5) sont retirés.
-  // CHUG SANS ÉCHO (test 2026-11-04, F1) : v6-wild met un écho sur le chug palm-muted du death; v6 chug sec. Thrash et black restent en wild (sonnaient bien).
-  if (/death(?!core)|brutal|slam|groove/.test(_gtxt) && !/black|thrash|grind|crust|d.?beat|war metal|raw|kvlt|primitive|lo.?fi/.test(_gtxt))
+  // CHUG SANS ÉCHO — OPTION « Chug sec » dans Ajuster, OFF par défaut (décision François 2026-11-04) (test F1) : v6-wild met un écho sur le chug palm-muted du death; v6 chug sec. Thrash et black restent en wild (sonnaient bien).
+  if (b.dryChug && /death(?!core)|brutal|slam|groove/.test(_gtxt) && !/black|thrash|grind|crust|d.?beat|war metal|raw|kvlt|primitive|lo.?fi/.test(_gtxt))
     modelRec = { best:'v6', good:'v6-wild', weak:'v6-mini', why: L('chug sec : v6-wild ajoute un écho sur le palm-muted', 'dry chug: v6-wild adds an echo on palm mutes') };
   else if (/raw|kvlt|old.?school|grind|crust|d.?beat|war metal|primitive|dsbm|lo.?fi|death(?!core)|black|thrash|brutal|slam|sludge/.test(_gtxt))   // métal extrême → wild (test 2026-11-02 : plus de grain, moins électronique)
     modelRec = { best:'v6-wild', good:'v6', weak:'v6-mini', why: L('sorties moins prévisibles = le grain cru et l\'imperfection', 'less predictable output = raw grit and imperfection') };
@@ -664,8 +664,9 @@ export default function handler(req, res) {
   // ANTI-ÉCHO DU CHUG (tests 2026-11-04, playlist « Tests Écho ») : presque toutes les sorties avaient un écho sur le picking palm-muted.
   // Death 85-98 : « down-tuned » gonflait les basses (trop amplifié pour l'époque) → « dry mid-heavy palm-muted riffs » (version E2, gagnante).
   // Autres genres à chug : on garde l'accordage, on ajoute juste « dry » au riff. Thrash et black sonnaient bien → pas touchés.
-  const _chugGenre = !_isEraDeath && /death|deathcore|groove|metalcore|djent|slam|beatdown|nu.?metal/.test(_gtxt) && !/thrash|black|doom|sludge|gaze|post/.test(_gtxt);
-  if (_isEraDeath) {
+  const _dryOn = !!b.dryChug;   // option avancée, OFF par défaut : on ne touche pas à la recette sans qu'il le demande
+  const _chugGenre = _dryOn && !_isEraDeath && /death|deathcore|groove|metalcore|djent|slam|beatdown|nu.?metal/.test(_gtxt) && !/thrash|black|doom|sludge|gaze|post/.test(_gtxt);
+  if (_dryOn && _isEraDeath) {
     const _DT = /\b(down-?tuned|low-?tuned)\b\s*/gi;
     for (let i = ORDERED.length - 1; i >= 0; i--) {
       const t = String(ORDERED[i]);
@@ -679,7 +680,7 @@ export default function handler(req, res) {
     const _pm = ORDERED.findIndex(x => /palm.?mut|chug/i.test(x) && !/\bdry\b/i.test(x));
     if (_pm > -1) ORDERED[_pm] = 'dry ' + String(ORDERED[_pm]);
   }
-  const _antiEcho = _isEraDeath ? ['delay', 'echo', 'slapback', 'sub bass', 'boomy low end', 'modern production'] : _chugGenre ? ['delay', 'echo', 'slapback'] : [];
+  const _antiEcho = (_dryOn && _isEraDeath) ? ['delay', 'echo', 'slapback', 'sub bass', 'boomy low end', 'modern production'] : _chugGenre ? ['delay', 'echo', 'slapback'] : [];
 
   const RICH_BUDGET = 420;   // mesuré : au-delà on empile des synonymes, pas de l'information
   const _fit = (arr, budget) => { const o = []; for (const t of arr) { if (o.length && (o.join(', ') + ', ' + t).length > budget) break; o.push(t); } return o; };

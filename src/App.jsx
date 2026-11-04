@@ -1513,6 +1513,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [pendingForge,setPendingForge]=useState(false); // forge au prochain rendu, une fois la détection appliquée
   const [finsOpen,setFinsOpen]=useState(false);
   const [adjustOpen,setAdjustOpen]=useState(false);
+  const [dryChug,setDryChug]=useState(false);   // option avancée « Chug sec (anti-écho) » — OFF par défaut
   // Auto-complétion des groupes (public/bands.json = noms du cache band_cache) + bouton 🎲
   const [bandList,setBandList]=useState(null);
   const loadBands=()=>{if(bandList)return Promise.resolve(bandList);return fetch('/bands.json').then(r=>r.ok?r.json():[]).then(l=>{setBandList(l);return l;}).catch(()=>{setBandList([]);return [];});};
@@ -1825,6 +1826,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       eras:eraPick?[eraPick]:[...new Set([...genres].map(g=>(GENRE_FAMILIES.find(f=>f.genres.some(x=>x.g===g))||{}).nameEn).filter(Boolean))],   // ordre = genre principal d'abord   // couche Époque → /api/forge
       signature,   // anchors sonores du reverse (vides si pas de reverse)
       year:exactYear||null, years:bandYears, scene:bandScene, eraLocked:!!eraPick, bpmManual,   // année précise : tapée, sinon pigée parmi les albums du groupe (côté serveur)
+      dryChug,     // option avancée : chug sec / anti-écho (death, deathcore, groove…)
       audioSrc,    // source audio : rien / Cover / amorce (riff, mélodie, beatbox)
     };
     let data;
@@ -2144,6 +2146,11 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <span style={{color:"#aaa",fontSize:"1rem"}}>{adjustOpen?"▾":"▸"}</span>
         </button>
         {adjustOpen&&<>
+        <div style={{...S.card,display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"}}>
+          <div><div style={{fontSize:"0.84rem",fontWeight:700,color:"#e6e6e6"}}>{L("Chug sec (anti-écho)","Dry chug (anti-echo)")}</div>
+          <div style={{fontSize:"0.68rem",color:"#aaa"}}>{L("Si le palm-muted sort avec un écho : chug plus sec, moins de basses, moteur v6 conseillé. Death, deathcore, groove.","If palm mutes come out with an echo: drier chug, less low end, v6 engine advised. Death, deathcore, groove.")}</div></div>
+          <button onClick={()=>setDryChug(v=>!v)} aria-pressed={dryChug} style={{...(dryChug?CHIP_ON:CHIP),borderRadius:"8px",fontSize:"0.8rem",padding:"8px 14px",flexShrink:0}}>{dryChug?L("Activé","On"):L("Désactivé","Off")}</button>
+        </div>
         <div style={S.card}>
           <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"baseline",gap:"6px",marginBottom:"12px"}}>
             <div style={{...S.ctitle,marginBottom:0,fontSize:"0.66rem"}}>{L("Détecté — clique pour changer","Detected — click to change")}</div>

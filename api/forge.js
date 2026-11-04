@@ -748,6 +748,7 @@ export default function handler(req, res) {
   const _cleanVox = /clean|sung|singing|tenor|soprano|operatic|melodic|croon|siren/.test(_voxUsed) && !/scream|growl|harsh|rasp|shriek|bark|yell|rap|guttural/.test(_voxUsed);
   if (_cleanVox) _antiLow.push('growls', 'screams', ...(_classic && !/power|symphonic/.test(_gtxt) ? ['choir', 'layered vocal harmonies'] : []));
   if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/hard rock|glam/.test(_gtxt)) _antiLow.push('hard rock', 'boogie');
+  if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) _antiLow.push('power metal', 'speed metal');   // Maiden sonnait Gamma Ray (test 2026-11-04)
   if (/thrash/.test(_gtxt) && !/death|black|grind/.test(_gtxt)) _antiLow.push('blast beats');
   if (/\bgrunge\b/.test(_gtxt) && !/post-grunge/.test(_gtxt)) _antiLow.push('pop punk', 'skate punk', 'polished vocals');   // sans ça, le grunge sonnait Green Day (test 2026-11-03)
   // Voix criée mi-grave voulue (baritone/chesty/low-mid) : on bloque l'aigu et le guttural, pas le grave (test Pantera 1992 : « c'est mieux »).
@@ -759,13 +760,16 @@ export default function handler(req, res) {
   // v6 : descriptions TECHNIQUES (jeu + production), jamais d'adjectif d'humeur
   const _tunTag0 = String(tuning[0] || autoTuning || '').replace(/\s+/g, ' ').trim();
   const _tunTag = (/^standard$/i.test(_tunTag0) || (_sigTun && /^standard( e)?( tuning)?$/i.test(_tunTag0))) ? '' : _tunTag0;
+  // Balises qui suivent la VOIX et le GENRE du prompt (bug 2026-11-04 : Iron Maiden sortait « growls over palm-muted riffs » et « final breakdown »)
+  const _vShort = _cleanVox ? 'clean lead vocals' : /growl|guttural/.test(_voxUsed) ? 'growls' : /shriek/.test(_voxUsed) ? 'shrieks' : /scream/.test(_voxUsed) ? 'screams' : /shout|bark|yell|rasp/.test(_voxUsed) ? 'shouted vocals' : /rap/.test(_voxUsed) ? 'rapped vocals' : (harshVox ? 'growls' : 'lead vocals');
+  const _coreish = /death|core\b|metalcore|deathcore|grind|slam|djent|nu.?metal|groove|sludge|doom|beatdown|hardcore/.test(_gtxt);
   const DESC = {
     intro: drums.includes('blast beats') ? 'blast beats, tremolo picking' : (_tunTag ? _tunTag + ' crushing riff' : 'palm-muted opening riff'),
     buildup: (heavy >= 8 ? 'layered wall of distortion' : 'layered build, rising drums') + ', no vocals',
-    verse: (vocals.includes('high-pitched fry screams') ? 'fry screams and ' : '') + 'growls over ' + (guitar.includes('chugging riffs') ? 'chugging riffs' : 'palm-muted riffs'),
+    verse: (vocals.includes('high-pitched fry screams') && !_cleanVox ? 'fry screams and ' : '') + _vShort + ' over ' + (guitar.includes('chugging riffs') ? 'chugging riffs' : _coreish ? 'palm-muted riffs' : 'driving riffs'),
     prechorus: 'rising drum fill, held guitar chord',
     chorus: groove >= 6 ? 'syncopated groove riff, double-tracked vocals' : 'full band, double kick, wide chorus',
-    breakdown: groove >= 7 ? 'half-time groove, shouted gang vocals' : 'low tuned open-note breakdown, pounding floor toms',
+    breakdown: !_coreish ? 'half-time riff break, no vocals' : groove >= 7 ? 'half-time groove, shouted gang vocals' : 'low tuned open-note breakdown, pounding floor toms',
     halftime: 'half-time feel, heavy palm mutes',
     blastsection: 'blast beats, tremolo guitars',
     drop: 'full stop, then single low chord',
@@ -777,7 +781,7 @@ export default function handler(req, res) {
     scream: 'single sustained scream, band hit',
     riffbreak: 'guitars and drums only, no vocals',
     bridge: chaos >= 7 ? 'shifting time signature, dissonant chords' : 'clean guitar, building drums',
-    outro: chaos >= 7 ? 'blast beats, fading feedback' : 'final breakdown, ringing feedback',
+    outro: chaos >= 7 && _coreish ? 'blast beats, fading feedback' : _coreish ? 'final breakdown, ringing feedback' : 'big final chord, ringing guitars, no vocals',
   };
   // Séparateur = PIPE (vérifié 2026-09-10) : les guides de métatags et un test jour-1 de v6
   // confirment « [Bridge | whispered French bridge] ». La virgule provoque un « instructional

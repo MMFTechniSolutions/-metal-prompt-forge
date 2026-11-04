@@ -322,6 +322,8 @@ export default function handler(req, res) {
     if (/\bslow|half-?time|crawl|plodding|doom|dirge/.test(_sigTxtB)) _bpmB = Math.round((85 + Math.random() * 25) / 5) * 5;
     else if (/\bfast|blast|frantic|hyper|thrash|d-?beat/.test(_sigTxtB)) _bpmB = Math.max(_bpmJit, 160);
   }
+  // Galop (Maiden, NWOBHM) : jamais sous 150 en auto — à 125 ça traînait (test 2026-11-04)
+  if (!b.bpmManual && (/gallop/.test(_sigTxtB) || /nwobhm/.test(genres.join(' ').toLowerCase())) && _bpmB < 150) _bpmB = Math.round((150 + Math.random() * 25) / 5) * 5;
   const bpm = Math.max(60, Math.min(280, _bpmB));
   const lang = b.lang || 'en';
   const L = (fr, en) => lang === 'fr' ? fr : en;
@@ -511,7 +513,8 @@ export default function handler(req, res) {
                : (_isFast && /thrash/.test(_gtxt) && !/death|black|grind|crossover|core/.test(_gtxt)) ? 'fast tempo ' + bpm + ' BPM, fast punk-style thrash beat'   // thrash = beat thrash, pas double-time (test Metallica 1986 : « drette ça »)
                : _isFast ? _fw[0] + ' ' + bpm + ' BPM, ' + _fw[1]
                : (bpm <= 85 || (bpm <= 100 && /doom|sludge|stoner|funeral|drone/.test(_gtxt))) ? bpm + ' BPM, ' + _sw[0]   // nu-metal/groove à 96 = bounce, pas doom (test Linkin Park 2026-11-02)
-               : bpm + ' BPM';
+               : _classic ? 'driving ' + bpm + ' BPM'   // Suno ne suit pas un BPM chiffré seul : toujours un mot de vitesse (test 2026-11-02)
+               : 'mid-tempo ' + bpm + ' BPM, steady pulse';
   const _brid = g => String(g).trim() + '-influenced';   // bridge de fusion (guide 2026-07-28) : « black metal » → « black metal-influenced »
   // Clé explicite (guide v5.5 : tonalité en tag plain, ex. "E minor") — dérivée du tuning
   const _tunTxt = String(tuning[0] || autoTuning || '').toLowerCase();

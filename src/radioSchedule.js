@@ -48,7 +48,9 @@ export function onAir(ms, items, grille) {
   for (let k = 0; k < order.length; k++) {
     const d = order[k].duration;
     if (t < acc + d) {
-      const start = ms - (t - acc) * 1000, end = start + d * 1000;
+      // début calculé depuis l'époque (pas depuis « maintenant ») et arrondi à la ms : la même valeur
+      // à chaque seconde, sinon les erreurs d'arrondi changent la clé du lecteur et la chanson repart du début
+      const start = Math.round(epoch + (cycle * L + acc) * 1000), end = start + Math.round(d * 1000);
       const next = order[k + 1] || cycleOrder(songs, jingles, cycle + 1)[0];
       return { cur: order[k], start, end, next, show };
     }

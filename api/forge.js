@@ -690,7 +690,7 @@ export default function handler(req, res) {
     for (let i = ORDERED.length - 1; i >= 0; i--) if (/\b(epic|dramatic|theatrical|raw live-band feel)\b/i.test(ORDERED[i])) ORDERED.splice(i, 1);
     for (let i = 0; i < ORDERED.length; i++) ORDERED[i] = String(ORDERED[i]).replace(/\bharmonized twin guitar melodies\b/i, 'twin lead guitars');   // « harmonized » attirait des harmonies vocales
     const _b = ORDERED.indexOf(bpmTag);
-    ['solo lead vocal performance by one singer only', 'triplet-feel galloping riffs', 'raw unpolished analog tape', 'untriggered live-room drums', 'chorus lift from guitars and drums only'].reverse().forEach(t => { if (!ORDERED.some(x => x.includes(t))) ORDERED.splice(_b > -1 ? _b + 1 : 3, 0, t); });
+    ['solo lead vocal performance by one singer only', 'strong wide vibrato on sustained notes', 'triplet-feel galloping riffs', 'raw unpolished analog tape', 'untriggered live-room drums', 'chorus lift from guitars and drums only'].reverse().forEach(t => { if (!ORDERED.some(x => x.includes(t))) ORDERED.splice(_b > -1 ? _b + 1 : 3, 0, t); });
   }
   const RICH_BUDGET = 420;   // mesuré : au-delà on empile des synonymes, pas de l'information
   const _fit = (arr, budget) => { const o = []; for (const t of arr) { if (o.length && (o.join(', ') + ', ' + t).length > budget) break; o.push(t); } return o; };
@@ -778,7 +778,7 @@ export default function handler(req, res) {
     buildup: (heavy >= 8 ? 'layered wall of distortion' : 'layered build, rising drums') + ', no vocals',
     verse: (vocals.includes('high-pitched fry screams') && !_cleanVox ? 'fry screams and ' : '') + _vShort + ' over ' + (guitar.includes('chugging riffs') ? 'chugging riffs' : _coreish ? 'palm-muted riffs' : 'driving riffs'),
     prechorus: 'rising drum fill, held guitar chord',
-    chorus: (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) ? 'solo lead vocal, instrumental lift only' : groove >= 6 ? 'syncopated groove riff, double-tracked vocals' : 'full band, double kick, wide chorus',
+    chorus: (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) ? 'solo lead vocal, instrumental lift only, wide vibrato on held notes' : groove >= 6 ? 'syncopated groove riff, double-tracked vocals' : 'full band, double kick, wide chorus',
     breakdown: !_coreish ? 'half-time riff break, no vocals' : groove >= 7 ? 'half-time groove, shouted gang vocals' : 'low tuned open-note breakdown, pounding floor toms',
     halftime: 'half-time feel, heavy palm mutes',
     blastsection: 'blast beats, tremolo guitars',

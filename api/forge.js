@@ -682,6 +682,12 @@ export default function handler(req, res) {
   }
   const _antiEcho = (_dryOn && _isEraDeath) ? ['delay', 'echo', 'slapback', 'sub bass', 'boomy low end', 'modern production'] : _chugGenre ? ['delay', 'echo', 'slapback'] : [];
 
+  // NWOBHM classique (Maiden, test 2026-11-04 « oohhhh yeah ») : galop en TRIOLETS + son live; pas d'epic/dramatic (→ Gamma Ray / Blind Guardian)
+  if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic|glam|hard rock/.test(_gtxt)) {
+    for (let i = ORDERED.length - 1; i >= 0; i--) if (/\b(epic|dramatic|theatrical)\b/i.test(ORDERED[i])) ORDERED.splice(i, 1);
+    const _b = ORDERED.indexOf(bpmTag);
+    ['triplet-feel galloping riffs', 'raw live-band feel'].reverse().forEach(t => { if (!ORDERED.some(x => x.includes(t))) ORDERED.splice(_b > -1 ? _b + 1 : 3, 0, t); });
+  }
   const RICH_BUDGET = 420;   // mesuré : au-delà on empile des synonymes, pas de l'information
   const _fit = (arr, budget) => { const o = []; for (const t of arr) { if (o.length && (o.join(', ') + ', ' + t).length > budget) break; o.push(t); } return o; };
   const styleStr  = _fit(ORDERED, RICH_BUDGET).join(', ');
@@ -748,7 +754,7 @@ export default function handler(req, res) {
   const _cleanVox = /clean|sung|singing|tenor|soprano|operatic|melodic|croon|siren/.test(_voxUsed) && !/scream|growl|harsh|rasp|shriek|bark|yell|rap|guttural/.test(_voxUsed);
   if (_cleanVox) _antiLow.push('growls', 'screams', ...(_classic && !/power|symphonic/.test(_gtxt) ? ['choir', 'layered vocal harmonies'] : []));
   if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/hard rock|glam/.test(_gtxt)) _antiLow.push('hard rock', 'boogie');
-  if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) _antiLow.push('power metal', 'speed metal', 'gang vocals', 'group vocals', 'backing vocals');   // Maiden sonnait Gamma Ray / Blind Guardian, gang shouts et chœurs = pas Maiden (tests 2026-11-04)
+  if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) _antiLow.push('power metal', 'speed metal', 'gang vocals', 'gang shouts', 'group vocals', 'backing vocals', 'crowd vocals', 'symphonic', 'operatic');   // Maiden sonnait Gamma Ray / Blind Guardian, gang shouts et chœurs = pas Maiden (tests 2026-11-04)
   if (/thrash/.test(_gtxt) && !/death|black|grind/.test(_gtxt)) _antiLow.push('blast beats');
   if (/\bgrunge\b/.test(_gtxt) && !/post-grunge/.test(_gtxt)) _antiLow.push('pop punk', 'skate punk', 'polished vocals');   // sans ça, le grunge sonnait Green Day (test 2026-11-03)
   // Voix criée mi-grave voulue (baritone/chesty/low-mid) : on bloque l'aigu et le guttural, pas le grave (test Pantera 1992 : « c'est mieux »).

@@ -1,4 +1,4 @@
-// Galerie → Radio MetalPrompt (nov. 2026)
+// Galerie → Radio MetalPrompt (nov. 2026) — une vraie radio : on ne zappe pas, les chansons s'enchaînent.
 // Une radio qui enchaîne les chansons soumises par la communauté, avec le palmarès de la semaine.
 // · Lecture continue avec le lecteur officiel de Suno (iframe embed, autoplay) : Suno bloque la lecture directe
 //   de ses fichiers audio depuis d'autres sites. La durée vient de /api/profile?suno= pour enchaîner tout seul.
@@ -172,7 +172,6 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
     return () => { alive = false; clearInterval(tick.current); };
   }, [playing, cur && cur.id, frameKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const next = () => { if (queue.length) setQi(i => (i + 1) % queue.length); };
-  const prev = () => { if (pos > 4) { setFrameKey(k => k + 1); return; } if (queue.length) setQi(i => (i - 1 + queue.length) % queue.length); };
   function pickMode(m) { setMode(m); const q = buildQueue(m, m === "chart" ? null : cur && cur.id); setQueue(q); setQi(0); }
   function playItem(id) { const q = buildQueue(mode, id); if (!q.length || q[0].id !== id) { const all = buildQueue("chart", id); setMode("chart"); setQueue(all); } else setQueue(q); setQi(0); setPlaying(true); }
 
@@ -253,9 +252,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
                 <div className="mpr-time"><span>{fmt(pos)}</span><span>{L("suivante dans ", "next in ")}{fmt(Math.max(0, dur - pos))}</span></div>
               </div>}
               <div className="mpr-ctrl">
-                <button className="mpr-btn" onClick={prev} aria-label={L("Précédente", "Previous")}>⏮</button>
                 <button className="mpr-play" onClick={() => setPlaying(p => !p)} aria-label={playing ? L("Arrêter", "Stop") : L("Jouer", "Play")}>{playing ? "■" : "▶"}</button>
-                <button className="mpr-btn" onClick={next} aria-label={L("Suivante", "Next")}>⏭</button>
                 <button className="mpr-vote" aria-pressed={voted.has(cur.id)} onClick={() => toggleVote(cur.id)}>🤘 {voted.has(cur.id) ? L("Voté", "Voted") : L("Voter", "Vote")}</button>
               </div>
               {msg && <div className="mpr-msg" role="status">{msg}</div>}
@@ -272,13 +269,13 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
           <h3>{chart ? L("Palmarès de la semaine", "This week's chart") : L("Palmarès", "Chart")}</h3>
           {top.length === 0 ? <div className="mpr-empty">{L("Le palmarès se remplit avec vos votes.", "The chart fills up with your votes.")}</div> :
             <ol>{top.map(r => <li key={r.it.id}>
-              <button className="mpr-row" aria-current={cur && cur.id === r.it.id} onClick={() => (sunoId(r.it) ? playItem(r.it.id) : window.open(r.it.url, "_blank", "noopener"))}>
+              <a className="mpr-row" aria-current={cur && cur.id === r.it.id} href={r.it.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
                 <span className="mpr-rank">{r.rank}</span>
                 <span className={"mpr-mv " + r.mv}>{chart ? r.mvTxt : ""}</span>
                 {r.it.image_url ? <img className="mpr-thumb" src={r.it.image_url} alt="" loading="lazy" /> : <span className="mpr-thumb" />}
                 <span className="mpr-rt"><b>{r.it.title}</b><span>{r.it.artist}{r.it.genre ? " · " + r.it.genre : ""}</span></span>
                 <span className="mpr-num"><b>{r.score} 🤘</b>{r.it.plays ? r.it.plays + L(" écoutes", " plays") : ""}</span>
-              </button></li>)}</ol>}
+              </a></li>)}</ol>}
           <p className="mpr-small" style={{ marginTop: 10 }}>{L("1 vote par jour · 1 vote par chanson. Le palmarès compte les votes des 7 derniers jours.", "1 vote per day · 1 vote per track. The chart counts the last 7 days of votes.")}</p>
         </section>
       </div>
@@ -287,17 +284,14 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
         <h3>{L("Toutes les chansons", "All tracks")} · {items.length}</h3>
         {items.length === 0 && !loading ? <div className="mpr-empty">{L("Sois le premier à soumettre ta chanson.", "Be the first to submit your track.")}</div> :
           <ul>{items.map(it => <li key={it.id}>
-            {sunoId(it)
-              ? <button className="mpr-row" aria-current={cur && cur.id === it.id} onClick={() => playItem(it.id)}>
-                  {it.image_url ? <img className="mpr-thumb" src={it.image_url} alt="" loading="lazy" /> : <span className="mpr-thumb" />}
-                  <span className="mpr-rt"><b>{it.title}</b><span>{it.artist}{it.genre ? " · " + it.genre : ""}</span></span>
-                  <span className="mpr-num">▶</span>
-                </button>
-              : <div className="mpr-row" style={{ cursor: "default" }}>
-                  {it.image_url ? <img className="mpr-thumb" src={it.image_url} alt="" loading="lazy" /> : <span className="mpr-thumb" />}
-                  <span className="mpr-rt"><b>{it.title}</b><span>{it.artist}{it.genre ? " · " + it.genre : ""}</span></span>
-                  <a className="mpr-ext" href={it.url} target="_blank" rel="noopener noreferrer">{L("Écouter ↗", "Listen ↗")}</a>
-                </div>}
+            <div className="mpr-row" aria-current={cur && cur.id === it.id} style={{ cursor: "default" }}>
+              {it.image_url ? <img className="mpr-thumb" src={it.image_url} alt="" loading="lazy" /> : <span className="mpr-thumb" />}
+              <span className="mpr-rt"><b>{it.title}</b><span>{it.artist}{it.genre ? " · " + it.genre : ""}{cur && cur.id === it.id && playing ? L(" · en ondes", " · on air") : ""}</span></span>
+              <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <button className="mpr-pill" aria-pressed={voted.has(it.id)} onClick={() => toggleVote(it.id)}>🤘</button>
+                <a className="mpr-ext" href={it.url} target="_blank" rel="noopener noreferrer">{sunoId(it) ? "Suno ↗" : L("Écouter ↗", "Listen ↗")}</a>
+              </span>
+            </div>
           </li>)}</ul>}
       </section>
 

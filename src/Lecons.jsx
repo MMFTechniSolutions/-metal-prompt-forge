@@ -381,16 +381,69 @@ function genMelodic(type) {
 }
 
 // ───────── Audio ─────────
+// ───────── Vrais sons (mêmes fichiers que le générateur Riff) ─────────
+// Guitare : Karoryfer Emilyguitar, DI, CC0 — une note aux tierces mineures. Batterie : AVL Black Pearl, CC-BY-SA.
+const DI_NOTES = { db2: 37, e2: 40, gb2: 42, a2: 45, c3: 48, eb3: 51, gb3: 54, a3: 57, c4: 60, eb4: 63, gb4: 66, a4: 69, c5: 72, eb5: 75, gb5: 78, a5: 81, c6: 84, d6: 86 };
+const KIT = { gtr: [], drums: {}, ready: false, promise: null };
+function trimLead(ctx, buf) {
+  const d = buf.getChannelData(0); let pk = 0; for (let i = 0; i < Math.min(d.length, 20000); i++) pk = Math.max(pk, Math.abs(d[i]));
+  let st = 0; while (st < d.length && Math.abs(d[st]) < pk * 0.05) st++; st = Math.max(0, st - 40);
+  if (st < 16) return buf;
+  const o = ctx.createBuffer(1, buf.length - st, buf.sampleRate); o.copyToChannel(d.subarray(st), 0); return o;
+}
+function loadKit(base) {
+  if (KIT.promise) return KIT.promise;
+  KIT.promise = (async () => {
+    const ctx = new OfflineAudioContext(1, 1, 44100);
+    const get = async f => { try { const r = await fetch(base + f); if (!r.ok) return null; return trimLead(ctx, await ctx.decodeAudioData(await r.arrayBuffer())); } catch { return null; } };
+    const notes = await Promise.all(Object.entries(DI_NOTES).map(async ([n, m]) => ({ midi: m, f: await get("guitar/" + n + "_f_1.mp3"), mf: await get("guitar/" + n + "_mf_1.mp3") })));
+    KIT.gtr = notes.filter(e => e.f || e.mf);
+    for (const [k, files] of Object.entries({ kick: ["kick-1", "kick-2", "kick-3"], snare: ["snare-1", "snare-2", "snare-3"], hat: ["hihat-1", "hihat-2", "hihat-3"], crash: ["crash-1"] })) {
+      const bufs = (await Promise.all(files.map(f => get("drums/" + f + ".mp3")))).filter(Boolean); if (bufs.length) KIT.drums[k] = bufs;
+    }
+    KIT.ready = KIT.gtr.length > 0;
+    return KIT;
+  })();
+  return KIT.promise;
+}
+const nearestDI = midi => KIT.gtr.reduce((a, b) => (!a || Math.abs(b.midi - midi) < Math.abs(a.midi - midi) ? b : a), null);
+
 function makeAudio() {
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   const master = ctx.createGain(); master.gain.value = 0.5; master.connect(ctx.destination);
   const shaper = ctx.createWaveShaper(); const cv = new Float32Array(2048);
   for (let i = 0; i < 2048; i++) cv[i] = Math.tanh((i / 2048 * 2 - 1) * 9);
   shaper.curve = cv; const post = ctx.createBiquadFilter(); post.type = "lowpass"; post.frequency.value = 4200; shaper.connect(post); post.connect(master);
+  // ampli métal + baffle simulé, doublé gauche/droite (comme le générateur Riff)
+  const bq = (type, f, q, g) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; if (g != null) b.gain.value = g; return b; };
+  const ws = (drive, asym) => { const n = 2048, c = new Float32Array(n), off = asym ? 0.12 : 0, norm = Math.tanh(drive * (1 + off)) - Math.tanh(drive * off);
+    for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = (Math.tanh(drive * (x + off)) - Math.tanh(drive * off)) / norm; } const w = ctx.createWaveShaper(); w.curve = c; w.oversample = "4x"; return w; };
+  const amp = (pan) => {
+    const nodes = [ctx.createGain(), bq("highpass", 120, 0.7), bq("peaking", 760, 0.9, 7), ws(23, true), bq("highpass", 80, 0.7), bq("lowpass", 7000, 0.7), ws(6, false),
+      bq("highpass", 75, 0.8), bq("peaking", 115, 1, 4), bq("peaking", 480, 1, -5), bq("peaking", 2400, 1.2, 4), bq("lowpass", 5200, 0.9), bq("lowpass", 6500, 0.6)];
+    nodes[0].gain.value = 2.2; const og = ctx.createGain(); og.gain.value = 0.32;
+    for (let i = 0; i < nodes.length - 1; i++) nodes[i].connect(nodes[i + 1]); nodes[nodes.length - 1].connect(og);
+    if (ctx.createStereoPanner) { const pn = ctx.createStereoPanner(); pn.pan.value = pan; og.connect(pn); pn.connect(master); } else og.connect(master);
+    return nodes[0];
+  };
+  let rig = null; const getRig = () => rig || (rig = [amp(-0.7), amp(0.7)]);
+  let bassBus = null; const getBass = () => { if (bassBus) return bassBus; const lp = bq("lowpass", 2600, 0.7), cp = ctx.createDynamicsCompressor(), g = ctx.createGain(); g.gain.value = 1.6; cp.threshold.value = -20; cp.ratio.value = 4; lp.connect(cp); cp.connect(g); g.connect(master); return (bassBus = lp); };
+  const playBuf = (buf, t, rate, gain, dest, len) => { const s = ctx.createBufferSource(), g = ctx.createGain(); s.buffer = buf; s.playbackRate.value = rate; g.gain.setValueAtTime(gain, t);
+    if (len) { g.gain.setValueAtTime(gain, t + Math.max(0.02, len - 0.03)); g.gain.linearRampToValueAtTime(0.0001, t + len); } s.connect(g); g.connect(dest); s.start(t); if (len) s.stop(t + len + 0.05); };
+  const drum = (k, t, gain) => { const a = KIT.drums[k]; if (!a) return false; playBuf(a[Math.floor(Math.random() * a.length)], t, 1, gain, master); return true; };
   const noise = (dur) => { const b = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const s = ctx.createBufferSource(); s.buffer = b; return s; };
   const A = {
     ctx,
     gtr(t, freqs, pm, dur, vol = 1) {
+      if (KIT.ready) {                              // vraie guitare DI → ampli → baffle
+        const len = pm ? Math.min(dur, 0.17) : dur, [L, Rr] = getRig();
+        [[L, 0], [Rr, 0.009]].forEach(([dst, dt], side) => {
+          let dest = dst; if (pm) { const lp = bq("lowpass", 1100, 0.7); lp.connect(dst); dest = lp; }
+          freqs.forEach((f, i) => { const m = 69 + 12 * Math.log2(f / 440), e = nearestDI(m); if (!e) return; const b = (pm ? e.mf : e.f) || e.f || e.mf;
+            playBuf(b, t + dt, Math.pow(2, (m - e.midi) / 12) * (side ? 1.002 : 1), vol * (i ? 0.85 : 1) * (0.85 + Math.random() * 0.15) * 1.6, dest, len); });
+        });
+        return;
+      }
       const g = ctx.createGain(), lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = pm ? 650 : 2600; lp.Q.value = pm ? 4 : 1;
       freqs.forEach(fr => [0, -7].forEach(det => { const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = fr; o.detune.value = det; o.connect(lp); o.start(t); o.stop(t + dur + 0.05); }));
       lp.connect(g); g.connect(shaper);
@@ -415,6 +468,12 @@ function makeAudio() {
       [o, o2, vib].forEach(x => { x.start(t); x.stop(t + dur + 0.05); });
     },
     bass(t, f, dur, vol = 1, bright = 0) {          // basse : doigts (0), slap (1), pop (2)
+      if (KIT.ready) {                              // corde réelle transposée, chaîne basse propre
+        const m = 69 + 12 * Math.log2(f / 440), e = nearestDI(m + 12), b = (bright ? e.f : e.mf) || e.f || e.mf;
+        let dest = getBass(); if (bright) { const hs = bq("highshelf", 1800, null, bright === 2 ? 12 : 8); hs.connect(dest); dest = hs; }
+        playBuf(b, t, Math.pow(2, (m - e.midi) / 12), vol * 1.4, dest, Math.max(0.08, dur));
+        return;
+      }
       const o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
       o.type = "sawtooth"; o2.type = "sine"; o.frequency.value = f; o2.frequency.value = f; lp.type = "lowpass";
       lp.frequency.setValueAtTime([1400, 4200, 6000][bright], t); lp.frequency.exponentialRampToValueAtTime([380, 900, 1400][bright], t + 0.18); lp.Q.value = bright ? 5 : 1;
@@ -441,9 +500,9 @@ function makeAudio() {
       return () => { g.gain.cancelScheduledValues(ctx.currentTime); g.gain.setValueAtTime(g.gain.value, ctx.currentTime); g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3); os.forEach(o => o.stop(ctx.currentTime + 0.35)); };
     },
     click(t, acc) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = acc ? 1800 : 1200; o.connect(g); g.connect(master); g.gain.setValueAtTime(0.25, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.04); o.start(t); o.stop(t + 0.05); },
-    kick(t) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.12); o.connect(g); g.connect(master); g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25); o.start(t); o.stop(t + 0.3); },
-    snare(t) { const s = noise(0.2), f = ctx.createBiquadFilter(), g = ctx.createGain(); f.type = "highpass"; f.frequency.value = 1500; s.connect(f); f.connect(g); g.connect(master); g.gain.setValueAtTime(0.55, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.16); s.start(t); },
-    hat(t) { const s = noise(0.05), f = ctx.createBiquadFilter(), g = ctx.createGain(); f.type = "highpass"; f.frequency.value = 7000; s.connect(f); f.connect(g); g.connect(master); g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.04); s.start(t); },
+    kick(t) { if (drum("kick", t, 1.1)) return; const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.12); o.connect(g); g.connect(master); g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25); o.start(t); o.stop(t + 0.3); },
+    snare(t) { if (drum("snare", t, 0.9)) return; const s = noise(0.2), f = ctx.createBiquadFilter(), g = ctx.createGain(); f.type = "highpass"; f.frequency.value = 1500; s.connect(f); f.connect(g); g.connect(master); g.gain.setValueAtTime(0.55, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.16); s.start(t); },
+    hat(t) { if (drum("hat", t, 0.35)) return; const s = noise(0.05), f = ctx.createBiquadFilter(), g = ctx.createGain(); f.type = "highpass"; f.frequency.value = 7000; s.connect(f); f.connect(g); g.connect(master); g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.04); s.start(t); },
   };
   return A;
 }
@@ -511,7 +570,7 @@ function PianoKeys({ scale, root, cur, names }) {
 }
 
 // ───────── Composant ─────────
-export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywall = () => {}, isMember = true, onRequestAuth = () => {} }) {
+export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywall = () => {}, isMember = true, onRequestAuth = () => {}, sampleBase = "/samples/" }) {
   const fr = uiLang === "fr", L = (a, b) => (fr ? a : b);
   const [inst, setInst] = useState("gtr");
   const [saxType, setSaxType] = useState("alto");
@@ -530,6 +589,8 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
   const [toast, setToast] = useState("");
   const [mInst, setMInst] = useState("gtr");
   const [method, setMethod] = useState(null);
+  const [kitReady, setKitReady] = useState(KIT.ready);
+  useEffect(() => { loadKit(sampleBase).then(k => setKitReady(k.ready)); }, [sampleBase]);
   const [micOn, setMicOn] = useState(false);
   const [micErr, setMicErr] = useState("");
   const [score, setScore] = useState(null);
@@ -895,8 +956,8 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
             </div>
           </section>
 
-          <p className="mpl-note">{L("Version préliminaire : le son est synthétisé dans le navigateur. La version finale utilisera les vrais samples du générateur Riff et des play-alongs Suno.",
-            "Preview version: sound is synthesized in the browser. The final version will use real Riff generator samples and Suno play-alongs.")}</p>
+          <p className="mpl-note">{kitReady ? L("Son : vraie guitare enregistrée (DI) passée dans un ampli métal, vraie batterie. Saxo, violon et piano sont encore synthétisés.", "Sound: real recorded guitar (DI) through a metal amp, real drums. Sax, violin and piano are still synthesized.")
+            : L("Chargement des vrais sons… (son de secours en attendant)", "Loading real sounds… (fallback sound meanwhile)")}</p>
         </main>
       </div>
     </div>

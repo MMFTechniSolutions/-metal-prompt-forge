@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "./supabase.js";
 import Lecons from "./Lecons.jsx";
+import GalleryRadio from "./GalleryRadio.jsx";
 
 const RED = "#FF6A2B";   // braise (look Studio, oct. 2026)
 const DARK = "#0C0D0F";
@@ -2744,7 +2745,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <div style={{height:80}}/>
       </div>}
 
-      {tab==="galerie"&&<Gallery user={user} onRequestAuth={onRequestAuth} uiLang={uiLang} isPaid={isPro} onPaywall={()=>setShowPaywall(true)}/>}
+      {tab==="galerie"&&<GalleryRadio user={user} onRequestAuth={onRequestAuth} uiLang={uiLang} discordUrl={DISCORD_URL}/>}
 
       {tab==="masterclass"&&<div style={S.page}>
         {/* HERO */}

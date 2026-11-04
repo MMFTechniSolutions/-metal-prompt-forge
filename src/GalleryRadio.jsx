@@ -199,10 +199,25 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   useEffect(() => { if (!playing) setJoinedLate(false); }, [playing]);
   const firstSlot = useRef("");
   function listen() {
-    if (playing) { setPlaying(false); return; }
+    if (playing) { userStopped.current = true; setPlaying(false); return; }
+    userStopped.current = false;
     firstSlot.current = slot; setJoinedLate(pos > 8); setPlaying(true);
   }
   useEffect(() => { if (playing && slot !== firstSlot.current) setJoinedLate(false); }, [slot, playing]);
+
+  // départ automatique : la radio part dès qu'on ouvre l'onglet (le clic sur l'onglet compte comme geste
+  // pour le navigateur). Si la page a été ouverte directement sans aucun clic, le navigateur bloque le son :
+  // la radio part alors au premier toucher/clic n'importe où sur la page. ■ l'arrête pour de bon.
+  const userStopped = useRef(false);
+  const startNow = () => { if (userStopped.current || playing || !cur) return; firstSlot.current = slot; setJoinedLate(pos > 8); setPlaying(true); };
+  useEffect(() => {
+    if (!visible || !cur || playing || userStopped.current) return;
+    const ua = typeof navigator !== "undefined" && navigator.userActivation;
+    if (!ua || ua.hasBeenActive) { startNow(); return; }
+    const go = () => startNow();
+    window.addEventListener("pointerdown", go, { once: true }); window.addEventListener("keydown", go, { once: true });
+    return () => { window.removeEventListener("pointerdown", go); window.removeEventListener("keydown", go); };
+  }, [visible, cur && cur.id, playing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // votes (mêmes règles : 1 par jour, 1 par chanson)
   const bump = (id, d) => { setItems(xs => xs.map(x => (x.id === id ? { ...x, likes: Math.max(0, (x.likes || 0) + d) } : x))); setChart(c => (c ? { ...c, [id]: { ...(c[id] || { prev: 0 }), week: Math.max(0, ((c[id] || {}).week || 0) + d) } } : c)); };
@@ -259,7 +274,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
         <b>{isJingle(cur) ? L("Annonce MetalPrompt", "MetalPrompt station ID") : cur.title + " — " + cur.artist}</b>
       </button>
       <span className="mini-viz" aria-hidden="true"><i /><i /><i /></span>
-      <button className="x" onClick={() => setPlaying(false)} aria-label={L("Arrêter la radio", "Stop the radio")}>■</button>
+      <button className="x" onClick={() => { userStopped.current = true; setPlaying(false); }} aria-label={L("Arrêter la radio", "Stop the radio")}>■</button>
     </div>}
     <div className="mpr" style={visible ? undefined : { display: "none" }}>
       <div className="mpr-head">
@@ -285,7 +300,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
                 </div>
               </div>
               <div className={"mpr-viz" + (playing ? " on" : "")} aria-hidden="true">{BARS.map((st, i) => <i key={i} style={st} />)}</div>
-              {!playing && <div className="mpr-small">{L("La radio joue en direct pour tout le monde. Appuie sur ▶ pour embarquer.", "The radio is live for everyone. Press ▶ to tune in.")}</div>}
+              {!playing && <div className="mpr-small">{L("La radio joue en direct pour tout le monde. Touche la page (ou ▶) pour embarquer.", "The radio is live for everyone. Tap the page (or ▶) to tune in.")}</div>}
               {playing && joinedLate && <div className="mpr-small">{L("T'embarques en cours de chanson : elle part du début pour toi, t'es en synchro dès la prochaine.", "You tuned in mid-song: it starts from the top for you, you're in sync from the next one.")}</div>}
               {dur > 0 && <div>
                 <div className="mpr-bar" role="progressbar" aria-label={L("Position en direct", "Live position")} aria-valuemin={0} aria-valuemax={Math.round(dur)} aria-valuenow={Math.round(pos)}><i style={{ width: Math.min(100, pos / dur * 100) + "%" }} /></div>

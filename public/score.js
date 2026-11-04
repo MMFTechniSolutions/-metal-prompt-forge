@@ -57,11 +57,11 @@ MPScore.riffTab=function(p,T){
     out.push(T('Guitare','Guitar')+'\n'+cur.g.map((l,i)=>names[i].padEnd(w)+' |'+l).join('\n')+'\n'+T('Basse','Bass')+'\n'+(low.padEnd(w))+' |'+cur.b);cur=lines();inLine=0;};
   bars.forEach((n,bi)=>{
     for(let i=0;i<n;i++){const s=pos+i;
-      if(a.guit[s]){const f=p.noteSeq[ni%p.noteSeq.length]+(a.trans[s]||0);ni++;
+      if(a.guit[s]){const f=((a.note&&a.note[s]!=null)?a.note[s]:p.noteSeq[ni%p.noteSeq.length])+(a.trans[s]||0);ni++;
         const r=fr(f),fifth=drop?fr(f):fr(f+2);
         cur.g=cur.g.map((l,k)=>l+(k===5?cell(r):k===4?cell(fifth):'---'));}
       else cur.g=cur.g.map(l=>l+'---');
-      cur.b+=a.bass[s]?cell(fr(a.trans[s]||0)):'---';
+      cur.b+=a.bass[s]?cell(fr(((a.bnote&&a.bnote[s]!=null)?a.bnote[s]:0)+(a.trans[s]||0))):'---';
     }
     cur.g=cur.g.map(l=>l+'|');cur.b+='|';pos+=n;inLine++;
     if(inLine===2||bi===bars.length-1)flush();

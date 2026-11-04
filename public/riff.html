@@ -748,13 +748,13 @@ async function startPlay(p, stem){
   seqs.forEach(s=>{try{s.stop();s.dispose();}catch(e){}});seqs=[];
   seqs.push(makeSeq((t,step)=>{
     hlStep(step%16);
-    if(LY.gtr && a.guit[step]){const semi=p.noteSeq[ni%p.noteSeq.length]+a.trans[step];
+    if(LY.gtr && a.guit[step]){const semi=((a.note&&a.note[step]!=null)?a.note[step]:p.noteSeq[ni%p.noteSeq.length])+a.trans[step];
       if(window.MPGtr&&window.__gtrRig){let n=1;while(n<8&&!a.guit[(step+n)%a.L])n++;MPGtr.play(_grc,window.__gtrRig,Tone.Frequency(root).transpose(semi).toFrequency(),t,(60/p.bpm/4)*n*0.95,n<=2);}   // n<=2 = palm mute (chug), sinon accord qui sonne
       else{synth.triggerAttackRelease(semFreq(root,semi),'16n',t,.8);synth.triggerAttackRelease(semFreq(root,semi+7),'16n',t,.45);}
       ni++;}
   }));
   if(LY.bass){
-    seqs.push(makeSeq((t,step)=>{if(a.bass[step]){const broot=Tone.Frequency(root).transpose(a.trans[step]-12).toNote();bassSynth.triggerAttackRelease(broot,'16n',t,.65);}}));
+    seqs.push(makeSeq((t,step)=>{if(a.bass[step]){const broot=Tone.Frequency(root).transpose(((a.bnote&&a.bnote[step]!=null)?a.bnote[step]:0)+a.trans[step]-12).toNote();bassSynth.triggerAttackRelease(broot,'16n',t,.65);}}));
   }
   if(LY.drums){
     if(window.MPDrums&&drumBus){   // batterie « humaine » : variantes, accents, micro-décalages, crash, room
@@ -902,11 +902,11 @@ async function renderAndDownload(p, stem){
     const i=step%a.L;
 
     if(LY.gtr && a.guit[i] && GTR_RIG){
-      const semi=p.noteSeq[gi%p.noteSeq.length]+a.trans[i];gi++;
+      const semi=((a.note&&a.note[i]!=null)?a.note[i]:p.noteSeq[gi%p.noteSeq.length])+a.trans[i];gi++;
       let n=1,dsum=stepDur;while(n<8&&step+n<totalSteps&&!a.guit[(i+n)%a.L]){dsum+=stepDurs[step+n];n++;}
       MPGtr.play(off,GTR_RIG,semiHz(rootHz,semi),t,dsum*0.95,n<=2);
     } else if(LY.gtr && a.guit[i]){
-      const semi=p.noteSeq[gi%p.noteSeq.length]+a.trans[i];gi++;
+      const semi=((a.note&&a.note[i]!=null)?a.note[i]:p.noteSeq[gi%p.noteSeq.length])+a.trans[i];gi++;
       [0,7].forEach((interval,fi)=>{
         const freq=semiHz(rootHz,semi+interval);
         const o1=off.createOscillator(),o2=off.createOscillator();
@@ -926,7 +926,7 @@ async function renderAndDownload(p, stem){
       });
     }
     if(LY.bass && a.bass[i]){
-      const bh=semiHz(bassHz,a.trans[i]);
+      const bh=semiHz(bassHz,((a.bnote&&a.bnote[i]!=null)?a.bnote[i]:0)+a.trans[i]);
       const o=off.createOscillator(),o2=off.createOscillator();
       const d=off.createWaveShaper(),g=off.createGain();
       o.type='sawtooth';o.frequency.value=bh;

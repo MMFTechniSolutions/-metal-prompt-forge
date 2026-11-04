@@ -241,10 +241,74 @@ function varyNoteSeq(base, style){
   out[0]=base[0];                                                            // ancre le 1er temps (souvent la fondamentale)
   return out;
 }
+
+// ── COMPOSITEUR DE RIFF (nov. 2026) ──
+// Avant : chaque coup de guitare changeait de note (marche au hasard) → power chords qui bougent à chaque double = cacophonie,
+// et le même rythme fixe pour chaque style. Maintenant, comme un vrai riff métal :
+//  · note pédale (corde à vide, palm mute) + 2-3 notes de la gamme du style placées sur les coups forts/longs ;
+//  · le riff est accroché à la mesure (même position = même note) et forme une phrase A · A · variation · retour ;
+//  · la basse double la note de la guitare ; le rythme de guitare varie un peu à chaque génération.
+const SPARSE=['doom','funeraldoom','sludge','postmetal'];
+function palette(style){
+  const base=NOTE_SEQ[style]||NOTE_SEQ.thrash;
+  return [...new Set(base.map(n=>((n%12)+12)%12))].filter(n=>n!==0).sort((a,b)=>a-b);
+}
+function mutatePattern(pat, style){
+  if(TREMOLO.includes(style)||!pat) return pat;
+  const out=pat.slice(), off=[1,2,3,5,6,7,9,10,11,13,14,15];
+  const flips=SPARSE.includes(style)?1:(1+rint(2));
+  for(let k=0;k<flips;k++){ const s=off[rint(off.length)]; out[s]=out[s]?0:1; }
+  out[0]=1; return out;
+}
+function riffBar(style, pat, pal){
+  const notes=Array(16).fill(null);
+  const hits=[]; for(let s=0;s<16;s++) if(pat[s]) hits.push(s);
+  if(!hits.length) return notes;
+  const walk=(cur)=>{ const sc=[0,...pal]; let i=sc.indexOf(cur); if(i<0)i=0; let d=(Math.random()<0.5?1:-1)*(Math.random()<0.75?1:2); if(i+d<0||i+d>sc.length-1) d=-d; i=Math.max(0,Math.min(sc.length-1,i+d)); return sc[i]; };
+  if(TREMOLO.includes(style)){                       // trémolo : la mélodie change à chaque temps, pas à chaque coup
+    const mel=[0]; for(let b=1;b<4;b++) mel.push(walk(mel[b-1]));
+    hits.forEach(s=>notes[s]=mel[Math.floor(s/4)]); return notes;
+  }
+  if(SPARSE.includes(style) || hits.length<=4){      // doom : peu de notes, longues, mélodiques
+    let cur=0; hits.forEach((s,i)=>{ notes[s]=i===0?0:(cur=walk(cur)); }); return notes;
+  }
+  hits.forEach(s=>notes[s]=0);                       // pédale
+  const gap=s=>{ let n=1; while(s+n<16 && !pat[s+n]) n++; return n; };
+  // cases pour les notes qui bougent : coups longs ou à contretemps, jamais le temps 1
+  let cand=hits.filter(s=>s!==0 && (gap(s)>=2 || [3,6,7,11,14,15].includes(s)));
+  if(cand.length<2) cand=hits.filter(s=>s!==0);
+  const k=Math.min(cand.length, 2+rint(2));
+  const picks=[]; while(picks.length<k){ const c=cand[rint(cand.length)]; if(!picks.includes(c)) picks.push(c); }
+  picks.sort((a,b)=>a-b);
+  // mini-motif : 2-3 notes voisines de la palette, en montant ou en descendant
+  const startI=rint(pal.length), dir=Math.random()<0.5?1:-1;
+  picks.forEach((s,i)=>{ const j=Math.max(0,Math.min(pal.length-1,startI+dir*i)); notes[s]=pal[j]; });
+  return notes;
+}
+function varyBar(notes, pal, style){                 // même riff, une note qui change (trémolo : un temps complet)
+  const out=notes.slice(), mv=[];
+  if(TREMOLO.includes(style)){ const b=1+rint(3), nv=pal[rint(pal.length)]; for(let s=b*4;s<b*4+4;s++) if(out[s]!=null) out[s]=nv; return out; } for(let s=1;s<16;s++) if(out[s]!=null && out[s]!==0) mv.push(s);
+  if(mv.length){ const s=mv[rint(mv.length)]; out[s]=pal[rint(pal.length)]; }
+  return out;
+}
+function turnBar(notes, pal, pat, p_style){                   // retour : petite descente vers la fondamentale sur le dernier temps
+  const out=notes.slice(), tail=[]; for(let s=12;s<16;s++) if(pat[s]) tail.push(s);
+  if(tail.length<2) return varyBar(notes,pal,p_style);
+  const top=pal[Math.min(pal.length-1, 1+rint(Math.max(1,pal.length-1)))];
+  const run=[top]; for(let i=1;i<tail.length;i++){ const lower=pal.filter(n=>n<run[i-1]); run.push(i===tail.length-1?0:(lower.length?lower[lower.length-1]:0)); }
+  tail.forEach((s,i)=>out[s]=run[i]);
+  return out;
+}
+function composeRiffs(p){
+  const pal=palette(p.style);
+  const mk=pat=>{ const a=riffBar(p.style,pat,pal); return [a, a, varyBar(a,pal,p.style), turnBar(a,pal,pat,p.style)]; };
+  return { A: mk(p.guit), B: (p.guitB && p.guitB!==p.guit) ? mk(p.guitB) : null };
+}
 function buildArrangement(p){
   const st=STRUCTURES[p.structure]||STRUCTURES.loop;
   const meta=STYLE_META[p.style]||{lvl:'mod',meters:M44};
-  const out={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],tempo:[],bars:[],L:0};
+  const out={guit:[],bass:[],kick:[],snare:[],hihat:[],trans:[],tempo:[],bars:[],note:[],bnote:[],L:0};
+  const riffs=composeRiffs(p);
   let prevN=16;
   st.bars.forEach((bar,bi)=>{
     let dp = p.custom ? p.drum : (DRUM_PAT[bar.drum||p.drumKey]||p.drum);
@@ -268,6 +332,9 @@ function buildArrangement(p){
     for(let i=0;i<n;i++){
       const j=i%16;
       out.guit.push(gp[j]);out.bass.push(p.bass[j]);
+      const rset=(gp===p.guit||!riffs.B)?riffs.A:riffs.B, rb=rset[bi%4];
+      out.note.push(gp[j]?(rb[j]!=null?rb[j]:0):null);
+      { let bn=0; for(let q=j;q>=0;q--){ if(gp[q] && rb[q]!=null){ bn=rb[q]; break; } } out.bnote.push(p.bass[j]?bn:null); }   // la basse double la guitare
       let kk=dp.kick[j], sn=dp.snare[j], hh=dp.hihat[j];
       if(fillType && i >= n-4){
         if(fillType===1){ sn=1; }                                    // roulement de caisse (16e)
@@ -288,7 +355,7 @@ function buildTab(p){
   const isDrop=(p.root==='Db2');
   let ni=0;const rootC=[],fifthC=[];
   for(let s=0;s<16;s++){
-    if(p.guit[s]){const f=p.noteSeq[ni%p.noteSeq.length];ni++;rootC.push((''+f).padEnd(2,'-'));fifthC.push((''+(isDrop?f:f+2)).padEnd(2,'-'));}
+    if(p.guit[s]){const f=(p.riffA&&p.riffA[s]!=null)?p.riffA[s]:p.noteSeq[ni%p.noteSeq.length];ni++;rootC.push((''+f).padEnd(2,'-'));fifthC.push((''+(isDrop?f:f+2)).padEnd(2,'-'));}
     else{rootC.push('--');fifthC.push('--');}
   }
   const empty=Array(16).fill('--').join('-');
@@ -490,8 +557,8 @@ export default function handler(req, res){
     structure: secKey ? secKey : (auto ? auto.structure : (STRUCTURES[b.structure] ? b.structure : 'loop')),
     lead: b.lead || 'none',
     scene: auto ? auto.scene : (b.scene || '').toLowerCase(),
-    guit: TREMOLO.includes(style) ? [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] : STYLE_PAT[style],
-    guitB: TREMOLO.includes(style) ? [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] : (STYLE_PAT_B[style]||STYLE_PAT[style]),
+    guit: TREMOLO.includes(style) ? [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] : mutatePattern(STYLE_PAT[style], style),
+    guitB: TREMOLO.includes(style) ? [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] : mutatePattern(STYLE_PAT_B[style]||STYLE_PAT[style], style),
     bass: BASS_PAT[style],
     drum: customDrum || DRUM_PAT[drumKey],
     custom: !!customDrum,
@@ -500,6 +567,7 @@ export default function handler(req, res){
   };
 
   const arr = buildArrangement(p);
+  p.riffA = arr.note.slice(0,16);
   const leadVoice = (p.lead && p.lead !== 'none') ? (LEAD_VOICE[p.lead] || LEAD_VOICE.synth) : null;
   // Tablature/partition : réservée Elite
   const tab = (tier && tier !== 'free') ? buildTab(p)   // un seul abonnement payant : payant = tier != free

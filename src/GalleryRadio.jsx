@@ -1,6 +1,8 @@
 // Galerie → Radio MetalPrompt (nov. 2026)
 // Une radio qui enchaîne les chansons soumises par la communauté, avec le palmarès de la semaine.
-// · Lecture continue (audio direct des tounes Suno), modes Palmarès / Aléatoire / par genre.
+// · Lecture continue avec le lecteur officiel de Suno (iframe embed, autoplay) : Suno bloque la lecture directe
+//   de ses fichiers audio depuis d'autres sites. La durée vient de /api/profile?suno= pour enchaîner tout seul.
+//   Modes Palmarès / Aléatoire / par genre.
 // · Palmarès : votes des 7 derniers jours (RPC gallery_chart) avec flèches ▲▼ vs la semaine d'avant.
 //   Si la fonction n'existe pas encore en base, repli sur le total de votes (likes).
 // · Écoutes comptées après 30 s (RPC gallery_play), ignorées si la fonction n'existe pas.
@@ -34,6 +36,7 @@ const CSS = `
 .mpr-eyebrow{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ember2)}
 .mpr-title{font-weight:800;font-size:clamp(20px,3vw,28px);line-height:1.1;letter-spacing:-.01em;overflow-wrap:anywhere}
 .mpr-artist{color:var(--muted);font-size:14px}
+.mpr-frame{width:100%;height:170px;border:0;border-radius:12px;background:var(--panel2)}
 .mpr-bar{height:6px;border-radius:9px;background:var(--panel2);overflow:hidden;cursor:pointer}.mpr-bar i{display:block;height:100%;background:var(--ember)}
 .mpr-time{display:flex;justify-content:space-between;font:12px var(--mono);color:var(--muted);margin-top:4px}
 .mpr-ctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -90,7 +93,8 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", artist: "", genre: "Deathcore", url: "" });
   const [formMsg, setFormMsg] = useState("");
-  const audio = useRef(null), counted = useRef(new Set());
+  const counted = useRef(new Set()), durs = useRef({}), tick = useRef(null), startAt = useRef(0);
+  const [frameKey, setFrameKey] = useState(0);
   const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Toronto" });
 
   // chansons + palmarès
@@ -131,7 +135,8 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
     });
   }, [items, chart]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const playable = useMemo(() => ranked.filter(r => r.it.audio_url).map(r => r.it), [ranked]);
+  const sunoId = it => ((it.url || "").match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i) || [])[0] || null;
+  const playable = useMemo(() => ranked.filter(r => sunoId(r.it)).map(r => r.it), [ranked]);
   const genres = useMemo(() => [...new Set(playable.map(i => i.genre).filter(Boolean))], [playable]);
 
   // file d'attente selon le mode
@@ -144,24 +149,32 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
 
   const cur = queue[qi] || null, nxt = queue.length > 1 ? queue[(qi + 1) % queue.length] : null;
 
-  // lecteur
-  useEffect(() => {
-    const a = audio.current; if (!a || !cur) return;
-    if (a.dataset.id !== cur.id) { a.src = cur.audio_url; a.dataset.id = cur.id; setPos(0); setDur(0); }
-    if (playing) a.play().catch(() => setPlaying(false)); else a.pause();
-  }, [cur, playing]);
-  function onTime() {
-    const a = audio.current; if (!a) return; setPos(a.currentTime); setDur(a.duration || 0);
-    if (cur && a.currentTime > 30 && !counted.current.has(cur.id)) {   // une écoute = 30 s, une fois par session
-      counted.current.add(cur.id);
-      supabase.rpc("gallery_play", { gid: cur.id }).then(({ error }) => { if (!error) setItems(xs => xs.map(x => (x.id === cur.id ? { ...x, plays: (x.plays || 0) + 1 } : x))); }, () => {});
-    }
+  // lecteur : iframe Suno (autoplay) + minuterie sur la durée pour passer à la suivante
+  async function durationOf(it) {
+    if (durs.current[it.id] != null) return durs.current[it.id];
+    try { const r = await fetch("/api/profile?suno=" + encodeURIComponent(it.url)); const j = await r.json(); durs.current[it.id] = j.duration || 0; } catch { durs.current[it.id] = 0; }
+    return durs.current[it.id];
   }
+  useEffect(() => {
+    clearInterval(tick.current); setPos(0); setDur(0);
+    if (!playing || !cur) return;
+    let alive = true; startAt.current = Date.now();
+    durationOf(cur).then(d => { if (alive) setDur(d || 0); });
+    tick.current = setInterval(() => {
+      const t = (Date.now() - startAt.current) / 1000; setPos(t);
+      if (t > 30 && !counted.current.has(cur.id)) {           // une écoute = 30 s, une fois par session
+        counted.current.add(cur.id);
+        supabase.rpc("gallery_play", { gid: cur.id }).then(({ error }) => { if (!error) setItems(xs => xs.map(x => (x.id === cur.id ? { ...x, plays: (x.plays || 0) + 1 } : x))); }, () => {});
+      }
+      const d = durs.current[cur.id];
+      if (d && t > d + 2) next();                               // fin de la chanson → la suivante
+    }, 500);
+    return () => { alive = false; clearInterval(tick.current); };
+  }, [playing, cur && cur.id, frameKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const next = () => { if (queue.length) setQi(i => (i + 1) % queue.length); };
-  const prev = () => { const a = audio.current; if (a && a.currentTime > 4) { a.currentTime = 0; return; } if (queue.length) setQi(i => (i - 1 + queue.length) % queue.length); };
+  const prev = () => { if (pos > 4) { setFrameKey(k => k + 1); return; } if (queue.length) setQi(i => (i - 1 + queue.length) % queue.length); };
   function pickMode(m) { setMode(m); const q = buildQueue(m, m === "chart" ? null : cur && cur.id); setQueue(q); setQi(0); }
   function playItem(id) { const q = buildQueue(mode, id); if (!q.length || q[0].id !== id) { const all = buildQueue("chart", id); setMode("chart"); setQueue(all); } else setQueue(q); setQi(0); setPlaying(true); }
-  function seek(e) { const a = audio.current; if (!a || !dur) return; const r = e.currentTarget.getBoundingClientRect(); a.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur; }
 
   // votes (mêmes règles : 1 par jour, 1 par chanson)
   const bump = (id, d) => { setItems(xs => xs.map(x => (x.id === id ? { ...x, likes: Math.max(0, (x.likes || 0) + d) } : x))); setChart(c => (c ? { ...c, [id]: { ...(c[id] || { prev: 0 }), week: Math.max(0, ((c[id] || {}).week || 0) + d) } } : c)); };
@@ -201,7 +214,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       if (error.code === "23514") { setFormMsg(L("Lien refusé : Suno, Spotify, YouTube ou SoundCloud seulement.", "Link refused: Suno, Spotify, YouTube or SoundCloud only.")); return; }
       setFormMsg(L("Erreur — réessaie.", "Error — try again.")); return;
     }
-    setFormMsg(L("Merci! Ta toune sera revue, puis elle passera à la radio. 🤘", "Thanks! Your track will be reviewed, then it goes on the radio. 🤘"));
+    setFormMsg(L("Merci! Ta chanson sera revue, puis elle passera à la radio. 🤘", "Thanks! Your track will be reviewed, then it goes on the radio. 🤘"));
     setForm({ title: "", artist: "", genre: "Deathcore", url: "" });
   }
 
@@ -211,19 +224,18 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   return (
     <div className="mpr">
       <style>{CSS}</style>
-      <audio ref={audio} preload="none" onTimeUpdate={onTime} onEnded={next} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} />
       <div className="mpr-head">
         <div>
           <span className={"mpr-onair" + (playing ? " live" : "")}><i />{playing ? L("EN ONDES", "ON AIR") : L("RADIO", "RADIO")}</span>
           <h2 style={{ marginTop: 8 }}>Radio <span>MetalPrompt</span></h2>
         </div>
-        <p>{L("Les tounes de la communauté, en continu. Vote pour ta préférée du jour : le palmarès se refait chaque semaine.", "Community tracks, non-stop. Vote for your favorite of the day: the chart resets every week.")}</p>
+        <p>{L("Les chansons de la communauté, en continu. Vote pour ta préférée du jour : le palmarès se refait chaque semaine.", "Community tracks, non-stop. Vote for your favorite of the day: the chart resets every week.")}</p>
       </div>
 
       <div className="mpr-grid">
         <section className="mpr-card mpr-now" aria-label={L("En ondes", "Now playing")}>
           {loading ? <div className="mpr-empty">{L("Chargement…", "Loading…")}</div>
-            : !cur ? <div className="mpr-empty">{L("Aucune toune à la radio pour l'instant. Soumets la tienne!", "No tracks on the radio yet. Submit yours!")}</div>
+            : !cur ? <div className="mpr-empty">{L("Aucune chanson à la radio pour l'instant. Soumets la tienne!", "No tracks on the radio yet. Submit yours!")}</div>
             : <>
               <div className="mpr-nowtop">
                 {cur.image_url ? <img className="mpr-cover" src={cur.image_url} alt="" /> : <div className="mpr-cover" />}
@@ -234,13 +246,15 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
                   <a className="mpr-link" href={cur.url} target="_blank" rel="noopener noreferrer">{L("Voir sur Suno ↗", "View on Suno ↗")}</a>
                 </div>
               </div>
-              <div>
-                <div className="mpr-bar" onClick={seek} role="progressbar" aria-valuemin={0} aria-valuemax={Math.round(dur) || 0} aria-valuenow={Math.round(pos)}><i style={{ width: (dur ? pos / dur * 100 : 0) + "%" }} /></div>
-                <div className="mpr-time"><span>{fmt(pos)}</span><span>{fmt(dur)}</span></div>
-              </div>
+              {playing && <iframe key={cur.id + ":" + frameKey} className="mpr-frame" title={cur.title} src={`https://suno.com/embed/${sunoId(cur)}?autoplay=1`} allow="autoplay; encrypted-media" />}
+              {!playing && <div className="mpr-small">{L("Appuie sur ▶ pour lancer la radio. Les chansons s'enchaînent toutes seules.", "Press ▶ to start the radio. Songs play one after another.")}</div>}
+              {playing && dur > 0 && <div>
+                <div className="mpr-bar" role="progressbar" aria-valuemin={0} aria-valuemax={Math.round(dur)} aria-valuenow={Math.round(pos)}><i style={{ width: Math.min(100, pos / dur * 100) + "%" }} /></div>
+                <div className="mpr-time"><span>{fmt(pos)}</span><span>{L("suivante dans ", "next in ")}{fmt(Math.max(0, dur - pos))}</span></div>
+              </div>}
               <div className="mpr-ctrl">
                 <button className="mpr-btn" onClick={prev} aria-label={L("Précédente", "Previous")}>⏮</button>
-                <button className="mpr-play" onClick={() => setPlaying(p => !p)} aria-label={playing ? "Pause" : L("Jouer", "Play")}>{playing ? "❚❚" : "▶"}</button>
+                <button className="mpr-play" onClick={() => setPlaying(p => !p)} aria-label={playing ? L("Arrêter", "Stop") : L("Jouer", "Play")}>{playing ? "■" : "▶"}</button>
                 <button className="mpr-btn" onClick={next} aria-label={L("Suivante", "Next")}>⏭</button>
                 <button className="mpr-vote" aria-pressed={voted.has(cur.id)} onClick={() => toggleVote(cur.id)}>🤘 {voted.has(cur.id) ? L("Voté", "Voted") : L("Voter", "Vote")}</button>
               </div>
@@ -258,7 +272,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
           <h3>{chart ? L("Palmarès de la semaine", "This week's chart") : L("Palmarès", "Chart")}</h3>
           {top.length === 0 ? <div className="mpr-empty">{L("Le palmarès se remplit avec vos votes.", "The chart fills up with your votes.")}</div> :
             <ol>{top.map(r => <li key={r.it.id}>
-              <button className="mpr-row" aria-current={cur && cur.id === r.it.id} onClick={() => (r.it.audio_url ? playItem(r.it.id) : window.open(r.it.url, "_blank", "noopener"))}>
+              <button className="mpr-row" aria-current={cur && cur.id === r.it.id} onClick={() => (sunoId(r.it) ? playItem(r.it.id) : window.open(r.it.url, "_blank", "noopener"))}>
                 <span className="mpr-rank">{r.rank}</span>
                 <span className={"mpr-mv " + r.mv}>{chart ? r.mvTxt : ""}</span>
                 {r.it.image_url ? <img className="mpr-thumb" src={r.it.image_url} alt="" loading="lazy" /> : <span className="mpr-thumb" />}
@@ -269,11 +283,11 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
         </section>
       </div>
 
-      <section className="mpr-card mpr-all" aria-label={L("Toutes les tounes", "All tracks")}>
-        <h3>{L("Toutes les tounes", "All tracks")} · {items.length}</h3>
-        {items.length === 0 && !loading ? <div className="mpr-empty">{L("Sois le premier à soumettre ta toune.", "Be the first to submit your track.")}</div> :
+      <section className="mpr-card mpr-all" aria-label={L("Toutes les chansons", "All tracks")}>
+        <h3>{L("Toutes les chansons", "All tracks")} · {items.length}</h3>
+        {items.length === 0 && !loading ? <div className="mpr-empty">{L("Sois le premier à soumettre ta chanson.", "Be the first to submit your track.")}</div> :
           <ul>{items.map(it => <li key={it.id}>
-            {it.audio_url
+            {sunoId(it)
               ? <button className="mpr-row" aria-current={cur && cur.id === it.id} onClick={() => playItem(it.id)}>
                   {it.image_url ? <img className="mpr-thumb" src={it.image_url} alt="" loading="lazy" /> : <span className="mpr-thumb" />}
                   <span className="mpr-rt"><b>{it.title}</b><span>{it.artist}{it.genre ? " · " + it.genre : ""}</span></span>
@@ -289,12 +303,12 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
 
       <section className="mpr-card">
         <div className="mpr-cta">
-          <button className="mpr-primary" onClick={() => setShowForm(v => !v)}>{showForm ? L("Fermer", "Close") : L("Passer ma toune à la radio", "Get my track on the radio")}</button>
+          <button className="mpr-primary" onClick={() => setShowForm(v => !v)}>{showForm ? L("Fermer", "Close") : L("Passer ma chanson à la radio", "Get my track on the radio")}</button>
           {discordUrl && <a className="mpr-link" href={discordUrl} target="_blank" rel="noopener noreferrer">{L("Rejoins la communauté sur Discord →", "Join the community on Discord →")}</a>}
         </div>
         {showForm && <div className="mpr-form" style={{ marginTop: 12 }}>
-          <p className="mpr-small">{L("Gratuit avec un compte · 2 tounes par mois · revue avant de passer en ondes. Un lien Suno passe directement à la radio. Spotify, YouTube et SoundCloud apparaissent dans la liste.", "Free with an account · 2 tracks per month · reviewed before going on air. A Suno link plays on the radio. Spotify, YouTube and SoundCloud show in the list.")}</p>
-          <input placeholder={L("Titre de la toune", "Track title")} value={form.title} onChange={e => setF("title", e.target.value)} />
+          <p className="mpr-small">{L("Gratuit avec un compte · 2 chansons par mois · revue avant de passer en ondes. Un lien Suno passe directement à la radio. Spotify, YouTube et SoundCloud apparaissent dans la liste.", "Free with an account · 2 tracks per month · reviewed before going on air. A Suno link plays on the radio. Spotify, YouTube and SoundCloud show in the list.")}</p>
+          <input placeholder={L("Titre de la chanson", "Track title")} value={form.title} onChange={e => setF("title", e.target.value)} />
           <input placeholder={L("Nom d'artiste (optionnel)", "Artist name (optional)")} value={form.artist} onChange={e => setF("artist", e.target.value)} />
           <select value={form.genre} onChange={e => setF("genre", e.target.value)}>{GENRES.map(g => <option key={g} value={g}>{g}</option>)}</select>
           <input placeholder="https://suno.com/song/…" value={form.url} onChange={e => setF("url", e.target.value)} />

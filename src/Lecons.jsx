@@ -161,7 +161,7 @@ const NOTE_FR = ["Do","Do#","Ré","Ré#","Mi","Fa","Fa#","Sol","Sol#","La","La#"
 const NOTE_EN = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 const PENTA = [0, 3, 5, 7, 10, 12];
 const BLUES = [0, 3, 5, 6, 7, 10, 12];
-const KEYS = { E: 4, D: 2, C: 0 };                    // tonalité de la toune (accordage)
+const KEYS = { E: 4, D: 2, C: 0 };                    // tonalité de la chanson (accordage)
 const KEY_LBL = { E: ["Mi · standard", "E · standard"], D: ["Ré · drop D", "D · drop D"], C: ["Do · drop C", "C · drop C"] };
 const TRANSPO = { alto: 9, tenor: 14, vln: 0, piano: 0 };         // écrit = réel + n demi-tons
 const LEAD_BASE = { alto: 60, tenor: 48, vln: 60, piano: 60 };     // Do réel de base du registre
@@ -773,7 +773,7 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
   const STEP_TXT = {
     demo: L("Écoute au tempo cible, sans jouer. Suis les notes des yeux.", "Listen at the target tempo without playing. Follow the notes."),
     practice: L("Commence lent. Quand 2 boucles passent sans accroc, monte de 5 %.", "Start slow. When 2 loops are clean, go up 5%."),
-    play: L("Avec une batterie et une guitare. Dans la vraie version : une toune complète générée avec Suno.", "With drums and a guitar. In the full version: a complete Suno-generated song."),
+    play: L("Avec une batterie et une guitare. Dans la vraie version : une chanson complète générée avec Suno.", "With drums and a guitar. In the full version: a complete Suno-generated song."),
     challenge: melodic ? L("La mélodie se coupe : tu joues seul par-dessus le band. Les notes restent affichées.", "The melody drops out: you play alone over the band. Notes stay on screen.")
       : L("Un riff que t'as jamais vu, même technique. Lis la tab et joue-le du premier coup.", "A riff you've never seen, same technique. Read the tab and nail it first try."),
   };
@@ -859,7 +859,7 @@ export default function Lecons({ uiLang = "fr", canAccess = () => true, onPaywal
                   <button key={id} className="mpl-pill" aria-pressed={saxType === id} onClick={() => setSaxType(id)}>{lb}</button>)}
                 <span style={{ width: 12 }} />
               </>}
-              <label>{L("La toune est en", "The song is in")}</label>
+              <label>{L("La chanson est en", "The song is in")}</label>
               {Object.keys(KEYS).map(k => <button key={k} className="mpl-pill" aria-pressed={key === k} onClick={() => setKey(k)}>{fr ? KEY_LBL[k][0] : KEY_LBL[k][1]}</button>)}
             </div>
             <p className="mpl-small">{inst === "sax"

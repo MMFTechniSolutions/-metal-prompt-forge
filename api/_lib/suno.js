@@ -21,12 +21,18 @@ export default async function handler(req, res) {
     const canon = (html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i) || [])[1] || r.url || '';
     const id = ((canon.match(UUID) || r.url.match(UUID) || u.pathname.match(UUID) || [])[0] || '').toLowerCase();
     if (!id) return res.status(404).json({ error: 'not_found' });
+    // durée (pour la radio) : dans le JSON de la page, après l'id de la chanson
+    let duration = null;
+    { const k = html.indexOf(id); const zone = k > 0 ? html.slice(k, k + 20000) : html;
+      const m = zone.match(/\\?"duration\\?"\s*:\s*([0-9]+(?:\.[0-9]+)?)/) || html.match(/\\?"duration\\?"\s*:\s*([0-9]+(?:\.[0-9]+)?)/);
+      if (m) { const d = parseFloat(m[1]); if (d > 5 && d < 3600) duration = d; } }
     res.setHeader('Cache-Control', 's-maxage=86400');
     return res.status(200).json({
       id,
       title: meta('og:title'),
       image: meta('og:image'),
       audio: `https://cdn1.suno.ai/${id}.mp3`,
+      duration,
       url: `https://suno.com/song/${id}`,
     });
   } catch {

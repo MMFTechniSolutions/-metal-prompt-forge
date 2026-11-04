@@ -3,6 +3,7 @@
 // La bibliothèque de patterns + l'algorithme ne sont PAS exposés au client.
 
 const STYLE_PAT = {
+  nwobhm:   [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1],   // galop
   thrash:   [1,0,1,0,1,0,1,0,1,1,0,1,0,1,0,1],
   death:    [1,1,0,1,1,0,1,0,1,1,0,1,1,0,1,1],
   doom:     [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
@@ -20,6 +21,7 @@ const STYLE_PAT = {
 };
 // Rythme de guitare ALTERNATIF (phrase B) — alterné mesure par mesure pour casser la redondance
 const STYLE_PAT_B = {
+  nwobhm:   [1,0,1,1,1,0,1,1,1,0,1,1,1,0,0,0],
   thrash:   [1,0,1,1,0,1,0,1,1,0,1,0,1,1,0,1],
   death:    [1,0,1,1,0,1,1,0,1,0,1,1,0,1,0,1],
   doom:     [1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0],
@@ -36,6 +38,7 @@ const STYLE_PAT_B = {
   dissonant:  [1,0,0,1,1,0,1,0,0,1,1,0,1,0,1,0],
 };
 const BASS_PAT = {
+  nwobhm:   [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1],   // basse au galop (double la guitare)
   thrash:   [1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0],
   death:    [1,0,1,0,1,1,0,1,0,1,0,1,1,0,0,1],
   doom:     [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
@@ -85,6 +88,7 @@ const DRUM_PAT = {
 // Phrases de 16 notes (question/réponse) → le riff se développe au lieu de tourner en rond
 // Phrases de 32 notes (A = question, B = réponse/développement) → moins redondant, le riff respire sur 2 mesures
 const NOTE_SEQ = {
+  nwobhm:[0,0,0,0,0,0,0,0,0,0,0,0,3,3,5,5, 0,0,0,0,0,0,0,0,7,7,8,8,7,7,5,3],   // éolien, pédale sur la tonique
   thrash:[0,0,3,0,5,3,7,5,0,0,3,0,8,7,5,3, 0,3,5,7,5,3,0,10,8,7,5,3,7,5,3,0],
   death:[0,0,1,0,6,1,8,6,0,0,1,3,6,5,3,1, 0,1,3,1,8,6,3,1,0,6,8,6,3,1,6,0],
   doom:[0,7,5,3,0,5,3,2,0,7,8,7,5,3,2,0, 0,3,5,7,8,7,5,3,0,2,3,5,3,2,0,0],
@@ -133,6 +137,7 @@ const STRUCTURES = {
 // lvl:'agg' = mesures impaires fréquentes (djent/math/prog/techdeath/dissonant vivent là-dedans).
 const M44=[16];
 const STYLE_META = {
+  nwobhm:{lvl:'mod',meters:M44},
   // Styles droits — 4/4 solide, le metal classique ; la variété vient du beat et des sections
   thrash:{lvl:'mod',meters:M44}, speed:{lvl:'mod',meters:M44}, crossover:{lvl:'mod',meters:M44},
   hardcore:{lvl:'mod',meters:M44}, grindcore:{lvl:'mod',meters:M44}, deathgrind:{lvl:'mod',meters:M44},
@@ -382,13 +387,14 @@ function buildTab(p){
 
 // Prompt Suno optimisé qui FIT le beat généré (recette secrète, côté serveur)
 function buildPrompt(p){
-  const G={thrash:'thrash metal',death:'death metal',doom:'doom metal',blackened:'black metal',groove:'groove metal',djent:'djent',speed:'speed metal',slam:'slam metal',sludge:'sludge metal',postmetal:'post-metal',grindcore:'grindcore',funeraldoom:'funeral doom',dissonant:'dissonant death metal',rapcore:'rap metal',deathcore:'deathcore',metalcore:'metalcore',melodicdeath:'melodic death metal',melodicdeathcore:'melodic deathcore',brutaldeath:'brutal death metal',techdeath:'technical death metal',blackeneddeathcore:'blackened deathcore',numetal:'nu-metal',beatdown:'beatdown hardcore',crossover:'crossover thrash',hardcore:'hardcore punk',deathgrind:'deathgrind',mathcore:'mathcore',progmetal:'progressive metal',powermetal:'power metal',atmosblack:'atmospheric black metal',symphonicblack:'symphonic black metal',blackgaze:'blackgaze',industrial:'industrial metal',gothic:'gothic metal'};
+  const G={nwobhm:'new wave of british heavy metal',thrash:'thrash metal',death:'death metal',doom:'doom metal',blackened:'black metal',groove:'groove metal',djent:'djent',speed:'speed metal',slam:'slam metal',sludge:'sludge metal',postmetal:'post-metal',grindcore:'grindcore',funeraldoom:'funeral doom',dissonant:'dissonant death metal',rapcore:'rap metal',deathcore:'deathcore',metalcore:'metalcore',melodicdeath:'melodic death metal',melodicdeathcore:'melodic deathcore',brutaldeath:'brutal death metal',techdeath:'technical death metal',blackeneddeathcore:'blackened deathcore',numetal:'nu-metal',beatdown:'beatdown hardcore',crossover:'crossover thrash',hardcore:'hardcore punk',deathgrind:'deathgrind',mathcore:'mathcore',progmetal:'progressive metal',powermetal:'power metal',atmosblack:'atmospheric black metal',symphonicblack:'symphonic black metal',blackgaze:'blackgaze',industrial:'industrial metal',gothic:'gothic metal'};
   const D={standard:'steady drums',double_kick:'double bass drumming',blast_beat:'blast beats',half_time:'half-time groove',breakdown:'breakdown',gravity:'gravity blast beats',thrash:'thrash beat',deathcore:'deathcore groove',dbeat:'d-beat',groove:'groovy drums',two_step:'two-step beat',bounce:'bounce groove',slam:'slam beat',mathcore:'mathcore drums',doom:'doom drums',skank:'skank beat',bombblast:'bomb blast beats',halfgroove:'half-time groove',tribal:'tribal toms',driving:'driving double bass',straight_dk:'straight double kick',bouncy:'bouncy groove',marching:'marching snare',jungle:'tribal toms',stomp:'stomp breakdown',blast_china:'blast beats with china cymbals',halftime2:'heavy half-time',pocket:'pocket groove',gallop:'galloping drums'};
   const T={E2:'standard E tuning',Eb2:'Eb tuning',D2:'D standard tuning',Db2:'drop C# tuning',C2:'C standard tuning',B1:'B standard tuning'};
   const bpm=p.bpm;
   const tempo=bpm>=210?'blistering fast tempo':bpm>=170?'fast tempo':bpm>=120?'mid-tempo':bpm>=90?'slow groovy tempo':'slow doom tempo';
   // Saveur par style — vocabulaire pointu qui pousse Suno dans le bon stock (incl. termes de scène)
   const FLAVOR={
+    nwobhm:['galloping riffs','harmonized twin guitar melodies'],
     thrash:['fast tremolo picking','relentless aggression'],
     death:['guttural growls','brutal tremolo riffs'],
     doom:['crushing slow riffs','heavy doom atmosphere'],
@@ -427,9 +433,9 @@ function buildPrompt(p){
   const _sc=SCENE_DB[p.scene];
   const genre=(_sc?_sc.p+' ':'')+(G[p.style]||'metal');
   // Formule verifiee Suno : sous-genre + elements + VOIX + MIX + MOOD, genre ancre debut ET fin
-  const VOX={thrash:'raspy aggressive male vocals',death:'guttural death growls',doom:'deep doom vocals',blackened:'black metal shrieks',groove:'powerful mid-range growls',djent:'mid-range harsh vocals',speed:'high-pitched aggressive vocals',slam:'ultra-low guttural vocals',sludge:'raw screaming vocals',postmetal:'distant atmospheric vocals',grindcore:'high-low screaming vocals',funeraldoom:'agonized low growls',dissonant:'tortured growls',rapcore:'aggressive rapped vocals',deathcore:'guttural growls and high screams',metalcore:'harsh screams with clean hooks',melodicdeath:'melodic death growls',melodicdeathcore:'growls with clean choruses',brutaldeath:'deep guttural growls',techdeath:'guttural death growls',blackeneddeathcore:'guttural growls and blackened shrieks',numetal:'aggressive shouted vocals',beatdown:'hardcore beatdown shouts',crossover:'shouted punk vocals',hardcore:'raw hardcore shouts',deathgrind:'guttural and shrieked vocals',mathcore:'frantic screamed vocals',progmetal:'mixed clean and harsh vocals',powermetal:'soaring clean high vocals',atmosblack:'distant blackened shrieks',symphonicblack:'theatrical blackened shrieks',blackgaze:'distant screamed vocals',industrial:'distorted harsh vocals',gothic:'deep baritone vocals'};
-  const MIX={blackened:'raw kvlt production',grindcore:'raw punishing production',sludge:'thick abrasive production',funeraldoom:'cavernous production',doom:'vintage heavy production',dissonant:'dense aggressive production'};
-  const MOOD={thrash:'aggressive and relentless',death:'brutal and dark',doom:'crushing and bleak',blackened:'cold and sinister',groove:'groovy and headbang-worthy',djent:'technical and precise',speed:'high-octane',slam:'violent and pit-ready',sludge:'filthy and abrasive',postmetal:'epic and cinematic',grindcore:'chaotic and violent',funeraldoom:'funereal and monolithic',dissonant:'unsettling and dark',rapcore:'bouncy and aggressive'};
+  const VOX={nwobhm:'theatrical operatic tenor vocals',thrash:'raspy aggressive male vocals',death:'guttural death growls',doom:'deep doom vocals',blackened:'black metal shrieks',groove:'powerful mid-range growls',djent:'mid-range harsh vocals',speed:'high-pitched aggressive vocals',slam:'ultra-low guttural vocals',sludge:'raw screaming vocals',postmetal:'distant atmospheric vocals',grindcore:'high-low screaming vocals',funeraldoom:'agonized low growls',dissonant:'tortured growls',rapcore:'aggressive rapped vocals',deathcore:'guttural growls and high screams',metalcore:'harsh screams with clean hooks',melodicdeath:'melodic death growls',melodicdeathcore:'growls with clean choruses',brutaldeath:'deep guttural growls',techdeath:'guttural death growls',blackeneddeathcore:'guttural growls and blackened shrieks',numetal:'aggressive shouted vocals',beatdown:'hardcore beatdown shouts',crossover:'shouted punk vocals',hardcore:'raw hardcore shouts',deathgrind:'guttural and shrieked vocals',mathcore:'frantic screamed vocals',progmetal:'mixed clean and harsh vocals',powermetal:'soaring clean high vocals',atmosblack:'distant blackened shrieks',symphonicblack:'theatrical blackened shrieks',blackgaze:'distant screamed vocals',industrial:'distorted harsh vocals',gothic:'deep baritone vocals'};
+  const MIX={nwobhm:'warm early-80s analog production',blackened:'raw kvlt production',grindcore:'raw punishing production',sludge:'thick abrasive production',funeraldoom:'cavernous production',doom:'vintage heavy production',dissonant:'dense aggressive production'};
+  const MOOD={nwobhm:'epic and theatrical',thrash:'aggressive and relentless',death:'brutal and dark',doom:'crushing and bleak',blackened:'cold and sinister',groove:'groovy and headbang-worthy',djent:'technical and precise',speed:'high-octane',slam:'violent and pit-ready',sludge:'filthy and abrasive',postmetal:'epic and cinematic',grindcore:'chaotic and violent',funeraldoom:'funereal and monolithic',dissonant:'unsettling and dark',rapcore:'bouncy and aggressive'};
   const vox=VOX[p.style]||'aggressive harsh male vocals';
   const mix=MIX[p.style]||'modern polished mix, scooped mids, tight bass';
   const mood=MOOD[p.style]||'dark and aggressive';
@@ -460,7 +466,7 @@ function parsePrompt(text){
     ['atmosblack','atmospheric black'],['blackened','black metal','blackened','kvlt'],
     ['slam','slam'],['numetal','nu-metal','nu metal'],['beatdown','beatdown'],
     ['hardcore','hardcore'],['crossover','crossover'],['mathcore','mathcore'],
-    ['industrial','industrial'],['gothic','gothic'],['speed','speed metal'],
+    ['industrial','industrial'],['gothic','gothic'],['speed','speed metal'],['nwobhm','nwobhm','new wave of british','classic heavy metal','traditional heavy metal'],
     ['groove','groove metal'],['death','death metal','brutal death','death'],
     ['thrash','thrash'],
   ];

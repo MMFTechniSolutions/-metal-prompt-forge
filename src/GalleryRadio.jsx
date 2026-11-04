@@ -1,14 +1,19 @@
 // Galerie → Radio MetalPrompt (nov. 2026) — une vraie radio : on ne zappe pas, les chansons s'enchaînent.
 // Une radio qui enchaîne les chansons soumises par la communauté, avec le palmarès de la semaine.
-// · Lecture continue avec le lecteur officiel de Suno (iframe embed, autoplay) : Suno bloque la lecture directe
-//   de ses fichiers audio depuis d'autres sites. La durée vient de /api/profile?suno= pour enchaîner tout seul.
-//   Modes Palmarès / Aléatoire / par genre.
+// · EN DIRECT 24/7 (nov. 2026) : tout le monde entend la même chanson au même moment. La grille est calculée
+//   à partir de l'heure du serveur (src/radioSchedule.js) : chansons mélangées avec une graine fixe, annonces
+//   MetalPrompt (genre « Annonce ») entre les blocs, émissions par genre selon la table radio_grille.
+// · Lecteur officiel de Suno (iframe embed, autoplay) : Suno bloque la lecture directe de ses fichiers et
+//   l'embed ne peut pas sauter dans la chanson. Si t'arrives en plein milieu, la chanson part du début et
+//   coupe quand la suivante commence pour tout le monde → synchro dès la 2e chanson.
+// · Durée de chaque chanson dans gallery.duration (remplie au besoin via /api/profile + RPC gallery_set_duration).
 // · Palmarès : votes des 7 derniers jours (RPC gallery_chart) avec flèches ▲▼ vs la semaine d'avant.
 //   Si la fonction n'existe pas encore en base, repli sur le total de votes (likes).
 // · Écoutes comptées après 30 s (RPC gallery_play), ignorées si la fonction n'existe pas.
 // · Votes, soumission (2/mois, revue) : mêmes règles qu'avant.
 import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "./supabase.js";
+import { onAir, isJingle } from "./radioSchedule.js";
 
 const CSS = `
 .mpr{--bg:#0C0D0F;--panel:#15171B;--panel2:#1C1F24;--line:#2A2E35;--fg:#F2F1ED;--muted:#8A8F97;--ember:#FF6A2B;--ember2:#FFB36B;--ok:#5FD08A;
@@ -75,26 +80,24 @@ const CSS = `
 
 const GENRES = ["Deathcore", "Metalcore", "Djent", "Death Metal", "Black Metal", "Thrash", "Groove", "Doom", "Melodic Death", "Blackgaze", "Power Metal", "Nu-Metal", "Grunge", "Autre"];
 const fmt = s => (!isFinite(s) ? "0:00" : Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0"));
-const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 
 export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", discordUrl }) {
   const L = (fr, en) => (uiLang === "fr" ? fr : en);
   const [items, setItems] = useState([]);
   const [chart, setChart] = useState(null);          // { id: {week, prev} } ou null si la fonction n'existe pas
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState("shuffle");     // par défaut : chansons mélangées          // chart | shuffle | genre:<g>
-  const [queue, setQueue] = useState([]);
-  const [qi, setQi] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [pos, setPos] = useState(0), [dur, setDur] = useState(0);
+  const [grille, setGrille] = useState([]);
+  const [playing, setPlaying] = useState(false);       // l'auditeur a appuyé sur ▶ (le navigateur l'exige pour le son)
+  const [now, setNow] = useState(Date.now());
+  const [joinedLate, setJoinedLate] = useState(false);
+  const clockOff = useRef(0);                           // écart horloge locale → serveur
   const [voted, setVoted] = useState(() => new Set());
   const [todayVote, setTodayVote] = useState(null);
   const [msg, setMsg] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", artist: "", genre: "Deathcore", url: "" });
   const [formMsg, setFormMsg] = useState("");
-  const counted = useRef(new Set()), durs = useRef({}), tick = useRef(null), startAt = useRef(0);
-  const [frameKey, setFrameKey] = useState(0);
+  const counted = useRef(new Set()), listenStart = useRef(0), healing = useRef(new Set());
   const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Toronto" });
 
   // chansons + palmarès
@@ -106,8 +109,13 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       if (!on || error || !data) return;
       const m = {}; data.forEach(r => { m[r.gallery_id] = { week: Number(r.votes_week) || 0, prev: Number(r.votes_prev) || 0 }; }); setChart(m);
     }, () => {});
+    supabase.from("radio_grille").select("*").eq("actif", true).then(({ data, error }) => { if (on && !error && data) setGrille(data); }, () => {});
+    const t0 = Date.now();
+    supabase.rpc("radio_now").then(({ data, error }) => { if (on && !error && data) clockOff.current = Number(data) - (t0 + Date.now()) / 2; }, () => {});
     return () => { on = false; };
   }, []);
+  // horloge de la radio (serveur) — tic chaque seconde
+  useEffect(() => { const t = setInterval(() => setNow(Date.now() + clockOff.current), 1000); return () => clearInterval(t); }, []);
   // mes votes
   useEffect(() => {
     let on = true;
@@ -119,13 +127,14 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
     return () => { on = false; };
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const songsOnly = useMemo(() => items.filter(it => !isJingle(it)), [items]);
   // palmarès classé : votes de la semaine (ou total si pas de fonction), puis écoutes, puis date
   const ranked = useMemo(() => {
     const score = it => (chart ? (chart[it.id]?.week || 0) : (it.likes || 0));
-    const rows = items.map(it => ({ it, score: score(it) })).sort((a, b) => b.score - a.score || (b.it.plays || 0) - (a.it.plays || 0) || new Date(b.it.created_at) - new Date(a.it.created_at));
+    const rows = songsOnly.map(it => ({ it, score: score(it) })).sort((a, b) => b.score - a.score || (b.it.plays || 0) - (a.it.plays || 0) || new Date(b.it.created_at) - new Date(a.it.created_at));
     let prevRank = null;
     if (chart) {                                         // rang de la semaine d'avant pour les flèches
-      const pr = items.map(it => ({ id: it.id, s: chart[it.id]?.prev || 0 })).sort((a, b) => b.s - a.s);
+      const pr = songsOnly.map(it => ({ id: it.id, s: chart[it.id]?.prev || 0 })).sort((a, b) => b.s - a.s);
       prevRank = {}; pr.forEach((r, i) => { prevRank[r.id] = r.s > 0 ? i + 1 : null; });
     }
     return rows.map((r, i) => {
@@ -133,51 +142,45 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       if (prevRank) { const p = prevRank[r.it.id]; if (!r.score) { mv = "same"; mvTxt = "–"; } else if (p == null) { mv = "new"; mvTxt = L("NEW", "NEW"); } else if (p > i + 1) { mv = "up"; mvTxt = "▲" + (p - i - 1); } else if (p < i + 1) { mv = "down"; mvTxt = "▼" + (i + 1 - p); } }
       return { ...r, rank: i + 1, mv, mvTxt };
     });
-  }, [items, chart]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [songsOnly, chart]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sunoId = it => ((it.url || "").match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i) || [])[0] || null;
-  const playable = useMemo(() => ranked.filter(r => sunoId(r.it)).map(r => r.it), [ranked]);
-  const genres = useMemo(() => [...new Set(playable.map(i => i.genre).filter(Boolean))], [playable]);
+  const pool = useMemo(() => items.map(it => ({ ...it, sunoId: sunoId(it), duration: Number(it.duration) || 0 })), [items]);
 
-  // file d'attente selon le mode
-  function buildQueue(m, startId) {
-    let q = m === "chart" ? playable : m === "shuffle" ? shuffle(playable) : playable.filter(i => "genre:" + i.genre === m);
-    if (startId) { const k = q.findIndex(i => i.id === startId); if (k > 0) q = [...q.slice(k), ...q.slice(0, k)]; }
-    return q;
-  }
-  useEffect(() => { if (!queue.length && playable.length) setQueue(buildQueue(mode)); }, [playable]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const cur = queue[qi] || null, nxt = queue.length > 1 ? queue[(qi + 1) % queue.length] : null;
-
-  // lecteur : iframe Suno (autoplay) + minuterie sur la durée pour passer à la suivante
-  async function durationOf(it) {
-    if (durs.current[it.id] != null) return durs.current[it.id];
-    try { const r = await fetch("/api/profile?suno=" + encodeURIComponent(it.url)); const j = await r.json(); durs.current[it.id] = j.duration || 0; } catch { durs.current[it.id] = 0; }
-    return durs.current[it.id];
-  }
+  // durée manquante → lue une fois sur Suno, enregistrée pour tout le monde
   useEffect(() => {
-    clearInterval(tick.current); setPos(0); setDur(0);
-    if (!playing || !cur) return;
-    let alive = true; startAt.current = Date.now();
-    durationOf(cur).then(d => { if (alive) setDur(d || 0); });
-    tick.current = setInterval(() => {
-      const t = (Date.now() - startAt.current) / 1000; setPos(t);
-      if (t > 30 && !counted.current.has(cur.id)) {           // une écoute = 30 s, une fois par session
-        counted.current.add(cur.id);
-        supabase.rpc("gallery_play", { gid: cur.id }).then(({ error }) => { if (!error) setItems(xs => xs.map(x => (x.id === cur.id ? { ...x, plays: (x.plays || 0) + 1 } : x))); }, () => {});
-      }
-      const d = durs.current[cur.id];
-      if (d && t > d + 2) next();                               // fin de la chanson → la suivante
-    }, 500);
-    return () => { alive = false; clearInterval(tick.current); };
-  }, [playing, cur && cur.id, frameKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  const next = () => {                               // fin de la liste en mode mélangé : on remélange
-    if (!queue.length) return;
-    if (qi + 1 >= queue.length && mode === "shuffle" && queue.length > 2) { const last = queue[qi]; let q = shuffle(playable); if (q[0] && last && q[0].id === last.id) q = [...q.slice(1), q[0]]; setQueue(q); setQi(0); return; }
-    setQi(i => (i + 1) % queue.length);
-  };
-  function pickMode(m) { setMode(m); const q = buildQueue(m, m === "chart" ? null : cur && cur.id); setQueue(q); setQi(0); }
-  function playItem(id) { const q = buildQueue(mode, id); if (!q.length || q[0].id !== id) { const all = buildQueue("chart", id); setMode("chart"); setQueue(all); } else setQueue(q); setQi(0); setPlaying(true); }
+    pool.filter(it => it.sunoId && !it.duration && !healing.current.has(it.id)).slice(0, 5).forEach(it => {
+      healing.current.add(it.id);
+      fetch("/api/profile?suno=" + encodeURIComponent(it.url)).then(r => r.json()).then(j => {
+        const d = Number(j.duration); if (!(d > 5)) return;
+        supabase.rpc("gallery_set_duration", { gid: it.id, d }).then(() => {}, () => {});
+        setItems(xs => xs.map(x => (x.id === it.id ? { ...x, duration: d } : x)));
+      }).catch(() => {});
+    });
+  }, [pool]);
+
+  // ce qui joue en ce moment, pour tout le monde
+  const air = useMemo(() => onAir(now, pool, grille), [now, pool, grille]);
+  const cur = air ? air.cur : null, nxt = air ? air.next : null;
+  const pos = air ? Math.max(0, (now - air.start) / 1000) : 0, dur = cur ? cur.duration : 0;
+  const slot = air ? air.cur.id + ":" + air.start : "";
+
+  // nouvelle chanson à l'antenne → on note l'heure d'écoute (écoute comptée après 30 s)
+  useEffect(() => { listenStart.current = Date.now(); }, [slot, playing]);
+  useEffect(() => {
+    if (!playing || !cur || isJingle(cur) || counted.current.has(cur.id)) return;
+    if ((Date.now() - listenStart.current) / 1000 > 30) {
+      counted.current.add(cur.id);
+      supabase.rpc("gallery_play", { gid: cur.id }).then(({ error }) => { if (!error) setItems(xs => xs.map(x => (x.id === cur.id ? { ...x, plays: (x.plays || 0) + 1 } : x))); }, () => {});
+    }
+  }, [now]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!playing) setJoinedLate(false); }, [playing]);
+  const firstSlot = useRef("");
+  function listen() {
+    if (playing) { setPlaying(false); return; }
+    firstSlot.current = slot; setJoinedLate(pos > 8); setPlaying(true);
+  }
+  useEffect(() => { if (playing && slot !== firstSlot.current) setJoinedLate(false); }, [slot, playing]);
 
   // votes (mêmes règles : 1 par jour, 1 par chanson)
   const bump = (id, d) => { setItems(xs => xs.map(x => (x.id === id ? { ...x, likes: Math.max(0, (x.likes || 0) + d) } : x))); setChart(c => (c ? { ...c, [id]: { ...(c[id] || { prev: 0 }), week: Math.max(0, ((c[id] || {}).week || 0) + d) } } : c)); };
@@ -206,11 +209,11 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
     if (!user) { onRequestAuth && onRequestAuth(); return; }
     if (!form.title.trim() || !form.url.trim()) { setFormMsg(L("Titre et lien requis.", "Title and link required.")); return; }
     setFormMsg(L("Envoi…", "Sending…"));
-    let url = form.url.trim(), audio_url = null, image_url = null;
+    let url = form.url.trim(), audio_url = null, image_url = null, duration = null;
     if (/suno\.(com|ai)/i.test(url)) {
-      try { const r = await fetch("/api/profile?suno=" + encodeURIComponent(url)); if (r.ok) { const j = await r.json(); url = j.url || url; audio_url = j.audio || null; image_url = j.image || null; } } catch { /* lien gardé tel quel */ }
+      try { const r = await fetch("/api/profile?suno=" + encodeURIComponent(url)); if (r.ok) { const j = await r.json(); url = j.url || url; audio_url = j.audio || null; image_url = j.image || null; duration = j.duration || null; } } catch { /* lien gardé tel quel */ }
     }
-    const { error } = await supabase.from("gallery").insert({ title: form.title.trim(), artist: form.artist.trim() || (user.email ? user.email.split("@")[0] : "anon"), genre: form.genre, url, audio_url, image_url, status: "pending" });
+    const { error } = await supabase.from("gallery").insert({ title: form.title.trim(), artist: form.artist.trim() || (user.email ? user.email.split("@")[0] : "anon"), genre: form.genre, url, audio_url, image_url, duration, status: "pending" });
     if (error) {
       if (error.code === "42501") { setFormMsg(L("Limite atteinte : 2 chansons par membre par mois. 🤘", "Limit reached: 2 tracks per member per month. 🤘")); return; }
       if (error.code === "23505") { setFormMsg(L("Cette chanson a déjà été soumise.", "This track was already submitted.")); return; }
@@ -229,10 +232,10 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       <style>{CSS}</style>
       <div className="mpr-head">
         <div>
-          <span className={"mpr-onair" + (playing ? " live" : "")}><i />{playing ? L("EN ONDES", "ON AIR") : L("RADIO", "RADIO")}</span>
+          <span className={"mpr-onair" + (cur ? " live" : "")}><i />{cur ? L("EN DIRECT 24/7", "LIVE 24/7") : L("RADIO", "RADIO")}</span>
           <h2 style={{ marginTop: 8 }}>Radio <span>MetalPrompt</span></h2>
         </div>
-        <p>{L("Les chansons de la communauté, en continu. Vote pour ta préférée du jour : le palmarès se refait chaque semaine.", "Community tracks, non-stop. Vote for your favorite of the day: the chart resets every week.")}</p>
+        <p>{L("Les chansons de la communauté, en direct 24/7 : tout le monde entend la même au même moment. Vote pour ta préférée du jour, le palmarès se refait chaque semaine.", "Community tracks, live 24/7: everyone hears the same song at the same time. Vote for your favorite of the day, the chart resets every week.")}</p>
       </div>
 
       <div className="mpr-grid">
@@ -243,29 +246,25 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
               <div className="mpr-nowtop">
                 {cur.image_url ? <img className="mpr-cover" src={cur.image_url} alt="" /> : <div className="mpr-cover" />}
                 <div className="mpr-meta">
-                  <div className="mpr-eyebrow">{curRank ? "#" + curRank.rank + L(" au palmarès", " on the chart") : ""}{cur.genre ? " · " + cur.genre : ""}</div>
+                  <div className="mpr-eyebrow">{isJingle(cur) ? L("Annonce MetalPrompt", "MetalPrompt station ID") : <>{air.show ? (air.show.titre || air.show.genre) + " · " : ""}{curRank ? "#" + curRank.rank + L(" au palmarès", " on the chart") : ""}{cur.genre ? " · " + cur.genre : ""}</>}</div>
                   <div className="mpr-title">{cur.title}</div>
                   <div className="mpr-artist">{cur.artist}</div>
                   <a className="mpr-link" href={cur.url} target="_blank" rel="noopener noreferrer">{L("Voir sur Suno ↗", "View on Suno ↗")}</a>
                 </div>
               </div>
-              {playing && <iframe key={cur.id + ":" + frameKey} className="mpr-frame" title={cur.title} src={`https://suno.com/embed/${sunoId(cur)}?autoplay=1`} allow="autoplay; encrypted-media" />}
-              {!playing && <div className="mpr-small">{L("Appuie sur ▶ pour lancer la radio. Les chansons s'enchaînent toutes seules.", "Press ▶ to start the radio. Songs play one after another.")}</div>}
-              {playing && dur > 0 && <div>
-                <div className="mpr-bar" role="progressbar" aria-valuemin={0} aria-valuemax={Math.round(dur)} aria-valuenow={Math.round(pos)}><i style={{ width: Math.min(100, pos / dur * 100) + "%" }} /></div>
-                <div className="mpr-time"><span>{fmt(pos)}</span><span>{L("suivante dans ", "next in ")}{fmt(Math.max(0, dur - pos))}</span></div>
+              {playing && <iframe key={slot} className="mpr-frame" title={cur.title} src={`https://suno.com/embed/${cur.sunoId}?autoplay=1`} allow="autoplay; encrypted-media" />}
+              {!playing && <div className="mpr-small">{L("La radio joue en direct pour tout le monde. Appuie sur ▶ pour embarquer.", "The radio is live for everyone. Press ▶ to tune in.")}</div>}
+              {playing && joinedLate && <div className="mpr-small">{L("T'embarques en cours de chanson : elle part du début pour toi, t'es en synchro dès la prochaine.", "You tuned in mid-song: it starts from the top for you, you're in sync from the next one.")}</div>}
+              {dur > 0 && <div>
+                <div className="mpr-bar" role="progressbar" aria-label={L("Position en direct", "Live position")} aria-valuemin={0} aria-valuemax={Math.round(dur)} aria-valuenow={Math.round(pos)}><i style={{ width: Math.min(100, pos / dur * 100) + "%" }} /></div>
+                <div className="mpr-time"><span>{L("en direct ", "live ")}{fmt(pos)}</span><span>{L("suivante dans ", "next in ")}{fmt(Math.max(0, dur - pos))}</span></div>
               </div>}
               <div className="mpr-ctrl">
-                <button className="mpr-play" onClick={() => setPlaying(p => !p)} aria-label={playing ? L("Arrêter", "Stop") : L("Jouer", "Play")}>{playing ? "■" : "▶"}</button>
-                <button className="mpr-vote" aria-pressed={voted.has(cur.id)} onClick={() => toggleVote(cur.id)}>🤘 {voted.has(cur.id) ? L("Voté", "Voted") : L("Voter", "Vote")}</button>
+                <button className="mpr-play" onClick={listen} aria-label={playing ? L("Arrêter", "Stop") : L("Écouter en direct", "Listen live")}>{playing ? "■" : "▶"}</button>
+                {!isJingle(cur) && <button className="mpr-vote" aria-pressed={voted.has(cur.id)} onClick={() => toggleVote(cur.id)}>🤘 {voted.has(cur.id) ? L("Voté", "Voted") : L("Voter", "Vote")}</button>}
               </div>
               {msg && <div className="mpr-msg" role="status">{msg}</div>}
-              <div className="mpr-modes" role="group" aria-label={L("Mode de la radio", "Radio mode")}>
-                <button className="mpr-pill" aria-pressed={mode === "shuffle"} onClick={() => pickMode("shuffle")}>{L("Aléatoire", "Shuffle")}</button>
-                <button className="mpr-pill" aria-pressed={mode === "chart"} onClick={() => pickMode("chart")}>{L("Palmarès", "Chart")}</button>
-                {genres.map(g => <button key={g} className="mpr-pill" aria-pressed={mode === "genre:" + g} onClick={() => pickMode("genre:" + g)}>{g}</button>)}
-              </div>
-              {nxt && <div className="mpr-next">{L("Prochaine : ", "Up next: ")}<b>{nxt.title}</b> · {nxt.artist}</div>}
+              {nxt && <div className="mpr-next">{L("Prochaine : ", "Up next: ")}<b>{isJingle(nxt) ? L("annonce MetalPrompt", "MetalPrompt station ID") : nxt.title}</b>{isJingle(nxt) ? "" : " · " + nxt.artist}</div>}
             </>}
         </section>
 
@@ -285,12 +284,12 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       </div>
 
       <section className="mpr-card mpr-all" aria-label={L("Toutes les chansons", "All tracks")}>
-        <h3>{L("Toutes les chansons", "All tracks")} · {items.length}</h3>
-        {items.length === 0 && !loading ? <div className="mpr-empty">{L("Sois le premier à soumettre ta chanson.", "Be the first to submit your track.")}</div> :
-          <ul>{items.map(it => <li key={it.id}>
+        <h3>{L("Toutes les chansons", "All tracks")} · {songsOnly.length}</h3>
+        {songsOnly.length === 0 && !loading ? <div className="mpr-empty">{L("Sois le premier à soumettre ta chanson.", "Be the first to submit your track.")}</div> :
+          <ul>{songsOnly.map(it => <li key={it.id}>
             <div className="mpr-row" aria-current={cur && cur.id === it.id} style={{ cursor: "default" }}>
               {it.image_url ? <img className="mpr-thumb" src={it.image_url} alt="" loading="lazy" /> : <span className="mpr-thumb" />}
-              <span className="mpr-rt"><b>{it.title}</b><span>{it.artist}{it.genre ? " · " + it.genre : ""}{cur && cur.id === it.id && playing ? L(" · en ondes", " · on air") : ""}</span></span>
+              <span className="mpr-rt"><b>{it.title}</b><span>{it.artist}{it.genre ? " · " + it.genre : ""}{cur && cur.id === it.id ? L(" · en ondes", " · on air") : ""}</span></span>
               <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 <button className="mpr-pill" aria-pressed={voted.has(it.id)} onClick={() => toggleVote(it.id)}>🤘</button>
                 <a className="mpr-ext" href={it.url} target="_blank" rel="noopener noreferrer">{sunoId(it) ? "Suno ↗" : L("Écouter ↗", "Listen ↗")}</a>

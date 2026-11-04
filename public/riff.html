@@ -360,6 +360,7 @@ body.embed main{padding-top:14px;}
     <div class="btn-row">
       <button class="bs" id="btnRender" disabled data-en="⏺ Full mix">⏺ Mix complet</button>
       <button class="bs" id="btnRenderSong" disabled data-en="⤓ Export full sequence">⤓ Export séquence</button>
+      <button class="bp" id="btnMidi" type="button" title="Fichier .mid à donner à Suno Studio (MIDI → audio)">🎹 Export MIDI (pour Suno)</button>
     </div>
     <a href="melody.html" class="bp" style="display:block;margin-top:12px;text-decoration:none;text-align:center;font-size:1.15rem;padding:14px 22px;" data-en="🎵 ADVANCED MELODY GENERATOR (varied, editable) →">🎵 GÉNÉRATEUR DE MÉLODIE (varié, éditable) →</a>
     <div class="sb"><div class="dot" id="dotRec"></div><span id="txtRec" data-en="Generate a riff first">Génère un riff d'abord</span></div>
@@ -824,6 +825,58 @@ function _makeCurve(amt){
 function noteFreqHz(note){return Tone.Frequency(note).toFrequency();}
 function semiHz(base,semi){return base*Math.pow(2,semi/12);}
 
+// ═══════════════ EXPORT MIDI (nov. 2026) — MetalPrompt compose, Suno fait le son ═══════════════
+// Format 1 : piste tempo + guitare (ch1, GM 30) + basse (ch2, GM 34) + batterie (ch10 : 36 kick, 38 snare, 42 hihat).
+// Suit la page : beat = batterie, riff = guitare + basse, sinon tout. 16e de note = 120 ticks (480/noire).
+// Tempo variable des sections (arr.tempo) → un changement de tempo MIDI au besoin.
+async function exportMidiRiff(p){
+  if(!p){document.getElementById('txtRec').textContent=T('Génère d\'abord','Generate first');return;}
+  const LY=LAYERS(TOOL_STEM), a=p.arr, TPQ=480, TS=TPQ/4;
+  const dur=Math.min(30, Math.max(6, parseInt(document.getElementById('dur').value)||15));
+  const _tempo=(a.tempo&&a.tempo.length)?a.tempo:null, L=a.L||16, base=(60/p.bpm)/4;
+  let total=0,acc=0; while(acc<dur&&total<20000){acc+=base/(_tempo?(_tempo[total%L]||1):1);total++;}
+  const vlq=n=>{const b=[n&0x7f];while(n>>=7)b.unshift((n&0x7f)|0x80);return b;};
+  const u32=n=>[(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255],u16=n=>[(n>>8)&255,n&255];
+  const track=(evs)=>{evs.sort((x,y)=>x.t-y.t||((x.b[0]&0xF0)===0x80?-1:(y.b[0]&0xF0)===0x80?1:0));const o=[];let last=0;evs.forEach(e=>{o.push(...vlq(e.t-last),...e.b);last=e.t;});o.push(0,0xFF,0x2F,0);return [0x4D,0x54,0x72,0x6B,...u32(o.length),...o];};
+  const txt=(type,str)=>[0xFF,type,...vlq(str.length),...[...str].map(c=>c.charCodeAt(0)&127)];
+  const clamp=n=>Math.max(0,Math.min(127,Math.round(n)));
+  // piste 0 : tempo + mesure
+  const t0=[{t:0,b:[0xFF,0x58,0x04,4,2,24,8]},{t:0,b:txt(0x03,'MetalPrompt '+(p.style||'')+' '+p.bpm+' BPM')}];
+  let lastTm=null;
+  for(let s=0;s<total;s++){const tm=_tempo?(_tempo[s%L]||1):1;if(tm!==lastTm){const us=Math.round(60000000/(p.bpm*tm));t0.push({t:s*TS,b:[0xFF,0x51,0x03,(us>>16)&255,(us>>8)&255,us&255]});lastTm=tm;}}
+  const tracks=[track(t0)];
+  const rootMidi=Tone.Frequency(p.root).toMidi();
+  if(LY.gtr){
+    const ev=[{t:0,b:txt(0x03,'Guitar')},{t:0,b:[0xC0,30]}];let gi=0;
+    for(let s=0;s<total;s++){const i=s%L;if(!a.guit[i])continue;
+      const semi=((a.note&&a.note[i]!=null)?a.note[i]:p.noteSeq[gi%p.noteSeq.length])+a.trans[i];gi++;
+      let n=1;while(n<8&&s+n<total&&!a.guit[(s+n)%L])n++;
+      const on=s*TS,len=Math.max(30,Math.round(n*TS*0.95));
+      [0,7].forEach(iv=>{const k=clamp(rootMidi+semi+iv);ev.push({t:on,b:[0x90,k,iv?82:104]});ev.push({t:on+len,b:[0x80,k,0]});});   // power chord (fondamentale + quinte)
+    }
+    tracks.push(track(ev));
+  }
+  if(LY.bass){
+    const ev=[{t:0,b:txt(0x03,'Bass')},{t:0,b:[0xC1,34]}];
+    for(let s=0;s<total;s++){const i=s%L;if(!a.bass[i])continue;
+      const k=clamp(rootMidi-12+((a.bnote&&a.bnote[i]!=null)?a.bnote[i]:0)+a.trans[i]);
+      ev.push({t:s*TS,b:[0x91,k,100]});ev.push({t:s*TS+Math.round(TS*0.85),b:[0x81,k,0]});
+    }
+    tracks.push(track(ev));
+  }
+  if(LY.drums){
+    const ev=[{t:0,b:txt(0x03,'Drums')}];
+    for(let s=0;s<total;s++){const i=s%L;
+      [[a.kick,36,112],[a.snare,38,104],[a.hihat,42,72]].forEach(([arr,k,v])=>{if(arr&&arr[i]){ev.push({t:s*TS,b:[0x99,k,v]});ev.push({t:s*TS+60,b:[0x89,k,0]});}});
+    }
+    tracks.push(track(ev));
+  }
+  const bytes=[0x4D,0x54,0x68,0x64,...u32(6),...u16(1),...u16(tracks.length),...u16(TPQ),...tracks.flat()];
+  const lbl=TOOL==='beat'?'BEAT':TOOL==='riff'?'RIFF':'MIX';
+  triggerDownload(new Blob([new Uint8Array(bytes)],{type:'audio/midi'}),`metalprompt_${lbl}_${p.bpm}bpm_${String(p.root).replace('#','s')}_${dur}s.mid`);
+  document.getElementById('txtRec').textContent=T('MIDI exporté — importe-le dans Suno Studio','MIDI exported — import it into Suno Studio');
+}
+
 async function renderAndDownload(p, stem){
   stem=stem||TOOL_STEM;   // 'full' = mix complet · 'beat' = batterie+basse+riff · 'melody' = lead seul · 'drums' · 'riff'
   const LY=LAYERS(stem);
@@ -1143,6 +1196,7 @@ document.getElementById('btnPlay').addEventListener('click',async()=>{try{if(cur
 document.getElementById('btnPlayBeat').addEventListener('click',async()=>{try{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat,'beat');}else{document.getElementById('txtPlay').textContent=T('⚠ Génère un riff d\'abord','⚠ Generate a riff first');}}catch(e){document.getElementById('txtPlay').textContent='⚠ '+(e&&e.message?e.message:e);console.error(e);}});
 document.getElementById('btnPlayMelody').addEventListener('click',async()=>{try{if(currentPat){if(isPlaying)stopPlay();await startPlay(currentPat,'melody');}else{document.getElementById('txtPlay').textContent=T('⚠ Génère un riff d\'abord','⚠ Generate a riff first');}}catch(e){document.getElementById('txtPlay').textContent='⚠ '+(e&&e.message?e.message:e);console.error(e);}});
 document.getElementById('btnStop').addEventListener('click',stopPlay);
+document.getElementById('btnMidi').addEventListener('click',async()=>{if(isPlaying)stopPlay();await exportMidiRiff(currentPat);});
 document.getElementById('btnRender').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await renderAndDownload(currentPat);}});
 document.getElementById('btnRenderBeat').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await renderAndDownload(currentPat,'beat');}});
 document.getElementById('btnRenderMelody').addEventListener('click',async()=>{if(currentPat){if(isPlaying)stopPlay();await renderAndDownload(currentPat,'melody');}});
@@ -1370,6 +1424,8 @@ document.getElementById('btnRenderSong').addEventListener('click',async()=>{
   fillScore=function(p){ if(!p)return; if(unlocked(p)){_fill(p);setUnlockedUI();} else setLockedUI(p); };
   const _song=songPattern;
   songPattern=function(){const o=_song();o.__song=true;return o;};
+  const _midi=exportMidiRiff;
+  exportMidiRiff=async function(p){ if(!p)return _midi(p); if(!unlocked(p)){ if(!confirm(T('Utiliser 1 crédit Studio pour débloquer ','Use 1 Studio credit to unlock ')+what()+' ?'))return; if(!(await unlock(p)))return; } return _midi(p); };
   const _render=renderAndDownload;
   renderAndDownload=async function(p,stem){ if(!unlocked(p)){ if(!confirm(T('Utiliser 1 crédit Studio pour débloquer ','Use 1 Studio credit to unlock ')+what()+' ?'))return; if(!(await unlock(p)))return; } return _render(p,stem); };
 })();

@@ -2136,7 +2136,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           </div>}
         </div>
         {!adjustOpen&&!ideaInput&&<div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"7px",margin:"-4px 0 18px"}}>
-          {["Lamb of God","Slipknot","Despised Icon","Mayhem","Emperor + Dark Tranquillity"].map(x=>(
+          {["Iron Maiden","Lamb of God","Slipknot","Despised Icon","Mayhem","Emperor + Dark Tranquillity"].map(x=>(
             <button key={x} onClick={()=>setIdeaInput(x)} style={{...CHIP,borderRadius:"8px"}}>{x}</button>))}
         </div>}
         <div style={{textAlign:"center",fontSize:"0.74rem",color:"#9CA3AF",margin:"4px auto 20px",lineHeight:1.6,maxWidth:"60ch"}}><span style={{color:"#FF6A2B",fontWeight:700}}>{L("Inspiré, jamais copié.","Influenced, never copied.")}</span> {L("Aucun nom d'artiste, aucune mélodie ni parole existante dans tes prompts.","No artist names, melodies or existing lyrics ever end up in your prompts.")}</div>

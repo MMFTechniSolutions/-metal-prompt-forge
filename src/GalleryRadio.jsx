@@ -13,7 +13,7 @@
 // · Votes, soumission (2/mois, revue) : mêmes règles qu'avant.
 import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "./supabase.js";
-import { onAir, isJingle } from "./radioSchedule.js";
+import { onAir, isJingle, isHosted, XF } from "./radioSchedule.js";
 
 const CSS = `
 .mpr{--bg:#0C0D0F;--panel:#15171B;--panel2:#1C1F24;--line:#2A2E35;--fg:#F2F1ED;--muted:#8A8F97;--ember:#FF6A2B;--ember2:#FFB36B;--ok:#5FD08A;
@@ -191,7 +191,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   // ce qui joue en ce moment, pour tout le monde
   const air = useMemo(() => onAir(now, pool, grille), [now, pool, grille]);
   const cur = air ? air.cur : null, nxt = air ? air.next : null;
-  const pos = air ? Math.max(0, (now - air.start) / 1000) : 0, dur = cur ? cur.duration : 0;
+  const pos = air ? Math.max(0, (now - air.start) / 1000) : 0, dur = air ? (air.end - air.start) / 1000 : 0;
   const slot = air ? air.cur.id + ":" + air.start : "";
 
   // nouvelle chanson à l'antenne → on note l'heure d'écoute (écoute comptée après 30 s)
@@ -205,10 +205,60 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   }, [now]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!playing) setJoinedLate(false); }, [playing]);
   const firstSlot = useRef("");
+
+  // ── Lecteur maison pour les MP3 hébergés (audio_file) ──
+  // 2 lecteurs audio qui se relaient : fondu enchaîné de XF s, position exacte (synchro), et ça continue
+  // écran barré (la page joue du son, le téléphone la laisse tourner). Les chansons sans MP3 passent par Suno.
+  const els = useRef(null), poolRef = useRef(pool), grilleRef = useRef(grille);
+  poolRef.current = pool; grilleRef.current = grille;
+  const getEls = () => { if (!els.current) els.current = [0, 1].map(() => { const a = new Audio(); a.preload = "auto"; a.dataset.id = ""; return a; }); return els.current; };
+  const unlock = () => getEls().forEach(a => { if (!a.src) { a.muted = true; a.play().then(() => { a.pause(); a.muted = false; }, () => { a.muted = false; }); } });
+  function syncAudio() {
+    const E = getEls(), t = Date.now() + clockOff.current, a = onAir(t, poolRef.current, grilleRef.current);
+    const want = [];
+    if (a && isHosted(a.cur)) {
+      const p = (t - a.start) / 1000, slotS = (a.end - a.start) / 1000;
+      let v = 1;
+      if (a.prev && isHosted(a.prev) && p < XF) v = p / XF;                       // la nouvelle monte
+      if (!isHosted(a.next) && slotS - p < XF) v = Math.min(v, Math.max(0, (slotS - p) / XF)); // fondu avant une chanson Suno
+      want.push({ it: a.cur, pos: p, vol: v });
+      if (a.prev && isHosted(a.prev) && p < XF) want.push({ it: a.prev, pos: (t - a.prevStart) / 1000, vol: Math.max(0, 1 - p / XF) }); // l'autre descend
+    }
+    const pre = a && isHosted(a.next) && (a.end - t) < 30000 ? a.next : null;
+    const used = new Set();
+    want.forEach(w => {
+      let el = E.find(x => x.dataset.id === w.it.id && !used.has(x)) || E.find(x => !used.has(x) && !want.some(o => o.it.id === x.dataset.id));
+      if (!el) return; used.add(el);
+      if (el.dataset.id !== w.it.id) { el.dataset.id = w.it.id; el.src = w.it.audio_file; el.currentTime = w.pos; }
+      else if (el.readyState > 0 && Math.abs(el.currentTime - w.pos) > 1.5 && w.pos < (el.duration || 1e9) - 0.5) el.currentTime = w.pos;
+      el.volume = Math.min(1, Math.max(0, w.vol));
+      if (el.paused && !el.ended) el.play().catch(() => {});
+    });
+    E.forEach(el => {
+      if (used.has(el)) return;
+      if (!el.paused) el.pause();
+      if (pre && !E.some(x => x.dataset.id === pre.id)) { el.dataset.id = pre.id; el.src = pre.audio_file; el.load(); }   // précharge la suivante
+    });
+  }
+  useEffect(() => {
+    if (!playing) { if (els.current) els.current.forEach(a => a.pause()); return; }
+    syncAudio(); const iv = setInterval(syncAudio, 250);
+    return () => clearInterval(iv);
+  }, [playing]); // eslint-disable-line react-hooks/exhaustive-deps
+  // écran de verrouillage : titre, pochette, bouton arrêt
+  useEffect(() => {
+    if (!("mediaSession" in navigator) || !cur) return;
+    try {
+      navigator.mediaSession.metadata = new window.MediaMetadata({ title: isJingle(cur) ? "MetalPrompt Radio" : cur.title, artist: isJingle(cur) ? L("En direct 24/7", "Live 24/7") : cur.artist, album: "Radio MetalPrompt", artwork: cur.image_url ? [{ src: cur.image_url, sizes: "512x512", type: "image/jpeg" }] : [] });
+      navigator.mediaSession.setActionHandler("pause", () => { userStopped.current = true; setPlaying(false); });
+      navigator.mediaSession.setActionHandler("stop", () => { userStopped.current = true; setPlaying(false); });
+      navigator.mediaSession.setActionHandler("play", () => { userStopped.current = false; setPlaying(true); });
+    } catch { /* navigateur sans contrôles */ }
+  }, [slot]); // eslint-disable-line react-hooks/exhaustive-deps
   function listen() {
     if (playing) { userStopped.current = true; setPlaying(false); return; }
-    userStopped.current = false;
-    firstSlot.current = slot; setJoinedLate(pos > 8); setPlaying(true);
+    userStopped.current = false; unlock();
+    firstSlot.current = slot; setJoinedLate(pos > 8 && !isHosted(cur)); setPlaying(true);
   }
   useEffect(() => { if (playing && slot !== firstSlot.current) setJoinedLate(false); }, [slot, playing]);
 
@@ -216,7 +266,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   // pour le navigateur). Si la page a été ouverte directement sans aucun clic, le navigateur bloque le son :
   // la radio part alors au premier toucher/clic n'importe où sur la page. ■ l'arrête pour de bon.
   const userStopped = useRef(false);
-  const startNow = () => { if (userStopped.current || playing || !cur) return; firstSlot.current = slot; setJoinedLate(pos > 8); setPlaying(true); };
+  const startNow = () => { if (userStopped.current || playing || !cur) return; unlock(); firstSlot.current = slot; setJoinedLate(pos > 8 && !isHosted(cur)); setPlaying(true); };
   useEffect(() => {
     if (!visible || !cur || playing || userStopped.current) return;
     const ua = typeof navigator !== "undefined" && navigator.userActivation;
@@ -287,7 +337,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
 
   return (<>
     <style>{CSS}</style>
-    {playing && cur && <iframe key={slot} className="mpr-hidden-frame" title={cur.title} src={`https://suno.com/embed/${cur.sunoId}?autoplay=1`} allow="autoplay; encrypted-media" aria-hidden="true" tabIndex={-1} />}
+    {playing && cur && !isHosted(cur) && <iframe key={slot} className="mpr-hidden-frame" title={cur.title} src={`https://suno.com/embed/${cur.sunoId}?autoplay=1`} allow="autoplay; encrypted-media" aria-hidden="true" tabIndex={-1} />}
     {!visible && playing && cur && <div className="mpr-mini" role="region" aria-label={L("Radio MetalPrompt en direct", "MetalPrompt Radio live")}>
       {cur.image_url ? <img src={cur.image_url} alt="" /> : <span className="ph" />}
       <button className="t" onClick={() => onOpen && onOpen()} title={L("Ouvrir la radio", "Open the radio")}>

@@ -35,24 +35,34 @@ function cycleOrder(songs, jingles, cycle) {
 }
 
 // → { cur, start, end, next, show } ou null. start/end en ms (horloge du serveur).
+// MP3 hébergé (audio_file) : joué par notre lecteur → fondu enchaîné de XF secondes.
+// Sa case dans la grille dure duration − XF : la suivante embarque pendant ses XF dernières secondes.
+export const XF = 4;
+export const isHosted = it => !!(it && it.audio_file);
+const slotLen = it => Math.max(5, it.duration - (isHosted(it) ? XF : 0));
+
+// → { cur, start, end, next, prev, prevStart, show } ou null. start/end en ms (horloge du serveur).
 export function onAir(ms, items, grille) {
-  const all = items.filter(it => it.duration > 5 && it.sunoId).sort((a, b) => (a.id < b.id ? -1 : 1));
+  const all = items.filter(it => it.duration > 5 && (it.sunoId || it.audio_file)).sort((a, b) => (a.id < b.id ? -1 : 1));
   const jingles = all.filter(isJingle);
   let songs = all.filter(it => !isJingle(it)), epoch = EPOCH, show = currentShow(ms, grille);
   if (show) { const f = songs.filter(it => genreMatch(it, show.genre)); if (f.length >= MIN_SHOW) { songs = f; epoch = show.startMs; } else show = null; }
   if (!songs.length) return null;
-  const L = cycleOrder(songs, jingles, 0).reduce((t, it) => t + it.duration, 0);   // longueur fixe d'un tour
+  const L = cycleOrder(songs, jingles, 0).reduce((t, it) => t + slotLen(it), 0);   // longueur fixe d'un tour
   const T = (ms - epoch) / 1000, cycle = Math.floor(T / L);
   let t = T - cycle * L, acc = 0;
   const order = cycleOrder(songs, jingles, cycle);
   for (let k = 0; k < order.length; k++) {
-    const d = order[k].duration;
+    const d = slotLen(order[k]);
     if (t < acc + d) {
       // début calculé depuis l'époque (pas depuis « maintenant ») et arrondi à la ms : la même valeur
       // à chaque seconde, sinon les erreurs d'arrondi changent la clé du lecteur et la chanson repart du début
       const start = Math.round(epoch + (cycle * L + acc) * 1000), end = start + Math.round(d * 1000);
       const next = order[k + 1] || cycleOrder(songs, jingles, cycle + 1)[0];
-      return { cur: order[k], start, end, next, show };
+      let prev = order[k - 1], prevStart;
+      if (!prev) { const po = cycleOrder(songs, jingles, cycle - 1); prev = po[po.length - 1]; }
+      if (prev) prevStart = start - Math.round(slotLen(prev) * 1000);
+      return { cur: order[k], start, end, next, prev, prevStart, show };
     }
     acc += d;
   }

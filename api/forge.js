@@ -378,7 +378,10 @@ export default function handler(req, res) {
   // Recommandation de modèle Suno par genre (mieux / bon / moins bon)
   let modelRec;
   // Suno v6 (9 sept. 2026) : v6 / v6-wild / v6-mini — TOUS les modèles précédents (v5.5, v5, v4.5) sont retirés.
-  if (/raw|kvlt|old.?school|grind|crust|d.?beat|war metal|primitive|dsbm|lo.?fi|death(?!core)|black|thrash|brutal|slam|sludge/.test(_gtxt))   // métal extrême → wild (test 2026-11-02 : plus de grain, moins électronique)
+  // CHUG SANS ÉCHO (test 2026-11-04, F1) : v6-wild met un écho sur le chug palm-muted du death; v6 chug sec. Thrash et black restent en wild (sonnaient bien).
+  if (/death(?!core)|brutal|slam|groove/.test(_gtxt) && !/black|thrash|grind|crust|d.?beat|war metal|raw|kvlt|primitive|lo.?fi/.test(_gtxt))
+    modelRec = { best:'v6', good:'v6-wild', weak:'v6-mini', why: L('chug sec : v6-wild ajoute un écho sur le palm-muted', 'dry chug: v6-wild adds an echo on palm mutes') };
+  else if (/raw|kvlt|old.?school|grind|crust|d.?beat|war metal|primitive|dsbm|lo.?fi|death(?!core)|black|thrash|brutal|slam|sludge/.test(_gtxt))   // métal extrême → wild (test 2026-11-02 : plus de grain, moins électronique)
     modelRec = { best:'v6-wild', good:'v6', weak:'v6-mini', why: L('sorties moins prévisibles = le grain cru et l\'imperfection', 'less predictable output = raw grit and imperfection') };
   else if (/avant|experimental|dissonant|math|noise/.test(_gtxt))
     modelRec = { best:'v6-wild', good:'v6', weak:'v6-mini', why: L('variation recherchée sur les genres tordus', 'wanted variance on the weird genres') };
@@ -658,6 +661,26 @@ export default function handler(req, res) {
   // Acronymes de genre écrits au long (Suno comprend mal « nwobhm ») — test Iron Maiden 2026-11-02
   const ORDERED = _collapse(PRIORITY).map(x => String(x).replace(/\bnwobhm\b/gi, 'new wave of british heavy metal, classic heavy metal').replace(/\bnwothm\b/gi, 'new wave of traditional heavy metal').replace(/\bskank(ing)? beats?\b/gi, 'fast punk-style beat'));   // « skank » = nom d'artiste pour Suno → génération REFUSÉE (test 2026-11-03)
 
+  // ANTI-ÉCHO DU CHUG (tests 2026-11-04, playlist « Tests Écho ») : presque toutes les sorties avaient un écho sur le picking palm-muted.
+  // Death 85-98 : « down-tuned » gonflait les basses (trop amplifié pour l'époque) → « dry mid-heavy palm-muted riffs » (version E2, gagnante).
+  // Autres genres à chug : on garde l'accordage, on ajoute juste « dry » au riff. Thrash et black sonnaient bien → pas touchés.
+  const _chugGenre = !_isEraDeath && /death|deathcore|groove|metalcore|djent|slam|beatdown|nu.?metal/.test(_gtxt) && !/thrash|black|doom|sludge|gaze|post/.test(_gtxt);
+  if (_isEraDeath) {
+    const _DT = /\b(down-?tuned|low-?tuned)\b\s*/gi;
+    for (let i = ORDERED.length - 1; i >= 0; i--) {
+      const t = String(ORDERED[i]);
+      if (t === _tunP || /^(down-?tuned|low-?tuned)( guitars?)?$/i.test(t.trim())) { ORDERED.splice(i, 1); continue; }
+      ORDERED[i] = t.replace(_DT, '').replace(/\s{2,}/g, ' ').trim();
+    }
+    const _pm = ORDERED.findIndex(x => /palm.?mut|chug/i.test(x));
+    if (_pm > -1) ORDERED[_pm] = 'dry mid-heavy palm-muted riffs';
+    else { const _b = ORDERED.indexOf(bpmTag); ORDERED.splice(_b > -1 ? _b + 1 : Math.min(3, ORDERED.length), 0, 'dry mid-heavy palm-muted riffs'); }
+  } else if (_chugGenre) {
+    const _pm = ORDERED.findIndex(x => /palm.?mut|chug/i.test(x) && !/\bdry\b/i.test(x));
+    if (_pm > -1) ORDERED[_pm] = 'dry ' + String(ORDERED[_pm]);
+  }
+  const _antiEcho = _isEraDeath ? ['delay', 'echo', 'slapback', 'sub bass', 'boomy low end', 'modern production'] : _chugGenre ? ['delay', 'echo', 'slapback'] : [];
+
   const RICH_BUDGET = 420;   // mesuré : au-delà on empile des synonymes, pas de l'information
   const _fit = (arr, budget) => { const o = []; for (const t of arr) { if (o.length && (o.join(', ') + ', ' + t).length > budget) break; o.push(t); } return o; };
   const styleStr  = _fit(ORDERED, RICH_BUDGET).join(', ');
@@ -728,7 +751,7 @@ export default function handler(req, res) {
   if (/\bgrunge\b/.test(_gtxt) && !/post-grunge/.test(_gtxt)) _antiLow.push('pop punk', 'skate punk', 'polished vocals');   // sans ça, le grunge sonnait Green Day (test 2026-11-03)
   // Voix criée mi-grave voulue (baritone/chesty/low-mid) : on bloque l'aigu et le guttural, pas le grave (test Pantera 1992 : « c'est mieux »).
   if (/baritone|chesty|low-mid/.test(_voxUsed) && !/growl|guttural/.test(_voxUsed)) _antiLow.push('high-pitched vocals', 'shrieks', 'falsetto', 'guttural');   // sans « epic », NWOBHM retombait en AC/DC (test Maiden 2026-11-02)
-  const excStr = dedup([..._antiLow, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, 8).join(', ');
+  const excStr = dedup([..._antiLow, ..._antiEcho, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, 8 + _antiEcho.length).join(', ');
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)
   const NAME = { intro: 'Intro', buildup: 'Build-up', verse: 'Verse', prechorus: 'Pre-Chorus', chorus: 'Chorus', breakdown: 'Breakdown', halftime: 'Half-Time', blastsection: 'Blast Section', drop: 'Drop', solo: 'Guitar Solo', interlude: 'Interlude', atmosphericbreak: 'Atmospheric Break', spokenword: 'Spoken Word', gangchant: 'Gang Chant', scream: 'Scream Section', riffbreak: 'Riff Break', bridge: 'Bridge', outro: 'Outro' };

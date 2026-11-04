@@ -76,6 +76,9 @@ const CSS = `
 .mpr-form{display:flex;flex-direction:column;gap:9px}
 .mpr-form input,.mpr-form select{background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--fg);font:inherit;font-size:14px;padding:10px 12px;width:100%}
 .mpr-small{font-size:12px;color:var(--muted);margin:0}
+.mpr-check{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.45;color:var(--muted);cursor:pointer;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.mpr-check input{width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:var(--ember)}
+.mpr-ta{background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--fg);font:inherit;font-size:14px;padding:10px 12px;width:100%;resize:vertical}
 
 /* lecteur Suno caché : le son joue, l'animation prend sa place */
 .mpr-hidden-frame{position:fixed;left:0;bottom:0;width:2px;height:2px;border:0;opacity:0.01;pointer-events:none;z-index:-1}
@@ -119,6 +122,10 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", artist: "", genre: "Deathcore", url: "" });
   const [formMsg, setFormMsg] = useState("");
+  const [okSong, setOkSong] = useState(false);                       // disclaimer soumission
+  const [showAd, setShowAd] = useState(false);
+  const [ad, setAd] = useState({ nom: "", entreprise: "", courriel: "", message: "" });
+  const [okAd, setOkAd] = useState(false), [adMsg, setAdMsg] = useState(""), [adSent, setAdSent] = useState(false);
   const counted = useRef(new Set()), listenStart = useRef(0), healing = useRef(new Set());
   const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Toronto" });
 
@@ -245,12 +252,13 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   async function submit() {
     if (!user) { onRequestAuth && onRequestAuth(); return; }
     if (!form.title.trim() || !form.url.trim()) { setFormMsg(L("Titre et lien requis.", "Title and link required.")); return; }
+    if (!okSong) { setFormMsg(L("Coche la case des conditions pour envoyer.", "Check the terms box to send.")); return; }
     setFormMsg(L("Envoi…", "Sending…"));
     let url = form.url.trim(), audio_url = null, image_url = null, duration = null;
     if (/suno\.(com|ai)/i.test(url)) {
       try { const r = await fetch("/api/profile?suno=" + encodeURIComponent(url)); if (r.ok) { const j = await r.json(); url = j.url || url; audio_url = j.audio || null; image_url = j.image || null; duration = j.duration || null; } } catch { /* lien gardé tel quel */ }
     }
-    const { error } = await supabase.from("gallery").insert({ title: form.title.trim(), artist: form.artist.trim() || (user.email ? user.email.split("@")[0] : "anon"), genre: form.genre, url, audio_url, image_url, duration, status: "pending" });
+    const { error } = await supabase.from("gallery").insert({ title: form.title.trim(), artist: form.artist.trim() || (user.email ? user.email.split("@")[0] : "anon"), genre: form.genre, url, audio_url, image_url, duration, conditions_acceptees: true, status: "pending" });
     if (error) {
       if (error.code === "42501") { setFormMsg(L("Limite atteinte : 2 chansons par membre par mois. 🤘", "Limit reached: 2 tracks per member per month. 🤘")); return; }
       if (error.code === "23505") { setFormMsg(L("Cette chanson a déjà été soumise.", "This track was already submitted.")); return; }
@@ -258,7 +266,20 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       setFormMsg(L("Erreur — réessaie.", "Error — try again.")); return;
     }
     setFormMsg(L("Merci! Ta chanson sera revue, puis elle passera à la radio. 🤘", "Thanks! Your track will be reviewed, then it goes on the radio. 🤘"));
-    setForm({ title: "", artist: "", genre: "Deathcore", url: "" });
+    setForm({ title: "", artist: "", genre: "Deathcore", url: "" }); setOkSong(false);
+  }
+
+  // demande d'annonceur → table radio_annonceurs (lecture par François seulement)
+  const setA = (k, v) => setAd(a => ({ ...a, [k]: v }));
+  async function sendAd() {
+    if (!ad.nom.trim() || !ad.courriel.trim() || ad.message.trim().length < 5) { setAdMsg(L("Nom, courriel et message requis.", "Name, email and message required.")); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ad.courriel.trim())) { setAdMsg(L("Courriel invalide.", "Invalid email.")); return; }
+    if (!okAd) { setAdMsg(L("Coche la case pour envoyer.", "Check the box to send.")); return; }
+    setAdMsg(L("Envoi…", "Sending…"));
+    const { error } = await supabase.from("radio_annonceurs").insert({ nom: ad.nom.trim(), entreprise: ad.entreprise.trim() || null, courriel: ad.courriel.trim(), message: ad.message.trim(), accepte: true });
+    if (error) { setAdMsg(L("Erreur — réessaie, ou écris-nous sur Discord.", "Error — try again, or write us on Discord.")); return; }
+    setAdSent(true); setAdMsg(L("Merci! On te revient par courriel. 🤘", "Thanks! We'll get back to you by email. 🤘"));
+    setAd({ nom: "", entreprise: "", courriel: "", message: "" }); setOkAd(false);
   }
 
   const top = ranked.slice(0, 10);
@@ -336,14 +357,39 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
           {discordUrl && <a className="mpr-link" href={discordUrl} target="_blank" rel="noopener noreferrer">{L("Rejoins la communauté sur Discord →", "Join the community on Discord →")}</a>}
         </div>
         {showForm && <div className="mpr-form" style={{ marginTop: 12 }}>
-          <p className="mpr-small">{L("Gratuit avec un compte · 2 chansons par mois · revue avant de passer en ondes. Un lien Suno passe directement à la radio. Spotify, YouTube et SoundCloud apparaissent dans la liste.", "Free with an account · 2 tracks per month · reviewed before going on air. A Suno link plays on the radio. Spotify, YouTube and SoundCloud show in the list.")}</p>
+          <p className="mpr-small">{L("Gratuit avec un compte · 2 chansons par mois · revue avant de passer en ondes. Seuls les liens Suno publics jouent à la radio.", "Free with an account · 2 tracks per month · reviewed before going on air. Only public Suno links play on the radio.")}</p>
           <input placeholder={L("Titre de la chanson", "Track title")} value={form.title} onChange={e => setF("title", e.target.value)} />
           <input placeholder={L("Nom d'artiste (optionnel)", "Artist name (optional)")} value={form.artist} onChange={e => setF("artist", e.target.value)} />
           <select value={form.genre} onChange={e => setF("genre", e.target.value)}>{GENRES.map(g => <option key={g} value={g}>{g}</option>)}</select>
           <input placeholder="https://suno.com/song/…" value={form.url} onChange={e => setF("url", e.target.value)} />
-          <button className="mpr-primary" onClick={submit}>{L("Envoyer", "Send")}</button>
+          <label className="mpr-check"><input type="checkbox" checked={okSong} onChange={e => setOkSong(e.target.checked)} />
+            <span>{L("Je confirme que cette chanson est ma création ou que j'ai les droits pour la partager, que le lien Suno est public, et qu'elle ne contient ni haine, ni harcèlement, ni contenu illégal. J'autorise MetalPrompt à la diffuser gratuitement sur la radio et sur ses réseaux pour faire la promotion de la radio. MetalPrompt peut refuser ou retirer une chanson en tout temps, sans préavis. Je reste propriétaire de ma chanson et je peux demander son retrait quand je veux.",
+              "I confirm this song is my own work or that I have the rights to share it, that the Suno link is public, and that it contains no hate, harassment or illegal content. I allow MetalPrompt to broadcast it for free on the radio and on its social channels to promote the radio. MetalPrompt may refuse or remove a song at any time, without notice. I keep ownership of my song and can ask for its removal whenever I want.")}</span></label>
+          <button className="mpr-primary" onClick={submit} disabled={!okSong} style={okSong ? undefined : { opacity: .5, cursor: "not-allowed" }}>{L("Envoyer", "Send")}</button>
           {formMsg && <div className="mpr-small" style={{ color: "var(--ok)" }} role="status">{formMsg}</div>}
         </div>}
+      </section>
+
+      <section className="mpr-card" aria-label={L("Annoncer sur la radio", "Advertise on the radio")}>
+        <div className="mpr-cta">
+          <div style={{ flex: "1 1 240px" }}>
+            <div style={{ fontWeight: 800, fontSize: 17 }}>{L("Tu veux annoncer sur la radio?", "Want to advertise on the radio?")}</div>
+            <p className="mpr-small">{L("Ta marque, ton show, ton band ou ta boutique entre deux chansons, pour un public 100 % metal.", "Your brand, show, band or shop between songs, for a 100% metal audience.")}</p>
+          </div>
+          <button className="mpr-primary" onClick={() => setShowAd(v => !v)}>{showAd ? L("Fermer", "Close") : L("Envoie-nous un message", "Send us a message")}</button>
+        </div>
+        {showAd && !adSent && <div className="mpr-form" style={{ marginTop: 12 }}>
+          <input placeholder={L("Ton nom", "Your name")} value={ad.nom} maxLength={120} onChange={e => setA("nom", e.target.value)} autoComplete="name" />
+          <input placeholder={L("Entreprise / band (optionnel)", "Company / band (optional)")} value={ad.entreprise} maxLength={160} onChange={e => setA("entreprise", e.target.value)} autoComplete="organization" />
+          <input type="email" placeholder={L("Ton courriel", "Your email")} value={ad.courriel} maxLength={200} onChange={e => setA("courriel", e.target.value)} autoComplete="email" />
+          <textarea className="mpr-ta" placeholder={L("Ce que tu veux annoncer, quand, ton budget…", "What you want to advertise, when, your budget…")} value={ad.message} maxLength={2000} rows={4} onChange={e => setA("message", e.target.value)} />
+          <label className="mpr-check"><input type="checkbox" checked={okAd} onChange={e => setOkAd(e.target.checked)} />
+            <span>{L("J'ai compris : envoyer ce formulaire ne réserve aucune place et n'engage personne. MetalPrompt approuve chaque annonce et peut en refuser une sans donner de raison. Le prix, la durée et le texte sont convenus par écrit avant la diffusion. Le contenu doit être légal, sans haine ni fausse représentation. Mes coordonnées servent seulement à me répondre; elles ne sont ni vendues ni partagées.",
+              "I understand: sending this form reserves no spot and commits no one. MetalPrompt approves every ad and may refuse one without giving a reason. Price, length and script are agreed in writing before airing. Content must be legal, with no hate or misrepresentation. My contact info is only used to reply to me; it is never sold or shared.")}</span></label>
+          <button className="mpr-primary" onClick={sendAd} disabled={!okAd} style={okAd ? undefined : { opacity: .5, cursor: "not-allowed" }}>{L("Envoyer", "Send")}</button>
+          {adMsg && <div className="mpr-small" style={{ color: "var(--ember2)" }} role="status">{adMsg}</div>}
+        </div>}
+        {adSent && <div className="mpr-small" style={{ color: "var(--ok)", marginTop: 10 }} role="status">{adMsg}</div>}
       </section>
     </div>
   </>);

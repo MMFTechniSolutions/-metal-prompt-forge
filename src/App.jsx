@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "./supabase.js";
+import Lecons from "./Lecons.jsx";
 
 const RED = "#FF6A2B";   // braise (look Studio, oct. 2026)
 const DARK = "#0C0D0F";
@@ -9,7 +10,7 @@ const CARD = "#141518";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",melodie:"🎤 Melody",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",galerie:"Gallery",riff:"Riff",master:"Master",aimusic:"AI Music",history:"History"},
+    tabs:{genre:"Genre",melodie:"🎤 Melody",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",lecons:"Lessons",galerie:"Gallery",riff:"Riff",master:"Master",aimusic:"AI Music",history:"History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → CLEAR the "Style of Music" field, then paste (limit 1000 chars · sweet spot ≤ 600)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -21,7 +22,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",melodie:"🎤 Mélodie",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",galerie:"Galerie",riff:"Riff",master:"Master",aimusic:"Musique IA",history:"Historique"},
+    tabs:{genre:"Genre",melodie:"🎤 Mélodie",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",lecons:"Leçons",galerie:"Galerie",riff:"Riff",master:"Master",aimusic:"Musique IA",history:"Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → VIDE le champ "Style of Music" puis colle (limite 1000 car. · idéal ≤ 600)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -1990,6 +1991,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
     {id:"melodie",label:L("Mélodie · Riff · Beat","Melody · Riff · Beat"),also:["riff","beat"],req:"elite"},
     {id:"paroles",label:t.tabs.paroles,also:[],req:"pro"},
     {id:"galerie",label:t.tabs.galerie,also:[],req:"free"},
+    {id:"lecons",label:L("Leçons","Lessons"),also:[],req:"free"},
   ];
   const NAV_MORE=[...(isPro?["history"]:[]),"master","aimusic","masterclass","tuto"];
   const MORE_REQ={history:"pro",master:"elite",aimusic:"forge",masterclass:"free",tuto:"free"};
@@ -2565,6 +2567,9 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         </div>
         <div style={{height:80}}/>
       </div>)}
+
+      {/* LEÇONS (nov. 2026) — guitare, basse, penta saxo/violon, méthodes par époque */}
+      {tab==="lecons"&&<Lecons uiLang={uiLang} canAccess={canAccess} onPaywall={()=>setShowPaywall(true)}/>}
 
       {tab==="tuto"&&<div style={S.page}>
         <div style={{...S.card,textAlign:"center",padding:"26px 22px",borderColor:"#FF6A2B44"}}>

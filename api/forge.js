@@ -379,7 +379,9 @@ export default function handler(req, res) {
   let modelRec;
   // Suno v6 (9 sept. 2026) : v6 / v6-wild / v6-mini — TOUS les modèles précédents (v5.5, v5, v4.5) sont retirés.
   // CHUG SANS ÉCHO — OPTION « Chug sec » dans Ajuster, OFF par défaut (décision François 2026-11-04) (test F1) : v6-wild met un écho sur le chug palm-muted du death; v6 chug sec. Thrash et black restent en wild (sonnaient bien).
-  if (b.dryChug && /death(?!core)|brutal|slam|groove/.test(_gtxt) && !/black|thrash|grind|crust|d.?beat|war metal|raw|kvlt|primitive|lo.?fi/.test(_gtxt))
+  if (!/death|black|thrash|grind|core|doom|sludge/.test(_gtxt) && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic|glam/.test(_gtxt))
+    modelRec = { best:'v6-wild', good:'v6', weak:'v6-mini', why: L('NWOBHM : v6-wild sonne moins radio (test Maiden 2026-11-04)', 'NWOBHM: v6-wild sounds less radio-polished (Maiden test 2026-11-04)') };
+  else if (b.dryChug && /death(?!core)|brutal|slam|groove/.test(_gtxt) && !/black|thrash|grind|crust|d.?beat|war metal|raw|kvlt|primitive|lo.?fi/.test(_gtxt))
     modelRec = { best:'v6', good:'v6-wild', weak:'v6-mini', why: L('chug sec : v6-wild ajoute un écho sur le palm-muted', 'dry chug: v6-wild adds an echo on palm mutes') };
   else if (/raw|kvlt|old.?school|grind|crust|d.?beat|war metal|primitive|dsbm|lo.?fi|death(?!core)|black|thrash|brutal|slam|sludge/.test(_gtxt))   // métal extrême → wild (test 2026-11-02 : plus de grain, moins électronique)
     modelRec = { best:'v6-wild', good:'v6', weak:'v6-mini', why: L('sorties moins prévisibles = le grain cru et l\'imperfection', 'less predictable output = raw grit and imperfection') };
@@ -683,10 +685,12 @@ export default function handler(req, res) {
   const _antiEcho = (_dryOn && _isEraDeath) ? ['delay', 'echo', 'slapback', 'sub bass', 'boomy low end', 'modern production'] : _chugGenre ? ['delay', 'echo', 'slapback'] : [];
 
   // NWOBHM classique (Maiden, test 2026-11-04 « oohhhh yeah ») : galop en TRIOLETS + son live; pas d'epic/dramatic (→ Gamma Ray / Blind Guardian)
-  if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic|glam|hard rock/.test(_gtxt)) {
-    for (let i = ORDERED.length - 1; i >= 0; i--) if (/\b(epic|dramatic|theatrical)\b/i.test(ORDERED[i])) ORDERED.splice(i, 1);
+  const _nwobhm = _classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic|glam|hard rock/.test(_gtxt);
+  if (_nwobhm) {
+    for (let i = ORDERED.length - 1; i >= 0; i--) if (/\b(epic|dramatic|theatrical|raw live-band feel)\b/i.test(ORDERED[i])) ORDERED.splice(i, 1);
+    for (let i = 0; i < ORDERED.length; i++) ORDERED[i] = String(ORDERED[i]).replace(/\bharmonized twin guitar melodies\b/i, 'twin lead guitars');   // « harmonized » attirait des harmonies vocales
     const _b = ORDERED.indexOf(bpmTag);
-    ['triplet-feel galloping riffs', 'raw live-band feel'].reverse().forEach(t => { if (!ORDERED.some(x => x.includes(t))) ORDERED.splice(_b > -1 ? _b + 1 : 3, 0, t); });
+    ['solo lead vocal performance by one singer only', 'triplet-feel galloping riffs', 'raw unpolished analog tape', 'untriggered live-room drums', 'chorus lift from guitars and drums only'].reverse().forEach(t => { if (!ORDERED.some(x => x.includes(t))) ORDERED.splice(_b > -1 ? _b + 1 : 3, 0, t); });
   }
   const RICH_BUDGET = 420;   // mesuré : au-delà on empile des synonymes, pas de l'information
   const _fit = (arr, budget) => { const o = []; for (const t of arr) { if (o.length && (o.join(', ') + ', ' + t).length > budget) break; o.push(t); } return o; };
@@ -754,7 +758,7 @@ export default function handler(req, res) {
   const _cleanVox = /clean|sung|singing|tenor|soprano|operatic|melodic|croon|siren/.test(_voxUsed) && !/scream|growl|harsh|rasp|shriek|bark|yell|rap|guttural/.test(_voxUsed);
   if (_cleanVox) _antiLow.push('growls', 'screams', ...(_classic && !/power|symphonic/.test(_gtxt) ? ['choir', 'layered vocal harmonies'] : []));
   if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/hard rock|glam/.test(_gtxt)) _antiLow.push('hard rock', 'boogie');
-  if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) _antiLow.push('power metal', 'speed metal', 'gang vocals', 'gang shouts', 'group vocals', 'backing vocals', 'crowd vocals', 'symphonic', 'operatic');   // Maiden sonnait Gamma Ray / Blind Guardian, gang shouts et chœurs = pas Maiden (tests 2026-11-04)
+  if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) _antiLow.push('power metal', 'speed metal', 'gang vocals', 'gang shouts', 'group vocals', 'backing vocals', 'background singers', 'crowd vocals', 'call and response', 'vocal harmonies', 'layered vocals', 'stacked vocals', 'singalong', 'group chorus', 'symphonic', 'operatic', 'polished', 'radio');   // Maiden sonnait Gamma Ray / Blind Guardian, gang shouts et chœurs = pas Maiden (tests 2026-11-04)
   if (/thrash/.test(_gtxt) && !/death|black|grind/.test(_gtxt)) _antiLow.push('blast beats');
   if (/\bgrunge\b/.test(_gtxt) && !/post-grunge/.test(_gtxt)) _antiLow.push('pop punk', 'skate punk', 'polished vocals');   // sans ça, le grunge sonnait Green Day (test 2026-11-03)
   // Voix criée mi-grave voulue (baritone/chesty/low-mid) : on bloque l'aigu et le guttural, pas le grave (test Pantera 1992 : « c'est mieux »).
@@ -767,14 +771,14 @@ export default function handler(req, res) {
   const _tunTag0 = String(tuning[0] || autoTuning || '').replace(/\s+/g, ' ').trim();
   const _tunTag = (/^standard$/i.test(_tunTag0) || (_sigTun && /^standard( e)?( tuning)?$/i.test(_tunTag0))) ? '' : _tunTag0;
   // Balises qui suivent la VOIX et le GENRE du prompt (bug 2026-11-04 : Iron Maiden sortait « growls over palm-muted riffs » et « final breakdown »)
-  const _vShort = _cleanVox ? 'clean lead vocals' : /growl|guttural/.test(_voxUsed) ? 'growls' : /shriek/.test(_voxUsed) ? 'shrieks' : /scream/.test(_voxUsed) ? 'screams' : /shout|bark|yell|rasp/.test(_voxUsed) ? 'shouted vocals' : /rap/.test(_voxUsed) ? 'rapped vocals' : (harshVox ? 'growls' : 'lead vocals');
+  const _vShort = /siren|belting|tenor/.test(_voxUsed) && !/growl|guttural|harsh/.test(_voxUsed) ? 'belting high lead vocal' : _cleanVox ? 'clean lead vocals' : /growl|guttural/.test(_voxUsed) ? 'growls' : /shriek/.test(_voxUsed) ? 'shrieks' : /scream/.test(_voxUsed) ? 'screams' : /shout|bark|yell|rasp/.test(_voxUsed) ? 'shouted vocals' : /rap/.test(_voxUsed) ? 'rapped vocals' : (harshVox ? 'growls' : 'lead vocals');
   const _coreish = /death|core\b|metalcore|deathcore|grind|slam|djent|nu.?metal|groove|sludge|doom|beatdown|hardcore/.test(_gtxt);
   const DESC = {
-    intro: drums.includes('blast beats') ? 'blast beats, tremolo picking' : (_tunTag ? _tunTag + ' crushing riff' : 'palm-muted opening riff'),
+    intro: (!_coreish && /nwobhm|heavy metal/.test(_gtxt)) ? 'galloping opening riff, twin guitars, no vocals' : drums.includes('blast beats') ? 'blast beats, tremolo picking' : (_tunTag ? _tunTag + ' crushing riff' : 'palm-muted opening riff'),
     buildup: (heavy >= 8 ? 'layered wall of distortion' : 'layered build, rising drums') + ', no vocals',
     verse: (vocals.includes('high-pitched fry screams') && !_cleanVox ? 'fry screams and ' : '') + _vShort + ' over ' + (guitar.includes('chugging riffs') ? 'chugging riffs' : _coreish ? 'palm-muted riffs' : 'driving riffs'),
     prechorus: 'rising drum fill, held guitar chord',
-    chorus: groove >= 6 ? 'syncopated groove riff, double-tracked vocals' : 'full band, double kick, wide chorus',
+    chorus: (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) ? 'solo lead vocal, instrumental lift only' : groove >= 6 ? 'syncopated groove riff, double-tracked vocals' : 'full band, double kick, wide chorus',
     breakdown: !_coreish ? 'half-time riff break, no vocals' : groove >= 7 ? 'half-time groove, shouted gang vocals' : 'low tuned open-note breakdown, pounding floor toms',
     halftime: 'half-time feel, heavy palm mutes',
     blastsection: 'blast beats, tremolo guitars',

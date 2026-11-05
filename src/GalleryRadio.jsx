@@ -418,7 +418,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
                   <div className="mpr-eyebrow">{isJingle(cur) ? L("Annonce MetalPrompt", "MetalPrompt station ID") : <>{air.show ? (air.show.titre || air.show.genre) + " · " : ""}{curRank ? "#" + curRank.rank + L(" au palmarès", " on the chart") : ""}{cur.genre ? " · " + cur.genre : ""}</>}</div>
                   <div className="mpr-title">{cur.title}</div>
                   <div className="mpr-artist">{cur.artist}</div>
-                  <a className="mpr-link" href={cur.url} target="_blank" rel="noopener noreferrer">{L("Voir sur Suno ↗", "View on Suno ↗")}</a>
+                  {!isJingle(cur) && <a className="mpr-link" href={cur.url} target="_blank" rel="noopener noreferrer">{L("Voir sur Suno ↗", "View on Suno ↗")}</a>}
                 </div>
               </div>
               <div className={"mpr-viz" + (playing ? " on" : "")} aria-hidden="true">{BARS.map((st, i) => <i key={i} style={st} />)}</div>

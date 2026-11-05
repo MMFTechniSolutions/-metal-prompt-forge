@@ -990,7 +990,7 @@ Dernière mise à jour : 26 juin 2026
 
 ÉDITEUR
 MMF Techni-Solutions — NEQ : 2279516308
-MetalPrompt est un outil indépendant, non affilié à Suno, Inc. ni à aucun groupe ou artiste cité.
+MetalPrompt est un outil indépendant, non affilié à Suno, Inc. ni à aucun groupe ou artiste.
 Adresse : 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1
 Courriel : mmftechnisolutions@gmail.com
 Responsable de la publication : François Lajoie-Levesque
@@ -1111,7 +1111,7 @@ function SiteFooter({onOpen,uiLang}){
       <button style={lk} onClick={()=>onOpen("terms")}>{fr?"Conditions d'utilisation":"Terms"}</button>
       <button style={lk} onClick={()=>onOpen("sales")}>{fr?"Conditions de vente":"Sales terms"}</button>
       <button style={lk} onClick={()=>onOpen("legal")}>{fr?"Mentions légales":"Legal notice"}</button>
-      <div style={{flexBasis:"100%",fontSize:"0.6rem",color:"#8A8F97",marginTop:"6px"}}>{fr?"MetalPrompt est un outil indépendant, non affilié à Suno, Inc. ni approuvé par aucun groupe ou artiste. Les noms de groupes servent uniquement à décrire un style musical et ne sont jamais écrits dans vos prompts.":"MetalPrompt is an independent tool, not affiliated with Suno, Inc. and not endorsed by any band or artist. Band names are used only to describe a musical style and are never written into your prompts."}</div>
+      <div style={{flexBasis:"100%",fontSize:"0.6rem",color:"#8A8F97",marginTop:"6px"}}>{fr?"MetalPrompt est un outil indépendant, non affilié à Suno, Inc. ni approuvé par aucun groupe ou artiste. Aucun nom d'artiste n'est écrit dans vos prompts.":"MetalPrompt is an independent tool, not affiliated with Suno, Inc. and not endorsed by any band or artist. No artist names are ever written into your prompts."}</div>
     </div>
   );
 }

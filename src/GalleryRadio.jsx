@@ -24,6 +24,8 @@ const CSS = `
 .mpr-head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 18px}
 .mpr-head h2{margin:0;font-weight:800;font-size:clamp(26px,4vw,38px);letter-spacing:-.02em;line-height:1}
 .mpr-head h2 span{color:var(--ember)}
+.mpr-beta{font:700 11px var(--mono);font-style:normal;letter-spacing:.12em;color:var(--bg);background:var(--ember2);border-radius:6px;padding:3px 7px;vertical-align:middle;position:relative;top:-4px}
+.mpr-betanote{font-size:12px;color:var(--ember2);margin:0;flex-basis:100%}
 .mpr-head p{margin:0;color:var(--muted);font-size:14px;flex:1 1 280px}
 .mpr-onair{display:inline-flex;align-items:center;gap:6px;font:600 11px var(--mono);letter-spacing:.12em;color:var(--ember);border:1px solid #5a2a14;border-radius:999px;padding:4px 10px}
 .mpr-onair i{width:8px;height:8px;border-radius:50%;background:var(--ember)}
@@ -351,9 +353,10 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       <div className="mpr-head">
         <div>
           <span className={"mpr-onair" + (cur ? " live" : "")}><i />{cur ? L("EN DIRECT 24/7", "LIVE 24/7") : L("RADIO", "RADIO")}</span>
-          <h2 style={{ marginTop: 8 }}>Radio <span>MetalPrompt</span></h2>
+          <h2 style={{ marginTop: 8 }}>Radio <span>MetalPrompt</span> <em className="mpr-beta">BETA</em></h2>
         </div>
         <p>{L("Les chansons de la communauté, en direct 24/7 : tout le monde entend la même au même moment. Vote pour ta préférée du jour, le palmarès se refait chaque semaine.", "Community tracks, live 24/7: everyone hears the same song at the same time. Vote for your favorite of the day, the chart resets every week.")}</p>
+        <p className="mpr-betanote">{L("La radio est en bêta : des petits bugs sont possibles (coupures, changement de chanson). Dis-le-nous sur Discord, ça nous aide à l'améliorer.", "The radio is in beta: small bugs may happen (cuts, song changes). Tell us on Discord, it helps us improve it.")}</p>
       </div>
 
       <div className="mpr-grid">

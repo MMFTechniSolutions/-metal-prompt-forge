@@ -404,7 +404,6 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
           <span className={"mpr-onair" + (cur ? " live" : "")}><i />{cur ? L("EN DIRECT 24/7", "LIVE 24/7") : L("RADIO", "RADIO")}</span>
           <h2 style={{ marginTop: 8 }}>Radio <span>MetalPrompt</span> <em className="mpr-beta">BETA</em></h2>
         </div>
-        <p>{L("Les chansons de la communauté, en direct 24/7 : tout le monde entend la même au même moment. Vote pour ta préférée du jour, le palmarès se refait chaque semaine.", "Community tracks, live 24/7: everyone hears the same song at the same time. Vote for your favorite of the day, the chart resets every week.")}</p>
         <p className="mpr-betanote">{L("La radio est en bêta : des petits bugs sont possibles (coupures, changement de chanson). Dis-le-nous sur Discord, ça nous aide à l'améliorer.", "The radio is in beta: small bugs may happen (cuts, song changes). Tell us on Discord, it helps us improve it.")}</p>
       </div>
 

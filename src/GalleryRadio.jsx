@@ -12,6 +12,7 @@
 // · Écoutes comptées après 30 s (RPC gallery_play), ignorées si la fonction n'existe pas.
 // · Votes, soumission (2/mois, revue) : mêmes règles qu'avant.
 import { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "./supabase.js";
 import { onAir, isJingle, isHosted, XF } from "./radioSchedule.js";
 
@@ -78,6 +79,16 @@ const CSS = `
 .mpr-form{display:flex;flex-direction:column;gap:9px}
 .mpr-form input,.mpr-form select{background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--fg);font:inherit;font-size:14px;padding:10px 12px;width:100%}
 .mpr-small{font-size:12px;color:var(--muted);margin:0}
+.mpr-pip{padding:10px 12px;gap:8px;max-width:none}
+.mpr-pip .mpr-piprow{display:flex;align-items:center;gap:10px;min-width:0}
+.mpr-pip .mpr-cover{width:56px;height:56px}
+.mpr-pip .mpr-meta{flex:1;gap:1px}
+.mpr-pip .mpr-title{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mpr-pip .mpr-artist{font-size:12px}
+.mpr-pip .mpr-onair{padding:2px 7px;font-size:9px;align-self:flex-start}
+.mpr-pip .mpr-play{width:42px;height:42px;font-size:16px;flex-shrink:0}
+.mpr-pip .mpr-viz{height:44px;padding:6px 8px 4px}
+.mpr-pip .mpr-next{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mpr-steps{margin:0;padding-left:20px;font-size:13px;line-height:1.5;color:var(--fg);display:flex;flex-direction:column;gap:4px}
 .mpr-steps li::marker{color:var(--ember);font-weight:700}
 .mpr-check{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.45;color:var(--muted);cursor:pointer;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
@@ -339,7 +350,43 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   const top = ranked.slice(0, 10);
   const curRank = cur ? ranked.find(r => r.it.id === cur.id) : null;
 
+  // ── Fenêtre flottante (« Détacher ») : Document Picture-in-Picture (Chrome/Edge ordi, reste par-dessus
+  // les autres fenêtres), sinon petite fenêtre popup. Le son reste joué par la page : rien ne coupe.
+  const [pipWin, setPipWin] = useState(null);
+  const canPip = typeof window !== "undefined" && ("documentPictureInPicture" in window || !(window.matchMedia && window.matchMedia("(pointer: coarse)").matches));
+  async function detach() {
+    if (pipWin) { pipWin.close(); return; }
+    let w = null;
+    try {
+      if ("documentPictureInPicture" in window) w = await window.documentPictureInPicture.requestWindow({ width: 360, height: 190 });
+      else w = window.open("", "mpradio", "width=380,height=230,menubar=no,toolbar=no,location=no,status=no");
+    } catch { w = null; }
+    if (!w) return;
+    w.document.title = "Radio MetalPrompt";
+    document.querySelectorAll('link[rel="stylesheet"]').forEach(l => w.document.head.appendChild(l.cloneNode(true)));
+    w.document.body.style.cssText = "margin:0;background:#0C0D0F";
+    w.addEventListener("pagehide", () => setPipWin(null));
+    if (!playing) { userStopped.current = false; unlock(); setPlaying(true); }
+    setPipWin(w);
+  }
+  useEffect(() => () => { if (pipWin) pipWin.close(); }, [pipWin]);
+
   return (<>
+    {pipWin && cur && createPortal(<div className="mpr mpr-pip">
+      <style>{CSS}</style>
+      <div className="mpr-piprow">
+        {cur.image_url ? <img className={"mpr-cover" + (playing ? " on" : "")} src={cur.image_url} alt="" /> : <div className="mpr-cover" />}
+        <div className="mpr-meta">
+          <span className={"mpr-onair" + (playing ? " live" : "")}><i />{L("EN DIRECT", "LIVE")}</span>
+          <div className="mpr-title">{isJingle(cur) ? L("Annonce MetalPrompt", "MetalPrompt station ID") : cur.title}</div>
+          <div className="mpr-artist">{isJingle(cur) ? "Radio MetalPrompt" : cur.artist}</div>
+        </div>
+        <button className="mpr-play" onClick={listen} aria-label={playing ? L("Arrêter", "Stop") : L("Écouter en direct", "Listen live")}>{playing ? "■" : "▶"}</button>
+      </div>
+      <div className={"mpr-viz" + (playing ? " on" : "")} aria-hidden="true">{BARS.map((st, i) => <i key={i} style={st} />)}</div>
+      {dur > 0 && <div className="mpr-bar"><i style={{ width: Math.min(100, pos / dur * 100) + "%" }} /></div>}
+      {nxt && <div className="mpr-next">{L("Prochaine : ", "Up next: ")}<b>{isJingle(nxt) ? L("annonce", "station ID") : nxt.title}</b></div>}
+    </div>, pipWin.document.body)}
     <style>{CSS}</style>
     {playing && cur && !isHosted(cur) && <iframe key={slot} className="mpr-hidden-frame" title={cur.title} src={`https://suno.com/embed/${cur.sunoId}?autoplay=1`} allow="autoplay; encrypted-media" aria-hidden="true" tabIndex={-1} />}
     {!visible && playing && cur && <div className="mpr-mini" role="region" aria-label={L("Radio MetalPrompt en direct", "MetalPrompt Radio live")}>
@@ -384,6 +431,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
               </div>}
               <div className="mpr-ctrl">
                 <button className="mpr-play" onClick={listen} aria-label={playing ? L("Arrêter", "Stop") : L("Écouter en direct", "Listen live")}>{playing ? "■" : "▶"}</button>
+                {canPip && <button className="mpr-btn" onClick={detach} title={L("Ouvrir le lecteur dans une petite fenêtre flottante", "Open the player in a small floating window")}>{pipWin ? L("⧉ Rattacher", "⧉ Dock") : L("⧉ Détacher", "⧉ Pop out")}</button>}
                 {!isJingle(cur) && <button className="mpr-vote" aria-pressed={voted.has(cur.id)} onClick={() => toggleVote(cur.id)}>🤘 {voted.has(cur.id) ? L("Voté", "Voted") : L("Voter", "Vote")}</button>}
               </div>
               {msg && <div className="mpr-msg" role="status">{msg}</div>}

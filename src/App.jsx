@@ -11,7 +11,7 @@ const CARD = "#141518";
 const T = {
   en: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",melodie:"🎤 Melody",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",masterclass:"Masterclass",lecons:"Lessons",galerie:"Radio",riff:"Riff",master:"Master",aimusic:"AI Music",history:"History"},
+    tabs:{genre:"Genre",melodie:"🎤 Melody",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Lyrics",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Learn",manifeste:"Manifesto",masterclass:"Masterclass",lecons:"Lessons",galerie:"Radio",riff:"Riff",master:"Master",aimusic:"AI Music",history:"History"},
     generate:"FORGE",generating:"FORGING...",
     step1t:"STEP 1 — Style of Music field",step1d:'Open Suno → Create → CLEAR the "Style of Music" field, then paste (limit 1000 chars · sweet spot ≤ 600)',
     step2t:"STEP 2 — Lyrics field",step2d:"Paste structure blocks at the TOP of your lyrics. Suno reads them as instructions, not words to sing.",
@@ -23,7 +23,7 @@ const T = {
   },
   fr: {
     sub:"Suno AI · Deathcore × Metalcore × Groove Metal",
-    tabs:{genre:"Genre",melodie:"🎤 Mélodie",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",masterclass:"Masterclass",lecons:"Leçons",galerie:"Radio",riff:"Riff",master:"Master",aimusic:"Musique IA",history:"Historique"},
+    tabs:{genre:"Genre",melodie:"🎤 Mélodie",drums:"Drums",vocals:"Vocals",instrums:"Instruments",structure:"Structure",paroles:"Paroles",organic:"Organic",exclude:"Exclude",output:"Output",tuto:"Tuto",manifeste:"Manifeste",masterclass:"Masterclass",lecons:"Leçons",galerie:"Radio",riff:"Riff",master:"Master",aimusic:"Musique IA",history:"Historique"},
     generate:"FORGER",generating:"FORGE EN COURS...",
     step1t:"ÉTAPE 1 — Champ Style of Music",step1d:'Ouvre Suno → Create → VIDE le champ "Style of Music" puis colle (limite 1000 car. · idéal ≤ 600)',
     step2t:"ÉTAPE 2 — Champ Paroles (Lyrics)",step2d:"Colle les blocs de structure EN HAUT de tes paroles. Suno les lit comme instructions, pas comme paroles à chanter.",
@@ -1592,6 +1592,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [emotions,setEmotions]=useState(SV.emotions ?? {});
   const [advanced,setAdvanced]=useState(false);
   const [showManifesto,setShowManifesto]=useState(false);
+  const [showMan,setShowMan]=useState(false);   // Manifeste (l'âme du site), ouvert depuis le menu « Plus »
   useEffect(()=>{try{if(!localStorage.getItem('mpf_news_202611_v32')){setShowManifesto(true);localStorage.setItem('mp_manifesto_seen','1');}}catch(e){}},[]);
   const closeManifesto=()=>{try{localStorage.setItem('mpf_news_202611_v32','1');}catch(e){}setShowManifesto(false);};
   const [groove,setGroove]=useState(SV.groove ?? 6);
@@ -1995,6 +1996,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       <LandingPage onEnter={()=>setView("app")} uiLang={uiLang} setUiLang={setUiLang} email={user?.email}/>
       <CookieBanner uiLang={uiLang} onPrivacy={()=>setLegalDoc("privacy")}/>
       {showManifesto&&<WhatsNew onClose={closeManifesto} uiLang={uiLang}/>}
+      {showMan&&<Manifesto onClose={()=>setShowMan(false)} uiLang={uiLang}/>}
       <SiteFooter onOpen={setLegalDoc} uiLang={uiLang}/>
       <LegalModal doc={legalDoc} onClose={()=>setLegalDoc(null)} uiLang={uiLang}/>
     </>
@@ -2010,8 +2012,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
     {id:"galerie",label:t.tabs.galerie,also:[],req:"free"},
     ...(SHOW_LECONS?[{id:"lecons",label:L("Leçons","Lessons"),also:[],req:"free"}]:[]),
   ];
-  const NAV_MORE=["master","aimusic","masterclass","tuto"];   // nov. 2026 : Historique retiré du menu (demande de François)
-  const MORE_REQ={history:"pro",master:"elite",aimusic:"forge",masterclass:"free",tuto:"free"};
+  const NAV_MORE=["manifeste","master","aimusic","masterclass","tuto"];   // nov. 2026 : Historique retiré du menu (demande de François)
+  const MORE_REQ={manifeste:"free",history:"pro",master:"elite",aimusic:"forge",masterclass:"free",tuto:"free"};
   const FINE_ROWS=[
     ["drums",L("Batterie","Drums"),drums.size+drumP.size],
     ["vocals",L("Voix","Vocals"),vocals.size+vrange.size+vfx.size],
@@ -2074,6 +2076,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       {showPaywall&&<PaywallModal onClose={()=>setShowPaywall(false)} email={user?.email} uiLang={uiLang}/>}
       <CookieBanner uiLang={uiLang} onPrivacy={()=>setLegalDoc("privacy")}/>
       {showManifesto&&<WhatsNew onClose={closeManifesto} uiLang={uiLang}/>}
+      {showMan&&<Manifesto onClose={()=>setShowMan(false)} uiLang={uiLang}/>}
 
       {warnLogout&&(
         <div style={{position:"fixed",top:0,left:0,right:0,background:"#2a1208",borderBottom:`1px solid ${RED}`,padding:"8px",textAlign:"center",zIndex:500,fontSize:"0.65rem",color:"#FFB36B"}}>
@@ -2104,7 +2107,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
       </div>
       {moreOpen&&<div style={{background:"#0c0c0c",borderBottom:"1px solid #1a1a1a",display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px",padding:"8px 10px"}}>
         {NAV_MORE.map(id=>(
-          <button key={id} onClick={()=>{setTab(id);setMoreOpen(false);}} style={tab===id?{...CHIP_ON,borderRadius:"8px"}:{...CHIP,borderRadius:"8px"}}>{canAccess(MORE_REQ[id])?"":LOCK}{t.tabs[id]||id}</button>))}
+          <button key={id} onClick={()=>{if(id==="manifeste")setShowMan(true);else setTab(id);setMoreOpen(false);}} style={tab===id?{...CHIP_ON,borderRadius:"8px"}:{...CHIP,borderRadius:"8px"}}>{canAccess(MORE_REQ[id])?"":LOCK}{t.tabs[id]||id}</button>))}
       </div>}
       {FINE_TABS.includes(tab)&&<div style={{background:"#0c0c0c",borderBottom:"1px solid #1a1a1a",display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px",padding:"8px 10px"}}>
         <button onClick={()=>setTab("genre")} style={{...CHIP,borderRadius:"8px",border:"1px solid #5a2a14",color:"#FFB36B"}}>← {L("Retour à Forger","Back to Forge")}</button>

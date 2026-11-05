@@ -2606,9 +2606,9 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           {[
             {t:L("FORGE","FORGE"),d:L("Tape un groupe, un mix de groupes, une année ou une description. MetalPrompt génère 3 prompts optimisés pour Suno.","Type a band, a band mix, a year or a description. MetalPrompt builds 3 Suno-optimized prompts.")},
             {t:L("SUNO","SUNO"),d:L("Colle les prompts dans Suno et génère ta chanson.","Paste the prompts into Suno and generate your track.")},
-            {t:L("MÉLODIE · RIFF (abonnement)","MELODY · RIFF (subscription)"),d:L("Crée une vraie mélodie ou un vrai riff en WAV pour servir de référence audio à Suno.","Build a real melody or riff WAV to use as Suno's audio reference.")},
+            {t:L("MÉLODIE · RIFF · BEAT (abonnement)","MELODY · RIFF · BEAT (subscription)"),d:L("Compose une vraie mélodie, un riff ou un beat, avec partition ou tablature. Exporte en WAV (référence audio) ou en MIDI pour Suno Studio.","Compose a real melody, riff or beat, with score or tab. Export as WAV (audio reference) or MIDI for Suno Studio.")},
             {t:L("MASTER","MASTER"),d:L("Nettoie et grossis le rendu Suno (mix, EQ, sidechain, débruiteur).","Clean up and fatten the Suno output (mix, EQ, sidechain, de-noise).")},
-            {t:L("GALERIE","GALLERY"),d:L("Soumets ta chanson, écoute celles des autres et vote pour tes préférées.","Submit your track, listen to others and vote for your favorites.")},
+            {t:L("RADIO (bêta)","RADIO (beta)"),d:L("Passe ta chanson à la Radio MetalPrompt, en direct 24/7. Écoute celles des autres et vote pour tes préférées.","Get your track on MetalPrompt Radio, live 24/7. Listen to others and vote for your favorites.")},
           ].map((s,i)=>(
             <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<4?"1px solid #1a1a1a":"none"}}>
               <div style={S.stepNum(RED)}>{i+1}</div>
@@ -2618,7 +2618,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               </div>
             </div>
           ))}
-          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Prompting gratuit et illimité avec un compte. L'abonnement débloque Mélodie, Riff et Paroles IA.","Prompting is free and unlimited with an account. The subscription unlocks Melody, Riff and AI Lyrics.")}</div>
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Prompting gratuit et illimité avec un compte. L'abonnement débloque Mélodie, Riff, Beat et Paroles IA. Toute la plateforme est bilingue (FR / EN).","Prompting is free and unlimited with an account. The subscription unlocks Melody, Riff, Beat and AI Lyrics. The whole platform is bilingual (EN / FR).")}</div>
         </div>
 
         {/* INSPIRÉ, JAMAIS COPIÉ */}
@@ -2668,7 +2668,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{fontSize:"0.72rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("Dans Suno v6 → Create → Advanced. L'onglet Output te donne déjà ces valeurs calculées d'après tes choix ; voici les plages générales :","In Suno v6 → Create → Advanced. The Output tab already gives you these values computed from your choices; here are the general ranges:")}</div>
           {[
             {n:"Weirdness",v:"30-65 (ne dépasse pas 65)",d:L("Bas = hook stable. 50 = neutre. Au-dessus de 65, Suno part en vrille : structures incohérentes et dérive hors du genre. Testé.","Low = stable hook. 50 = neutral. Above 65 Suno falls apart: incoherent structures and genre drift. Tested.")},
-            {n:"Style Influence",v:"65-85%",d:L("HAUT — pour que Suno tienne la voie du genre. Baisse-le si le prompt est suivi trop rigidement.","HIGH — so Suno holds the genre lane. Lower it if the prompt is followed too rigidly.")},
+            {n:"Style Influence",v:"100%",d:L("Au maximum — pour que Suno tienne la voie du genre. Baisse-le seulement si l'analyse signale un conflit ou si le prompt est suivi trop rigidement.","At max — so Suno holds the genre lane. Only lower it if the analysis flags a conflict or the prompt is followed too rigidly.")},
             {n:"Variety",v:L("Désactivé · Normal · High · Extra · Max","Off · Normal · High · Extra · Max"),d:L("Ce n'est pas un %. C'est la permission de RÉÉCRITURE que tu donnes à Suno. Désactivé = il suit ton prompt tel quel (recommandé). À Extra ou Max, il le réécrit au complet : tu le vois dans le texte affiché sous la génération.","Not a %. It is the REWRITE permission you give Suno. Off = it follows your prompt as written (recommended). On Extra or Max it rewrites the whole thing: you can see it in the text shown under the generation.")},
             {n:"Max Mode",v:"ON si long",d:L("Garde la cohérence sur les morceaux longs (6+ sections).","Keeps consistency on long songs (6+ sections).")},
             {n:"Audio Influence",v:"Cover 65 · amorce 25-50",d:L("N'apparaît qu'avec une source audio (upload OU Cover). Cover d'une chanson complète : 65, tu gardes l'arrangement. Amorce (riff, mélodie, beatbox) : 25-50, sinon Suno recopie ton esquisse au lieu de bâtir autour.","Only appears with an audio source (upload OR Cover). Cover of a full song: 65, you keep the arrangement. Seed (riff, melody, beatbox): 25-50, otherwise Suno copies your sketch instead of building around it.")},
@@ -2688,14 +2688,16 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
 
         {/* RIFF */}
         <div style={S.card}>
-          <div style={S.ctitle}>{L("4 · Mélodie & Riff (référence audio)","4 · Melody & Riff (audio reference)")}</div>
+          <div style={S.ctitle}>{L("4 · Mélodie, Riff & Beat (référence audio ou MIDI)","4 · Melody, Riff & Beat (audio reference or MIDI)")}</div>
           <div style={{fontSize:"0.74rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("Suno invente souvent un beat plate ou un refrain sans accroche. Donne-lui une VRAIE mélodie ou un VRAI groove à suivre (abonnement) :","Suno often invents a flat beat or a chorus with no hook. Give it a REAL melody or groove to follow (subscription):")}</div>
           {[
-            L("Onglet Mélodie & Riff : choisis un thème de mélodie (refrain, melodeath, doom…) ou un style de riff + une scène (saveur régionale).","Melody & Riff tab: pick a melody theme (chorus, melodeath, doom…) or a riff style + a scene (regional flavor)."),
-            L("Écoute avec Play, ajuste le tempo, puis Export en WAV.","Preview with Play, tweak the tempo, then Export to WAV."),
-            L("Dans Suno : ajoute le WAV comme source audio, puis mets Audio Influence entre 25 et 50 — c'est une amorce, pas une chanson à recopier.","In Suno: add the WAV as an audio source, then set Audio Influence between 25 and 50 — it is a seed, not a song to copy."),
-          ].map((s,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<2?"1px solid #1a1a1a":"none"}}>
+            L("Mélodie (avec partition), Riff (guitare + basse, avec tablature) ou Beat (batterie, avec partition) : choisis un thème ou un style + une scène (saveur régionale).","Melody (with score), Riff (guitar + bass, with tab) or Beat (drums, with score): pick a theme or a style + a scene (regional flavor)."),
+            L("Écoute avec Play, ajuste le tempo. Pratique par-dessus : t'es seul pour jouer? MetalPrompt joue avec toi.","Preview with Play, tweak the tempo. Practice over it: playing alone? MetalPrompt jams with you."),
+            L("Option WAV : dans Suno, ajoute le WAV comme source audio, Audio Influence entre 25 et 50 — c'est une amorce, pas une chanson à recopier.","WAV option: in Suno, add the WAV as an audio source, Audio Influence between 25 and 50 — it is a seed, not a song to copy."),
+            L("Option MIDI (Suno Studio) : « Export MIDI », importe-le dans Studio et remets le tempo du projet à la main (l'import se met à 120 BPM). Pour une guitare seule, demande « isolated guitar stem only, no drums, no bass ».","MIDI option (Suno Studio): « Export MIDI », import it into Studio and set the project tempo by hand (imports land at 120 BPM). For guitar alone, ask for « isolated guitar stem only, no drums, no bass »."),
+            L("Ensuite : Cover de cette piste avec ton prompt MetalPrompt + tes paroles (Audio Influence ~40) → une chanson complète bâtie autour de TON riff.","Then: Cover that track with your MetalPrompt prompt + your lyrics (Audio Influence ~40) → a full song built around YOUR riff."),
+          ].map((s,i,ar)=>(
+            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<ar.length-1?"1px solid #1a1a1a":"none"}}>
               <div style={S.stepNum(RED)}>{i+1}</div>
               <div style={{fontSize:"0.8rem",color:"#ccc",lineHeight:1.6,paddingTop:"3px"}}>{s}</div>
             </div>
@@ -2719,21 +2721,24 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{background:"#170c0c",border:"1px solid #4a2020",borderRadius:"6px",padding:"9px 12px",marginTop:"10px",fontSize:"0.66rem",color:"#e0a0a0",lineHeight:1.6}}>{L("Important : le mastering est l'étape FINALE, pour ta release. Fais tes Extend/Cover DANS Suno avant — ne re-uploade jamais une chanson mastérisée dans Suno, son filtre anti-copie la bloquerait.","Important: mastering is the FINAL step, for your release. Do your Extends/Covers IN Suno first — never re-upload a mastered track into Suno, its anti-copy filter would block it.")}</div>
         </div>
 
-        {/* GALERIE */}
+        {/* RADIO */}
         <div style={S.card}>
-          <div style={S.ctitle}>{L("6 · Galerie (fais-toi entendre)","6 · Gallery (get heard)")}</div>
-          <div style={{fontSize:"0.74rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("L'écoute est gratuite et ouverte à tous. Pour soumettre et voter, il faut un compte :","Listening is free and open to everyone. To submit and vote, you need an account:")}</div>
+          <div style={S.ctitle}>{L("6 · Radio MetalPrompt (bêta)","6 · MetalPrompt Radio (beta)")}</div>
+          <div style={{fontSize:"0.74rem",color:"#999",lineHeight:1.7,marginBottom:"12px"}}>{L("Une vraie radio metal, en direct 24/7 : tout le monde entend la même chanson au même moment. L'écoute est gratuite et ouverte à tous.","A real metal radio, live 24/7: everyone hears the same song at the same time. Listening is free and open to everyone.")}</div>
           {[
-            L("Onglet Galerie : colle le lien de ta chanson (Suno, Spotify, YouTube ou SoundCloud). Gratuit, 2 chansons par mois.","Gallery tab: paste your track's link (Suno, Spotify, YouTube or SoundCloud). Free, 2 tracks per month."),
-            L("Chaque chanson est écoutée et approuvée avant d'être publiée. Metal seulement.","Every track is listened to and approved before it's published. Metal only."),
-            L("Vote pour tes préférées : 1 vote par jour, 1 vote par chanson. Reviens chaque jour pour en découvrir d'autres.","Vote for your favorites: 1 vote a day, 1 vote per track. Come back every day to discover more."),
-            L("Les chansons les plus aimées montent en haut de la galerie.","The most-loved tracks rise to the top of the gallery."),
+            L("Onglet Radio : la radio part toute seule (touche la page si ton navigateur bloque le son). ■ pour arrêter.","Radio tab: it starts by itself (tap the page if your browser blocks sound). ■ to stop."),
+            L("Elle continue quand tu changes d'onglet (mini-lecteur en bas) et, sur cell, même écran barré. Sur ordi, « ⧉ Détacher » la met dans une petite fenêtre flottante.","It keeps playing when you switch tabs (mini player at the bottom) and, on mobile, even with the screen locked. On desktop, « ⧉ Pop out » puts it in a small floating window."),
+            L("Passer ta chanson : avec un compte, soumets le lien Suno PUBLIC de ta chanson et accepte les conditions. Gratuit, 2 chansons par mois. Metal seulement.","Get on air: with an account, submit your song's PUBLIC Suno link and accept the terms. Free, 2 tracks per month. Metal only."),
+            L("On l'écoute et on l'approuve. Ensuite, si tu veux, tu peux nous transmettre le MP3 : meilleure qualité, fondu entre les chansons, lecture écran barré.","We listen and approve it. Then, if you want, you can send us the MP3: better quality, crossfade between songs, locked-screen playback."),
+            L("Vote 🤘 : 1 vote par jour, 1 par chanson. Le palmarès de la semaine compte les votes des 7 derniers jours.","Vote 🤘: 1 vote a day, 1 per track. The weekly chart counts the last 7 days of votes."),
+            L("Tu veux annoncer (marque, show, band, boutique)? Formulaire « Envoie-nous un message » sous la radio.","Want to advertise (brand, show, band, shop)? « Send us a message » form under the radio."),
           ].map((s,i,ar)=>(
             <div key={i} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"9px 0",borderBottom:i<ar.length-1?"1px solid #1a1a1a":"none"}}>
               <div style={S.stepNum(RED)}>{i+1}</div>
               <div style={{fontSize:"0.8rem",color:"#ccc",lineHeight:1.6,paddingTop:"3px"}}>{s}</div>
             </div>
           ))}
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("La radio est en bêta : un bug? Dis-le-nous sur Discord.","The radio is in beta: found a bug? Tell us on Discord.")}</div>
         </div>
 
         {/* CUSTOM MODEL */}

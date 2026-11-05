@@ -779,7 +779,7 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
       <div style={{background:"linear-gradient(180deg,#2a1208 0%,#0a0a0a 100%)",padding:"50px 20px 40px",textAlign:"center",borderBottom:"1px solid #FF6A2B22",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:0,left:0,right:0,height:"2px",background:"linear-gradient(90deg,transparent,#FF6A2B,transparent)"}}/>
         <div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",padding:"0 20px",marginBottom:"16px",gap:"8px"}}>
-          <span title={uiLang==="fr"?"Toute la plateforme existe en français et en anglais":"The whole platform is available in English and French"} style={{fontSize:"0.65rem",color:"#9CA3AF",letterSpacing:"1px",marginRight:"4px"}}>🌐 {uiLang==="fr"?"Plateforme bilingue":"Bilingual platform"} · FR / EN</span>
+          <span style={{fontSize:"0.68rem",color:"#9CA3AF",letterSpacing:"0.5px",marginRight:"4px"}}>🤘 {uiLang==="fr"?"Du metal en français et en anglais":"Metal in English and French"}</span>
           {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#2a1208":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"4px",color:uiLang===l?RED:"#555",fontSize:"0.65rem",padding:"4px 10px",cursor:"pointer",fontWeight:uiLang===l?700:400}}>{l.toUpperCase()}</button>)}
         </div>
         <div className="forge-title" style={{fontSize:"clamp(2.2rem,8vw,3.5rem)",color:RED,letterSpacing:"8px",textShadow:"0 0 40px #FF6A2B88",marginBottom:"6px"}}>METAL PROMPT FORGE</div>
@@ -2098,7 +2098,6 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           </nav>
           <div style={{display:"flex",gap:"8px",alignItems:"center",flexWrap:"wrap",justifyContent:"flex-end",fontSize:"0.72rem",color:"#8A8F97"}}>
             <span>{limit.prompts===Infinity?(uiLang==="fr"?"Illimité":"Unlimited"):<><b style={{color:Math.max(0,limit.prompts-promptCount)>0?"#4caf50":RED}}>{Math.max(0,limit.prompts-promptCount)}</b> {uiLang==="fr"?"essais gratuits":"free trials left"}{credits>0&&<> · <b style={{color:"#4caf50"}}>{credits}</b> {uiLang==="fr"?"prompts achetés":"bought prompts"}</>}</>} · <span onClick={()=>setShowPaywall(true)} style={{color:RED,textDecoration:"none",fontWeight:700,cursor:"pointer"}}>{t.plans}</span></span>
-            <span title={uiLang==="fr"?"Plateforme bilingue : français et anglais":"Bilingual platform: English and French"} style={{fontSize:"0.62rem",color:"#8A8F97"}}>🌐 {uiLang==="fr"?"Bilingue":"Bilingual"}</span>
             {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#2a1208":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"3px",color:uiLang===l?RED:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{l.toUpperCase()}</button>)}
             <button onClick={()=>{if(window.confirm(L("Réinitialiser tous les réglages et vider la sauvegarde ? Cette action recharge la page.","Reset all settings and clear saved state? This reloads the page."))) resetAll();}} title={L("Réinitialiser l'app (vide la sauvegarde)","Reset app (clears saved state)")} style={{background:"none",border:"1px solid #333",borderRadius:"3px",color:"#555",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{L("RÉINIT.","RESET")}</button>
             <UserChip user={user} uiLang={uiLang} tierBadge={tierBadge} tierColor={tierColor} isElite={isElite} onLogout={onLogout} onRequestAuth={onRequestAuth}/>
@@ -2621,7 +2620,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
               </div>
             </div>
           ))}
-          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Prompting gratuit et illimité avec un compte. L'abonnement débloque Mélodie, Riff, Beat et Paroles IA. Toute la plateforme est bilingue (FR / EN).","Prompting is free and unlimited with an account. The subscription unlocks Melody, Riff, Beat and AI Lyrics. The whole platform is bilingual (EN / FR).")}</div>
+          <div style={{fontSize:"0.6rem",color:"#555",marginTop:"10px",lineHeight:1.6}}>{L("Prompting gratuit et illimité avec un compte. L'abonnement débloque Mélodie, Riff, Beat et Paroles IA. Toute la plateforme existe en français et en anglais : crée et partage ton metal dans ta langue.","Prompting is free and unlimited with an account. The subscription unlocks Melody, Riff, Beat and AI Lyrics. The whole platform works in English and French: create and share your metal in your language.")}</div>
         </div>
 
         {/* INSPIRÉ, JAMAIS COPIÉ */}

@@ -78,6 +78,8 @@ const CSS = `
 .mpr-form{display:flex;flex-direction:column;gap:9px}
 .mpr-form input,.mpr-form select{background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--fg);font:inherit;font-size:14px;padding:10px 12px;width:100%}
 .mpr-small{font-size:12px;color:var(--muted);margin:0}
+.mpr-steps{margin:0;padding-left:20px;font-size:13px;line-height:1.5;color:var(--fg);display:flex;flex-direction:column;gap:4px}
+.mpr-steps li::marker{color:var(--ember);font-weight:700}
 .mpr-check{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.45;color:var(--muted);cursor:pointer;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
 .mpr-check input{width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:var(--ember)}
 .mpr-ta{background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--fg);font:inherit;font-size:14px;padding:10px 12px;width:100%;resize:vertical}
@@ -317,7 +319,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       if (error.code === "23514") { setFormMsg(L("Lien refusé : Suno, Spotify, YouTube ou SoundCloud seulement.", "Link refused: Suno, Spotify, YouTube or SoundCloud only.")); return; }
       setFormMsg(L("Erreur — réessaie.", "Error — try again.")); return;
     }
-    setFormMsg(L("Merci! Ta chanson sera revue, puis elle passera à la radio. 🤘", "Thanks! Your track will be reviewed, then it goes on the radio. 🤘"));
+    setFormMsg(L("Merci! Ta chanson est en attente d'approbation. Une fois approuvée, tu pourras nous transmettre le MP3 si tu veux. 🤘", "Thanks! Your track is awaiting approval. Once approved, you can send us the MP3 if you want. 🤘"));
     setForm({ title: "", artist: "", genre: "Deathcore", url: "" }); setOkSong(false);
   }
 
@@ -410,14 +412,19 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
           {discordUrl && <a className="mpr-link" href={discordUrl} target="_blank" rel="noopener noreferrer">{L("Rejoins la communauté sur Discord →", "Join the community on Discord →")}</a>}
         </div>
         {showForm && <div className="mpr-form" style={{ marginTop: 12 }}>
-          <p className="mpr-small">{L("Gratuit avec un compte · 2 chansons par mois · revue avant de passer en ondes. Seuls les liens Suno publics jouent à la radio.", "Free with an account · 2 tracks per month · reviewed before going on air. Only public Suno links play on the radio.")}</p>
+          <p className="mpr-small">{L("Gratuit avec un compte · 2 chansons par mois. Seuls les liens Suno publics jouent à la radio.", "Free with an account · 2 tracks per month. Only public Suno links play on the radio.")}</p>
+          <ol className="mpr-steps">
+            <li>{L("Tu soumets le lien de ta chanson pour approbation.", "You submit your song's link for approval.")}</li>
+            <li>{L("On l'écoute. Une fois approuvée, elle passe à la radio.", "We listen to it. Once approved, it goes on the radio.")}</li>
+            <li>{L("Ensuite, si tu veux (optionnel), tu pourras nous transmettre le MP3 : meilleure qualité de diffusion, fondu entre les chansons et lecture même écran barré.", "Then, if you want (optional), you can send us the MP3: better broadcast quality, crossfade between songs and playback even with the screen locked.")}</li>
+          </ol>
           <input placeholder={L("Titre de la chanson", "Track title")} value={form.title} onChange={e => setF("title", e.target.value)} />
           <input placeholder={L("Nom d'artiste (optionnel)", "Artist name (optional)")} value={form.artist} onChange={e => setF("artist", e.target.value)} />
           <select value={form.genre} onChange={e => setF("genre", e.target.value)}>{GENRES.map(g => <option key={g} value={g}>{g}</option>)}</select>
           <input placeholder="https://suno.com/song/…" value={form.url} onChange={e => setF("url", e.target.value)} />
           <label className="mpr-check"><input type="checkbox" checked={okSong} onChange={e => setOkSong(e.target.checked)} />
-            <span>{L("Je confirme que cette chanson est ma création ou que j'ai les droits pour la partager, que le lien Suno est public, et qu'elle ne contient ni haine, ni harcèlement, ni contenu illégal. J'autorise MetalPrompt à la diffuser gratuitement sur la radio et sur ses réseaux pour faire la promotion de la radio. MetalPrompt peut refuser ou retirer une chanson en tout temps, sans préavis. Je reste propriétaire de ma chanson et je peux demander son retrait quand je veux.",
-              "I confirm this song is my own work or that I have the rights to share it, that the Suno link is public, and that it contains no hate, harassment or illegal content. I allow MetalPrompt to broadcast it for free on the radio and on its social channels to promote the radio. MetalPrompt may refuse or remove a song at any time, without notice. I keep ownership of my song and can ask for its removal whenever I want.")}</span></label>
+            <span>{L("Je confirme que cette chanson est ma création ou que j'ai les droits pour la partager, que le lien Suno est public, et qu'elle ne contient ni haine, ni harcèlement, ni contenu illégal. J'autorise MetalPrompt à la diffuser gratuitement sur la radio et sur ses réseaux pour faire la promotion de la radio. MetalPrompt peut refuser ou retirer une chanson en tout temps, sans préavis. Si je transmets le MP3, il sert seulement à la radio et il est supprimé si je retire ma chanson. Je reste propriétaire de ma chanson et je peux demander son retrait quand je veux.",
+              "I confirm this song is my own work or that I have the rights to share it, that the Suno link is public, and that it contains no hate, harassment or illegal content. I allow MetalPrompt to broadcast it for free on the radio and on its social channels to promote the radio. MetalPrompt may refuse or remove a song at any time, without notice. If I send the MP3, it is only used for the radio and is deleted if I remove my song. I keep ownership of my song and can ask for its removal whenever I want.")}</span></label>
           <button className="mpr-primary" onClick={submit} disabled={!okSong} style={okSong ? undefined : { opacity: .5, cursor: "not-allowed" }}>{L("Envoyer", "Send")}</button>
           {formMsg && <div className="mpr-small" style={{ color: "var(--ok)" }} role="status">{formMsg}</div>}
         </div>}

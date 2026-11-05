@@ -2010,7 +2010,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
     {id:"galerie",label:t.tabs.galerie,also:[],req:"free"},
     ...(SHOW_LECONS?[{id:"lecons",label:L("Leçons","Lessons"),also:[],req:"free"}]:[]),
   ];
-  const NAV_MORE=[...(isPro?["history"]:[]),"master","aimusic","masterclass","tuto"];
+  const NAV_MORE=["master","aimusic","masterclass","tuto"];   // nov. 2026 : Historique retiré du menu (demande de François)
   const MORE_REQ={history:"pro",master:"elite",aimusic:"forge",masterclass:"free",tuto:"free"};
   const FINE_ROWS=[
     ["drums",L("Batterie","Drums"),drums.size+drumP.size],

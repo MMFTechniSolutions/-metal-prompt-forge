@@ -5,6 +5,7 @@ import App from './App.jsx'
 import Auth from './Auth.jsx'
 import { supabase } from './supabase.js'
 import HelpChat from './HelpChat.jsx'
+import OAuthConsent from './OAuthConsent.jsx'   // connecteur MCP (Forge Pro)
 import { Analytics } from '@vercel/analytics/react'   // stats de visites Vercel (sans témoins)
 
 function Root() {
@@ -30,6 +31,7 @@ function Root() {
   )
 
   if (showAuth && !user) return <Auth onLogin={(u) => { setUser(u); setShowAuth(false) }} onClose={() => setShowAuth(false)} />
+  if (window.location.pathname === '/oauth/consent') return <OAuthConsent user={user} onRequestAuth={() => setShowAuth(true)} />
   return <App user={user} onLogout={() => supabase.auth.signOut()} onRequestAuth={() => setShowAuth(true)} />
 }
 

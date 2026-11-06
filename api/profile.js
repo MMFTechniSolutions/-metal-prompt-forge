@@ -34,6 +34,10 @@ function randStructure() {
 }
 
 export default function handler(req, res) {
+  // MCP Forge Pro (nov. 2026) — fusionné ici aussi (limite de 12 fonctions). /mcp et /.well-known/* via vercel.json
+  const _op = req.query && req.query.op;
+  if (_op === 'mcp') return import('./_lib/mcp.js').then(m => m.default(req, res, { profile: handler }));
+  if (_op === 'prm') return import('./_lib/mcp.js').then(m => m.protectedResourceMetadata(req, res));
   // Galerie : résolution d'un lien Suno (fusionné ici, limite de 12 fonctions Vercel Hobby)
   if (req.query && req.query.suno) { req.query.url = req.query.suno; return sunoHandler(req, res); }
   let b = req.method === 'POST' ? req.body : (req.query || {});

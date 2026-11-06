@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/mcp", "destination": "/api/profile?op=mcp" },
+    { "source": "/.well-known/oauth-protected-resource", "destination": "/api/profile?op=prm" },
+    { "source": "/.well-known/oauth-protected-resource/mcp", "destination": "/api/profile?op=prm" },
+    { "source": "/oauth/consent", "destination": "/index.html" }
+  ]
+}

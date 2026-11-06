@@ -460,6 +460,8 @@ const BLOCK_RHYTHMS = [
 
 // ── PRIX & LIENS STRIPE (à remplacer par les nouveaux Payment Links) ──
 const STRIPE_MENSUEL = "https://buy.stripe.com/9B66oJ1kI1avgb83obfQI07";          // abonnement 2,99 $ US / mois
+// Forge Pro 5,99 $ US / mois (Forge Plus + connecteur Claude/MCP). VIDE = carte cachée tant que le lien Stripe n'existe pas.
+const STRIPE_FORGE_PRO = "";
 // Promo « À VIE » : paiement unique, visible seulement pendant la fenêtre (Black Friday → Cyber Monday 2026, heure de l'Est).
 // Pour tester avant : ajoute ?avie=1 à l'adresse du site.
 const LIFETIME = { price:"$50", regular:"$120", stripe:"https://buy.stripe.com/bJefZj4wU06r4sq7ErfQI08", start:"2026-11-27T00:00:00-05:00", end:"2026-12-01T00:00:00-05:00" };
@@ -482,6 +484,7 @@ const TIERS = {
     stripe:STRIPE_MENSUEL,
     features:["✅ Tout le gratuit, plus :","✅ Générateur de Mélodie","✅ Recherches IA de groupes illimitées","✅ Bibliothèque complète + sliders + 10 émotions","✅ Générateur de Riff complet (28 styles)","✅ Module Mastering (débruitage + EQ)","✅ Paroles par IA illimitées","✅ Prompts Principal · Cover · Extend","✅ Reco de modèle Suno · prompts illimités"],
     featuresEn:["✅ Everything in Free, plus:","✅ Melody generator","✅ Unlimited AI band searches","✅ Full library + sliders + 10 emotions","✅ Complete Riff Generator (28 styles)","✅ Mastering module (denoise + EQ)","✅ Unlimited AI lyrics","✅ Principal · Cover · Extend prompts","✅ Suno model rec · unlimited prompts"]},
+  forge_pro: {id:"forge_pro", label:"FORGE PRO", price:"$5.99/mois", color:"#FF6A2B", badge:"PRO+", stripe:STRIPE_FORGE_PRO},
 };
 const payUrl = (base, email) =>
   base && !base.includes("YOUR_") && email
@@ -492,9 +495,9 @@ const _ri=n=>Math.floor(Math.random()*n);
 const _rand=(a,b)=>a+_ri(b-a+1);
 const _pick=(arr,n)=>{const c=[...arr];const o=[];for(let i=0;i<n&&c.length;i++)o.push(c.splice(_ri(c.length),1)[0]);return o;};
 // genreProfile + randStructure DÉPLACÉS côté serveur (/api/profile) — recette protégée
-const TIER_RANK = {free:0,forge:1,pro:2,elite:3,eliteplus:4};
+const TIER_RANK = {free:0,forge:1,pro:2,forge_pro:2,elite:3,eliteplus:4};   // forge_pro = Forge Plus + MCP (même accès sur le site)
 const DISCORD_URL = "https://discord.gg/6VeFzBTPZ";
-const LIMITS = {free:{prompts:Infinity,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity},eliteplus:{prompts:Infinity,lyrics:Infinity}};
+const LIMITS = {free:{prompts:Infinity,lyrics:0},forge:{prompts:Infinity,lyrics:10},pro:{prompts:Infinity,lyrics:Infinity},forge_pro:{prompts:Infinity,lyrics:Infinity},elite:{prompts:Infinity,lyrics:Infinity},eliteplus:{prompts:Infinity,lyrics:Infinity}};
 const TAB_REQ = {genre:"free",melodie:"elite",drums:"free",vocals:"free",guitar:"free",bass:"free",instru:"free",structure:"free",paroles:"pro",organic:"free",exclude:"free",output:"free",history:"pro"};   // oct. 2026 : prompting gratuit; Mélodie, Riff, Paroles payants
 
 // ── FORGER v2 (oct. 2026) : aides pour la boîte d'entrée unique ──
@@ -742,6 +745,12 @@ function PaywallModal({onClose,email,uiLang}) {
             <ul style={UL}>{LI(L("Studio illimité : Mélodie, Riff, Beat","Unlimited Studio: Melody, Riff, Beat"))}{LI(L("Tablatures, partitions et export WAV","Tabs, scores and WAV export"))}{LI(L("Paroles IA illimitées","Unlimited AI lyrics"))}{LI(L("Galerie et réglages fins","Gallery & fine tuning"))}</ul>
             <a href={payUrl(STRIPE_MENSUEL,email)} target="_blank" rel="noreferrer" style={{...btnW,marginTop:"auto",background:"#F2F1ED",color:"#0C0D0F"}}>{L("Passer à Plus","Go Plus")}</a>
           </section>
+          {STRIPE_FORGE_PRO&&<section style={{...CARDS,borderColor:"rgba(255,106,43,0.55)"}}>
+            <span style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px"}}><span style={{fontWeight:600,fontSize:"1.15rem",color:"#F2F1ED"}}>Forge Pro</span><span style={{...MONO,padding:"4px 9px",border:"1px solid rgba(255,179,107,0.5)",borderRadius:"999px"}}>Claude</span></span>
+            <span style={{display:"flex",alignItems:"baseline",gap:"8px"}}><span style={big}>5,99 $</span><span style={{color:"#B9BDC4"}}>US / {L("mois","month")}</span></span>
+            <ul style={UL}>{LI(L("Tout Forge Plus","All of Forge Plus"))}{LI(L("Connecteur MetalPrompt dans Claude","MetalPrompt connector in Claude"))}{LI(L("Prompt, riff et paroles en une demande","Prompt, riff and lyrics in one ask"))}{LI(L("Avec Suno branché : la toune sort direct","With Suno connected: the song comes out directly"))}</ul>
+            <a href={payUrl(STRIPE_FORGE_PRO,email)} target="_blank" rel="noreferrer" style={{...btnW,marginTop:"auto",background:"#FF6A2B",color:"#160A04"}}>{L("Passer à Forge Pro","Go Forge Pro")}</a>
+          </section>}
           {lifetimeActive()&&<section style={{...CARDS,background:"linear-gradient(160deg, rgba(255,106,43,0.18), rgba(22,24,28,0.85) 55%)",border:"1px solid rgba(255,106,43,0.55)",boxShadow:"0 0 60px rgba(255,106,43,0.18)"}}>
             <span style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px"}}><span style={{fontWeight:600,fontSize:"1.15rem",color:"#F2F1ED"}}>{L("Fan à vie","Lifetime fan")}</span><span style={{...MONO,padding:"4px 9px",border:"1px solid rgba(255,179,107,0.5)",borderRadius:"999px"}}>Black Friday</span></span>
             <span style={{display:"flex",alignItems:"baseline",gap:"8px",flexWrap:"wrap"}}><span style={{fontSize:"1.2rem",color:"#8A8F97",textDecoration:"line-through"}}>120 $</span><span style={big}>50 $</span><span style={{padding:"3px 8px",borderRadius:"6px",background:"#FF6A2B",color:"#160A04",fontWeight:600,fontSize:"0.8rem"}}>-58 %</span></span>

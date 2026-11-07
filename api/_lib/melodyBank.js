@@ -93,7 +93,7 @@ export function toMidi(e) {
   const DR = { kick: 36, snare: 38, hihat: 42 };
   const drums = []; for (const k of ['kick', 'snare', 'hihat']) e.drums[k].forEach((v, t) => v && drums.push({ t, d: 1, p: DR[k], v: k === 'hihat' ? 70 : 110 }));
   const tr = [meta,
-    noteTrack(0, 30, e.guitar.flatMap(n => [n, { ...n, p: n.p + 7 }]), 100),   // power chords
+    noteTrack(0, e.riffProgram ?? 30, e.guitar.flatMap(n => [n, { ...n, p: n.p + 7 }]), 100),   // power chords
     noteTrack(1, 33, e.bass, 100),
     noteTrack(2, e.leadProgram, e.melody, 92),
     noteTrack(9, 0, drums, 100)];

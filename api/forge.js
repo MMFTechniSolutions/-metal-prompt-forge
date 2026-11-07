@@ -782,7 +782,7 @@ export default function handler(req, res) {
     verse: (vocals.includes('high-pitched fry screams') && !_cleanVox ? 'fry screams and ' : '') + _vShort + ' over ' + (guitar.includes('chugging riffs') ? 'chugging riffs' : _coreish ? 'palm-muted riffs' : 'driving riffs'),
     prechorus: 'rising drum fill, held guitar chord',
     chorus: (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) ? 'solo lead vocal, instrumental lift only, wide vibrato on held notes' : groove >= 6 ? 'syncopated groove riff, double-tracked vocals' : 'full band, double kick, wide chorus',
-    breakdown: !_coreish ? 'half-time riff break, no vocals' : groove >= 7 ? 'half-time groove, shouted gang vocals' : 'low tuned open-note breakdown, pounding floor toms',
+    breakdown: !_coreish ? (_isFast && !_halfSec ? 'stop-start riff break, no vocals' : 'half-time riff break, no vocals') : groove >= 7 ? 'half-time groove, shouted gang vocals' : 'low tuned open-note breakdown, pounding floor toms',
     halftime: 'half-time feel, heavy palm mutes',
     blastsection: 'blast beats, tremolo guitars',
     drop: 'full stop, then single low chord',

@@ -67,7 +67,11 @@ export default async function handler(req, res) {
       )
     } else if (email) {
       // Abonnement Forge Plus ou offre À VIE → accès complet (tier 'pro')
-      const tier = 'pro'
+      // Forge Pro (5,99 $, nov. 2026) = Forge Plus + connecteur MCP → tier 'forge_pro'
+      // Reconnu par la metadata du Payment Link (tier=forge_pro) ou par son ID (env FORGE_PRO_LINK).
+      const isForgePro = md.tier === 'forge_pro' ||
+        (process.env.FORGE_PRO_LINK && session.payment_link === process.env.FORGE_PRO_LINK)
+      const tier = isForgePro ? 'forge_pro' : 'pro'
       const lifetime =
         session.mode === 'payment' && (md.kind === 'lifetime' || session.payment_link === LIFETIME_LINK)
       await supabase.from('users').upsert(
@@ -87,6 +91,12 @@ export default async function handler(req, res) {
   // Abonnement annulé / terminé → retour en gratuit
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object
+    // Passage Forge Plus → Forge Pro : le client peut avoir encore un autre abonnement actif.
+    // Dans ce cas on ne le remet PAS en gratuit quand l'ancien se termine.
+    try {
+      const still = await stripe.subscriptions.list({ customer: subscription.customer, status: 'active', limit: 1 })
+      if (still.data.length) return res.status(200).json({ received: true, kept: true })
+    } catch { /* en cas d'erreur Stripe : comportement d'avant */ }
     await supabase
       .from('users')
       .update({ tier: 'free' })

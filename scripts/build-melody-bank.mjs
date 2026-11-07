@@ -14,7 +14,10 @@ const PER = Number(process.argv[2] || 2);
 const STYLES = ['nwobhm','thrash','death','doom','blackened','groove','djent','speed','slam','sludge','postmetal',
   'grindcore','funeraldoom','dissonant','rapcore','deathcore','metalcore','melodicdeath','melodicdeathcore','brutaldeath',
   'techdeath','blackeneddeathcore','numetal','beatdown','crossover','hardcore','deathgrind','mathcore','progmetal',
-  'powermetal','atmosblack','symphonicblack','blackgaze','industrial','gothic'];
+  'powermetal','atmosblack','symphonicblack','blackgaze','industrial','gothic',
+  'deathdoom','swampdeath'];
+// Styles de banque qui réutilisent un pattern de riff.js (ajout 2026-11-07 : death lent/swampy, test Florida 90 BPM)
+const RIFF_OF = { deathdoom: 'doom', swampdeath: 'sludge' };
 const SECTIONS = { intro: 'sec1', couplet: 'sec2', refrain: 'sec3', breakdown: 'sec4' };
 
 // ── Gamme + rythme de mélodie par famille (ce qui « accote » le style) ──
@@ -27,11 +30,12 @@ const FAM = {
   tordu:    { scale: [0,1,4,6,7,10],   rhy: 'impair',   styles: ['djent','progmetal','mathcore','techdeath','dissonant'] },
   groove:   { scale: [0,3,5,6,7,10],   rhy: 'syncope',  styles: ['thrash','crossover','hardcore','groove','numetal','rapcore','industrial'] },
   planant:  { scale: [0,2,3,5,7,9,10], rhy: 'longues',  styles: ['postmetal','blackgaze'] },
+  marecage: { scale: [0,1,3,5,6,7,8,10], rhy: 'lourdes', styles: ['deathdoom','swampdeath'] },   // phrygien + triton, noires lourdes
 };
-const BPM_FAM = { sombre: [180, 215], melo: [150, 180], epique: [160, 190], tremolo: [170, 205], lourd: [58, 80], tordu: [110, 145], groove: [100, 135], planant: [85, 110] };
+const BPM_FAM = { sombre: [180, 215], melo: [150, 180], epique: [160, 190], tremolo: [170, 205], lourd: [58, 80], tordu: [110, 145], groove: [100, 135], planant: [85, 110], marecage: [70, 100] };
 const BPM = { slam: [95, 115], beatdown: [90, 110], thrash: [170, 200], crossover: [170, 200], hardcore: [160, 190], numetal: [95, 110], rapcore: [90, 105], grindcore: [200, 240], deathgrind: [190, 230], deathcore: [140, 170], sludge: [65, 85] };
-const TUNE_FAM = { sombre: ['B1', 'C2'], melo: ['D2', 'C2'], epique: ['E2', 'Eb2'], tremolo: ['E2', 'D2'], lourd: ['C2', 'B1'], tordu: ['B1', 'Db2'], groove: ['D2', 'Db2', 'E2'], planant: ['D2', 'C2'] };
-const DRUMS_FAM = { sombre: 'blast_beat', melo: 'double_kick', epique: 'gallop', tremolo: 'blast_beat', lourd: 'standard', tordu: 'double_kick', groove: 'standard', planant: 'standard' };
+const TUNE_FAM = { sombre: ['B1', 'C2'], melo: ['D2', 'C2'], epique: ['E2', 'Eb2'], tremolo: ['E2', 'D2'], lourd: ['C2', 'B1'], tordu: ['B1', 'Db2'], groove: ['D2', 'Db2', 'E2'], planant: ['D2', 'C2'], marecage: ['B1', 'C2'] };
+const DRUMS_FAM = { sombre: 'blast_beat', melo: 'double_kick', epique: 'gallop', tremolo: 'blast_beat', lourd: 'standard', tordu: 'double_kick', groove: 'standard', planant: 'standard', marecage: 'standard' };
 const famOf = s => Object.entries(FAM).find(([, f]) => f.styles.includes(s)) || ['groove', FAM.groove];
 const ROOT_MIDI = { E2: 40, Eb2: 39, D2: 38, Db2: 37, C2: 36, B1: 35 };
 const ri = n => Math.floor(Math.random() * n);
@@ -44,6 +48,7 @@ function rhythm(kind, n) {
   else if (kind === 'galop') { for (let s = 0; s < n; s += 4) { ev.push([s, 2]); if (s + 2 < n) ev.push([s + 2, 1]); if (s + 3 < n) ev.push([s + 3, 1]); } }
   else if (kind === 'impair') { let s = 0; const g = [3, 3, 2, 3, 2, 3]; let i = ri(g.length); while (s < n) { const d = Math.min(g[i++ % g.length], n - s); ev.push([s, d]); s += d; } }
   else if (kind === 'syncope') { const pos = [0, 3, 6, 8, 10, 13].filter(x => x < n); pos.forEach((p, i) => ev.push([p, (pos[i + 1] ?? n) - p])); }
+  else if (kind === 'lourdes') { const pos = [0, 4, 6, 8, 12].filter(x => x < n); pos.forEach((p, i) => ev.push([p, (pos[i + 1] ?? n) - p])); }
   else if (kind === 'harmonie') { for (let s = 0; s < n; s += 2) ev.push([s, 2]); }
   else { for (let s = 0; s < n; s += 2) ev.push([s, 2]); }   // croches
   return ev;
@@ -123,7 +128,7 @@ for (const style of STYLES) {
   for (const [section, structure] of Object.entries(SECTIONS)) {
     for (let k = 0; k < PER; k++) {
       const [lo, hi] = BPM[style] || BPM_FAM[famName];
-      const r = await call({ style, structure, tier: 'elite', drums: DRUMS_FAM[famName], bpm: lo + ri(hi - lo + 1), tuning: TUNE_FAM[famName][ri(TUNE_FAM[famName].length)] });
+      const r = await call({ style: RIFF_OF[style] || style, structure, tier: 'elite', drums: DRUMS_FAM[famName], bpm: lo + ri(hi - lo + 1), tuning: TUNE_FAM[famName][ri(TUNE_FAM[famName].length)] });
       const a = r.arr; const root = ROOT_MIDI[r.root] || 40;
       const id = `${style}-${section}-${k + 1}`;
       const e = {
@@ -131,7 +136,7 @@ for (const style of STYLES) {
         guitar: strum(a, 'note', root, 0), bass: strum(a, 'bnote', root, -12),
         drums: { kick: a.kick, snare: a.snare, hihat: a.hihat },
         melody: melody(style, a, fam).map(n => ({ ...n, p: n.p + root + 24 })),
-        leadProgram: famName === 'lourd' || famName === 'planant' ? 49 : famName === 'tremolo' ? 48 : 30,
+        leadProgram: famName === 'lourd' || famName === 'marecage' || famName === 'planant' ? 49 : famName === 'tremolo' ? 48 : 30,
         status: 'pending',
       };
       fs.writeFileSync(path.join(OUT, 'midi', id + '.mid'), toMidi(e));

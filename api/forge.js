@@ -706,7 +706,7 @@ export default function handler(req, res) {
       ORDERED[i] = t.replace(/^nu-?metal\b(\s*with[^,]*)?/i, 'extreme horror-show groove metal and death-thrash').replace(/\bmid-tempo\b/i, 'fast tempo').replace(/,\s*groove metal\b/i, '').replace(/,\s*steady pulse\b/i, '');
     }
     const _bi = Math.max(0, ORDERED.findIndex(x => /\bBPM\b/.test(String(x))));
-    ORDERED.splice(_bi + 1, 0, 'versatile frontman snapping from visceral screams to soaring melodic singing', 'whispered interludes', 'relentless double-time', 'machine-gun double kick', 'two extra percussionists pounding metal barrels and scrap metal mixed loud', 'tribal polyrhythms', 'crushing downtuned 7-string guitar wall', 'turntable scratches', 'horror-film samples');
+    ORDERED.splice(_bi + 1, 0, 'versatile frontman snapping from visceral screams to soaring melodic singing', 'whispered interludes', 'relentless double-time', 'machine-gun double kick', 'two extra percussionists pounding metal barrels and floor toms mixed loud', 'pounding floor toms', 'crushing downtuned 7-string guitar wall', 'turntable scratches', 'horror-film samples');
     for (let i = ORDERED.length - 1; i > 0; i--) if (ORDERED.indexOf(ORDERED[i]) < i || (/^groove metal$/i.test(ORDERED[i]))) ORDERED.splice(i, 1);
   }
   const RICH_BUDGET = 420;   // mesuré : au-delà on empile des synonymes, pas de l'information
@@ -780,7 +780,7 @@ export default function handler(req, res) {
   if (/\bgrunge\b/.test(_gtxt) && !/post-grunge/.test(_gtxt)) _antiLow.push('pop punk', 'skate punk', 'polished vocals');   // sans ça, le grunge sonnait Green Day (test 2026-11-03)
   // Voix criée mi-grave voulue (baritone/chesty/low-mid) : on bloque l'aigu et le guttural, pas le grave (test Pantera 1992 : « c'est mieux »).
   if (/baritone|chesty|low-mid/.test(_voxUsed) && !/growl|guttural/.test(_voxUsed)) _antiLow.push('high-pitched vocals', 'shrieks', 'falsetto', 'guttural');   // sans « epic », NWOBHM retombait en AC/DC (test Maiden 2026-11-02)
-  if (_horror9) _antiLow.push('radio rock', 'post-grunge', 'banjo', 'steel drum');
+  if (_horror9) _antiLow.push('tribal drums', 'bongos', 'congas', 'radio rock', 'post-grunge', 'banjo', 'steel drum');
   const excStr = dedup([..._antiLow, ..._antiEcho, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, Math.max(8, _antiLow.length) + _antiEcho.length).join(', ');   // les anti-voix ne doivent jamais être coupés
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)
@@ -811,7 +811,7 @@ export default function handler(req, res) {
     bridge: chaos >= 7 ? 'shifting time signature, dissonant chords' : 'clean guitar, building drums',
     outro: chaos >= 7 && _coreish ? 'blast beats, fading feedback' : _coreish ? 'final breakdown, ringing feedback' : 'big final chord, ringing guitars, no vocals',
   };
-  if (_horror9) Object.assign(DESC, { intro: 'horror sample, whispered threats, metal barrel hits', verse: 'visceral screams over crushing chugs, machine-gun double kick', prechorus: 'whispered, barrels only', chorus: 'soaring sung melodic hook over the full band, barrels on every beat', breakdown: 'brutal low breakdown, gang shouts', solo: 'percussion break, tribal barrels and scratches, no guitars', bridge: 'barrels only, whispered threats' });
+  if (_horror9) Object.assign(DESC, { intro: 'horror sample, whispered threats, metal barrel hits', verse: 'visceral screams over crushing chugs, machine-gun double kick', prechorus: 'whispered, barrels only', chorus: 'soaring sung melodic hook over the full band, barrels on every beat', breakdown: 'brutal low breakdown, gang shouts', solo: 'percussion break, metal barrels and floor toms, scratches, no guitars', bridge: 'barrels only, whispered threats' });
   // Séparateur = PIPE (vérifié 2026-09-10) : les guides de métatags et un test jour-1 de v6
   // confirment « [Bridge | whispered French bridge] ». La virgule provoque un « instructional
   // collapse » (tous les éléments au même niveau) et peut être chantée. Le reste de l'app

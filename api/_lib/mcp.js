@@ -133,6 +133,8 @@ const TOOLS = [
         upload_fields: { type: 'object', additionalProperties: { type: 'string' }, description: 'upload_fields reçus de midi-upload-create, tels quels.' },
         groove_id: { type: 'string', description: 'Groove donné par forger_toune (optionnel).' },
         style: { type: 'string', description: 'Style si pas de groove_id : le groove est pigé dans ce style.' },
+        bpm: { type: 'integer', minimum: 40, maximum: 300, description: 'Tempo du prompt : le groove pigé reste à ±20 BPM (optionnel).' },
+        pistes: { type: 'array', items: { type: 'string', enum: ['beat', 'riff', 'basse', 'melodie'] }, description: "Pistes à envoyer. Défaut : beat + riff + basse (sans mélodie : jouée par Suno, elle sonne synthé)." },
       },
       required: ['upload_url', 'upload_fields'],
     },
@@ -352,38 +354,45 @@ async function grooveById(ctx, id) {
   if (!data) return null;
   return (data.status === 'approved' || ctx.owner) ? data : null;   // le proprio peut tester ce qui est en attente
 }
-async function grooveForStyle(ctx, txt) {
+async function grooveForStyle(ctx, txt, bpm) {
   const bs = bankStyleFor(txt);
   if (!bs) return null;
   const statuses = ctx.owner ? ['approved', 'pending'] : ['approved'];
   for (const st of statuses) {
     const { data } = await ctx.sb.from('melody_bank').select('id,style,section,bpm,accordage,mesures,data,status').eq('style', bs).eq('status', st).limit(30);
-    if (data && data.length) { const c = data.filter(g => g.section === 'couplet'); const pool = c.length ? c : data; return pool[Math.floor(Math.random() * pool.length)]; }
+    const near = (data || []).filter(g => !bpm || Math.abs(g.bpm - bpm) <= 20);
+    if (near.length) { const c = near.filter(g => g.section === 'couplet'); const pool = c.length ? c : near; return pool[Math.floor(Math.random() * pool.length)]; }
   }
   return null;
 }
-function loopedMidi(g, maxSec = 60) {
+function loopedMidi(g, maxSec = 60, pistes = ['beat', 'riff', 'basse']) {
+  const has = k => pistes.includes(k);
   const d = g.data, L = d.drums.kick.length, barSec = L * 60 / g.bpm / 4;
   const N = Math.max(1, Math.min(8, Math.floor(maxSec / barSec)));
   const rep = arr => Array.from({ length: N }, (_, k) => arr.map(n => ({ ...n, t: n.t + k * L }))).flat();
-  return { bytes: toMidi({ bpm: g.bpm, leadProgram: d.leadProgram, guitar: rep(d.guitar), bass: rep(d.bass), melody: rep(d.melody),
-    drums: { kick: Array(N).fill(d.drums.kick).flat(), snare: Array(N).fill(d.drums.snare).flat(), hihat: Array(N).fill(d.drums.hihat).flat() } }), sec: Math.round(N * barSec) };
+  const z = a => a.map(() => 0);
+  const dr = k => Array(N).fill(has('beat') ? d.drums[k] : z(d.drums[k])).flat();
+  return { bytes: toMidi({ bpm: g.bpm, leadProgram: d.leadProgram, guitar: has('riff') ? rep(d.guitar) : [], bass: has('basse') ? rep(d.bass) : [], melody: has('melodie') ? rep(d.melody) : [],
+    drums: { kick: dr('kick'), snare: dr('snare'), hihat: dr('hihat') } }), sec: Math.round(N * barSec) };
 }
 async function toolTeleverser(args, ctx) {
   let u; try { u = new URL(String(args.upload_url || '')); } catch { return { error: 'upload_url invalide.' }; }
   if (u.protocol !== 'https:' || !SUNO_UPLOAD_HOSTS.includes(u.hostname)) return { error: "upload_url doit venir de midi-upload-create (Suno)." };
   const fields = args.upload_fields && typeof args.upload_fields === 'object' ? args.upload_fields : null;
   if (!fields || !fields.key || !fields.policy) return { error: 'upload_fields manquants (passe-les tels quels).' };
-  const g = args.groove_id ? await grooveById(ctx, args.groove_id) : await grooveForStyle(ctx, args.style);
-  if (!g) return { error: args.groove_id ? 'Groove introuvable ou pas encore approuvé.' : 'Aucun groove approuvé pour ce style.' };
-  const { bytes, sec } = loopedMidi(g);
+  const g = args.groove_id ? await grooveById(ctx, args.groove_id) : await grooveForStyle(ctx, args.style, Number(args.bpm) || 0);
+  if (!g) return { error: args.groove_id ? 'Groove introuvable ou pas encore approuvé.' : 'Aucun groove approuvé pour ce style au bon tempo.' };
+  const PISTES = ['beat', 'riff', 'basse', 'melodie'];
+  const pistes = Array.isArray(args.pistes) && args.pistes.length ? args.pistes.filter(x => PISTES.includes(x)) : ['beat', 'riff', 'basse'];
+  if (!pistes.length) return { error: 'Choisis au moins une piste (beat, riff, basse, melodie).' };
+  const { bytes, sec } = loopedMidi(g, 60, pistes);
   const fd = new FormData();
   for (const [k, v] of Object.entries(fields)) fd.append(k, String(v));
   fd.append('file', new Blob([bytes], { type: 'audio/midi' }), 'metalprompt-groove.mid');
   const r = await fetch(u.toString(), { method: 'POST', body: fd });
   if (!r.ok) return { error: `Envoi vers Suno refusé (${r.status}). Recommence midi-upload-create (l'envoi expire après 10 minutes).` };
   return { text: [
-    `Groove envoyé : ${g.id} · ${g.bpm} BPM · ${g.accordage} · ${meterName(g.mesures)} · ~${sec} s (guitare, basse, batterie, mélodie).`,
+    `Groove envoyé : ${g.id} · ${g.bpm} BPM · ${g.accordage} · ${meterName(g.mesures)} · ~${sec} s · pistes : ${pistes.join(' + ')}.`,
     'Suite : midi-upload-complete, puis audio-create avec midi_upload_id, model v6-wild et une description qui reprend le Style (instrumental).',
     'Pour les paroles : audio-covers-create sur ce clip avec style, negative_style et lyrics (garde le riff et la mélodie).',
   ].join('\n') };

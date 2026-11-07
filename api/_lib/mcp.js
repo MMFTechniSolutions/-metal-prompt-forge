@@ -109,7 +109,7 @@ const TOOLS = [
   {
     name: 'forger_toune',
     title: 'Forger une toune complète',
-    description: "Toune complète en un appel, prête pour Suno : prompt Style + Exclude, paroles crues taguées par section, et un groove de la banque MetalPrompt (BPM, accordage, mesures) qui accote le style. Donne un style/mix/année et, si tu veux, un angle pour les paroles. Avec un connecteur Suno : Style → style, Exclude → negative_style, Lyrics → lyrics, modèle conseillé → model.",
+    description: "Toune complète en un appel, prête pour Suno : prompt Style + Exclude (son de vrai band en studio, sans synth ni foule) et paroles crues taguées par section (ou structure seule en instrumental). Donne un style/mix/année et, si tu veux, un angle pour les paroles. Avec un connecteur Suno : audio-create avec Style → style, Exclude → negative_style, Lyrics → lyrics, model v6-wild.",
     inputSchema: {
       type: 'object',
       properties: {
@@ -125,7 +125,7 @@ const TOOLS = [
   {
     name: 'televerser_groove',
     title: 'Envoyer un groove de la banque à Suno (MIDI)',
-    description: "Envoie un groove de la banque MetalPrompt (guitare, basse, batterie, mélodie qui accote le style) directement dans un envoi MIDI Suno. Étapes : 1) appelle midi-upload-create du connecteur Suno, 2) passe ici son upload_url et ses upload_fields tels quels, avec le groove_id de forger_toune (ou le style), 3) appelle midi-upload-complete, 4) audio-create avec midi_upload_id, model v6-wild et une description qui reprend le Style, 5) pour chanter les paroles : audio-covers-create sur ce clip avec style, negative_style et lyrics.",
+    description: "EXPÉRIMENTAL — pas pour l'usage normal : en test, Suno reprend le son de l'instrument MIDI et la toune sonne sèche; le prompt seul de forger_toune sonne mieux. Envoie un groove de la banque MetalPrompt (guitare, basse, batterie, mélodie qui accote le style) directement dans un envoi MIDI Suno. Étapes : 1) appelle midi-upload-create du connecteur Suno, 2) passe ici son upload_url et ses upload_fields tels quels, avec le groove_id de forger_toune (ou le style), 3) appelle midi-upload-complete, 4) audio-create avec midi_upload_id, model v6-wild et une description qui reprend le Style, 5) pour chanter les paroles : audio-covers-create sur ce clip avec style, negative_style et lyrics.",
     inputSchema: {
       type: 'object',
       properties: {
@@ -239,6 +239,7 @@ async function toolForger(args, ctx) {
     excl: { c: (pr.exclude || []).join(', ') },
     lang: args.langue === 'fr' ? 'fr' : 'en', emotions: {}, tier: 'pro',
     eras: era ? [era] : [], signature, year: year || null, years, scene, eraLocked: !!era, bpmManual: false, audioSrc: 'none',
+    pure: genres.length === 1,   // style pur = pas de mix pigé (test black metal 1995 → « punk rock inflections », 7 nov. 2026)
   };
   const f = await call(forgeHandler, body);
   if (f.status !== 200 || !f.data || !f.data.styleStr) return { error: 'Erreur de génération, réessaie.' };
@@ -301,7 +302,7 @@ const BANK_MAP = [
   [/prog/, 'progmetal'], [/nu.?metal/, 'numetal'], [/rap/, 'rapcore'], [/industrial/, 'industrial'], [/groove/, 'groove'], [/funeral/, 'funeraldoom'],
   [/sludge/, 'sludge'], [/goth/, 'gothic'], [/post.?metal/, 'postmetal'], [/doom/, 'doom'], [/black/, 'blackened'], [/death/, 'death'],
 ];
-const bankStyleFor = txt => { const t = String(txt || '').toLowerCase(); const m = BANK_MAP.find(([re]) => re.test(t)); return m ? m[1] : null; };
+const bankStyleFor = txt => { const t = String(txt || '').toLowerCase().replace(/power chords?/g, ''); const m = BANK_MAP.find(([re]) => re.test(t)); return m ? m[1] : null; };
 
 async function pickGroove(ctx, style, bpm) {
   if (!style || !ctx.sb) return null;
@@ -317,33 +318,96 @@ async function pickGroove(ctx, style, bpm) {
 const TUNE_NAME = { E2: 'standard E tuning', Eb2: 'Eb tuning', D2: 'D standard tuning', Db2: 'drop C# tuning', C2: 'C standard tuning', B1: 'B standard tuning' };
 const meterName = m => { const u = [...new Set(m)]; if (u.length === 1 && u[0] === 16) return '4/4'; return u.map(n => n === 16 ? '4/4' : n === 12 ? '6/8' : n === 14 ? '7/8' : n === 20 ? '5/4' : n === 10 ? '5/8' : n === 18 ? '9/8' : n === 8 ? '2/4' : n + '/16').join(' + '); };
 
+
+// ── Recette « vrai band en studio » (tests black metal 1995 + groove metal 2004, 7 nov. 2026) ──
+// Mots qui faisaient sortir du synth, du grid machine ou une foule de show.
+const BAD_STYLE = [
+  /\b(?:raw )?live[- ]band recording\b/i, /\blive[- ]room production\b/i, /\broom mics?\b/i, /\blive recording\b/i,
+  /\bsteady pulse\b/i, /\bblizzard\b/i, /\bthin no-bass\b/i, /\bdrenched in reverb\b/i, /\breverb-drenched\b/i,
+];
+const VOCAL_WORDS = /\b(vocals?|voice|shrieks?|growls?|screams?|screamed|sung|singing|singer|gutturals?|rasp(y)?|choir|chant(s|ed)?|delivery)\b/i;
+const STUDIO_TAGS = 'studio album production, played by a real band in the studio, human drummer feel, natural timing, real distorted electric guitars, no keyboards';
+const DEFAULT_EXCL = ['synth', 'keyboards', 'synth pads', 'ambient pads', 'orchestral', 'symphonic', 'electronic', '8-bit', 'MIDI', 'programmed drums', 'drum machine', 'quantized', 'robotic', 'mechanical', 'live concert', 'crowd noise', 'audience', 'applause'];
+// Si le style demande des claviers/orchestre (symphonic black, industrial…), on ne les exclut pas.
+const KEYS_STYLE = /symphon|orchestr|industrial|synth|keyboard|gothic|cyber|electro/i;
+const KEYS_EXCL = new Set(['synth', 'keyboards', 'synth pads', 'ambient pads', 'orchestral', 'symphonic', 'electronic']);
+const splitTags = s => String(s || '').split(/\s*[,;]\s*/).map(x => x.trim()).filter(Boolean);
+const uniq = a => { const seen = new Set(); return a.filter(x => { const k = x.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }); };
+
+function cleanStyle(style, { instrumental, genres }) {
+  const keys = KEYS_STYLE.test(genres.join(' '));
+  let tags = splitTags(style).filter(t => !BAD_STYLE.some(re => re.test(t)));
+  // Style pur : enlève un mix que l'utilisateur n'a pas demandé (« black metal with punk rock inflections »)
+  if (genres.length === 1) {
+    tags = tags.map(t => t.replace(/\s+with\s+[^,]*\binflections?\b/i, '').trim());
+    if (!/punk|hardcore|crossover|crust|grind/i.test(genres[0])) tags = tags.filter(t => !/\bpunk\b/i.test(t));
+  }
+  tags = tags.map(t => t.replace(/\s*\b(blizzard|drenched in reverb|thin no-bass)\b\s*/gi, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
+  if (instrumental) tags = tags.filter(t => !VOCAL_WORDS.test(t));
+  const studio = splitTags(STUDIO_TAGS).filter(t => !(keys && /no keyboards/.test(t)));
+  return uniq([...(instrumental ? ['instrumental'] : []), ...tags, ...studio]).join(', ');
+}
+function cleanExclude(excl, { genres, instrumental }) {
+  const keys = KEYS_STYLE.test(genres.join(' '));
+  let tags = splitTags(excl);
+  const add = DEFAULT_EXCL.filter(t => !(keys && KEYS_EXCL.has(t)));
+  if (keys) tags = tags.filter(t => !KEYS_EXCL.has(t.toLowerCase()));
+  // En instrumental, inutile d'exclure des types de voix : ça gaspille le champ
+  if (instrumental) tags = tags.filter(t => !VOCAL_WORDS.test(t));
+  return uniq([...tags, ...add]).join(', ');
+}
+// Structure : aucun tag vocal en instrumental, et des sections fidèles au genre
+const GENRE_NO = [
+  [/black/, /\b(half-?time|breakdown|palm mutes?|chorus)\b/i],
+  [/groove|thrash|nwobhm|heavy/, /\bblast\b/i],
+];
+function cleanStruct(struct, { instrumental, genres }) {
+  const g = genres.join(' ').toLowerCase();
+  const black = /black/.test(g);
+  const lines = String(struct || '').split('\n').map(l => l.trim()).filter(Boolean);
+  const out = [];
+  for (let line of lines) {
+    const m = line.match(/^\[([^\]|]+)(?:\|\s*([^\]]*))?\]$/);
+    if (!m) { if (!instrumental) out.push(line); continue; }
+    let name = m[1].trim(), cue = (m[2] || '').trim();
+    if (/^end$/i.test(name)) { out.push('[End]'); continue; }
+    if (instrumental) {
+      if (/chorus/i.test(name)) name = black ? 'Tremolo Riff' : 'Groove Riff';
+      if (/verse/i.test(name)) name = 'Verse';
+      cue = cue.split(/\s*,\s*/).filter(c => c && !VOCAL_WORDS.test(c)).join(', ');
+    }
+    const bad = GENRE_NO.find(([re]) => re.test(g));
+    if (bad && (bad[1].test(name) || bad[1].test(cue))) {
+      if (/half-?time|breakdown/i.test(name)) continue;        // section qui fait pas le genre → on l'enlève
+      cue = cue.split(/\s*,\s*/).filter(c => !bad[1].test(c)).join(', ');
+    }
+    if (instrumental && !cue) cue = black ? 'tremolo guitars, blast beats' : 'guitars and drums';
+    out.push(cue ? `[${name} | ${cue}]` : `[${name}]`);
+  }
+  // pas deux sections identiques de suite
+  return out.filter((l, i) => l !== out[i - 1]).join('\n');
+}
+
 async function toolToune(args, ctx) {
   const f = await toolForger({ idee: args.idee, annee: args.annee, langue: 'fr' }, ctx);
   if (f.error) return f;
-  const o = f.o;
-  let style = o.styleStr, groove = null;
-  const bs = bankStyleFor(f.genres.join(' ') + ' ' + style);
-  groove = await pickGroove(ctx, bs, Number(o.bpm) || 0);
-  if (!groove && ctx.owner) { const gp = await grooveForStyle(ctx, f.genres.join(' ') + ' ' + style); if (gp && Math.abs(gp.bpm - (Number(o.bpm) || gp.bpm)) <= 20) groove = gp; }   // proprio : teste aussi l'attente
-  if (groove) {
-    // Le groove approuvé fixe le tempo et l'accordage : le prompt suit la banque
-    style = style.replace(/\b\d{2,3} BPM\b/, groove.bpm + ' BPM');
-    const tn = TUNE_NAME[groove.accordage];
-    if (tn) style = /tuning/.test(style) ? style.replace(/[^,]*tuning[^,]*/, ' ' + tn).replace(/,\s+/g, ', ').trim() : style + ', ' + tn;
-  }
-  let lyrics = '';
-  if (!args.instrumental) {
-    const p = await toolParoles({ angle: args.angle, style, structure: o.structStr });
+  const o = f.o, inst = !!args.instrumental, opt = { instrumental: inst, genres: f.genres };
+  // Prompt seul = voie principale (7 nov. 2026) : la chaîne MIDI → Suno sonne sec, Suno reprend le son de l'instrument d'entrée.
+  const style = cleanStyle(o.styleStr, opt);
+  const exclude = cleanExclude(o.excludeStr, opt);
+  const struct = cleanStruct(o.structStr, opt);
+  let lyrics = struct;
+  if (!inst) {
+    const p = await toolParoles({ angle: args.angle, style, structure: struct });
     if (p.error) return p;
     lyrics = p.text;
-  } else lyrics = o.structStr || '';
-  const rec = o.modelRec ? (typeof o.modelRec === 'string' ? o.modelRec : o.modelRec.best) : 'v6-wild';
+  }
   const lines = [
     'STYLE :', style, '',
-    'EXCLUDE :', o.excludeStr || '(rien)', '',
+    'EXCLUDE :', exclude, '',
     'LYRICS :', lyrics, '',
-    `Modèle Suno conseillé : ${rec} · Style Influence 100, Weirdness 65 max, Variety 0.`,
-    groove ? `Groove de la banque (groove_id pour televerser_groove) : ${groove.id} · ${groove.bpm} BPM · ${groove.accordage} · ${meterName(groove.mesures)}` : `Groove de la banque : aucun groove approuvé au bon tempo pour « ${bs || 'ce style'} » — tempo et accordage du forge.`,
+    'Modèle Suno conseillé : v6-wild · Style Influence 100, Weirdness 65 max, Variety 0.',
+    `Avec le connecteur Suno : audio-create (model v6-wild, style, negative_style = Exclude, lyrics${inst ? ', instrumental: true' : ''}).`,
   ];
   return { text: lines.join('\n') };
 }
@@ -416,7 +480,7 @@ async function toolTeleverser(args, ctx) {
 const RUN = { forger_toune: toolToune, televerser_groove: toolTeleverser, forger_prompt: toolForger, creer_riff: toolRiff, ecrire_paroles: toolParoles, remplir_banque: toolRemplirBanque };
 
 const INSTRUCTIONS = `MetalPrompt forge des prompts Suno pour le metal (« Inspiré, jamais copié »).
-Le plus simple : forger_toune (tout en un). Avec Suno Premier, pour que la toune joue le vrai groove de la banque : Suno midi-upload-create → televerser_groove (upload_url, upload_fields, groove_id) → midi-upload-complete → audio-create (midi_upload_id, v6-wild, description = Style, instrumental) → audio-covers-create sur ce clip (style, negative_style, lyrics). Sinon : forger_prompt → (optionnel) ecrire_paroles avec la structure reçue → (optionnel) creer_riff. Avec un connecteur Suno : Style → champ style, Exclude → champ exclude, structure + paroles → champ lyrics.
+Le plus simple : forger_toune (tout en un), puis audio-create de Suno avec model v6-wild, style = Style, negative_style = Exclude, lyrics = Lyrics. N'utilise pas la chaîne MIDI (televerser_groove) sauf si on te le demande : elle est expérimentale et sonne sèche. Autre voie : forger_prompt → (optionnel) ecrire_paroles avec la structure reçue → (optionnel) creer_riff. Avec un connecteur Suno : Style → champ style, Exclude → champ exclude, structure + paroles → champ lyrics.
 Ne jamais écrire de nom de groupe, d'artiste ou de chanson dans un prompt ni dans des paroles.`;
 
 // ════════════════ JSON-RPC ════════════════

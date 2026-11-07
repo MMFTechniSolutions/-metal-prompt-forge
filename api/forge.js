@@ -283,7 +283,8 @@ export default function handler(req, res) {
   // Époque = celle du GENRE PRINCIPAL (1er de la liste), pas la plus ancienne (deathcore + industrial donnait « 1990s », 2026-10-27)
   const _eraKeyEarly = A('eras').map(e => ['60s-70s','80s','90s','2000s','2010s','2020s'].find(k => String(e).startsWith(k))).find(Boolean);
   const _blendEra = (_sidEarly && _eraKeyEarly && BLEND_BY_ERA[_sidEarly] && BLEND_BY_ERA[_sidEarly][_eraKeyEarly]) ? BLEND_BY_ERA[_sidEarly][_eraKeyEarly] : null;
-  const _blendPool = genres.length === 1 ? (_blendEra || (_sidEarly && GENRE_BLEND[_sidEarly]) || []) : [];
+  // Style pur (MCP, 7 nov. 2026) : « black metal 1995 » ne doit pas sortir avec des « punk rock inflections »
+  const _blendPool = (genres.length === 1 && !b.pure) ? (_blendEra || (_sidEarly && GENRE_BLEND[_sidEarly]) || []) : [];
   // variété : 1 ou 2 influences, dans un ordre pigé (2026-10-31)
   const blendAuto = [..._blendPool].sort(() => Math.random() - 0.5).slice(0, _blendPool.length > 1 && Math.random() < 0.5 ? 1 : 2);   // anchors sonores du « reverse » (groupe → style)
   // Époque (couche 3 du style stack) : le client envoie les familles d'époque des genres choisis

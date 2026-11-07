@@ -20,6 +20,7 @@ import riffHandler from '../riff.js';
 import lyricsHandler from '../lyrics.js';
 import { lyricCard } from './lyricCard.js';
 import { FAMILLES } from '../_genreFamilies.js';
+import { BAND_YEARS } from '../_bandYears.js';
 import { generateBank, toMidi, STYLES as BANK_STYLES } from './melodyBank.js';
 
 const SITE = (process.env.SITE_URL || 'https://metalprompt.com').replace(/\/$/, '');
@@ -202,6 +203,24 @@ async function toolRemplirBanque(args, ctx) {
   return { text: `${rows.length} grooves ajoutés (lot ${tag}, ${styles.length} styles × 4 sections × ${per}). Banque : ${n.pending || 0} en attente · ${n.approved || 0} approuvés · ${n.rejected || 0} rejetés.` };
 }
 
+
+// ── Signature cachée (7 nov. 2026) : « groove metal 2004 » donnait la moyenne du genre (« générique »).
+// On pige un groupe de la base du même genre, actif autour de l'année demandée, et on prend SA signature
+// sonore + sa scène. Le nom ne sort jamais du serveur : seuls les descripteurs de son vont dans le prompt.
+async function hiddenSignature(ctx, genre, year) {
+  if (!ctx.sb || !genre) return null;
+  const { data } = await ctx.sb.from('band_cache').select('name_key,signature,scene,scene_from,scene_to').eq('genre', genre).limit(200);
+  const rows = (data || []).filter(r => Array.isArray(r.signature) && r.signature.length);
+  if (!rows.length) return null;
+  const y = Number(year) || 0;
+  const near = d => rows.filter(r => (BAND_YEARS[r.name_key] || []).some(a => Math.abs(a - y) <= d));
+  const pool = y ? (near(1).length ? near(1) : near(3).length ? near(3) : []) : rows;
+  if (!pool.length) return null;
+  const r = pool[Math.floor(Math.random() * pool.length)];
+  const scene = r.scene ? { label: r.scene, from: r.scene_from || null, to: r.scene_to || null } : null;
+  return { signature: r.signature.map(String).slice(0, 4), scene };
+}
+
 async function toolForger(args, ctx) {
   const idee = String(args.idee || '').slice(0, 300);
   let { era, rest, year, dec } = parseEra(idee);
@@ -231,6 +250,10 @@ async function toolForger(args, ctx) {
     }
   }
 
+  if (!signature.length && genres.length === 1 && args.signature !== false) {
+    const hs = await hiddenSignature(ctx, genres[0], year);
+    if (hs) { signature = hs.signature; if (!scene) scene = hs.scene; }
+  }
   const pr = (await call(ctx.profile, { genre: genres[0] })).data || {};
   const body = {
     genres, drums: pr.drums || [], vocals: pr.vocals || [], guitar: pr.guitar || [], tuning: pr.tuning || [], mood: pr.mood || [],
@@ -344,6 +367,8 @@ function cleanStyle(style, { instrumental, genres }) {
   }
   tags = tags.map(t => t.replace(/\s*\b(blizzard|drenched in reverb|thin no-bass)\b\s*/gi, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
   if (instrumental) tags = tags.filter(t => !VOCAL_WORDS.test(t));
+  // Traits de signature qui contredisent l'Exclude (claviers, électro, son radio) → dehors, sauf style à claviers
+  if (!keys) tags = tags.filter(t => !/keyboard|synth|electronic|samples?\b|organ|polished|radio-ready/i.test(t));
   const studio = splitTags(STUDIO_TAGS).filter(t => !(keys && /no keyboards/.test(t)));
   return uniq([...(instrumental ? ['instrumental'] : []), ...tags, ...studio]).join(', ');
 }
@@ -396,6 +421,8 @@ async function toolToune(args, ctx) {
   const style = cleanStyle(o.styleStr, opt);
   const exclude = cleanExclude(o.excludeStr, opt);
   const struct = cleanStruct(o.structStr, opt);
+  // v6 = trop propre pour le metal cru (François, 7 nov.) : seulement prog, glam, metalcore radio
+  const model = /prog|glam|hair metal|metalcore|post-hardcore|alternative|radio/i.test(f.genres.join(' ')) ? 'v6' : 'v6-wild';
   let lyrics = struct;
   if (!inst) {
     const p = await toolParoles({ angle: args.angle, style, structure: struct });
@@ -406,8 +433,8 @@ async function toolToune(args, ctx) {
     'STYLE :', style, '',
     'EXCLUDE :', exclude, '',
     'LYRICS :', lyrics, '',
-    'Modèle Suno conseillé : v6-wild · Style Influence 100, Weirdness 65 max, Variety 0.',
-    `Avec le connecteur Suno : audio-create (model v6-wild, style, negative_style = Exclude, lyrics${inst ? ', instrumental: true' : ''}).`,
+    `Modèle Suno conseillé : ${model} · Style Influence 100, Weirdness 65 max, Variety 0.`,
+    `Avec le connecteur Suno : audio-create (model ${model}, style, negative_style = Exclude, lyrics${inst ? ', instrumental: true' : ''}).`,
   ];
   return { text: lines.join('\n') };
 }

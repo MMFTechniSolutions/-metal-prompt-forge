@@ -445,7 +445,9 @@ const STRUCT_BLOCKS = [
   {k:"outro",icon:"",name:"Outro",desc:"Fin explosive ou fade chaotique",descEn:"Explosive ending or chaotic fade"},
 ];
 const METER_LIST = ["4/4","6/8","12/8","5/4","5/8","7/4","7/8","9/8","11/8","13/8","15/8"];
-const METER_HINT = {"4/4":"2+2 · heavy/thrash/death","6/8":"3+3 · doom, ballades","12/8":"shuffle lourd","5/4":"3+2 · Tool, jazz-rock","5/8":"3+2 croches · mathcore, tech death","7/4":"4+3 · groove flottant","7/8":"2+2+3 · prog, fusion","9/8":"2+2+2+3 · balkan/prog","11/8":"3+3+3+2 · math, Meshuggah","13/8":"cellules 2+3 · mathcore, djent","15/8":"cellules 2+3 · prog moderne"};
+// Presets d'accueil et du 🎲 : styles et années seulement, aucun nom de groupe affiché (nov. 2026)
+const STYLE_PRESETS = [["Thrash Bay Area, 1986","Bay Area thrash, 1986"],["Florida death metal, 1991","Florida death metal, 1991"],["Black metal norvégien, 1993","Norwegian black metal, 1993"],["Doom lent avec orgue","Slow doom with organ"],["Deathcore brutal, 2010","Brutal deathcore, 2010"],["Metalcore mélodique","Melodic metalcore"],["Nu-metal, 1999","Nu-metal, 1999"],["Groove metal lourd","Heavy groove metal"]];
+const METER_HINT = {"4/4":"2+2 · heavy/thrash/death","6/8":"3+3 · doom, ballades","12/8":"shuffle lourd","5/4":"3+2 · prog, jazz-rock","5/8":"3+2 croches · mathcore, tech death","7/4":"4+3 · groove flottant","7/8":"2+2+3 · prog, fusion","9/8":"2+2+2+3 · balkan/prog","11/8":"3+3+3+2 · math, djent","13/8":"cellules 2+3 · mathcore, djent","15/8":"cellules 2+3 · prog moderne"};
 const GLOBAL_RHYTHMS = ["polyrhythmic","odd time signatures","progressive rhythms","syncopated rhythms","math metal feel","triplet feel","djent syncopation","shifting time signatures","asymmetric rhythms"];
 const BLOCK_RHYTHMS = [
   {v:"straight driving rhythm",l:"Straight"},{v:"half-time feel",l:"Half-Time"},
@@ -473,8 +475,8 @@ const lifetimeLeft=()=>{const ms=Date.parse(LIFETIME.end)-Date.now();if(ms<=0)re
 // ── TIERS ──
 const TIERS = {
   free: {id:"free", label:"FREE", price:"$0", color:"#444", badge:null,
-    features:["✅ Prompts illimités (compte gratuit)","✅ 2 000+ groupes connus · 151 sous-genres","✅ Tous les réglages (Ajuster)","✅ Galerie : 2 chansons/mois + votes","🎟️ Mélodie, Riff et Paroles IA : avec crédits Studio ou Plus"],
-    featuresEn:["✅ Unlimited prompts (free account)","✅ 2,000+ known bands · 151 sub-genres","✅ All settings (Adjust)","✅ Gallery: 2 tracks/month + votes","🎟️ Melody, Riff and AI Lyrics: with Studio credits or Plus"]},
+    features:["✅ Prompts illimités (compte gratuit)","✅ 151 sous-genres · toutes les époques","✅ Tous les réglages (Ajuster)","✅ Galerie : 2 chansons/mois + votes","🎟️ Mélodie, Riff et Paroles IA : avec crédits Studio ou Plus"],
+    featuresEn:["✅ Unlimited prompts (free account)","✅ 151 sub-genres · every era","✅ All settings (Adjust)","✅ Gallery: 2 tracks/month + votes","🎟️ Melody, Riff and AI Lyrics: with Studio credits or Plus"]},
   // Oct. 2026 : un seul abonnement à 2,99 $/mois (plus d'annuel). Lien Stripe dans STRIPE_MENSUEL.
   pro: {id:"pro", label:"METALPROMPT", price:"$2.99/mois", color:"#FF6A2B", badge:"PRO",
     stripe:STRIPE_MENSUEL,
@@ -833,7 +835,7 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
           <div style={{background:CARD,border:"1px solid #222",borderRadius:"10px",padding:"16px"}}>
             <div style={{fontSize:"0.6rem",color:"#555",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"6px"}}>{L("GRATUIT","FREE")}</div>
             <div style={{fontSize:"1.4rem",fontWeight:900,color:"#fff",marginBottom:"10px"}}>$0</div>
-            {(uiLang==="fr"?["Prompts illimités","Tous les réglages + 2 000+ groupes","🎟️ Studio : crédits ou Plus","🎟️ Paroles IA : crédits ou Plus"]:["Unlimited prompts","All settings + 2,000+ bands","🎟️ Studio: credits or Plus","🎟️ AI lyrics: credits or Plus"]).map((f,i)=><div key={f} style={{fontSize:"0.68rem",color:i<2?"#bbb":"#333",padding:"3px 0"}}>{f}</div>)}
+            {(uiLang==="fr"?["Prompts illimités","Tous les réglages + 151 sous-genres","🎟️ Studio : crédits ou Plus","🎟️ Paroles IA : crédits ou Plus"]:["Unlimited prompts","All settings + 151 sub-genres","🎟️ Studio: credits or Plus","🎟️ AI lyrics: credits or Plus"]).map((f,i)=><div key={f} style={{fontSize:"0.68rem",color:i<2?"#bbb":"#333",padding:"3px 0"}}>{f}</div>)}
             <button onClick={onEnter} style={{width:"100%",marginTop:"12px",padding:"9px",background:"#1a1a1a",border:"1px solid #333",borderRadius:"6px",color:"#777",fontSize:"0.72rem",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>{L("ESSAYER","TRY")}</button>
           </div>
           {["forge","pro","elite"].map(id=>{
@@ -988,7 +990,7 @@ Dernière mise à jour : 26 juin 2026
 
 ÉDITEUR
 MMF Techni-Solutions — NEQ : 2279516308
-MetalPrompt est un outil indépendant, non affilié à Suno, Inc. ni à aucun groupe ou artiste cité.
+MetalPrompt est un outil indépendant, non affilié à Suno, Inc. ni à aucun groupe ou artiste.
 Adresse : 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1
 Courriel : mmftechnisolutions@gmail.com
 Responsable de la publication : François Lajoie-Levesque
@@ -1109,7 +1111,7 @@ function SiteFooter({onOpen,uiLang}){
       <button style={lk} onClick={()=>onOpen("terms")}>{fr?"Conditions d'utilisation":"Terms"}</button>
       <button style={lk} onClick={()=>onOpen("sales")}>{fr?"Conditions de vente":"Sales terms"}</button>
       <button style={lk} onClick={()=>onOpen("legal")}>{fr?"Mentions légales":"Legal notice"}</button>
-      <div style={{flexBasis:"100%",fontSize:"0.6rem",color:"#8A8F97",marginTop:"6px"}}>{fr?"MetalPrompt est un outil indépendant, non affilié à Suno, Inc. ni approuvé par aucun groupe ou artiste. Les noms de groupes servent uniquement à décrire un style musical et ne sont jamais écrits dans vos prompts.":"MetalPrompt is an independent tool, not affiliated with Suno, Inc. and not endorsed by any band or artist. Band names are used only to describe a musical style and are never written into your prompts."}</div>
+      <div style={{flexBasis:"100%",fontSize:"0.6rem",color:"#8A8F97",marginTop:"6px"}}>{fr?"MetalPrompt est un outil indépendant, non affilié à Suno, Inc. ni approuvé par aucun groupe ou artiste. Aucun nom d'artiste n'est écrit dans vos prompts.":"MetalPrompt is an independent tool, not affiliated with Suno, Inc. and not endorsed by any band or artist. No artist names are ever written into your prompts."}</div>
     </div>
   );
 }
@@ -1228,18 +1230,18 @@ function Manifesto({onClose,uiLang}){
 function WhatsNew({onClose,uiLang}){
   const fr=uiLang!=="en";
   const items = fr ? [
-    ["🔥 La meilleure façon de composer","L'outil Suno metal ultime : tape un groupe, forge ton prompt, puis bâtis ta chanson avec Mélodie, Riff et Beat. De l'idée à Suno, au même endroit."],
+    ["🔥 La meilleure façon de composer","L'outil Suno metal ultime : tape un style et une année, forge ton prompt, puis bâtis ta chanson avec Mélodie, Riff et Beat. De l'idée à Suno, au même endroit."],
     ["🎸 Le Studio a de vrais sons","Fini le son synthétique : une vraie guitare électrique enregistrée, passée dans un ampli high gain, et une vraie batterie enregistrée (5 forces de frappe par pièce). Dans Riff, Beat et Mélodie, à l'écoute comme dans l'export WAV."],
     ["🥁 3 outils, un seul Studio","Mélodie (avec sa partition) · Riff (guitare + basse rythmiques, avec la tablature complète) · Beat (batterie seule, avec la partition de batterie)."],
     ["🤘 T'es seul pour jouer?","Lance un Beat et joue par-dessus pour pratiquer, ou apprends un Riff avec sa tab. MetalPrompt t'aide à composer et à pratiquer."],
-    ["🎯 Les groupes sonnent comme eux","Le prompt suit maintenant la signature du groupe (sa voix, son tempo, son époque) au lieu d'un profil générique. Korn chuchote puis explose, Gojira écrase lentement."],
+    ["🎯 Les groupes sonnent comme eux","Le prompt suit maintenant la signature du groupe (sa voix, son tempo, son époque) au lieu d'un profil générique. Une voix qui chuchote puis explose, un groove lent qui écrase : chacun garde sa couleur."],
     ["🔧 Export WAV réparé","Le faux « crescendo » au début des exports Riff est réglé : le son est stable du début à la fin, prêt pour Suno."],
   ] : [
-    ["🔥 The best way to write","The ultimate Suno metal tool: type a band, forge your prompt, then build your song with Melody, Riff and Beat. From idea to Suno, in one place."],
+    ["🔥 The best way to write","The ultimate Suno metal tool: type a style and a year, forge your prompt, then build your song with Melody, Riff and Beat. From idea to Suno, in one place."],
     ["🎸 The Studio has real sounds","No more synthetic tone: a real recorded electric guitar through a high-gain amp, and a real recorded drum kit (5 velocity layers per piece). In Riff, Beat and Melody, both playback and WAV export."],
     ["🥁 3 tools, one Studio","Melody (with sheet music) · Riff (rhythm guitar + bass, with the full tab) · Beat (drums only, with a drum score)."],
     ["🤘 Playing alone?","Start a Beat and play over it to practice, or learn a Riff from its tab. MetalPrompt helps you write and practice."],
-    ["🎯 Bands sound like themselves","The prompt now follows the band's signature (its voice, tempo and era) instead of a generic profile. Korn whispers then explodes, Gojira crushes slowly."],
+    ["🎯 Bands sound like themselves","The prompt now follows the band's signature (its voice, tempo and era) instead of a generic profile. A voice that whispers then explodes, a slow crushing groove: each keeps its colour."],
     ["🔧 WAV export fixed","The fake \"crescendo\" at the start of Riff exports is gone: steady level from start to finish, ready for Suno."],
   ];
   return (
@@ -1525,8 +1527,8 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const bandSugs=(()=>{if(!bandList||!sugOpen)return[];const t=_lastPart(ideaInput).tail.toLowerCase();if(t.length<2)return[];
     const st=[],inn=[];for(const b of bandList){const l=b.toLowerCase();if(l===t)return[];if(l.startsWith(t))st.push(b);else if(l.includes(t))inn.push(b);if(st.length>=6)break;}return [...st,...inn].slice(0,6);})();
   const pickSug=b=>{setIdeaInput(_lastPart(ideaInput).head+b);setSugOpen(false);};
-  // 🎲 Surprends-moi (nov. 2026) : pige un groupe (ou une fusion de deux) et FORGE tout de suite — l'année est pigée côté serveur.
-  const randomBand=async()=>{const l=await loadBands();if(!l.length)return;const r=()=>l[Math.floor(Math.random()*l.length)];const v=Math.random()<0.35?r()+' + '+r():r();setIdeaInput(v);setSugOpen(false);setLyricCard(null);smartForge(v);};   // écran d'accueil = juste la boîte ; tout le reste derrière « Ajuster »
+  // 🎲 Surprends-moi (nov. 2026) : pige un style + une année et FORGE tout de suite
+  const randomBand=()=>{const fr=uiLang!=="en";const pk=STYLE_PRESETS[Math.floor(Math.random()*STYLE_PRESETS.length)][fr?0:1].replace(/,\s*\d{4}$/,"");const v=pk+", "+(1982+Math.floor(Math.random()*43));setIdeaInput(v);setSugOpen(false);setLyricCard(null);smartForge(v);};   // 🎲 = style + année au hasard (aucun nom de groupe affiché)
   const [pickerOpen,setPickerOpen]=useState(false);
   const [soundsOpen,setSoundsOpen]=useState(false);
   const [meterOpen,setMeterOpen]=useState(false);
@@ -1633,7 +1635,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
   // ── REVERSAL : tape un nom de groupe → détecte le sous-genre → applique le profil complet ──
   // Jeton de session pour /api/reverse : quota IA du plan gratuit (groupes absents de la base)
   const revHeaders=async()=>{const h={'Content-Type':'application/json'};try{const {data}=await supabase.auth.getSession();const tk=data?.session?.access_token;if(tk)h.Authorization='Bearer '+tk;}catch(e){}return h;};
-  const revLimitMsg=()=>L("Limite gratuite atteinte : 5 recherches IA par jour pour les groupes hors de notre base. Les 2 000+ groupes connus et les genres restent illimités. Abonne-toi pour l'illimité.","Free limit reached: 5 AI searches per day for bands outside our database. The 2,000+ known bands and all genres stay unlimited. Subscribe for unlimited.");
+  const revLimitMsg=()=>L("Limite gratuite atteinte : 5 recherches IA par jour. Les styles et les années restent illimités. Abonne-toi pour l'illimité.","Free limit reached: 5 AI searches per day. Styles and years stay unlimited. Subscribe for unlimited.");
   const reverseBand=async()=>{
     const band=reverseInput.trim();
     if(!band||reverseLoading)return;
@@ -1662,7 +1664,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
     const raw=(typeof override==="string"?override:ideaInput).trim();   // 🎲 Surprends-moi passe son idée directement
     if(!raw){
       if(genres.size){generate();}
-      else setIdeaMsg({ok:false,text:L("Écris un groupe, une année, un genre ou une description — ou choisis un genre juste en dessous.","Type a band, a year, a genre or a description — or pick a genre just below.")});
+      else setIdeaMsg({ok:false,text:L("Écris un style, une année ou une description — ou choisis un genre juste en dessous.","Type a style, a year or a description — or pick a genre just below.")});
       return;
     }
     if(raw===lastIdea&&genres.size){generate();return;}   // texte déjà détecté : on forge avec les réglages actuels
@@ -1672,7 +1674,7 @@ export default function App({ user, onLogout, onRequestAuth }) {
       if(era||rest){setEraPick(era);setExactYear(year||"");setBpmManual(false);}   // nouvelle idée sans année = époque remise en auto ; année seule = on garde le genre
       if(!rest){   // une année seule
         if(genres.size){setLastIdea(raw);setIdeaMsg({ok:true,text:L("Époque : ","Era: ")+era});setPendingForge(true);}
-        else setIdeaMsg({ok:false,text:L("Époque réglée sur ","Era set to ")+era+L(". Ajoute un genre ou un groupe.",". Add a genre or a band.")});
+        else setIdeaMsg({ok:false,text:L("Époque réglée sur ","Era set to ")+era+L(". Ajoute un genre ou une année.",". Add a genre or a year.")});
         return;
       }
       // 1) genres connus tapés tels quels (« djent », « doom + sludge ») : aucun appel serveur
@@ -2122,30 +2124,29 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={{display:"flex",justifyContent:"center",marginTop:"28px",filter:"drop-shadow(0 0 22px rgba(255,106,43,0.30))"}}><MPLogo w={96}/></div>
           <div style={{textAlign:"center",marginTop:"18px",fontFamily:"'Geist Mono',monospace",fontSize:"0.72rem",letterSpacing:"0.1em",textTransform:"uppercase",color:"#FFB36B"}}>{L("La machine à prompts pour la génération musicale IA","The prompt machine for AI music generation")}</div>
           <label htmlFor="mpf-idee" style={{display:"block",textAlign:"center",fontWeight:600,fontSize:"clamp(2rem,6vw,3.4rem)",letterSpacing:"-0.035em",color:"#FFFFFF",lineHeight:1.05,margin:"10px 0 0"}}>{L("La couleur de tes influences, ta signature à toi.","The colour of your influences, your own signature.")}</label>
-          <div style={{fontSize:"1rem",color:"#D4D6DA",margin:"14px auto 22px",lineHeight:1.65,maxWidth:"52ch",textAlign:"center"}}>{L("Tape un groupe ou mélange-en deux. On capte son énergie, sa couleur, son grain, et tu forges quelque chose de neuf. Le nom reste en dehors de ton prompt.","Type a band or mix two. We catch its energy, colour and grit, and you forge something new. The name stays out of your prompt.")}</div>
+          <div style={{fontSize:"1rem",color:"#D4D6DA",margin:"14px auto 22px",lineHeight:1.65,maxWidth:"52ch",textAlign:"center"}}>{L("Tape un style et une année, ou décris le son que t'as en tête. On capte l'énergie, la couleur et le grain de l'époque, et tu forges quelque chose de neuf.","Type a style and a year, or describe the sound in your head. We catch the energy, colour and grit of the era, and you forge something new.")}</div>
           <div style={{position:"relative",isolation:"isolate",display:"flex",flexWrap:"wrap",gap:"9px",margin:"64px 0 64px"}}>
             <svg aria-hidden="true" viewBox="0 0 1280 272" preserveAspectRatio="none" style={{position:"absolute",left:"50%",top:"50%",width:"100vw",height:"150px",transform:"translate(-50%,-50%)",pointerEvents:"none",zIndex:-1}}>
               <defs><linearGradient id="mpWave" x1="0" x2="1"><stop offset="0%" stopColor="#FF6A2B" stopOpacity="0"/><stop offset="30%" stopColor="#FF6A2B"/><stop offset="50%" stopColor="#FFB36B"/><stop offset="70%" stopColor="#FF6A2B"/><stop offset="100%" stopColor="#FF6A2B" stopOpacity="0"/></linearGradient><filter id="mpGlow"><feGaussianBlur stdDeviation="6"/></filter></defs>
               <path d={MP_WAVE} fill="none" stroke="url(#mpWave)" strokeWidth="5" filter="url(#mpGlow)" opacity="0.75"/>
               <path d={MP_WAVE} fill="none" stroke="url(#mpWave)" strokeWidth="1.4"/>
             </svg>
-            <input id="mpf-idee" autoComplete="off" value={ideaInput} maxLength={160} onFocus={()=>{loadBands();setSugOpen(true);}} onBlur={()=>setTimeout(()=>setSugOpen(false),150)} onChange={e=>{setIdeaInput(e.target.value);setSugOpen(true);}} onKeyDown={e=>{if(e.key==='Enter'){setSugOpen(false);smartForge();}if(e.key==='Tab'&&bandSugs.length){e.preventDefault();pickSug(bandSugs[0]);}}} placeholder={L("ex. : Lamb of God · Despised Icon + Meshuggah · doom lent avec orgue, 1993","e.g. Lamb of God · Despised Icon + Meshuggah · slow doom with organ, 1993")} style={{flex:"999 1 300px",minWidth:0,height:"58px",background:"rgba(22,24,28,0.86)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:"1px solid rgba(255,255,255,0.14)",borderRadius:"14px",padding:"0 18px",color:"#F2F1ED",fontSize:"1.05rem",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}}/>
+            <input id="mpf-idee" autoComplete="off" value={ideaInput} maxLength={160} onFocus={()=>setSugOpen(true)} onBlur={()=>setTimeout(()=>setSugOpen(false),150)} onChange={e=>{setIdeaInput(e.target.value);setSugOpen(true);}} onKeyDown={e=>{if(e.key==='Enter'){setSugOpen(false);smartForge();}}} placeholder={L("ex. : thrash, 1986 · death metal + black metal · doom lent avec orgue, 1993","e.g. thrash, 1986 · death metal + black metal · slow doom with organ, 1993")} style={{flex:"999 1 300px",minWidth:0,height:"58px",background:"rgba(22,24,28,0.86)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:"1px solid rgba(255,255,255,0.14)",borderRadius:"14px",padding:"0 18px",color:"#F2F1ED",fontSize:"1.05rem",boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}}/>
             <button onClick={smartForge} disabled={ideaBusy} style={{flex:"1 0 auto",height:"58px",padding:"0 30px",background:"#F2F1ED",border:"none",borderRadius:"14px",color:"#0C0D0F",fontWeight:600,fontSize:"1.05rem",cursor:ideaBusy?"default":"pointer",opacity:ideaBusy?0.6:1}}>{ideaBusy?L("Analyse…","Analyzing…"):L("Forger","Forge")}</button>
-            <button onClick={randomBand} title={L("Surprends-moi : un groupe ou une fusion au hasard, forgé direct","Surprise me: a random band or fusion, forged right away")} aria-label={L("Surprends-moi","Surprise me")} style={{height:"58px",width:"58px",background:"rgba(22,24,28,0.86)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:"14px",fontSize:"1.4rem",cursor:"pointer"}}>🎲</button>
+            <button onClick={randomBand} title={L("Surprends-moi : un style et une année au hasard, forgé direct","Surprise me: a random style and year, forged right away")} aria-label={L("Surprends-moi","Surprise me")} style={{height:"58px",width:"58px",background:"rgba(22,24,28,0.86)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:"14px",fontSize:"1.4rem",cursor:"pointer"}}>🎲</button>
           </div>
-          {bandSugs.length>0&&<div role="listbox" style={{display:"flex",flexWrap:"wrap",gap:"6px",marginTop:"8px"}}>
-            {bandSugs.map(b=>(<button key={b} role="option" onMouseDown={e=>e.preventDefault()} onClick={()=>pickSug(b)} style={{...CHIP,borderRadius:"8px",borderColor:"#5a2a14",color:"#FFD2B8"}}>{b}</button>))}
-          </div>}
+          {/* Suggestions de noms de groupes retirées (nov. 2026) */}
           {(ideaMsg||styleTxt)&&<div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",alignItems:"center",gap:"10px",margin:"-34px 0 22px"}}>   {/* statut centré, sur une ligne (nov. 2026 : avant, les deux textes se chevauchaient) */}
             {ideaMsg&&<span role="status" style={{fontSize:"0.78rem",lineHeight:1.4,padding:"7px 14px",borderRadius:"999px",background:ideaMsg.ok?"rgba(123,216,143,0.10)":"rgba(230,176,138,0.10)",border:"1px solid "+(ideaMsg.ok?"rgba(123,216,143,0.35)":"rgba(230,176,138,0.35)"),color:ideaMsg.ok?"#9be3ab":"#f0c4a2"}}>{ideaMsg.ok?"✓ ":""}{ideaMsg.text}</span>}
             {styleTxt&&<button onClick={()=>setTab("output")} style={{padding:"7px 14px",borderRadius:"999px",background:"rgba(255,106,43,0.10)",border:"1px solid rgba(255,106,43,0.45)",color:"#FFB36B",fontSize:"0.78rem",fontWeight:600,cursor:"pointer"}}>{L("Voir la dernière sortie →","See the last output →")}</button>}
           </div>}
         </div>
+        {/* Presets sans noms de groupes (nov. 2026, demande de François) */}
         {!adjustOpen&&!ideaInput&&<div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"7px",margin:"-4px 0 18px"}}>
-          {["Iron Maiden","Lamb of God","Slipknot","Despised Icon","Mayhem","Emperor + Dark Tranquillity"].map(x=>(
-            <button key={x} onClick={()=>setIdeaInput(x)} style={{...CHIP,borderRadius:"8px"}}>{x}</button>))}
+          {STYLE_PRESETS.map(([fr,en])=>{const x=L(fr,en);return(
+            <button key={x} onClick={()=>setIdeaInput(x)} style={{...CHIP,borderRadius:"8px"}}>{x}</button>);})}
         </div>}
-        <div style={{textAlign:"center",fontSize:"0.74rem",color:"#9CA3AF",margin:"4px auto 20px",lineHeight:1.6,maxWidth:"60ch"}}><span style={{color:"#FF6A2B",fontWeight:700}}>{L("Inspiré, jamais copié.","Influenced, never copied.")}</span> {L("Le but, c'est pas d'imiter, c'est d'influencer. Tape un groupe : tu obtiens sa couleur (l'époque, la voix, le groove), jamais ses chansons. Ta chanson sonnera influencée, pas pareille. Aucun nom d'artiste, aucune mélodie ni parole existante dans tes prompts.","The goal isn't to imitate, it's to influence. Type a band: you get its color (the era, the voice, the groove), never its songs. Your song will sound influenced, not identical. No artist names, melodies or existing lyrics ever end up in your prompts.")}</div>
+        <div style={{textAlign:"center",fontSize:"0.74rem",color:"#9CA3AF",margin:"4px auto 20px",lineHeight:1.6,maxWidth:"60ch"}}><span style={{color:"#FF6A2B",fontWeight:700}}>{L("Inspiré, jamais copié.","Influenced, never copied.")}</span> {L("Le but, c'est pas d'imiter, c'est d'influencer. Tape un style et une année : tu obtiens la couleur de l'époque (la voix, le groove, le grain), jamais les chansons de quelqu'un. Ta chanson sonnera influencée, pas pareille. Aucun nom d'artiste, aucune mélodie ni parole existante dans tes prompts.","The goal isn't to imitate, it's to influence. Type a style and a year: you get the era's colour (the voice, the groove, the grit), never anyone's songs. Your song will sound influenced, not identical. No artist names, melodies or existing lyrics ever end up in your prompts.")}</div>
         <button onClick={()=>setAdjustOpen(o=>!o)} aria-expanded={adjustOpen} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",minHeight:"48px",background:"#111",border:"1px solid #262626",borderRadius:"10px",padding:"0 14px",cursor:"pointer",textAlign:"left",marginBottom:"14px"}}>
           <span><span style={{fontSize:"0.86rem",fontWeight:800,color:"#e6e6e6"}}>{L("Ajuster","Adjust")}</span>
           <span style={{fontSize:"0.68rem",color:"#aaa",marginLeft:"8px"}}>{genres.size?[...genres].join(" + ")+" · "+bpm+" BPM":L("genre, époque, tempo, accordage, réglages fins","genre, era, tempo, tuning, fine tuning")}</span></span>
@@ -2606,7 +2607,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <div style={S.card}>
           <div style={S.ctitle}>{L("Le workflow complet","The full workflow")}</div>
           {[
-            {t:L("FORGE","FORGE"),d:L("Tape un groupe, un mix de groupes, une année ou une description. MetalPrompt génère 3 prompts optimisés pour Suno.","Type a band, a band mix, a year or a description. MetalPrompt builds 3 Suno-optimized prompts.")},
+            {t:L("FORGE","FORGE"),d:L("Tape un style, une année, un mix de styles ou une description. MetalPrompt génère 3 prompts optimisés pour Suno.","Type a style, a year, a style mix or a description. MetalPrompt builds 3 Suno-optimized prompts.")},
             {t:L("SUNO","SUNO"),d:L("Colle les prompts dans Suno et génère ta chanson.","Paste the prompts into Suno and generate your track.")},
             {t:L("MÉLODIE · RIFF · BEAT (abonnement)","MELODY · RIFF · BEAT (subscription)"),d:L("Compose une vraie mélodie, un riff ou un beat, avec partition ou tablature. Exporte en WAV (référence audio) ou en MIDI pour Suno Studio.","Compose a real melody, riff or beat, with score or tab. Export as WAV (audio reference) or MIDI for Suno Studio.")},
             {t:L("MASTER","MASTER"),d:L("Nettoie et grossis le rendu Suno (mix, EQ, sidechain, débruiteur).","Clean up and fatten the Suno output (mix, EQ, sidechain, de-noise).")},
@@ -2626,7 +2627,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         {/* INSPIRÉ, JAMAIS COPIÉ */}
         <div style={{...S.card,borderColor:"#FF6A2B44"}}>
           <div style={S.ctitle}>{L("Inspiré, jamais copié","Influenced, never copied")}</div>
-          <div style={{fontSize:"0.78rem",color:"#ccc",lineHeight:1.6}}>{L("MetalPrompt capte l'esprit d'une époque et d'un style, pas la musique d'un groupe. Quand tu tapes un groupe, on traduit son son en traits génériques : sous-genre, année de production, rythme, voix. Aucun nom d'artiste, aucune mélodie, aucune parole existante ne se retrouve dans tes prompts. Tu crées ton propre son.","MetalPrompt captures the spirit of an era and a style, not a band's music. When you type a band, we translate its sound into generic traits: sub-genre, production year, rhythm, vocals. No artist names, melodies or existing lyrics ever end up in your prompts. You create your own sound.")}</div>
+          <div style={{fontSize:"0.78rem",color:"#ccc",lineHeight:1.6}}>{L("MetalPrompt capte l'esprit d'une époque et d'un style, pas la musique d'un groupe. On traduit un style et une année en traits génériques : sous-genre, année de production, rythme, voix. Aucun nom d'artiste, aucune mélodie, aucune parole existante ne se retrouve dans tes prompts. Tu crées ton propre son.","MetalPrompt captures the spirit of an era and a style, not a band's music. We translate a style and a year into generic traits: sub-genre, production year, rhythm, vocals. No artist names, melodies or existing lyrics ever end up in your prompts. You create your own sound.")}</div>
         </div>
 
         {/* ETAPE PAR ETAPE FORGE */}
@@ -2634,8 +2635,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
           <div style={S.ctitle}>{L("1 · Forger ton prompt","1 · Forge your prompt")}</div>
           {[
             L("Crée ton compte (gratuit). C'est tout ce qu'il faut pour forger.","Create your account (free). That's all you need to forge."),
-            L("Dans la boîte d'accueil, tape un groupe (« Lamb of God »), une année (« 1993 »), un genre ou une description (« doom lent avec orgue »). 2 000+ groupes et 151 sous-genres sont déjà reconnus.","In the home box, type a band (\"Gojira\"), a year (\"1993\"), a genre or a description (\"slow doom with organ\"). 2,000+ bands and 151 sub-genres are already known."),
-            L("Mixe des groupes avec « + » ou « x » (« Emperor + Dark Tranquillity ») : chaque groupe est analysé, puis leurs styles sont combinés dans un seul prompt. Essaie des mix que personne a jamais entendus.","Mix bands with \"+\" or \"x\" (\"Gojira + Meshuggah\"): each band is analyzed, then their styles are blended into one prompt. Try mixes nobody has ever heard."),
+            L("Dans la boîte d'accueil, tape un style, une année (« 1993 ») ou une description (« doom lent avec orgue »). 151 sous-genres sont déjà reconnus, de 1970 à aujourd'hui.","In the home box, type a style, a year (\"1993\") or a description (\"slow doom with organ\"). 151 sub-genres are already known, from 1970 to today."),
+            L("Mixe deux styles avec « + » (« death metal + black metal ») : chaque style est analysé, puis combiné dans un seul prompt. Essaie des mix que personne a jamais entendus.","Mix two styles with \"+\" (\"death metal + black metal\"): each style is analyzed, then blended into one prompt. Try mixes nobody has ever heard."),
             L("Clique sur Forger. Les réglages (BPM, accordage, batterie, voix, exclusions) se calibrent tout seuls.","Hit Forge. The settings (BPM, tuning, drums, vocals, exclusions) calibrate themselves."),
             L("Tu veux le contrôle fin ? Ouvre « Ajuster » : genre, batterie, voix, guitare, structure et exclude.","Want fine control? Open \"Adjust\": genre, drums, vocals, guitar, structure and exclude."),
             L("Tes 3 prompts t'attendent dans la sortie (« Voir la dernière sortie »).","Your 3 prompts are waiting in the output (\"See the last output\")."),

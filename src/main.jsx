@@ -31,6 +31,11 @@ function Root() {
   )
 
   if (showAuth && !user) return <Auth onLogin={(u) => { setUser(u); setShowAuth(false) }} onClose={() => setShowAuth(false)} />
+  // Connecteur MCP (bug 2026-11-07) : le login Google revient sur l'accueil et perdait l'autorisation → on y retourne
+  if (user && window.location.pathname !== '/oauth/consent') {
+    let pend = null; try { pend = sessionStorage.getItem('mp_oauth_auth_id') } catch {}
+    if (pend) { try { sessionStorage.removeItem('mp_oauth_auth_id') } catch {}; window.location.replace('/oauth/consent?authorization_id=' + encodeURIComponent(pend)); return null }
+  }
   if (window.location.pathname === '/oauth/consent') return <OAuthConsent user={user} onRequestAuth={() => setShowAuth(true)} />
   return <App user={user} onLogout={() => supabase.auth.signOut()} onRequestAuth={() => setShowAuth(true)} />
 }

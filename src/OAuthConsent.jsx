@@ -14,6 +14,9 @@ export default function OAuthConsent({ user, onRequestAuth }) {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
+  // Garde l'autorisation pendant le login (Google renvoie sur l'accueil) — main.jsx nous ramène ici après
+  useEffect(() => { if (id && !user) { try { sessionStorage.setItem('mp_oauth_auth_id', id) } catch {} } }, [id, user])
+
   useEffect(() => {
     if (!id || !user) return
     supabase.auth.oauth.getAuthorizationDetails(id).then(({ data, error }) => {

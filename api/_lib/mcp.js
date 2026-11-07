@@ -134,6 +134,8 @@ const TOOLS = [
         groove_id: { type: 'string', description: 'Groove donné par forger_toune (optionnel).' },
         style: { type: 'string', description: 'Style si pas de groove_id : le groove est pigé dans ce style.' },
         bpm: { type: 'integer', minimum: 40, maximum: 300, description: 'Tempo du prompt : le groove pigé reste à ±20 BPM (optionnel).' },
+        instrument_riff: { type: 'string', enum: ['auto', 'guitare', 'trombone', 'tuba', 'cuivres', 'cor', 'violoncelle', 'contrebasse', 'cordes', 'orgue', 'choeur', 'piano', 'synth'], description: "Timbre MIDI du riff (défaut auto = selon le style). Suno rend mal la guitare MIDI." },
+        instrument_melodie: { type: 'string', enum: ['auto', 'guitare', 'trombone', 'tuba', 'cuivres', 'cor', 'violoncelle', 'contrebasse', 'cordes', 'orgue', 'choeur', 'piano', 'synth'], description: 'Timbre MIDI de la mélodie (défaut auto = selon le style).' },
         pistes: { type: 'array', items: { type: 'string', enum: ['beat', 'riff', 'basse', 'melodie'] }, description: "Pistes à envoyer. Défaut : beat + riff + basse (sans mélodie : jouée par Suno, elle sonne synthé)." },
       },
       required: ['upload_url', 'upload_fields'],
@@ -349,7 +351,7 @@ async function toolToune(args, ctx) {
 // ── Envoi MIDI vers Suno (nov. 2026) : le serveur poste lui-même le groove dans l'envoi pré-signé de Suno ──
 const SUNO_UPLOAD_HOSTS = ['suno-uploads.s3.amazonaws.com'];
 async function grooveById(ctx, id) {
-  let q = ctx.sb.from('melody_bank').select('id,style,section,bpm,accordage,mesures,data,status').eq('id', String(id).slice(0, 80));
+  let q = ctx.sb.from('melody_bank').select('id,style,famille,section,bpm,accordage,mesures,data,status').eq('id', String(id).slice(0, 80));
   const { data } = await q.maybeSingle();
   if (!data) return null;
   return (data.status === 'approved' || ctx.owner) ? data : null;   // le proprio peut tester ce qui est en attente
@@ -359,20 +361,28 @@ async function grooveForStyle(ctx, txt, bpm) {
   if (!bs) return null;
   const statuses = ctx.owner ? ['approved', 'pending'] : ['approved'];
   for (const st of statuses) {
-    const { data } = await ctx.sb.from('melody_bank').select('id,style,section,bpm,accordage,mesures,data,status').eq('style', bs).eq('status', st).limit(30);
+    const { data } = await ctx.sb.from('melody_bank').select('id,style,famille,section,bpm,accordage,mesures,data,status').eq('style', bs).eq('status', st).limit(30);
     const near = (data || []).filter(g => !bpm || Math.abs(g.bpm - bpm) <= 20);
     if (near.length) { const c = near.filter(g => g.section === 'couplet'); const pool = c.length ? c : near; return pool[Math.floor(Math.random() * pool.length)]; }
   }
   return null;
 }
-function loopedMidi(g, maxSec = 60, pistes = ['beat', 'riff', 'basse']) {
+// Instruments MIDI (General MIDI) : Suno rend mal la guitare MIDI → on choisit un timbre qu'il rend bien, selon le style.
+// Point de départ (François, 7 nov. : « le trombone sonne bien en black »), à ajuster à l'oreille.
+const GM = { guitare: 30, trombone: 57, tuba: 58, cuivres: 61, cor: 60, violoncelle: 42, contrebasse: 43, cordes: 48, orgue: 19, choeur: 52, piano: 0, synth: 81 };
+const INSTR_FAM = {
+  tremolo: { riff: 'trombone', melodie: 'cordes' }, sombre: { riff: 'tuba', melodie: 'violoncelle' }, marecage: { riff: 'tuba', melodie: 'orgue' },
+  lourd: { riff: 'tuba', melodie: 'orgue' }, planant: { riff: 'cordes', melodie: 'violoncelle' }, melo: { riff: 'violoncelle', melodie: 'cordes' },
+  epique: { riff: 'cuivres', melodie: 'cordes' }, groove: { riff: 'guitare', melodie: 'cuivres' }, tordu: { riff: 'contrebasse', melodie: 'synth' },
+};
+function loopedMidi(g, maxSec = 60, pistes = ['beat', 'riff', 'basse'], instr = {}) {
   const has = k => pistes.includes(k);
   const d = g.data, L = d.drums.kick.length, barSec = L * 60 / g.bpm / 4;
   const N = Math.max(1, Math.min(8, Math.floor(maxSec / barSec)));
   const rep = arr => Array.from({ length: N }, (_, k) => arr.map(n => ({ ...n, t: n.t + k * L }))).flat();
   const z = a => a.map(() => 0);
   const dr = k => Array(N).fill(has('beat') ? d.drums[k] : z(d.drums[k])).flat();
-  return { bytes: toMidi({ bpm: g.bpm, leadProgram: d.leadProgram, guitar: has('riff') ? rep(d.guitar) : [], bass: has('basse') ? rep(d.bass) : [], melody: has('melodie') ? rep(d.melody) : [],
+  return { bytes: toMidi({ bpm: g.bpm, leadProgram: GM[instr.melodie] ?? d.leadProgram, riffProgram: GM[instr.riff] ?? 30, guitar: has('riff') ? rep(d.guitar) : [], bass: has('basse') ? rep(d.bass) : [], melody: has('melodie') ? rep(d.melody) : [],
     drums: { kick: dr('kick'), snare: dr('snare'), hihat: dr('hihat') } }), sec: Math.round(N * barSec) };
 }
 async function toolTeleverser(args, ctx) {
@@ -385,14 +395,17 @@ async function toolTeleverser(args, ctx) {
   const PISTES = ['beat', 'riff', 'basse', 'melodie'];
   const pistes = Array.isArray(args.pistes) && args.pistes.length ? args.pistes.filter(x => PISTES.includes(x)) : ['beat', 'riff', 'basse'];
   if (!pistes.length) return { error: 'Choisis au moins une piste (beat, riff, basse, melodie).' };
-  const { bytes, sec } = loopedMidi(g, 60, pistes);
+  const fam = INSTR_FAM[g.famille || ''] || { riff: 'guitare', melodie: 'cuivres' };
+  const pick = (v, d) => (v && v !== 'auto' && GM[v] !== undefined) ? v : d;
+  const instr = { riff: pick(args.instrument_riff, fam.riff), melodie: pick(args.instrument_melodie, fam.melodie) };
+  const { bytes, sec } = loopedMidi(g, 60, pistes, instr);
   const fd = new FormData();
   for (const [k, v] of Object.entries(fields)) fd.append(k, String(v));
   fd.append('file', new Blob([bytes], { type: 'audio/midi' }), 'metalprompt-groove.mid');
   const r = await fetch(u.toString(), { method: 'POST', body: fd });
   if (!r.ok) return { error: `Envoi vers Suno refusé (${r.status}). Recommence midi-upload-create (l'envoi expire après 10 minutes).` };
   return { text: [
-    `Groove envoyé : ${g.id} · ${g.bpm} BPM · ${g.accordage} · ${meterName(g.mesures)} · ~${sec} s · pistes : ${pistes.join(' + ')}.`,
+    `Groove envoyé : ${g.id} · ${g.bpm} BPM · ${g.accordage} · ${meterName(g.mesures)} · ~${sec} s · pistes : ${pistes.join(' + ')} · riff au ${instr.riff}${pistes.includes('melodie') ? ', mélodie au ' + instr.melodie : ''}.`,
     'Suite : midi-upload-complete, puis audio-create avec midi_upload_id, model v6-wild et une description qui reprend le Style (instrumental).',
     'Pour les paroles : audio-covers-create sur ce clip avec style, negative_style et lyrics (garde le riff et la mélodie).',
   ].join('\n') };

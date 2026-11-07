@@ -38,6 +38,9 @@ export default function handler(req, res) {
   const _op = req.query && req.query.op;
   if (_op === 'mcp') return import('./_lib/mcp.js').then(m => m.default(req, res, { profile: handler }));
   if (_op === 'prm') return import('./_lib/mcp.js').then(m => m.protectedResourceMetadata(req, res));
+  // Banque de grooves — écoute/approbation, propriétaire seulement (nov. 2026)
+  if (_op === 'bank-list') return import('./_lib/bankAdmin.js').then(m => m.bankList(req, res));
+  if (_op === 'bank-set') return import('./_lib/bankAdmin.js').then(m => m.bankSet(req, res));
   // Galerie : résolution d'un lien Suno (fusionné ici, limite de 12 fonctions Vercel Hobby)
   if (req.query && req.query.suno) { req.query.url = req.query.suno; return sunoHandler(req, res); }
   let b = req.method === 'POST' ? req.body : (req.query || {});

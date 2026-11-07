@@ -264,15 +264,15 @@ export default function handler(req, res) {
   // L'ÉPOQUE change le mélange, pas juste la production : le groove metal de 1990 garde des leads
   // glam et power metal, celui de 2005 est passé au hardcore et à l'industriel. Même genre, autre son.
   const BLEND_BY_ERA = {
-    'groove-metal':   { '80s':['glam metal','power metal'], '90s':['glam metal','southern rock'], '2000s':['new wave of american metal','metalcore'], '2010s':['new wave of american metal','djent'], '2020s':['metalcore','djent'] },
-    'thrash-metal':   { '80s':['NWOBHM','hardcore punk'], '90s':['groove metal'], '2000s':['new wave of american metal'], '2010s':['crossover thrash'], '2020s':['crossover thrash'] },
+    'groove-metal':   { '80s':['glam metal','power metal'], '90s':['glam metal','southern rock'], '2000s':['2000s american heavy metal','metalcore'], '2010s':['2000s american heavy metal','djent'], '2020s':['metalcore','djent'] },
+    'thrash-metal':   { '80s':['NWOBHM','hardcore punk'], '90s':['groove metal'], '2000s':['2000s american heavy metal'], '2010s':['crossover thrash'], '2020s':['crossover thrash'] },
     'heavy-metal':    { '60s-70s':['blues rock','psychedelic rock'], '80s':['NWOBHM','glam metal'] },
     'nwobhm':         { '80s':['punk rock','blues rock'] },
     'glam-metal':     { '80s':['glam rock','pop metal'] },
     'alternative-metal':{ '90s':['grunge','hard alternative'], '2000s':['nu-metal'] },
     'death-metal':    { '80s':['thrash metal','hardcore punk'], '90s':['thrash metal'], '2010s':['dissonant death metal'], '2020s':['dissonant death metal'] },
     'black-metal':    { '80s':['punk rock','thrash metal'], '90s':['punk rock'], '2010s':['post-rock'], '2020s':['post-rock'] },
-    'metalcore':      { '90s':['hardcore punk','death metal'], '2000s':['melodic death metal','new wave of american metal'], '2010s':['post-rock','pop'], '2020s':['nu-metal','pop'] },
+    'metalcore':      { '90s':['hardcore punk','death metal'], '2000s':['melodic death metal','2000s american heavy metal'], '2010s':['post-rock','pop'], '2020s':['nu-metal','pop'] },
     'deathcore':      { '2000s':['beatdown hardcore','death metal'], '2010s':['djent','death metal'], '2020s':['symphonic metal','blackened death metal'] },
     'nu-metal':       { '90s':['hip hop','funk'], '2000s':['alternative rock','hip hop'], '2020s':['trap','shoegaze'] },
     'doom-metal':     { '60s-70s':['blues rock','psychedelic rock'], '80s':['NWOBHM'], '2010s':['post-rock'] },
@@ -669,7 +669,7 @@ export default function handler(req, res) {
     return out;
   };
   // Acronymes de genre écrits au long (Suno comprend mal « nwobhm ») — test Iron Maiden 2026-11-02
-  const ORDERED = _collapse(PRIORITY).map(x => String(x).replace(/\bnwobhm\b/gi, 'new wave of british heavy metal, classic heavy metal').replace(/\bnwothm\b/gi, 'new wave of traditional heavy metal').replace(/\bskank(ing)? beats?\b/gi, 'fast punk-style beat'));   // « skank » = nom d'artiste pour Suno → génération REFUSÉE (test 2026-11-03)
+  const ORDERED = _collapse(PRIORITY).map(x => String(x).replace(/\bnwobhm\b/gi, 'early 1980s british heavy metal, classic heavy metal').replace(/\bnwothm\b/gi, 'modern traditional heavy metal').replace(/\bskank(ing)? beats?\b/gi, 'fast punk-style beat'));   // « skank » = nom d'artiste pour Suno → génération REFUSÉE (test 2026-11-03)
 
   // ANTI-ÉCHO DU CHUG (tests 2026-11-04, playlist « Tests Écho ») : presque toutes les sorties avaient un écho sur le picking palm-muted.
   // Death 85-98 : « down-tuned » gonflait les basses (trop amplifié pour l'époque) → « dry mid-heavy palm-muted riffs » (version E2, gagnante).

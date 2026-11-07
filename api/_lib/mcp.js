@@ -351,7 +351,7 @@ const BAD_STYLE = [
 ];
 const VOCAL_WORDS = /\b(vocals?|voice|shrieks?|growls?|screams?|screamed|sung|singing|singer|gutturals?|rasp(y)?|choir|chant(s|ed)?|delivery)\b/i;
 const STUDIO_TAGS = 'studio album production, played by a real band in the studio, human drummer feel, natural timing, real distorted electric guitars, no keyboards';
-const DEFAULT_EXCL = ['synth', 'keyboards', 'synth pads', 'ambient pads', 'orchestral', 'symphonic', 'electronic', '8-bit', 'MIDI', 'programmed drums', 'drum machine', 'quantized', 'robotic', 'mechanical', 'live concert', 'crowd noise', 'audience', 'applause'];
+const DEFAULT_EXCL = ['new wave', 'synthpop', 'synth', 'keyboards', 'synth pads', 'ambient pads', 'orchestral', 'symphonic', 'electronic', '8-bit', 'MIDI', 'programmed drums', 'drum machine', 'quantized', 'robotic', 'mechanical', 'live concert', 'crowd noise', 'audience', 'applause'];
 // Si le style demande des claviers/orchestre (symphonic black, industrial…), on ne les exclut pas.
 const KEYS_STYLE = /symphon|orchestr|industrial|synth|keyboard|gothic|cyber|electro/i;
 const KEYS_EXCL = new Set(['synth', 'keyboards', 'synth pads', 'ambient pads', 'orchestral', 'symphonic', 'electronic']);
@@ -361,6 +361,8 @@ const uniq = a => { const seen = new Set(); return a.filter(x => { const k = x.t
 function cleanStyle(style, { instrumental, genres }) {
   const keys = KEYS_STYLE.test(genres.join(' '));
   let tags = splitTags(style).filter(t => !BAD_STYLE.some(re => re.test(t)));
+  // « new wave » dans un prompt metal = synthé 80s dans Suno (test 7 nov. 2026)
+  if (!/new wave|synth/i.test(genres.join(' '))) tags = tags.map(t => t.replace(/\bnew wave of (american|british|traditional) heavy metal\b/gi, (m, w) => w === 'american' ? '2000s american heavy metal' : w === 'british' ? 'early 1980s british heavy metal' : 'traditional heavy metal').replace(/\bnew wave of american metal\b/gi, '2000s american heavy metal'));
   // Style pur : enlève un mix que l'utilisateur n'a pas demandé (« black metal with punk rock inflections »)
   if (genres.length === 1) {
     tags = tags.map(t => t.replace(/\s+with\s+[^,]*\binflections?\b/i, '').trim());

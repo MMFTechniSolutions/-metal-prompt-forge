@@ -324,6 +324,10 @@ export default function handler(req, res) {
   }
   // Galop (Maiden, NWOBHM) : jamais sous 150 en auto — à 125 ça traînait (test 2026-11-04)
   if (!b.bpmManual && (/gallop/.test(_sigTxtB) || /nwobhm/.test(genres.join(' ').toLowerCase())) && _bpmB < 150) _bpmB = Math.round((150 + Math.random() * 25) / 5) * 5;
+  // Big band d'horreur à 9 (percussions sur barils, platines) : test Suno 2026-11-06 « c'est meilleur que l'original ».
+  // Sans ça : nu-metal mou à 90 BPM avec refrains chantés. Avec : groove/death-thrash à ~140, barils mixés fort.
+  const _horror9 = /nine.?(member|piece)|auxiliary percussion|\bkegs?\b|metal barrels?|steel drums?|scrap metal/.test(_sigTxtB + ' ' + A('styles').join(' ').toLowerCase());
+  if (_horror9 && !b.bpmManual && _bpmB < 130) _bpmB = Math.round((135 + Math.random() * 15) / 5) * 5;
   const bpm = Math.max(60, Math.min(280, _bpmB));
   const lang = b.lang || 'en';
   const L = (fr, en) => lang === 'fr' ? fr : en;
@@ -695,6 +699,16 @@ export default function handler(req, res) {
     const _b = ORDERED.indexOf(bpmTag);
     ['solo lead vocal performance by one singer only', 'strong wide vibrato on sustained notes', 'triplet-feel galloping riffs', 'raw unpolished analog tape', 'untriggered live-room drums', 'chorus lift from guitars and drums only'].reverse().forEach(t => { if (!ORDERED.some(x => x.includes(t))) ORDERED.splice(_b > -1 ? _b + 1 : 3, 0, t); });
   }
+  if (_horror9) {
+    for (let i = ORDERED.length - 1; i >= 0; i--) {
+      const t = String(ORDERED[i]);
+      if (/^\s*groove metal\s*$|^steady pulse$|alternating harsh screams and melodic|sung-to-screamed|nine.?(member|piece)|auxiliary percussion|kegs?\b|steel drums?|metal barrels?|vinyl scratch|turntable|samples|layered percussion/i.test(t)) { ORDERED.splice(i, 1); continue; }
+      ORDERED[i] = t.replace(/^nu-?metal\b(\s*with[^,]*)?/i, 'extreme horror-show groove metal and death-thrash').replace(/\bmid-tempo\b/i, 'fast tempo').replace(/,\s*groove metal\b/i, '').replace(/,\s*steady pulse\b/i, '');
+    }
+    const _bi = Math.max(0, ORDERED.findIndex(x => /\bBPM\b/.test(String(x))));
+    ORDERED.splice(_bi + 1, 0, 'versatile frontman snapping from visceral screams to soaring melodic singing', 'whispered interludes', 'relentless double-time', 'machine-gun double kick', 'two extra percussionists pounding metal barrels and scrap metal mixed loud', 'tribal polyrhythms', 'crushing downtuned 7-string guitar wall', 'turntable scratches', 'horror-film samples');
+    for (let i = ORDERED.length - 1; i > 0; i--) if (ORDERED.indexOf(ORDERED[i]) < i || (/^groove metal$/i.test(ORDERED[i]))) ORDERED.splice(i, 1);
+  }
   const RICH_BUDGET = 420;   // mesuré : au-delà on empile des synonymes, pas de l'information
   const _fit = (arr, budget) => { const o = []; for (const t of arr) { if (o.length && (o.join(', ') + ', ' + t).length > budget) break; o.push(t); } return o; };
   const styleStr  = _fit(ORDERED, RICH_BUDGET).join(', ');
@@ -766,6 +780,7 @@ export default function handler(req, res) {
   if (/\bgrunge\b/.test(_gtxt) && !/post-grunge/.test(_gtxt)) _antiLow.push('pop punk', 'skate punk', 'polished vocals');   // sans ça, le grunge sonnait Green Day (test 2026-11-03)
   // Voix criée mi-grave voulue (baritone/chesty/low-mid) : on bloque l'aigu et le guttural, pas le grave (test Pantera 1992 : « c'est mieux »).
   if (/baritone|chesty|low-mid/.test(_voxUsed) && !/growl|guttural/.test(_voxUsed)) _antiLow.push('high-pitched vocals', 'shrieks', 'falsetto', 'guttural');   // sans « epic », NWOBHM retombait en AC/DC (test Maiden 2026-11-02)
+  if (_horror9) _antiLow.push('radio rock', 'post-grunge', 'banjo', 'steel drum');
   const excStr = dedup([..._antiLow, ..._antiEcho, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, Math.max(8, _antiLow.length) + _antiEcho.length).join(', ');   // les anti-voix ne doivent jamais être coupés
 
   // Description courte en anglais par section -> Suno la lit comme instruction (entre crochets)
@@ -796,6 +811,7 @@ export default function handler(req, res) {
     bridge: chaos >= 7 ? 'shifting time signature, dissonant chords' : 'clean guitar, building drums',
     outro: chaos >= 7 && _coreish ? 'blast beats, fading feedback' : _coreish ? 'final breakdown, ringing feedback' : 'big final chord, ringing guitars, no vocals',
   };
+  if (_horror9) Object.assign(DESC, { intro: 'horror sample, whispered threats, metal barrel hits', verse: 'visceral screams over crushing chugs, machine-gun double kick', prechorus: 'whispered, barrels only', chorus: 'soaring sung melodic hook over the full band, barrels on every beat', breakdown: 'brutal low breakdown, gang shouts', solo: 'percussion break, tribal barrels and scratches, no guitars', bridge: 'barrels only, whispered threats' });
   // Séparateur = PIPE (vérifié 2026-09-10) : les guides de métatags et un test jour-1 de v6
   // confirment « [Bridge | whispered French bridge] ». La virgule provoque un « instructional
   // collapse » (tous les éléments au même niveau) et peut être chantée. Le reste de l'app

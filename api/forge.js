@@ -780,6 +780,8 @@ export default function handler(req, res) {
   if (/\bgrunge\b/.test(_gtxt) && !/post-grunge/.test(_gtxt)) _antiLow.push('pop punk', 'skate punk', 'polished vocals');   // sans ça, le grunge sonnait Green Day (test 2026-11-03)
   // Voix criée mi-grave voulue (baritone/chesty/low-mid) : on bloque l'aigu et le guttural, pas le grave (test Pantera 1992 : « c'est mieux »).
   if (/baritone|chesty|low-mid/.test(_voxUsed) && !/growl|guttural/.test(_voxUsed)) _antiLow.push('high-pitched vocals', 'shrieks', 'falsetto', 'guttural');   // sans « epic », NWOBHM retombait en AC/DC (test Maiden 2026-11-02)
+  // Symphonique (test 2026-11-07 : « trop symphonie, ça sonne Noël ») : on bloque le côté festif/trailer, l'orchestre reste sombre et en arrière
+  if (/symphonic/.test(_gtxt)) _antiLow.push('christmas', 'sleigh bells', 'glockenspiel', 'chimes', 'festive', 'major key', 'trailer music', 'bright strings');
   if (_horror9) _antiLow.push('tribal drums', 'bongos', 'congas', 'radio rock', 'post-grunge', 'banjo', 'steel drum');
   const excStr = dedup([..._antiLow, ..._antiEcho, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, Math.max(8, _antiLow.length) + _antiEcho.length).join(', ');   // les anti-voix ne doivent jamais être coupés
 

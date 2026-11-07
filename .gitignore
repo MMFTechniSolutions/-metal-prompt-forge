@@ -34,3 +34,6 @@ src/.env
 
 *.bak
 *.bak2
+
+# Banque de grooves/mélodies : reste privée (Supabase), jamais dans le repo
+bank/

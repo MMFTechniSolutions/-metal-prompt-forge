@@ -780,6 +780,10 @@ export default function handler(req, res) {
   if (/\bgrunge\b/.test(_gtxt) && !/post-grunge/.test(_gtxt)) _antiLow.push('pop punk', 'skate punk', 'polished vocals');   // sans ça, le grunge sonnait Green Day (test 2026-11-03)
   // Voix criée mi-grave voulue (baritone/chesty/low-mid) : on bloque l'aigu et le guttural, pas le grave (test Pantera 1992 : « c'est mieux »).
   if (/baritone|chesty|low-mid/.test(_voxUsed) && !/growl|guttural/.test(_voxUsed)) _antiLow.push('high-pitched vocals', 'shrieks', 'falsetto', 'guttural');   // sans « epic », NWOBHM retombait en AC/DC (test Maiden 2026-11-02)
+  // Symphonique (test 2026-11-07 : « trop symphonie, ça sonne Noël ») : on bloque le côté festif/trailer, l'orchestre reste sombre et en arrière
+  if (/symphonic/.test(_gtxt)) _antiLow.push('christmas', 'sleigh bells', 'glockenspiel', 'chimes', 'festive', 'major key', 'trailer music', 'bright strings');
+  // Symphonique BLACK (même test) : le chœur + « symphonic » tiraient vers le power metal → on bloque l'héroïque
+  if (/symphonic/.test(_gtxt) && /black/.test(_gtxt) && !/power/.test(_gtxt)) _antiLow.push('power metal', 'heroic', 'triumphant', 'epic choir', 'galloping', 'soaring vocals', 'cinematic', 'operatic', 'neoclassical');
   if (_horror9) _antiLow.push('tribal drums', 'bongos', 'congas', 'radio rock', 'post-grunge', 'banjo', 'steel drum');
   const excStr = dedup([..._antiLow, ..._antiEcho, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, Math.max(8, _antiLow.length) + _antiEcho.length).join(', ');   // les anti-voix ne doivent jamais être coupés
 
@@ -789,14 +793,16 @@ export default function handler(req, res) {
   const _tunTag0 = String(tuning[0] || autoTuning || '').replace(/\s+/g, ' ').trim();
   const _tunTag = (/^standard$/i.test(_tunTag0) || (_sigTun && /^standard( e)?( tuning)?$/i.test(_tunTag0))) ? '' : _tunTag0;
   // Balises qui suivent la VOIX et le GENRE du prompt (bug 2026-11-04 : Iron Maiden sortait « growls over palm-muted riffs » et « final breakdown »)
-  const _vShort = /siren|belting|tenor/.test(_voxUsed) && !/growl|guttural|harsh/.test(_voxUsed) ? 'belting high lead vocal' : _cleanVox ? 'clean lead vocals' : /growl|guttural/.test(_voxUsed) ? 'growls' : /shriek/.test(_voxUsed) ? 'shrieks' : /scream/.test(_voxUsed) ? 'screams' : /shout|bark|yell|rasp/.test(_voxUsed) ? 'shouted vocals' : /rap/.test(_voxUsed) ? 'rapped vocals' : (harshVox ? 'growls' : 'lead vocals');
+  const _vShort = /siren|belting|tenor/.test(_voxUsed) && !/growl|guttural|harsh/.test(_voxUsed) ? 'belting high lead vocal' : _cleanVox ? 'clean lead vocals' : /growl|guttural/.test(_voxUsed) ? 'growls' : /shriek/.test(_voxUsed) ? 'shrieks' : /scream/.test(_voxUsed) ? 'screams' : (/rasp|snarl/.test(_voxUsed) && /black/.test(_gtxt)) ? 'snarled rasps' : /shout|bark|yell|rasp/.test(_voxUsed) ? 'shouted vocals' : /rap/.test(_voxUsed) ? 'rapped vocals' : (harshVox ? 'growls' : 'lead vocals');
   const _coreish = /death|core\b|metalcore|deathcore|grind|slam|djent|nu.?metal|groove|sludge|doom|beatdown|hardcore/.test(_gtxt);
+  // Lent/doom (bug 2026-11-07, test death-doom Florida 90 BPM) : jamais de blast beats/trémolo en intro, outro ni chorus
+  const _slowDoom = bpm < 110 || /doom|sludge|funeral/.test(_gtxt);
   const DESC = {
-    intro: (!_coreish && /nwobhm|heavy metal/.test(_gtxt)) ? 'galloping opening riff, twin guitars, no vocals' : drums.includes('blast beats') ? 'blast beats, tremolo picking' : (_tunTag ? _tunTag + ' crushing riff' : 'palm-muted opening riff'),
+    intro: (!_coreish && /nwobhm|heavy metal/.test(_gtxt)) ? 'galloping opening riff, twin guitars, no vocals' : (drums.includes('blast beats') && !_slowDoom) ? 'blast beats, tremolo picking' : _slowDoom ? 'slow crushing riff, feedback' : (_tunTag ? _tunTag + ' crushing riff' : 'palm-muted opening riff'),
     buildup: (heavy >= 8 ? 'layered wall of distortion' : 'layered build, rising drums') + ', no vocals',
     verse: (vocals.includes('high-pitched fry screams') && !_cleanVox ? 'fry screams and ' : '') + _vShort + ' over ' + (guitar.includes('chugging riffs') ? 'chugging riffs' : _coreish ? 'palm-muted riffs' : 'driving riffs'),
     prechorus: 'rising drum fill, held guitar chord',
-    chorus: (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) ? 'solo lead vocal, instrumental lift only, wide vibrato on held notes' : groove >= 6 ? 'syncopated groove riff, double-tracked vocals' : 'full band, double kick, wide chorus',
+    chorus: (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) ? 'solo lead vocal, instrumental lift only, wide vibrato on held notes' : groove >= 6 ? 'syncopated groove riff, double-tracked vocals' : _slowDoom ? 'full band, heavy half-time, wide chorus' : 'full band, double kick, wide chorus',
     breakdown: !_coreish ? (_isFast && !_halfSec ? 'stop-start riff break, no vocals' : 'half-time riff break, no vocals') : groove >= 7 ? 'half-time groove, shouted gang vocals' : 'low tuned open-note breakdown, pounding floor toms',
     halftime: 'half-time feel, heavy palm mutes',
     blastsection: 'blast beats, tremolo guitars',
@@ -809,7 +815,7 @@ export default function handler(req, res) {
     scream: 'single sustained scream, band hit',
     riffbreak: 'guitars and drums only, no vocals',
     bridge: chaos >= 7 ? 'shifting time signature, dissonant chords' : 'clean guitar, building drums',
-    outro: chaos >= 7 && _coreish ? 'blast beats, fading feedback' : _coreish ? 'final breakdown, ringing feedback' : 'big final chord, ringing guitars, no vocals',
+    outro: _slowDoom && _coreish ? 'slow dragging riff, fading feedback' : chaos >= 7 && _coreish ? 'blast beats, fading feedback' : _coreish ? 'final breakdown, ringing feedback' : 'big final chord, ringing guitars, no vocals',
   };
   if (_horror9) Object.assign(DESC, { intro: 'horror sample, whispered threats, metal barrel hits', verse: 'visceral screams over crushing chugs, machine-gun double kick', prechorus: 'whispered, barrels only', chorus: 'soaring sung melodic hook over the full band, barrels on every beat', breakdown: 'brutal low breakdown, gang shouts', solo: 'percussion break, metal barrels and floor toms, scratches, no guitars', bridge: 'barrels only, whispered threats' });
   // Séparateur = PIPE (vérifié 2026-09-10) : les guides de métatags et un test jour-1 de v6

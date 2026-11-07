@@ -39,6 +39,7 @@ const css = `
   @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap');
   @keyframes spin      { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
   @keyframes flicker   { 0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:.7} 95%{opacity:1} 97%{opacity:.8} }
+  @keyframes onAirDot { 0%,100%{opacity:1;box-shadow:0 0 0 0 #ff2b2b99} 50%{opacity:.55;box-shadow:0 0 0 5px #ff2b2b00} }
   @keyframes pulseRed  { 0%,100%{box-shadow:0 0 0 0 #FF6A2B55} 50%{box-shadow:0 0 0 10px #FF6A2B00} }
   @keyframes slideUp   { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
   @keyframes hammerSwing {
@@ -2108,6 +2109,8 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
         <button aria-expanded={moreOpen} style={S.navBtn(NAV_MORE.includes(tab)||moreOpen,false)} onClick={()=>setMoreOpen(o=>!o)}>{L("Plus","More")} {moreOpen?"▴":"▾"}</button>
           </nav>
           <div style={{display:"flex",gap:"8px",alignItems:"center",flexWrap:"wrap",justifyContent:"flex-end",fontSize:"0.72rem",color:"#8A8F97"}}>
+            {/* ON AIR — accès rapide à la Radio MetalPrompt (2026-11-07) */}
+            <button onClick={()=>{setMoreOpen(false);setTab("galerie");}} title={L("Écouter la Radio MetalPrompt","Listen to MetalPrompt Radio")} aria-label={L("Radio MetalPrompt en ondes","MetalPrompt Radio on air")} style={{display:"inline-flex",alignItems:"center",gap:"6px",background:tab==="galerie"?"#2a0808":"#140606",border:"1px solid #ff2b2b88",borderRadius:"999px",color:"#fff",fontSize:"0.62rem",fontWeight:900,letterSpacing:"1.5px",padding:"5px 11px",cursor:"pointer",textTransform:"uppercase"}}><span style={{width:"8px",height:"8px",borderRadius:"50%",background:"#ff2b2b",animation:"onAirDot 1.4s ease-in-out infinite",flexShrink:0}}/>On Air<span style={{color:"#bbb",fontWeight:700,letterSpacing:"0.5px",textTransform:"none"}}>· Radio</span></button>
             <span>{limit.prompts===Infinity?(uiLang==="fr"?"Illimité":"Unlimited"):<><b style={{color:Math.max(0,limit.prompts-promptCount)>0?"#4caf50":RED}}>{Math.max(0,limit.prompts-promptCount)}</b> {uiLang==="fr"?"essais gratuits":"free trials left"}{credits>0&&<> · <b style={{color:"#4caf50"}}>{credits}</b> {uiLang==="fr"?"prompts achetés":"bought prompts"}</>}</>} · <span onClick={()=>setShowPaywall(true)} style={{color:RED,textDecoration:"none",fontWeight:700,cursor:"pointer"}}>{t.plans}</span></span>
             {["en","fr"].map(l=><button key={l} onClick={()=>setUiLang(l)} style={{background:uiLang===l?"#2a1208":"none",border:`1px solid ${uiLang===l?RED:"#333"}`,borderRadius:"3px",color:uiLang===l?RED:"#444",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{l.toUpperCase()}</button>)}
             <button onClick={()=>{if(window.confirm(L("Réinitialiser tous les réglages et vider la sauvegarde ? Cette action recharge la page.","Reset all settings and clear saved state? This reloads the page."))) resetAll();}} title={L("Réinitialiser l'app (vide la sauvegarde)","Reset app (clears saved state)")} style={{background:"none",border:"1px solid #333",borderRadius:"3px",color:"#555",fontSize:"0.5rem",padding:"2px 6px",cursor:"pointer"}}>{L("RÉINIT.","RESET")}</button>

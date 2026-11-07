@@ -6,6 +6,7 @@ import Auth from './Auth.jsx'
 import { supabase } from './supabase.js'
 import HelpChat from './HelpChat.jsx'
 import OAuthConsent from './OAuthConsent.jsx'   // connecteur MCP (Forge Pro)
+import BanqueEcoute from './BanqueEcoute.jsx'   // banque de grooves (propriétaire)
 import { Analytics } from '@vercel/analytics/react'   // stats de visites Vercel (sans témoins)
 
 function Root() {
@@ -36,6 +37,7 @@ function Root() {
     let pend = null; try { pend = sessionStorage.getItem('mp_oauth_auth_id') } catch {}
     if (pend) { try { sessionStorage.removeItem('mp_oauth_auth_id') } catch {}; window.location.replace('/oauth/consent?authorization_id=' + encodeURIComponent(pend)); return null }
   }
+  if (window.location.pathname === '/banque') return <BanqueEcoute user={user} onRequestAuth={() => setShowAuth(true)} />
   if (window.location.pathname === '/oauth/consent') return <OAuthConsent user={user} onRequestAuth={() => setShowAuth(true)} />
   return <App user={user} onLogout={() => supabase.auth.signOut()} onRequestAuth={() => setShowAuth(true)} />
 }

@@ -31,6 +31,7 @@ const LIMITS = {
   forger_prompt: Number(process.env.MCP_LIMIT_FORGER || 100),
   creer_riff: Number(process.env.MCP_LIMIT_RIFF || 20),
   ecrire_paroles: Number(process.env.MCP_LIMIT_PAROLES || 10),   // coûte un appel IA → limite plus serrée
+  forger_toune: Number(process.env.MCP_LIMIT_TOUNE || 10),   // prompt + paroles (appel IA) + groove
 };
 const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const PRM_URL = SITE + '/.well-known/oauth-protected-resource';
@@ -103,6 +104,22 @@ const TOOLS = [
       required: ['idee'],
     },
     annotations: { readOnlyHint: true, openWorldHint: false },
+  },
+  {
+    name: 'forger_toune',
+    title: 'Forger une toune complète',
+    description: "Toune complète en un appel, prête pour Suno : prompt Style + Exclude, paroles crues taguées par section, et un groove de la banque MetalPrompt (BPM, accordage, mesures) qui accote le style. Donne un style/mix/année et, si tu veux, un angle pour les paroles. Avec un connecteur Suno : Style → style, Exclude → negative_style, Lyrics → lyrics, modèle conseillé → model.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        idee: { type: 'string', description: "Style, mix de styles ou description, avec une année si voulu (« florida death metal 1991 »)." },
+        annee: { type: 'integer', minimum: 1960, maximum: 2030, description: 'Année précise (optionnel).' },
+        angle: { type: 'string', description: "Angle créatif des paroles (optionnel, sinon pigé)." },
+        instrumental: { type: 'boolean', description: 'true = pas de paroles.' },
+      },
+      required: ['idee'],
+    },
+    annotations: { readOnlyHint: true, openWorldHint: true },
   },
   {
     name: 'creer_riff',
@@ -214,7 +231,7 @@ async function toolForger(args, ctx) {
   if (o.modelRec) lines.push('Modèle Suno conseillé : ' + (typeof o.modelRec === 'string' ? o.modelRec : [o.modelRec.best, o.modelRec.good && '(sinon ' + o.modelRec.good + ')', o.modelRec.why && '— ' + o.modelRec.why].filter(Boolean).join(' ')));
   if (o.critic) lines.push(`Note du prompt : ${o.critic.grade} (${o.critic.score}/100)`);
   lines.push('', 'Réglages Suno conseillés : Style Influence 100, Weirdness 65 max, Variety désactivé.');
-  return { text: lines.join('\n') };
+  return { text: lines.join('\n'), o, genres };
 }
 
 async function toolRiff(args) {
@@ -253,10 +270,66 @@ async function toolParoles(args) {
   return { text: r.data.text };
 }
 
-const RUN = { forger_prompt: toolForger, creer_riff: toolRiff, ecrire_paroles: toolParoles, remplir_banque: toolRemplirBanque };
+// Genre forgé → style de la banque (le plus précis d'abord)
+const BANK_MAP = [
+  [/death.?doom|swamp|florida death/, 'deathdoom'], [/symphonic black/, 'symphonicblack'], [/atmospheric black/, 'atmosblack'], [/blackgaze/, 'blackgaze'],
+  [/blackened death.?core/, 'blackeneddeathcore'], [/melodic death.?core/, 'melodicdeathcore'], [/melodic death|gothenburg|melodeath/, 'melodicdeath'],
+  [/brutal death/, 'brutaldeath'], [/tech(nical)? death/, 'techdeath'], [/dissonant/, 'dissonant'], [/deathgrind/, 'deathgrind'], [/grind/, 'grindcore'],
+  [/slam/, 'slam'], [/death.?core/, 'deathcore'], [/metalcore/, 'metalcore'], [/beatdown/, 'beatdown'], [/math.?core/, 'mathcore'], [/hardcore/, 'hardcore'],
+  [/crossover/, 'crossover'], [/thrash/, 'thrash'], [/speed/, 'speed'], [/power/, 'powermetal'], [/nwobhm|heavy metal/, 'nwobhm'], [/djent/, 'djent'],
+  [/prog/, 'progmetal'], [/nu.?metal/, 'numetal'], [/rap/, 'rapcore'], [/industrial/, 'industrial'], [/groove/, 'groove'], [/funeral/, 'funeraldoom'],
+  [/sludge/, 'sludge'], [/goth/, 'gothic'], [/post.?metal/, 'postmetal'], [/doom/, 'doom'], [/black/, 'blackened'], [/death/, 'death'],
+];
+const bankStyleFor = txt => { const t = String(txt || '').toLowerCase(); const m = BANK_MAP.find(([re]) => re.test(t)); return m ? m[1] : null; };
+
+async function pickGroove(ctx, style, bpm) {
+  if (!style || !ctx.sb) return null;
+  const { data } = await ctx.sb.from('melody_bank').select('id,section,bpm,accordage,mesures').eq('style', style).eq('status', 'approved').limit(50);
+  // Seulement un groove au tempo proche du prompt (±20 BPM) : sinon les mots de tempo du prompt mentiraient
+  const near = (data || []).filter(g => !bpm || Math.abs(g.bpm - bpm) <= 20);
+  if (!near.length) return null;
+  const pref = near.filter(g => g.section === 'couplet');
+  const pool = pref.length ? pref : near;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+const TUNE_NAME = { E2: 'standard E tuning', Eb2: 'Eb tuning', D2: 'D standard tuning', Db2: 'drop C# tuning', C2: 'C standard tuning', B1: 'B standard tuning' };
+const meterName = m => { const u = [...new Set(m)]; if (u.length === 1 && u[0] === 16) return '4/4'; return u.map(n => n === 16 ? '4/4' : n === 12 ? '6/8' : n === 14 ? '7/8' : n === 20 ? '5/4' : n === 10 ? '5/8' : n === 18 ? '9/8' : n === 8 ? '2/4' : n + '/16').join(' + '); };
+
+async function toolToune(args, ctx) {
+  const f = await toolForger({ idee: args.idee, annee: args.annee, langue: 'fr' }, ctx);
+  if (f.error) return f;
+  const o = f.o;
+  let style = o.styleStr, groove = null;
+  const bs = bankStyleFor(f.genres.join(' ') + ' ' + style);
+  groove = await pickGroove(ctx, bs, Number(o.bpm) || 0);
+  if (groove) {
+    // Le groove approuvé fixe le tempo et l'accordage : le prompt suit la banque
+    style = style.replace(/\b\d{2,3} BPM\b/, groove.bpm + ' BPM');
+    const tn = TUNE_NAME[groove.accordage];
+    if (tn) style = /tuning/.test(style) ? style.replace(/[^,]*tuning[^,]*/, ' ' + tn).replace(/,\s+/g, ', ').trim() : style + ', ' + tn;
+  }
+  let lyrics = '';
+  if (!args.instrumental) {
+    const p = await toolParoles({ angle: args.angle, style, structure: o.structStr });
+    if (p.error) return p;
+    lyrics = p.text;
+  } else lyrics = o.structStr || '';
+  const rec = o.modelRec ? (typeof o.modelRec === 'string' ? o.modelRec : o.modelRec.best) : 'v6-wild';
+  const lines = [
+    'STYLE :', style, '',
+    'EXCLUDE :', o.excludeStr || '(rien)', '',
+    'LYRICS :', lyrics, '',
+    `Modèle Suno conseillé : ${rec} · Style Influence 100, Weirdness 65 max, Variety 0.`,
+    groove ? `Groove de la banque : ${groove.id} · ${groove.bpm} BPM · ${groove.accordage} · ${meterName(groove.mesures)}` : `Groove de la banque : aucun groove approuvé au bon tempo pour « ${bs || 'ce style'} » — tempo et accordage du forge.`,
+  ];
+  return { text: lines.join('\n') };
+}
+
+const RUN = { forger_toune: toolToune, forger_prompt: toolForger, creer_riff: toolRiff, ecrire_paroles: toolParoles, remplir_banque: toolRemplirBanque };
 
 const INSTRUCTIONS = `MetalPrompt forge des prompts Suno pour le metal (« Inspiré, jamais copié »).
-Flux conseillé : forger_prompt → (optionnel) ecrire_paroles avec la structure reçue → (optionnel) creer_riff. Avec un connecteur Suno : Style → champ style, Exclude → champ exclude, structure + paroles → champ lyrics.
+Le plus simple : forger_toune (tout en un). Sinon : forger_prompt → (optionnel) ecrire_paroles avec la structure reçue → (optionnel) creer_riff. Avec un connecteur Suno : Style → champ style, Exclude → champ exclude, structure + paroles → champ lyrics.
 Ne jamais écrire de nom de groupe, d'artiste ou de chanson dans un prompt ni dans des paroles.`;
 
 // ════════════════ JSON-RPC ════════════════
@@ -332,4 +405,4 @@ export default async function mcpHandler(req, res, deps = {}) {
 }
 
 // Tests locaux (scripts/test-mcp.mjs)
-export const _test = { handleOne, toolForger, toolRiff, parseEra, findGenre, TOOLS };
+export const _test = { handleOne, toolForger, toolToune, toolRiff, parseEra, findGenre, bankStyleFor, TOOLS };

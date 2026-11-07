@@ -783,7 +783,7 @@ export default function handler(req, res) {
   // Symphonique (test 2026-11-07 : « trop symphonie, ça sonne Noël ») : on bloque le côté festif/trailer, l'orchestre reste sombre et en arrière
   if (/symphonic/.test(_gtxt)) _antiLow.push('christmas', 'sleigh bells', 'glockenspiel', 'chimes', 'festive', 'major key', 'trailer music', 'bright strings');
   // Symphonique BLACK (même test) : le chœur + « symphonic » tiraient vers le power metal → on bloque l'héroïque
-  if (/symphonic/.test(_gtxt) && /black/.test(_gtxt) && !/power/.test(_gtxt)) _antiLow.push('power metal', 'heroic', 'triumphant', 'epic choir', 'galloping', 'soaring vocals');
+  if (/symphonic/.test(_gtxt) && /black/.test(_gtxt) && !/power/.test(_gtxt)) _antiLow.push('power metal', 'heroic', 'triumphant', 'epic choir', 'galloping', 'soaring vocals', 'cinematic', 'operatic', 'neoclassical');
   if (_horror9) _antiLow.push('tribal drums', 'bongos', 'congas', 'radio rock', 'post-grunge', 'banjo', 'steel drum');
   const excStr = dedup([..._antiLow, ..._antiEcho, ...dedup([...allExclude, ...(_isFast && !_halfSec ? ['half-time'] : []), ...autoExcl]).filter(_keepExcl)]).slice(0, Math.max(8, _antiLow.length) + _antiEcho.length).join(', ');   // les anti-voix ne doivent jamais être coupés
 

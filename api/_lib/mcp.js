@@ -308,6 +308,7 @@ async function toolParoles(args) {
     card.arc ? `Arc: ${nm(card.arc)}` : '',
     Array.isArray(card.images) && card.images.length ? `Concrete images to use: ${card.images.map(nm).filter(Boolean).join('; ')}` : '',
     Array.isArray(card.words) && card.words.length ? `Vocabulary palette (use some, not all): ${[...card.words, ...(card.verbs || [])].join(', ')}` : '',
+    args.rhythmic ? 'Rhythmic delivery: short percussive lines of 2 to 5 words that hit on the riff accents, like a drummer would phrase them. No long sentences.' : '',
     args.structure ? `Follow this structure:\n${String(args.structure).slice(0, 1500)}` : 'Structure: [Verse] [Verse 2] [Pre-Chorus] [Chorus] [Breakdown] [Final Chorus].',
   ].filter(Boolean).join('\n');
   const r = await call(lyricsHandler, { prompt, maxTokens: 2000 });
@@ -401,6 +402,8 @@ function cleanStruct(struct, { instrumental, genres }) {
       if (/verse/i.test(name)) name = 'Verse';
       cue = cue.split(/\s*,\s*/).filter(c => c && !VOCAL_WORDS.test(c)).join(', ');
     }
+    if (!KEYS_STYLE.test(g)) cue = cue.split(/\s*,\s*/).filter(c => c && !/pad|synth|keyboard|organ|ambient/i.test(c)).join(', ');
+    if (/atmospheric|ambient/i.test(name) && !KEYS_STYLE.test(g) && !/post|atmos|doom|gaze/.test(g)) continue;
     const bad = GENRE_NO.find(([re]) => re.test(g));
     if (bad && (bad[1].test(name) || bad[1].test(cue))) {
       if (bad[1].test(name)) continue;        // section qui fait pas le genre (half-time en black, blast en groove) → on l'enlève
@@ -413,19 +416,69 @@ function cleanStruct(struct, { instrumental, genres }) {
   return out.filter((l, i) => l !== out[i - 1]).join('\n');
 }
 
+
+// ── Beat de la banque en mots (7 nov. 2026) : pas de MIDI. On pige un beat de la banque au tempo du prompt et on
+// décrit son kick / caisse claire / hi-hat dans le Style. Suno le joue lui-même → beat unique, recette protégée.
+const COUNT = i => { const b = Math.floor(i / 4) + 1, r = i % 4; return r === 0 ? String(b) : r === 1 ? `the e of ${b}` : r === 2 ? `the and of ${b}` : `the a of ${b}`; };
+const joinOr = a => a.length <= 1 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+function beatWords(g) {
+  const d = g && g.data && g.data.drums; if (!d || !Array.isArray(d.kick)) return '';
+  const k = d.kick.slice(0, 16), sn = (d.snare || []).slice(0, 16), hh = d.hihat || [];
+  const kHits = k.map((v, i) => v ? COUNT(i) : null).filter(Boolean);
+  const sHits = sn.map((v, i) => v ? i : null).filter(i => i !== null);
+  const back = sHits.filter(i => i === 4 || i === 12).length === 2, half = sHits.length === 1 && sHits[0] === 8;
+  const extra = sHits.filter(i => ![4, 12].includes(i)).length;
+  const dens = bar => bar.reduce((a, v) => a + (v ? 1 : 0), 0);
+  const bars = [0, 1, 2, 3].map(b => dens(hh.slice(b * 16, b * 16 + 16))).filter(n => n > 0);
+  const hat = n => n >= 13 ? 'sixteenth-note hi-hat' : n >= 7 ? 'eighth-note hi-hat' : 'quarter-note ride';
+  const hats = [...new Set(bars.map(hat))];
+  const parts = [];
+  if (kHits.length && kHits.length <= 7) parts.push(`syncopated kick on ${joinOr(kHits)}`);
+  else if (kHits.length > 7) parts.push('busy syncopated double bass kick pattern');
+  parts.push(half ? 'half-time snare on 3' : back ? `snare backbeat on 2 and 4${extra ? ' with pickup snare hits' : ''}` : 'displaced snare accents');
+  if (hats.length) parts.push(hats.length > 1 ? `${hats[0]} switching to ${hats[1]}` : hats[0]);
+  return parts.join(', ');
+}
+async function bankBeat(ctx, genres, style, bpm) {
+  const bs = bankStyleFor(genres.join(' ')) || bankStyleFor(style);
+  if (!bs || !ctx.sb) return null;
+  const statuses = ctx.owner ? ['approved', 'pending'] : ['approved'];
+  for (const st of statuses) {
+    const { data } = await ctx.sb.from('melody_bank').select('id,bpm,mesures,data').eq('style', bs).eq('status', st).limit(60);
+    const ok = (data || []).filter(r => (!bpm || Math.abs(r.bpm - bpm) <= 12) && (r.mesures || []).every(m => m === 16));   // 4/4 seulement : les mesures impaires sortaient tout croche
+    if (ok.length) return ok[Math.floor(Math.random() * ok.length)];
+  }
+  return null;
+}
+const DEEP_VOX = /deep|low[- ]register|guttural|baritone|growl|low-mid/i;
+
 async function toolToune(args, ctx) {
   const f = await toolForger({ idee: args.idee, annee: args.annee, langue: 'fr' }, ctx);
   if (f.error) return f;
   const o = f.o, inst = !!args.instrumental, opt = { instrumental: inst, genres: f.genres };
   // Prompt seul = voie principale (7 nov. 2026) : la chaîne MIDI → Suno sonne sec, Suno reprend le son de l'instrument d'entrée.
-  const style = cleanStyle(o.styleStr, opt);
-  const exclude = cleanExclude(o.excludeStr, opt);
+  let style = cleanStyle(o.styleStr, opt);
+  let exclude = cleanExclude(o.excludeStr, opt);
+  // Voix grave demandée par la signature → ne pas l'exclure (test 7 nov. : la voix sortait trop aiguë)
+  if (!inst && DEEP_VOX.test(style)) exclude = splitTags(exclude).filter(t => !/low growls?|deep vocals?|guttural/i.test(t)).concat(['high-pitched screams', 'falsetto']).filter((t, i, a) => a.indexOf(t) === i).join(', ');
+  // Beat unique de la banque, décrit en mots (pas de MIDI)
+  const beat = await bankBeat(ctx, f.genres, style, Number(o.bpm) || 0);
+  if (beat) {
+    const w = beatWords(beat);
+    if (w) {
+      style = style.replace(/\b\d{2,3} BPM\b/, beat.bpm + ' BPM');
+      const tags = splitTags(style), at = tags.findIndex(t => /BPM/.test(t));
+      tags.splice(at >= 0 ? at + 1 : tags.length, 0, '4/4', ...splitTags(w));
+      style = uniq(tags).join(', ');
+    }
+  }
+  const rhythmic = /groove|hardcore|metalcore|thrash|nu-?metal|djent|beatdown|crossover/i.test(f.genres.join(' '));
   const struct = cleanStruct(o.structStr, opt);
   // v6 = trop propre pour le metal cru (François, 7 nov.) : seulement prog, glam, metalcore radio
   const model = /prog|glam|hair metal|metalcore|post-hardcore|alternative|radio/i.test(f.genres.join(' ')) ? 'v6' : 'v6-wild';
   let lyrics = struct;
   if (!inst) {
-    const p = await toolParoles({ angle: args.angle, style, structure: struct });
+    const p = await toolParoles({ angle: args.angle, style, structure: struct, rhythmic });
     if (p.error) return p;
     lyrics = p.text;
   }

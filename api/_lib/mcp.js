@@ -134,8 +134,8 @@ const TOOLS = [
         groove_id: { type: 'string', description: 'Groove donné par forger_toune (optionnel).' },
         style: { type: 'string', description: 'Style si pas de groove_id : le groove est pigé dans ce style.' },
         bpm: { type: 'integer', minimum: 40, maximum: 300, description: 'Tempo du prompt : le groove pigé reste à ±20 BPM (optionnel).' },
-        instrument_riff: { type: 'string', enum: ['auto', 'guitare', 'trombone', 'tuba', 'cuivres', 'cor', 'violoncelle', 'contrebasse', 'cordes', 'orgue', 'choeur', 'piano', 'synth'], description: "Timbre MIDI du riff (défaut auto = selon le style). Suno rend mal la guitare MIDI." },
-        instrument_melodie: { type: 'string', enum: ['auto', 'guitare', 'trombone', 'tuba', 'cuivres', 'cor', 'violoncelle', 'contrebasse', 'cordes', 'orgue', 'choeur', 'piano', 'synth'], description: 'Timbre MIDI de la mélodie (défaut auto = selon le style).' },
+        instrument_riff: { type: 'string', enum: ['auto', 'guitare', 'trombone', 'tuba', 'cuivres', 'cor', 'violoncelle', 'contrebasse', 'cordes', 'orgue', 'choeur', 'piano'], description: "Timbre MIDI du riff (défaut auto = selon le style). Suno rend mal la guitare MIDI." },
+        instrument_melodie: { type: 'string', enum: ['auto', 'guitare', 'trombone', 'tuba', 'cuivres', 'cor', 'violoncelle', 'contrebasse', 'cordes', 'orgue', 'choeur', 'piano'], description: 'Timbre MIDI de la mélodie (défaut auto = selon le style).' },
         pistes: { type: 'array', items: { type: 'string', enum: ['beat', 'riff', 'basse', 'melodie'] }, description: "Pistes à envoyer. Défaut : beat + riff + basse (sans mélodie : jouée par Suno, elle sonne synthé)." },
       },
       required: ['upload_url', 'upload_fields'],
@@ -369,11 +369,12 @@ async function grooveForStyle(ctx, txt, bpm) {
 }
 // Instruments MIDI (General MIDI) : Suno rend mal la guitare MIDI → on choisit un timbre qu'il rend bien, selon le style.
 // Point de départ (François, 7 nov. : « le trombone sonne bien en black »), à ajuster à l'oreille.
-const GM = { guitare: 30, trombone: 57, tuba: 58, cuivres: 61, cor: 60, violoncelle: 42, contrebasse: 43, cordes: 48, orgue: 19, choeur: 52, piano: 0, synth: 81 };
+const GM = { guitare: 30, trombone: 57, tuba: 58, cuivres: 61, cor: 60, violoncelle: 42, contrebasse: 43, cordes: 48, orgue: 19, choeur: 52, piano: 0 };
+const INSTR_EN = { trombone: 'trombone, brass', tuba: 'tuba, brass', cuivres: 'brass section, horns', cor: 'french horn, brass', violoncelle: 'cello, strings', contrebasse: 'double bass, upright bass', cordes: 'strings, orchestra', orgue: 'organ', choeur: 'choir', piano: 'piano' };
 const INSTR_FAM = {
   tremolo: { riff: 'trombone', melodie: 'cordes' }, sombre: { riff: 'tuba', melodie: 'violoncelle' }, marecage: { riff: 'tuba', melodie: 'orgue' },
   lourd: { riff: 'tuba', melodie: 'orgue' }, planant: { riff: 'cordes', melodie: 'violoncelle' }, melo: { riff: 'violoncelle', melodie: 'cordes' },
-  epique: { riff: 'cuivres', melodie: 'cordes' }, groove: { riff: 'guitare', melodie: 'cuivres' }, tordu: { riff: 'contrebasse', melodie: 'synth' },
+  epique: { riff: 'cuivres', melodie: 'cordes' }, groove: { riff: 'guitare', melodie: 'cuivres' }, tordu: { riff: 'contrebasse', melodie: 'trombone' },
 };
 function loopedMidi(g, maxSec = 60, pistes = ['beat', 'riff', 'basse'], instr = {}) {
   const has = k => pistes.includes(k);
@@ -408,6 +409,7 @@ async function toolTeleverser(args, ctx) {
     `Groove envoyé : ${g.id} · ${g.bpm} BPM · ${g.accordage} · ${meterName(g.mesures)} · ~${sec} s · pistes : ${pistes.join(' + ')} · riff au ${instr.riff}${pistes.includes('melodie') ? ', mélodie au ' + instr.melodie : ''}.`,
     'Suite : midi-upload-complete, puis audio-create avec midi_upload_id, model v6-wild et une description qui reprend le Style (instrumental).',
     'Pour les paroles : audio-covers-create sur ce clip avec style, negative_style et lyrics (garde le riff et la mélodie).',
+    `Au cover, ajoute à negative_style : ${[...new Set(['riff', 'melodie'].filter(k => k === 'riff' ? pistes.includes('riff') : pistes.includes('melodie')).map(k => INSTR_EN[instr[k]]).filter(Boolean))].join(', ') || '(rien)'}, synth, chiptune, 8-bit, video game, MIDI — l'instrument d'entrée sert juste à porter la ligne, la toune finale reste en guitares metal.`,
   ].join('\n') };
 }
 

@@ -20,6 +20,7 @@ import riffHandler from '../riff.js';
 import lyricsHandler from '../lyrics.js';
 import { lyricCard } from './lyricCard.js';
 import { FAMILLES } from '../_genreFamilies.js';
+import { generateBank, STYLES as BANK_STYLES } from './melodyBank.js';
 
 const SITE = (process.env.SITE_URL || 'https://metalprompt.com').replace(/\/$/, '');
 const SB_URL = () => process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -131,6 +132,38 @@ const TOOLS = [
   },
 ];
 
+// ── Outils PROPRIÉTAIRE seulement (invisibles pour les abonnés) ──
+const OWNER_TOOLS = [
+  {
+    name: 'remplir_banque',
+    title: 'Remplir la banque de grooves (propriétaire)',
+    description: "Génère des grooves (guitare, basse, drums) + une mélodie qui accote le style, par section (intro, couplet, refrain, breakdown), et les ajoute dans la banque privée en attente d'approbation. Retourne le compte par statut.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        par_section: { type: 'integer', minimum: 1, maximum: 5, description: 'Nombre de grooves par section et par style (défaut 2).' },
+        styles: { type: 'array', items: { type: 'string', enum: BANK_STYLES }, description: 'Styles à remplir (défaut : tous).' },
+      },
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  },
+];
+const OWNER_NAMES = new Set(OWNER_TOOLS.map(t => t.name));
+
+async function toolRemplirBanque(args, ctx) {
+  const per = Math.max(1, Math.min(5, Number(args.par_section) || 2));
+  const styles = Array.isArray(args.styles) && args.styles.length ? args.styles.filter(x => BANK_STYLES.includes(x)) : BANK_STYLES;
+  const tag = Date.now().toString(36).slice(-5);   // id unique par lot → on peut regarnir sans écraser
+  const rows = await generateBank({ styles, per, tag });
+  for (let i = 0; i < rows.length; i += 100) {
+    const { error } = await ctx.sb.from('melody_bank').upsert(rows.slice(i, i + 100), { onConflict: 'id', ignoreDuplicates: true });
+    if (error) return { error: 'Écriture banque impossible : ' + error.message };
+  }
+  const { data } = await ctx.sb.from('melody_bank').select('status');
+  const n = (data || []).reduce((a, r) => (a[r.status] = (a[r.status] || 0) + 1, a), {});
+  return { text: `${rows.length} grooves ajoutés (lot ${tag}, ${styles.length} styles × 4 sections × ${per}). Banque : ${n.pending || 0} en attente · ${n.approved || 0} approuvés · ${n.rejected || 0} rejetés.` };
+}
+
 async function toolForger(args, ctx) {
   const idee = String(args.idee || '').slice(0, 300);
   let { era, rest, year, dec } = parseEra(idee);
@@ -220,7 +253,7 @@ async function toolParoles(args) {
   return { text: r.data.text };
 }
 
-const RUN = { forger_prompt: toolForger, creer_riff: toolRiff, ecrire_paroles: toolParoles };
+const RUN = { forger_prompt: toolForger, creer_riff: toolRiff, ecrire_paroles: toolParoles, remplir_banque: toolRemplirBanque };
 
 const INSTRUCTIONS = `MetalPrompt forge des prompts Suno pour le metal (« Inspiré, jamais copié »).
 Flux conseillé : forger_prompt → (optionnel) ecrire_paroles avec la structure reçue → (optionnel) creer_riff. Avec un connecteur Suno : Style → champ style, Exclude → champ exclude, structure + paroles → champ lyrics.
@@ -241,10 +274,10 @@ async function handleOne(msg, ctx) {
     return ok(id, { protocolVersion: v, capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'metalprompt', title: 'MetalPrompt', version: '1.0.0' }, instructions: INSTRUCTIONS });
   }
   if (method === 'ping') return ok(id, {});
-  if (method === 'tools/list') return ok(id, { tools: TOOLS });
+  if (method === 'tools/list') return ok(id, { tools: ctx.owner ? [...TOOLS, ...OWNER_TOOLS] : TOOLS });
   if (method === 'tools/call') {
     const name = params.name, run = RUN[name];
-    if (!run) return err(id, -32602, 'Outil inconnu : ' + name);
+    if (!run || (OWNER_NAMES.has(name) && !ctx.owner)) return err(id, -32602, 'Outil inconnu : ' + name);
     if (!ctx.allowed) return ok(id, toolText(`Le connecteur MetalPrompt est réservé au plan Forge Pro (5,99 $ US/mois). Passe à Forge Pro sur ${SITE} (Voir les plans).`, true));
     const b = await bump(ctx, name);
     if (!b.ok) return ok(id, toolText(b.msg, true));

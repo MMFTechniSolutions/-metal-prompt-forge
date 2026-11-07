@@ -3,6 +3,8 @@
 
 import { TIME_SIGNATURES_BY_STYLE } from './_lib/timeSignaturesByStyle.js';
 import { cleanDescriptors } from './_lib/nameGuard.js';
+import { createClient } from '@supabase/supabase-js';
+import { cleanStyle, cleanExclude, cleanStruct, hiddenSignature, bankBeat, beatWords, splitTags, uniq, DEEP_VOX } from './_lib/recipe.js';
 
 // Mapping regex genre → clé du module temps de mesure (ordre = priorité :
 // les spécifiques AVANT les génériques)
@@ -76,7 +78,7 @@ const STYLE_ID_MAP = [
   [/heavy/, 'heavy-metal'],
 ];
 
-export default function handler(req, res) {
+function forgeCore(req, res) {
   let b = req.method === 'POST' ? req.body : (req.query || {});
   if (typeof b === 'string') { try { b = JSON.parse(b); } catch { b = {}; } }
   b = b || {};
@@ -973,4 +975,61 @@ export default function handler(req, res) {
   const tasteStr = "Extreme and underground metal above all: death, black, doom, thrash, progressive, sludge, hardcore and their fusions. Dark, heavy, intense moods; never glossy or radio-friendly.\n\nSound: a real band tracked live in a room. Natural untriggered acoustic drums with room mic bleed and human velocity, kick and snare that pound instead of click. Guitars from cranked tube amps through a mic'd 4x12 cabinet: thick mid-range bite, pick attack, fret buzz, low tunings that crush rather than sparkle. Overdriven bass locked to the kick, audible and gritty. Vocals placed in front of the band, dry and close-miked, harsh or clean as the song asks.\n\nMix: dry, dynamic, analog. Tape saturation, console warmth, wide room mics, no brickwall limiting, no pitch correction, no quantized perfection.\n\nWriting: riff-driven songs with tempo changes, breakdowns and dynamics rather than verse-chorus pop structure. Minor, phrygian and diminished colors.\n\nAvoid: pop, EDM, trap, synthwave textures, autotune, bright polished guitars, programmed-sounding drums, glossy modern radio production, electronic sheen unless explicitly requested.";
 
   return res.status(200).json({ styleStr, styleStrC, structStr, structStrC, structNotes: structNotesTxt, tasteStr, excludeStr: excStr, conflicts: conf, emotionsActive: emoLabels, critic, blendAuto, meterLead, meterAuto, coverStr, extendStr, editStr, editPrompts, sliderRec, timeSig, modelRec, phonetic, rhythmStructTags, year: pickedYear, bpm, meters: _mList });
+}
+
+
+// ════════ RECETTE MetalPrompt autour de la forge (7 nov. 2026) — même chose que le MCP forger_toune ════════
+// Avant : style pur + signature cachée d'un groupe du même style/époque (jamais nommé).
+// Après : vrai band en studio, Exclude anti-synth/foule/grid, beat unique de la banque en mots, voix grave, v6-wild.
+// Le MCP passe rawRecipe:true (il applique la recette lui-même).
+const _sbClient = () => {
+  const u = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL, k = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+  return u && k ? createClient(u, k, { auth: { persistSession: false } }) : null;
+};
+function _run(core, req, body) {
+  return new Promise(resolve => {
+    const r = { statusCode: 200, status(c) { this.statusCode = c; return this; }, setHeader() { return this; },
+      json(d) { resolve({ s: this.statusCode, d }); return this; }, send(d) { resolve({ s: this.statusCode, d }); return this; }, end(d) { resolve({ s: this.statusCode, d }); return this; } };
+    Promise.resolve(core({ ...req, method: 'POST', body }, r)).catch(e => resolve({ s: 500, d: { error: String(e && e.message || e) } }));
+  });
+}
+export default async function handler(req, res) {
+  let b = req.method === 'POST' ? req.body : (req.query || {});
+  if (typeof b === 'string') { try { b = JSON.parse(b); } catch { b = {}; } }
+  b = { ...(b || {}) };
+  if (b.rawRecipe) return forgeCore({ ...req, method: 'POST', body: b }, res);
+  const genres = (Array.isArray(b.genres) ? b.genres : []).map(x => String(x).toLowerCase().trim()).filter(Boolean);
+  const ctx = { sb: genres.length ? _sbClient() : null, owner: false };
+  if (genres.length === 1) {
+    b.pure = true;   // pas de mix pigé (« black metal with punk rock inflections »)
+    if (!(Array.isArray(b.signature) && b.signature.length)) {
+      try { const hs = await hiddenSignature(ctx, genres[0], b.year); if (hs) { b.signature = hs.signature; if (!b.scene) b.scene = hs.scene; } } catch {}
+    }
+  }
+  const out = await _run(forgeCore, req, b);
+  if (out.s !== 200 || !out.d || !out.d.styleStr) return res.status(out.s).json(out.d);
+  const d = out.d;
+  try {
+    const opt = { instrumental: !!b.instrumental, genres };
+    const oldStyle = d.styleStr, oldExcl = d.excludeStr || '', oldStruct = d.structStr || '';
+    let style = cleanStyle(d.styleStr, opt), excl = cleanExclude(d.excludeStr, opt);
+    if (!opt.instrumental && DEEP_VOX.test(style)) excl = uniq(splitTags(excl).filter(t => !/low growls?|deep vocals?|guttural/i.test(t)).concat(['high-pitched screams', 'falsetto'])).join(', ');
+    const beat = await bankBeat(ctx, genres, style, Number(d.bpm) || 0).catch(() => null);
+    const w = beat ? beatWords(beat) : '';
+    if (w) {
+      style = style.replace(/\b\d{2,3} BPM\b/, beat.bpm + ' BPM');
+      const tags = splitTags(style), at = tags.findIndex(t => /BPM/.test(t));
+      tags.splice(at >= 0 ? at + 1 : tags.length, 0, '4/4', ...splitTags(w));
+      style = uniq(tags).join(', ');
+      d.bpm = beat.bpm;
+    }
+    if (style.length > 1000) style = splitTags(style).reduce((a, t) => (a + (a ? ', ' : '') + t).length <= 1000 ? a + (a ? ', ' : '') + t : a, '');   // limite du champ Style de Suno
+    const struct = cleanStruct(d.structStr, opt);
+    d.styleStr = style; d.excludeStr = excl; d.structStr = struct;
+    if (d.full) d.full = d.full.replace(oldStyle, style).replace(oldExcl, excl).replace(oldStruct, struct);
+    // v6 = trop propre pour le metal cru (François, 7 nov.) : seulement prog, glam, metalcore radio
+    const clean = /prog|glam|hair metal|metalcore|post-hardcore|alternative|radio/.test(genres.join(' '));
+    if (d.modelRec && typeof d.modelRec === 'object') d.modelRec = { ...d.modelRec, best: clean ? 'v6' : 'v6-wild', good: clean ? 'v6-wild' : 'v6', why: clean ? 'précision et mix propre (prog, glam, metalcore)' : 'v6-wild : grain cru, son de vrai band (tests 7 nov. 2026)' };
+  } catch (e) { /* la recette ne doit jamais casser la forge : on renvoie la sortie brute */ }
+  return res.status(200).json(d);
 }

@@ -1115,9 +1115,9 @@ function SiteFooter({onOpen,uiLang}){
       <span style={{fontSize:"0.62rem",color:"#8A8F97"}}>© {new Date().getFullYear()} MetalPrompt ·</span>
       <button style={{...lk,color:RED,fontWeight:700}} onClick={()=>onOpen("about")}>{fr?"À propos":"About"}</button>
       <a href="/guide.html" target="_blank" rel="noreferrer" style={{...lk,display:"inline-block"}}>{fr?"Guide Suno":"Suno Guide"}</a>
-      <button style={lk} onClick={()=>onOpen("privacy")}>{fr?"Confidentialité":"Privacy"}</button>
+      <a href="/confidentialite" onClick={e=>{e.preventDefault();onOpen("privacy");}} style={{...lk,display:"inline-block"}}>{fr?"Confidentialité":"Privacy"}</a>
       <button style={lk} onClick={()=>{try{localStorage.removeItem("mp_consent");}catch(e){}window.dispatchEvent(new Event("mp-open-consent"));}}>{fr?"Témoins":"Cookies"}</button>
-      <button style={lk} onClick={()=>onOpen("terms")}>{fr?"Conditions d'utilisation":"Terms"}</button>
+      <a href="/conditions" onClick={e=>{e.preventDefault();onOpen("terms");}} style={{...lk,display:"inline-block"}}>{fr?"Conditions d'utilisation":"Terms"}</a>
       <button style={lk} onClick={()=>onOpen("sales")}>{fr?"Conditions de vente":"Sales terms"}</button>
       <button style={lk} onClick={()=>onOpen("legal")}>{fr?"Mentions légales":"Legal notice"}</button>
       <div style={{flexBasis:"100%",fontSize:"0.6rem",color:"#8A8F97",marginTop:"6px"}}>{fr?"MetalPrompt est un outil indépendant, non affilié à Suno, Inc. ni approuvé par aucun groupe ou artiste. Aucun nom d'artiste n'est écrit dans vos prompts.":"MetalPrompt is an independent tool, not affiliated with Suno, Inc. and not endorsed by any band or artist. No artist names are ever written into your prompts."}</div>

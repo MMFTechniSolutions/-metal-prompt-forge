@@ -378,7 +378,7 @@ function cleanStruct(struct, { instrumental, genres }) {
     }
     const bad = GENRE_NO.find(([re]) => re.test(g));
     if (bad && (bad[1].test(name) || bad[1].test(cue))) {
-      if (/half-?time|breakdown/i.test(name)) continue;        // section qui fait pas le genre → on l'enlève
+      if (bad[1].test(name)) continue;        // section qui fait pas le genre (half-time en black, blast en groove) → on l'enlève
       cue = cue.split(/\s*,\s*/).filter(c => !bad[1].test(c)).join(', ');
     }
     if (instrumental && !cue) cue = black ? 'tremolo guitars, blast beats' : 'guitars and drums';

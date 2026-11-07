@@ -20,7 +20,7 @@ import riffHandler from '../riff.js';
 import lyricsHandler from '../lyrics.js';
 import { lyricCard } from './lyricCard.js';
 import { FAMILLES } from '../_genreFamilies.js';
-import { generateBank, STYLES as BANK_STYLES } from './melodyBank.js';
+import { generateBank, toMidi, STYLES as BANK_STYLES } from './melodyBank.js';
 
 const SITE = (process.env.SITE_URL || 'https://metalprompt.com').replace(/\/$/, '');
 const SB_URL = () => process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -31,7 +31,8 @@ const LIMITS = {
   forger_prompt: Number(process.env.MCP_LIMIT_FORGER || 100),
   creer_riff: Number(process.env.MCP_LIMIT_RIFF || 20),
   ecrire_paroles: Number(process.env.MCP_LIMIT_PAROLES || 10),   // coûte un appel IA → limite plus serrée
-  forger_toune: Number(process.env.MCP_LIMIT_TOUNE || 10),   // prompt + paroles (appel IA) + groove
+  forger_toune: Number(process.env.MCP_LIMIT_TOUNE || 10),
+  televerser_groove: Number(process.env.MCP_LIMIT_GROOVE || 20),   // prompt + paroles (appel IA) + groove
 };
 const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const PRM_URL = SITE + '/.well-known/oauth-protected-resource';
@@ -120,6 +121,22 @@ const TOOLS = [
       required: ['idee'],
     },
     annotations: { readOnlyHint: true, openWorldHint: true },
+  },
+  {
+    name: 'televerser_groove',
+    title: 'Envoyer un groove de la banque à Suno (MIDI)',
+    description: "Envoie un groove de la banque MetalPrompt (guitare, basse, batterie, mélodie qui accote le style) directement dans un envoi MIDI Suno. Étapes : 1) appelle midi-upload-create du connecteur Suno, 2) passe ici son upload_url et ses upload_fields tels quels, avec le groove_id de forger_toune (ou le style), 3) appelle midi-upload-complete, 4) audio-create avec midi_upload_id, model v6-wild et une description qui reprend le Style, 5) pour chanter les paroles : audio-covers-create sur ce clip avec style, negative_style et lyrics.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        upload_url: { type: 'string', description: 'upload_url reçu de midi-upload-create (Suno).' },
+        upload_fields: { type: 'object', additionalProperties: { type: 'string' }, description: 'upload_fields reçus de midi-upload-create, tels quels.' },
+        groove_id: { type: 'string', description: 'Groove donné par forger_toune (optionnel).' },
+        style: { type: 'string', description: 'Style si pas de groove_id : le groove est pigé dans ce style.' },
+      },
+      required: ['upload_url', 'upload_fields'],
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
   },
   {
     name: 'creer_riff',
@@ -303,6 +320,7 @@ async function toolToune(args, ctx) {
   let style = o.styleStr, groove = null;
   const bs = bankStyleFor(f.genres.join(' ') + ' ' + style);
   groove = await pickGroove(ctx, bs, Number(o.bpm) || 0);
+  if (!groove && ctx.owner) { const gp = await grooveForStyle(ctx, f.genres.join(' ') + ' ' + style); if (gp && Math.abs(gp.bpm - (Number(o.bpm) || gp.bpm)) <= 20) groove = gp; }   // proprio : teste aussi l'attente
   if (groove) {
     // Le groove approuvé fixe le tempo et l'accordage : le prompt suit la banque
     style = style.replace(/\b\d{2,3} BPM\b/, groove.bpm + ' BPM');
@@ -321,15 +339,60 @@ async function toolToune(args, ctx) {
     'EXCLUDE :', o.excludeStr || '(rien)', '',
     'LYRICS :', lyrics, '',
     `Modèle Suno conseillé : ${rec} · Style Influence 100, Weirdness 65 max, Variety 0.`,
-    groove ? `Groove de la banque : ${groove.id} · ${groove.bpm} BPM · ${groove.accordage} · ${meterName(groove.mesures)}` : `Groove de la banque : aucun groove approuvé au bon tempo pour « ${bs || 'ce style'} » — tempo et accordage du forge.`,
+    groove ? `Groove de la banque (groove_id pour televerser_groove) : ${groove.id} · ${groove.bpm} BPM · ${groove.accordage} · ${meterName(groove.mesures)}` : `Groove de la banque : aucun groove approuvé au bon tempo pour « ${bs || 'ce style'} » — tempo et accordage du forge.`,
   ];
   return { text: lines.join('\n') };
 }
 
-const RUN = { forger_toune: toolToune, forger_prompt: toolForger, creer_riff: toolRiff, ecrire_paroles: toolParoles, remplir_banque: toolRemplirBanque };
+// ── Envoi MIDI vers Suno (nov. 2026) : le serveur poste lui-même le groove dans l'envoi pré-signé de Suno ──
+const SUNO_UPLOAD_HOSTS = ['suno-uploads.s3.amazonaws.com'];
+async function grooveById(ctx, id) {
+  let q = ctx.sb.from('melody_bank').select('id,style,section,bpm,accordage,mesures,data,status').eq('id', String(id).slice(0, 80));
+  const { data } = await q.maybeSingle();
+  if (!data) return null;
+  return (data.status === 'approved' || ctx.owner) ? data : null;   // le proprio peut tester ce qui est en attente
+}
+async function grooveForStyle(ctx, txt) {
+  const bs = bankStyleFor(txt);
+  if (!bs) return null;
+  const statuses = ctx.owner ? ['approved', 'pending'] : ['approved'];
+  for (const st of statuses) {
+    const { data } = await ctx.sb.from('melody_bank').select('id,style,section,bpm,accordage,mesures,data,status').eq('style', bs).eq('status', st).limit(30);
+    if (data && data.length) { const c = data.filter(g => g.section === 'couplet'); const pool = c.length ? c : data; return pool[Math.floor(Math.random() * pool.length)]; }
+  }
+  return null;
+}
+function loopedMidi(g, maxSec = 60) {
+  const d = g.data, L = d.drums.kick.length, barSec = L * 60 / g.bpm / 4;
+  const N = Math.max(1, Math.min(8, Math.floor(maxSec / barSec)));
+  const rep = arr => Array.from({ length: N }, (_, k) => arr.map(n => ({ ...n, t: n.t + k * L }))).flat();
+  return { bytes: toMidi({ bpm: g.bpm, leadProgram: d.leadProgram, guitar: rep(d.guitar), bass: rep(d.bass), melody: rep(d.melody),
+    drums: { kick: Array(N).fill(d.drums.kick).flat(), snare: Array(N).fill(d.drums.snare).flat(), hihat: Array(N).fill(d.drums.hihat).flat() } }), sec: Math.round(N * barSec) };
+}
+async function toolTeleverser(args, ctx) {
+  let u; try { u = new URL(String(args.upload_url || '')); } catch { return { error: 'upload_url invalide.' }; }
+  if (u.protocol !== 'https:' || !SUNO_UPLOAD_HOSTS.includes(u.hostname)) return { error: "upload_url doit venir de midi-upload-create (Suno)." };
+  const fields = args.upload_fields && typeof args.upload_fields === 'object' ? args.upload_fields : null;
+  if (!fields || !fields.key || !fields.policy) return { error: 'upload_fields manquants (passe-les tels quels).' };
+  const g = args.groove_id ? await grooveById(ctx, args.groove_id) : await grooveForStyle(ctx, args.style);
+  if (!g) return { error: args.groove_id ? 'Groove introuvable ou pas encore approuvé.' : 'Aucun groove approuvé pour ce style.' };
+  const { bytes, sec } = loopedMidi(g);
+  const fd = new FormData();
+  for (const [k, v] of Object.entries(fields)) fd.append(k, String(v));
+  fd.append('file', new Blob([bytes], { type: 'audio/midi' }), 'metalprompt-groove.mid');
+  const r = await fetch(u.toString(), { method: 'POST', body: fd });
+  if (!r.ok) return { error: `Envoi vers Suno refusé (${r.status}). Recommence midi-upload-create (l'envoi expire après 10 minutes).` };
+  return { text: [
+    `Groove envoyé : ${g.id} · ${g.bpm} BPM · ${g.accordage} · ${meterName(g.mesures)} · ~${sec} s (guitare, basse, batterie, mélodie).`,
+    'Suite : midi-upload-complete, puis audio-create avec midi_upload_id, model v6-wild et une description qui reprend le Style (instrumental).',
+    'Pour les paroles : audio-covers-create sur ce clip avec style, negative_style et lyrics (garde le riff et la mélodie).',
+  ].join('\n') };
+}
+
+const RUN = { forger_toune: toolToune, televerser_groove: toolTeleverser, forger_prompt: toolForger, creer_riff: toolRiff, ecrire_paroles: toolParoles, remplir_banque: toolRemplirBanque };
 
 const INSTRUCTIONS = `MetalPrompt forge des prompts Suno pour le metal (« Inspiré, jamais copié »).
-Le plus simple : forger_toune (tout en un). Sinon : forger_prompt → (optionnel) ecrire_paroles avec la structure reçue → (optionnel) creer_riff. Avec un connecteur Suno : Style → champ style, Exclude → champ exclude, structure + paroles → champ lyrics.
+Le plus simple : forger_toune (tout en un). Avec Suno Premier, pour que la toune joue le vrai groove de la banque : Suno midi-upload-create → televerser_groove (upload_url, upload_fields, groove_id) → midi-upload-complete → audio-create (midi_upload_id, v6-wild, description = Style, instrumental) → audio-covers-create sur ce clip (style, negative_style, lyrics). Sinon : forger_prompt → (optionnel) ecrire_paroles avec la structure reçue → (optionnel) creer_riff. Avec un connecteur Suno : Style → champ style, Exclude → champ exclude, structure + paroles → champ lyrics.
 Ne jamais écrire de nom de groupe, d'artiste ou de chanson dans un prompt ni dans des paroles.`;
 
 // ════════════════ JSON-RPC ════════════════
@@ -405,4 +468,4 @@ export default async function mcpHandler(req, res, deps = {}) {
 }
 
 // Tests locaux (scripts/test-mcp.mjs)
-export const _test = { handleOne, toolForger, toolToune, toolRiff, parseEra, findGenre, bankStyleFor, TOOLS };
+export const _test = { handleOne, toolForger, toolToune, toolTeleverser, toolRiff, parseEra, findGenre, bankStyleFor, TOOLS };

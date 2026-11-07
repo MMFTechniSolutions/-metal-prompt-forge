@@ -25,6 +25,8 @@ const STYLE_ID_MAP = [
   [/dissonant/, 'dissonant-death'],
   [/deathgrind|goregrind/, 'deathgrind'],
   [/deathcore/, 'deathcore'],
+  // death-doom AVANT /death/ (test MCP 2026-11-07 : héritait des blasts, du trémolo et du mix thrash du death metal)
+  [/death.?doom|doom.?death/, 'death-doom'],
   [/death/, 'death-metal'],
   [/black/, 'black-metal'],
   [/powerviolence/, 'powerviolence'],
@@ -194,6 +196,7 @@ function forgeCore(req, res) {
     'nu-metal':             ['bouncy down-tuned 7-string riffing', 'sung-to-screamed vocal switching', 'turntable scratches and samples'],
     'industrial-metal':     ['mechanical programmed drum loops', 'processed robotic vocal layer', 'cold synth pad under the riff'],
     'doom-metal':           ['slow tritone riffing dragging behind the beat', 'vintage fuzz tone', 'mournful clean vocals'],
+    'death-doom':           ['crawling downtuned chord dirges', 'cavernous low growls', 'mournful slow lead melodies'],
     'epic-doom':            ['grandiose slow riffing', 'operatic clean vocals', 'thick warm vintage saturation'],
     'funeral-doom':         ['glacially slow chords with long decay', 'funeral organ pad', 'subterranean growls'],
     'sludge-metal':         ['feedback-drenched slow riffing', 'shrieked raw vocals', 'dirty saturated bass'],
@@ -240,6 +243,7 @@ function forgeCore(req, res) {
     'rapcore':             ['hip hop'],
     'industrial-metal':    ['EBM', 'electronic body music'],
     'doom-metal':          ['blues rock'],
+    'death-doom':          ['gothic doom'],
     'epic-doom':           ['NWOBHM'],
     'funeral-doom':        ['dark ambient'],
     'stoner-metal':        ['70s psychedelic blues rock'],
@@ -349,6 +353,7 @@ function forgeCore(req, res) {
     [/brutal|slam/, {ts:'4/4', scale:'chromatic slam riffs near the bridge', prod:'thick brutal triggered mix', tuning:'A standard'}],
     [/melodic.?death/, {ts:'4/4', scale:'harmonized minor twin-guitar leads', prod:'polished melodic mix', tuning:'D standard'}],
     [/deathcore/, {ts:'4/4', scale:'phrygian breakdowns, slam riffs', prod:'crushing triggered mix, guitars panned 100%', tuning:'Drop A'}],
+    [/death.?doom|doom.?death/, {ts:'4/4', scale:'slow phrygian chord dirges with tritone dread', prod:'thick warm vintage saturation', tuning:'C standard'}],   // avant /death/ (test MCP 2026-11-07)
     [/death/, {ts:'4/4', scale:'phrygian dominant chromatic tremolo riffs', prod:'massive percussive mix, triggered kick', tuning:'D standard'}],
     [/symphonic.?black/, {ts:'4/4', scale:'tremolo over orchestral arrangements', prod:'cinematic orchestral mix', tuning:'standard'}],
     [/blackgaze|post.?black/, {ts:'4/4', scale:'consonant ionian and mixolydian, add9 maj7 sus2 open chords', prod:'wall of sound, infinite algorithmic reverb', tuning:'standard'}],
@@ -417,7 +422,7 @@ function forgeCore(req, res) {
   // ── sauce secrète : sliders → tags subtils, fondus dans le lot ──
   const sliderTags = [];
   if (heavy >= 8) sliderTags.push('bone-crushing low end'); else if (heavy <= 3) sliderTags.push('open and breathable mix');
-  if (groove >= 7) sliderTags.push('deep pocket groove'); else if (groove <= 3) sliderTags.push('relentless forward drive');
+  if (groove >= 7) sliderTags.push('deep pocket groove'); else if (groove <= 3 && !/doom|sludge|funeral|drone/.test(_gtxt)) sliderTags.push('relentless forward drive');
   if (chaos >= 8) sliderTags.push('unhinged dissonance'); else if (chaos <= 2) sliderTags.push('locked-in and surgical');
   if (melody >= 7) sliderTags.push('soaring melodic lead'); else if (melody <= 2) sliderTags.push('no-frills brutality');
   const secret = sliderTags;

@@ -372,7 +372,7 @@ function cleanStruct(struct, { instrumental, genres }) {
     let name = m[1].trim(), cue = (m[2] || '').trim();
     if (/^end$/i.test(name)) { out.push('[End]'); continue; }
     if (instrumental) {
-      if (/chorus/i.test(name)) name = black ? 'Tremolo Riff' : 'Groove Riff';
+      if (/chorus|chant|gang|choir|vocal|scream|spoken/i.test(name)) name = black ? 'Tremolo Riff' : 'Groove Riff';
       if (/verse/i.test(name)) name = 'Verse';
       cue = cue.split(/\s*,\s*/).filter(c => c && !VOCAL_WORDS.test(c)).join(', ');
     }

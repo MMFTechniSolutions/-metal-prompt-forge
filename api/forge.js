@@ -516,7 +516,7 @@ export default function handler(req, res) {
   const bpmTag = (_isFast && _classic) ? 'driving ' + bpm + ' BPM'
                : (_isFast && /thrash/.test(_gtxt) && !/death|black|grind|crossover|core/.test(_gtxt)) ? 'fast tempo ' + bpm + ' BPM, fast punk-style thrash beat'   // thrash = beat thrash, pas double-time (test Metallica 1986 : « drette ça »)
                : _isFast ? _fw[0] + ' ' + bpm + ' BPM, ' + _fw[1]
-               : (bpm <= 85 || (bpm <= 100 && /doom|sludge|stoner|funeral|drone/.test(_gtxt))) ? bpm + ' BPM, ' + _sw[0]   // nu-metal/groove à 96 = bounce, pas doom (test Linkin Park 2026-11-02)
+               : (bpm <= 85 || (bpm <= 100 && /doom|sludge|stoner|funeral|drone/.test(_gtxt))) ? 'slow tempo ' + bpm + ' BPM, ' + _sw[0].replace(/^slow,?\s*/i, '')   // nu-metal/groove à 96 = bounce, pas doom (test Linkin Park 2026-11-02)
                : _classic ? 'driving ' + bpm + ' BPM'   // Suno ne suit pas un BPM chiffré seul : toujours un mot de vitesse (test 2026-11-02)
                : 'mid-tempo ' + bpm + ' BPM, steady pulse';
   const _brid = g => String(g).trim() + '-influenced';   // bridge de fusion (guide 2026-07-28) : « black metal » → « black metal-influenced »

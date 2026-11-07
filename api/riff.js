@@ -441,7 +441,7 @@ function buildPrompt(p){
   const mood=MOOD[p.style]||'dark and aggressive';
   const flav=(FLAVOR[p.style]||['chugging riffs','downtuned']).slice(0, _sc?1:2);
   const scTags=_sc?_sc.t.slice(0,3):[];
-  const tags=[genre, T[p.root]||'', bpm+' BPM '+tempo, D[p.drumKey]||'heavy drums', ...flav, ...scTags, vox, mix, 'very loud guitars and drums', mood, genre];
+  const tags=[genre, T[p.root]||'', tempo+' '+bpm+' BPM', D[p.drumKey]||'heavy drums', ...flav, ...scTags, vox, mix, 'very loud guitars and drums', mood, genre];
   return tags.filter(Boolean).join(', ');
 }
 

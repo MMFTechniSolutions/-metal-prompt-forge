@@ -1520,6 +1520,12 @@ export default function App({ user, onLogout, onRequestAuth }) {
   const [lastIdea,setLastIdea]=useState("");            // dernier texte détecté : pas de nouvelle détection si inchangé
   const [ideaBusy,setIdeaBusy]=useState(false);
   const [ideaMsg,setIdeaMsg]=useState(null);            // {ok, text}
+  // Liens entrants (bot Discord, nov. 2026) : ?forge=style+année remplit la boîte d'idée · ?tab=galerie ouvre la Radio
+  useEffect(()=>{try{const q=new URLSearchParams(window.location.search);const f=q.get("forge"),t=q.get("tab");
+    if(f){setIdeaInput(f.slice(0,120));setTab("genre");}
+    if(t==="galerie")setTab("galerie");
+    if(f||t){q.delete("forge");q.delete("tab");const s=q.toString();window.history.replaceState(null,"",window.location.pathname+(s?"?"+s:"")+window.location.hash);}
+  }catch(e){}},[]);
   const [eraPick,setEraPick]=useState("");              // "" = époque déduite du genre
   const [bpmManual,setBpmManual]=useState(false);       // BPM tapé à la main = pas de variation aléatoire
   const [exactYear,setExactYear]=useState("");          // année tapée (« 1996 ») → « 1996 production »

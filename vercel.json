@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/discord",
+      "destination": "/api/profile?op=discord"
+    },
+    {
       "source": "/confidentialite",
       "destination": "/confidentialite.html"
     },

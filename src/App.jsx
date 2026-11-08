@@ -876,7 +876,7 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
 // Remplace les champs [ ] par tes vraies infos avant publication.
 const LEGAL = {
   privacy: `POLITIQUE DE CONFIDENTIALITÉ — MetalPrompt
-Dernière mise à jour : 27 juin 2026
+Dernière mise à jour : 8 novembre 2026
 
 1. QUI SOMMES-NOUS
 Le site MetalPrompt (« le Service ») est édité par MMF Techni-Solutions, entreprise enregistrée au Québec (NEQ : 2279516308), située au 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1. Cette politique est conforme à la Loi sur la protection des renseignements personnels dans le secteur privé du Québec (Loi 25).
@@ -890,6 +890,8 @@ François Lajoie-Levesque — mmftechnisolutions@gmail.com
 • Utilisation : prompts générés, préférences, historique.
 • Crédits & génération : solde de crédits, métadonnées des morceaux générés (titre, prompt, durée).
 • Technique : adresse IP, type d'appareil, navigateur.
+• Galerie et Radio : les renseignements de vos soumissions (titre, lien, compte qui soumet) et vos votes.
+• Connecteur pour assistants IA (Forge Pro) : un jeton d'accès sécurisé (OAuth, géré par Supabase) et un journal d'utilisation des outils (outil, date, nombre d'appels) pour appliquer les limites. Vos demandes à l'assistant passent par le fournisseur de cet assistant (ex. Anthropic), sous votre propre compte et sa politique de confidentialité ; nous recevons seulement ce qui est nécessaire pour forger (style, année, angle des paroles).
 Mesure d'audience (AVEC votre consentement) : Google Analytics, déployé via Google Tag Manager, pour comprendre l'usage du site (pages vues, appareil, provenance). Ces témoins ne sont déposés qu'après votre consentement donné via le bandeau. Aucun suivi publicitaire. Retrait possible en tout temps via le lien « Témoins » au bas du site.
 
 4. FINALITÉS
@@ -913,6 +915,7 @@ Accès, rectification, retrait du consentement / suppression, portabilité, et p
 10. TÉMOINS (COOKIES)
 Témoins essentiels : strictement nécessaires au fonctionnement (session, authentification) — toujours actifs.
 Témoins de mesure d'audience : Google Analytics (via Google Tag Manager). Ils ne sont déposés qu'APRÈS votre consentement explicite, recueilli via le bandeau affiché à la première visite (conforme à la Loi 25). Vous pouvez accepter, refuser ou retirer votre consentement en tout temps via le lien « Témoins » au bas de chaque page.
+Application installable : si vous installez MetalPrompt sur votre appareil, une copie des fichiers du site y est gardée pour qu'il s'ouvre plus vite ; aucun renseignement personnel n'y est mis en cache.
 
 11. INCIDENT DE CONFIDENTIALITÉ
 En cas d'incident à risque sérieux, nous aviserons les personnes concernées et la CAI.
@@ -933,33 +936,42 @@ MetalPrompt est un outil de pré-production musicale par IA (musique uniquement)
 Vous fournissez des informations exactes, gardez votre mot de passe confidentiel et êtes responsable de l'activité de votre compte. Nous pouvons suspendre un compte en cas de violation.
 
 4. UTILISATION ACCEPTABLE
-Interdit : usage illégal/frauduleux, contournement des limitations ou de la sécurité, revente non autorisée, surcharge/piratage de l'infrastructure, génération de contenu illégal ou portant atteinte aux droits d'autrui.
+Interdit : usage illégal/frauduleux, contournement des limitations ou de la sécurité, revente non autorisée, surcharge/piratage de l'infrastructure, génération de contenu illégal ou portant atteinte aux droits d'autrui. MetalPrompt crée du son inspiré d'un style et d'une époque, jamais des copies : n'utilisez pas le Service pour reproduire une œuvre existante et n'inscrivez pas de noms d'artistes, de groupes ou de chansons réels dans les invites.
 
 5. PROPRIÉTÉ INTELLECTUELLE
 Le Service (code, design, textes, marque) appartient à MMF Techni-Solutions. Les prompts que vous générez vous appartiennent ; vous êtes seul responsable de leur usage sur des plateformes tierces. Musique générée DANS le Service : produite via le modèle Lyria de Google (API Gemini), et soumise aux conditions d'utilisation de Google applicables à ce service. Notamment : (a) interdiction d'inclure des noms d'artistes, groupes, chansons ou albums réels dans les invites ; (b) une piste 100 % générée par IA n'est généralement pas protégeable par droit d'auteur — vous obtenez un droit d'usage, non un copyright, et ne pouvez pas revendiquer un copyright original sur une piste brute ; (c) avant de distribuer ou monétiser une piste (streaming, vente), vérifiez les conditions de Google et de la plateforme visée ; (d) œuvres dérivées : si vous retravaillez la piste de façon créative et significative (édition, instruments réels, voix, mixage/mastering), vous créez une œuvre originale que vous pouvez protéger et exploiter — conservez vos fichiers de session comme preuve de votre apport humain. Vous êtes seul responsable de respecter les conditions de Google et les lois applicables.
 
 Beats, mélodies et riffs : les beats, grooves, mélodies, riffs, tablatures et fichiers audio ou MIDI générés ou fournis par le Service (y compris notre banque de grooves et de mélodies et la méthode qui les produit) sont et demeurent la propriété de MMF Techni-Solutions, dans toute la mesure permise par la loi. Vous recevez une licence non exclusive, mondiale, gratuite et sans limite de durée pour les utiliser dans vos propres chansons, y compris sur des plateformes tierces (ex. Suno) et dans des œuvres que vous distribuez ou monétisez. Interdit sans notre autorisation écrite : revendre, redistribuer ou partager ces éléments seuls (hors d'une chanson), en faire une banque ou un pack concurrent, ou extraire en masse le contenu du Service. Les chansons que vous créez avec ces éléments vous appartiennent, sous réserve de notre propriété sur les éléments eux-mêmes et des conditions des plateformes utilisées.
 
-6. DISPONIBILITÉ
+6. ABONNEMENTS ET CRÉDITS
+Le prompt est gratuit avec un compte. Les fonctions payantes (abonnements Forge Plus, Forge Pro lorsqu'il est offert, crédits Studio) sont facturées par Stripe aux prix affichés sur le site au moment de l'achat. Un abonnement se renouvelle automatiquement jusqu'à son annulation ; vous pouvez l'annuler en tout temps et il reste actif jusqu'à la fin de la période déjà payée. Les crédits Studio n'expirent pas. Des limites d'usage raisonnables (par jour ou par outil) peuvent s'appliquer pour protéger le Service.
+
+7. CONNECTEUR POUR ASSISTANTS IA (MCP)
+Lorsqu'il est offert, l'abonnement Forge Pro vous permet de relier votre compte à un assistant IA compatible (ex. Claude, d'Anthropic) par un connecteur sécurisé (OAuth). L'assistant peut alors forger des prompts, des paroles et des riffs en votre nom, dans les limites de votre plan. Si vous autorisez aussi cet assistant à agir sur une plateforme tierce (ex. un connecteur Suno, ou une extension de navigateur qui remplit les champs de Suno pour vous), ces actions se font dans votre propre compte, selon les conditions de cette plateforme, et vous êtes seul responsable de ce qui y est créé ou lancé et des crédits consommés. Vérifiez le contenu avant de lancer une génération. Vous pouvez retirer l'accès en tout temps. MetalPrompt n'est affilié ni à Anthropic ni à Suno.
+
+8. CONTENU QUE VOUS SOUMETTEZ (galerie, Radio, communauté)
+En soumettant une chanson ou un lien (ex. un lien Suno) à la galerie, à la Radio MetalPrompt ou à nos espaces communautaires, vous confirmez avoir le droit de le partager et vous nous accordez une licence non exclusive et gratuite pour l'afficher, le diffuser et le promouvoir dans le Service et sur nos réseaux, tant qu'il y demeure. Les soumissions sont approuvées avant publication et peuvent être retirées en tout temps. Nous n'hébergeons pas votre musique : si elle est retirée de la plateforme d'origine, elle cesse de jouer.
+
+9. DISPONIBILITÉ
 Service fourni sans garantie d'absence d'interruption ; il peut évoluer, être suspendu ou modifié.
 
-7. LIMITATION DE RESPONSABILITÉ
+10. LIMITATION DE RESPONSABILITÉ
 Service fourni « tel quel ». Dans les limites de la loi, aucune responsabilité pour les dommages indirects, la perte de données ou les résultats obtenus via des plateformes tierces. Aucun résultat musical précis n'est garanti. Rien dans les présentes ne limite les droits impératifs que la loi accorde au consommateur, notamment la Loi sur la protection du consommateur du Québec.
 
-8. DONNÉES PERSONNELLES
+11. DONNÉES PERSONNELLES
 Voir la Politique de confidentialité, qui fait partie des présentes conditions.
 
-9. DROIT APPLICABLE
+12. DROIT APPLICABLE
 Lois de la province de Québec et du Canada. Tribunaux compétents du district de Trois-Rivières, Québec.
 
-10. MODIFICATIONS
+13. MODIFICATIONS
 La version en vigueur est celle publiée avec sa date. L'usage continu vaut acceptation.
 
-11. CONTACT
+14. CONTACT
 mmftechnisolutions@gmail.com`,
 
   sales: `CONDITIONS GÉNÉRALES DE VENTE — MetalPrompt
-Dernière mise à jour : 1er novembre 2026
+Dernière mise à jour : 8 novembre 2026
 
 1. OBJET
 Vente des abonnements payants et des crédits Studio du Service, édité par MMF Techni-Solutions (NEQ 2279516308), 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1, sur https://metalprompt.com.
@@ -968,7 +980,7 @@ Vente des abonnements payants et des crédits Studio du Service, édité par MMF
 Avant votre paiement, nous indiquons : notre identité et nos coordonnées, la description du plan, le prix total en USD (dollars américains ; taxes applicables indiquées au paiement), la fréquence de facturation et le renouvellement, les modalités de résiliation et de remboursement. Après l'achat, vous recevez par courriel une confirmation tenant lieu de copie du contrat.
 
 3. PLANS ET PAIEMENT
-Abonnement unique donnant accès à l'ensemble du Service, offert en formule mensuelle (2,99 $ US/mois). Une formule « à vie » (paiement unique) peut être offerte pour une durée limitée lors de promotions ; elle donne accès au Service tant qu'il est exploité. TOUS LES PRIX SONT EN DOLLARS AMÉRICAINS (USD). Si vous payez avec une carte libellée dans une autre devise (ex. CAD), votre institution financière peut appliquer des frais de conversion qui ne sont PAS perçus par MetalPrompt. Paiements sécurisés par Stripe ; aucune donnée complète de carte n'est stockée. Vous autorisez le prélèvement récurrent jusqu'à résiliation. Prix modifiables pour les périodes futures, avec préavis.
+Abonnement Forge Plus donnant accès à l'ensemble du Service, offert en formule mensuelle (2,99 $ US/mois). Lorsqu'elle est offerte, la formule Forge Pro ajoute le connecteur pour assistants IA (MCP) ; son prix est affiché avant l'achat. Une formule « à vie » (paiement unique) peut être offerte pour une durée limitée lors de promotions ; elle donne accès au Service tant qu'il est exploité. TOUS LES PRIX SONT EN DOLLARS AMÉRICAINS (USD). Si vous payez avec une carte libellée dans une autre devise (ex. CAD), votre institution financière peut appliquer des frais de conversion qui ne sont PAS perçus par MetalPrompt. Paiements sécurisés par Stripe ; aucune donnée complète de carte n'est stockée. Vous autorisez le prélèvement récurrent jusqu'à résiliation. Prix modifiables pour les périodes futures, avec préavis.
 
 3.1 PROMPTS GRATUITS ET ABONNEMENT
 Le générateur de prompts est gratuit avec un compte. L'abonnement donne un accès ILLIMITÉ au Studio (Mélodie, Riff, Beat, tablatures, partitions et export WAV), aux Paroles IA et au module de mastering. L'export de prompts vers des plateformes tierces (ex. Suno) n'utilise aucun crédit.
@@ -998,11 +1010,11 @@ Lois du Québec et du Canada ; tribunaux du district de Trois-Rivières, sous r�
 mmftechnisolutions@gmail.com`,
 
   legal: `MENTIONS LÉGALES — MetalPrompt
-Dernière mise à jour : 26 juin 2026
+Dernière mise à jour : 8 novembre 2026
 
 ÉDITEUR
 MMF Techni-Solutions — NEQ : 2279516308
-MetalPrompt est un outil indépendant, non affilié à Suno, Inc. ni à aucun groupe ou artiste.
+MetalPrompt est un outil indépendant, non affilié à Suno, Inc., à Anthropic, à Google ni à aucun groupe ou artiste.
 Adresse : 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1
 Courriel : mmftechnisolutions@gmail.com
 Responsable de la publication : François Lajoie-Levesque

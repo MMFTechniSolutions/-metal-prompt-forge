@@ -75,7 +75,7 @@ function cycleAt(ms, songsAll, jinglesAll, epoch) {
 }
 
 // → { cur, start, end, next, prev, prevStart, show } ou null. start/end en ms (horloge du serveur).
-export function onAir(ms, items, grille) {
+function baseOnAir(ms, items, grille) {
   const all = items.filter(it => it.duration > 5 && (it.sunoId || it.audio_file)).sort((a, b) => (a.id < b.id ? -1 : 1));
   const jingles = all.filter(isJingle);
   let songs = all.filter(it => !isJingle(it)), epoch = EPOCH, show = currentShow(ms, grille);
@@ -101,4 +101,75 @@ export function onAir(ms, items, grille) {
     acc += d;
   }
   return null;
+}
+
+// ── Bulletin météo + bonne nouvelle (8 nov. 2026) ──
+// 3 fois par jour (7 h, 12 h, 17 h, heure de Montréal) : à la fin de la toune en cours, un bulletin de
+// BULLETIN_LEN secondes passe pour tout le monde, puis la grille reprend (décalée d'autant).
+// Seulement à partir du 9 nov. 2026 7 h : rien ne change dans le passé, donc aucun saut au déploiement.
+export const BULLETIN_LEN = 40;
+const BULLETIN_HOURS = [7, 12, 17];
+// Désactivé tant que la clé ELEVENLABS_API_KEY n'est pas dans Vercel (sinon 40 s de silence) : mettre la date de départ ici
+const BULLETIN_FROM = Infinity;
+let bulletinCfg = { lang: "fr", base: "" };
+export function setBulletinConfig(c) { bulletinCfg = { ...bulletinCfg, ...c }; }
+const pad = n => String(n).padStart(2, "0");
+export function torontoMs(y, m, d, h) {
+  for (const off of [4, 5]) {
+    const t = Date.UTC(y, m - 1, d, h + off);
+    if (Number(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", hour: "numeric", hourCycle: "h23" }).format(t)) === h) return t;
+  }
+  return Date.UTC(y, m - 1, d, h + 5);
+}
+// créneaux (ms, clé « AAAA-MM-JJ-HH ») entre deux instants
+function slotsBetween(a, b) {
+  const out = [], day = 864e5;
+  for (let t = a - day; t <= b + day; t += day) {
+    const p = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(t).split("-").map(Number);
+    for (const h of BULLETIN_HOURS) {
+      const ms = torontoMs(p[0], p[1], p[2], h);
+      if (ms >= a && ms <= b && !out.some(o => o.ms === ms)) out.push({ ms, key: `${p[0]}-${pad(p[1])}-${pad(p[2])}-${pad(h)}` });
+    }
+  }
+  return out.sort((x, y) => x.ms - y.ms);
+}
+export function bulletinItem(key) {
+  const url = bulletinCfg.base ? `${bulletinCfg.base}/storage/v1/object/public/radio/bulletins/${key}-${bulletinCfg.lang === "en" ? "en" : "fr"}.mp3` : null;
+  return { id: "bulletin-" + key, slot: key, isBulletin: true, genre: "Annonce", title: bulletinCfg.lang === "en" ? "Weather + good news" : "Météo + bonne nouvelle",
+    artist: "MetalPrompt Radio", duration: BULLETIN_LEN, audio_file: url };
+}
+let bmemo = { key: "", list: [] };
+export function onAir(ms, items, grille) {
+  if (ms < BULLETIN_FROM) return baseOnAir(ms, items, grille);
+  const pk = items.map(i => i.id + ":" + i.duration + ":" + (i.approved_at || "")).join(",") + "|" + (grille || []).length;
+  if (bmemo.key !== pk) bmemo = { key: pk, list: [] };
+  const L = BULLETIN_LEN * 1000, list = bmemo.list;
+  // complète la liste des bulletins jusqu'à maintenant (début réel = fin de la toune en cours au créneau)
+  let D = list.length ? list[list.length - 1].D + L : 0;
+  const from = list.length ? list[list.length - 1].slot + 1 : BULLETIN_FROM;
+  for (const s of slotsBetween(from, ms)) {
+    const b = baseOnAir(s.ms - D, items, grille);
+    const start = b ? b.end + D : s.ms;
+    list.push({ slot: s.ms, key: s.key, start, D });
+    D += L;
+  }
+  let shift = 0, prevB = null;
+  for (const x of list) {
+    if (x.start > ms) break;
+    if (ms < x.start + L) {
+      const after = baseOnAir(x.start - x.D + 1, items, grille);
+      const before = baseOnAir(x.start - x.D - 1, items, grille);
+      return { cur: bulletinItem(x.key), start: x.start, end: x.start + L, next: after && after.cur, prev: before && before.cur,
+        prevStart: before ? before.start + x.D : undefined, show: null };
+    }
+    shift = x.D + L; prevB = x;
+  }
+  const a = baseOnAir(ms - shift, items, grille);
+  if (!a) return a;
+  const out = { ...a, start: a.start + shift, end: a.end + shift, prevStart: a.prevStart !== undefined ? a.prevStart + shift : undefined };
+  if (prevB && out.start === prevB.start + L) { out.prev = bulletinItem(prevB.key); out.prevStart = prevB.start; }
+  // le prochain créneau tombe-t-il pendant cette toune ? alors la suivante est le bulletin
+  const nx = slotsBetween(ms, out.end).find(s => !list.some(x => x.slot === s.ms));
+  if (nx) out.next = bulletinItem(nx.key);
+  return out;
 }

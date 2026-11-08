@@ -14,7 +14,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "./supabase.js";
-import { onAir, isJingle, isHosted, XF } from "./radioSchedule.js";
+import { onAir, isJingle, isHosted, XF, setBulletinConfig, torontoMs } from "./radioSchedule.js";
 
 const CSS = `
 .mpr{--bg:#0C0D0F;--panel:#15171B;--panel2:#1C1F24;--line:#2A2E35;--fg:#F2F1ED;--muted:#8A8F97;--ember:#FF6A2B;--ember2:#FFB36B;--ok:#5FD08A;
@@ -123,6 +123,25 @@ const BARS = Array.from({ length: 28 }, (_, i) => { const r = k => ((Math.sin(i 
 
 export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", discordUrl, visible = true, onOpen }) {
   const L = (fr, en) => (uiLang === "fr" ? fr : en);
+  setBulletinConfig({ lang: uiLang === "en" ? "en" : "fr", base: (import.meta.env.VITE_SUPABASE_URL || "").replace(/\/$/, "") });
+  // Bulletin météo + bonne nouvelle : demande au serveur de le préparer un peu avant (7 h, 12 h, 17 h, heure de Montréal)
+  useEffect(() => {
+    const lang = uiLang === "en" ? "en" : "fr";
+    const tick = () => {
+      const now = Date.now();
+      const p = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(now).split("-").map(Number);
+      for (const h of [7, 12, 17]) {
+        const at = torontoMs(p[0], p[1], p[2], h);
+        if (now > at - 15 * 60e3 && now < at + 60 * 60e3) {
+          const key = `${p[0]}-${String(p[1]).padStart(2, "0")}-${String(p[2]).padStart(2, "0")}-${String(h).padStart(2, "0")}`;
+          const k = "mpr-bulletin-" + key + "-" + lang;
+          try { if (sessionStorage.getItem(k)) continue; sessionStorage.setItem(k, "1"); } catch { /* rien */ }
+          fetch(`/api/profile?op=bulletin&slot=${key}&lang=${lang}`).catch(() => {});
+        }
+      }
+    };
+    tick(); const t = setInterval(tick, 60e3); return () => clearInterval(t);
+  }, [uiLang]);
   const [items, setItems] = useState([]);
   const [chart, setChart] = useState(null);          // { id: {week, prev} } ou null si la fonction n'existe pas
   const [loading, setLoading] = useState(true);

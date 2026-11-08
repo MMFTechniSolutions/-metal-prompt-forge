@@ -42,6 +42,7 @@ export default function handler(req, res) {
   if (_op === 'discord') return import('./_lib/discord.js').then(m => m.default(req, res));
   if (_op === 'discord-register') return import('./_lib/discord.js').then(m => m.registerCommands(req, res));
   // Banque de grooves — écoute/approbation, propriétaire seulement (nov. 2026)
+  if (_op === 'bulletin') return import('./_lib/bulletin.js').then(m => m.default(req, res));
   if (_op === 'bank-list') return import('./_lib/bankAdmin.js').then(m => m.bankList(req, res));
   if (_op === 'bank-set') return import('./_lib/bankAdmin.js').then(m => m.bankSet(req, res));
   // Galerie : résolution d'un lien Suno (fusionné ici, limite de 12 fonctions Vercel Hobby)

@@ -780,7 +780,8 @@ function forgeCore(req, res) {
   const _voxUsed = (PRIORITY.find(x => _VOXRE.test(String(x))) || '').toLowerCase();
   const _antiLow = (/yell|scream|shout|bark|shriek|rasp/.test(_voxUsed) && !/growl|guttural|\blow\b|deep|death growl/.test(_voxUsed)) ? ['low growls', 'deep vocals', 'guttural'] : [];
   // Voix claire (chant, ténor, opératique) sans cri → on exclut growls/cris; heavy classique → pas de chœurs empilés (sonnait Blind Guardian, test Maiden 2026-11-02).
-  const _cleanVox = /clean|sung|singing|tenor|soprano|operatic|melodic|croon|siren/.test(_voxUsed) && !/scream|growl|harsh|rasp|shriek|bark|yell|rap|guttural/.test(_voxUsed);
+  // « mixed clean and brutal vocals » (deathcore mélodique) n'est PAS une voix claire : excluait growls/screams alors que le Style demande du brutal (test 2026-11-08).
+  const _cleanVox = /clean|sung|singing|tenor|soprano|operatic|melodic|croon|siren/.test(_voxUsed) && !/scream|growl|harsh|rasp|shriek|bark|yell|rap|guttural|brutal|mixed|unclean|false.?chord|fry|alternat/.test(_voxUsed) && !/deathcore|death metal|grind|slam/.test(_gtxt);
   if (_cleanVox) _antiLow.push('growls', 'screams', ...(_classic && !/power|symphonic/.test(_gtxt) ? ['choir', 'layered vocal harmonies'] : []));
   if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/hard rock|glam/.test(_gtxt)) _antiLow.push('hard rock', 'boogie');
   if (_classic && /nwobhm|heavy metal/.test(_gtxt) && !/power|speed|symphonic/.test(_gtxt)) _antiLow.push('power metal', 'speed metal', 'gang vocals', 'gang shouts', 'group vocals', 'backing vocals', 'background singers', 'crowd vocals', 'call and response', 'vocal harmonies', 'layered vocals', 'stacked vocals', 'singalong', 'group chorus', 'symphonic', 'operatic', 'polished', 'radio');   // Maiden sonnait Gamma Ray / Blind Guardian, gang shouts et chœurs = pas Maiden (tests 2026-11-04)

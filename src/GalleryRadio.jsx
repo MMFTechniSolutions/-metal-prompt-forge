@@ -260,6 +260,22 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
     syncAudio(); const iv = setInterval(syncAudio, 250);
     return () => clearInterval(iv);
   }, [playing]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ── Capsule « Vous écoutez MetalPrompt Radio » (8 nov. 2026) ──
+  // Le lecteur Suno (iframe) prend quelques secondes à partir : une capsule de ~4 s couvre le trou au début
+  // de chaque toune Suno. Rien dans la grille : juste chez l'auditeur, donc tout le monde reste synchro.
+  const capsule = useRef(null), capsuleSlot = useRef("");
+  useEffect(() => {
+    if (!playing || !cur || isHosted(cur) || capsuleSlot.current === slot) return;
+    capsuleSlot.current = slot;
+    if (pos > 6) return;   // arrivé en plein milieu : pas de capsule
+    try {
+      if (!capsule.current) { capsule.current = new Audio(); capsule.current.preload = "auto"; }
+      const a = capsule.current;
+      a.src = uiLang === "fr" ? "/radio/capsule-fr.mp3" : "/radio/capsule-en.mp3";
+      a.volume = 0.9; a.currentTime = 0; a.play().catch(() => {});
+    } catch { /* pas de son, pas grave */ }
+  }, [slot, playing]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!playing && capsule.current) capsule.current.pause(); }, [playing]);
   // écran de verrouillage : titre, pochette, bouton arrêt
   useEffect(() => {
     if (!("mediaSession" in navigator) || !cur) return;

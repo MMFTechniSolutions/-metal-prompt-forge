@@ -1,0 +1,23 @@
+{
+  "name": "MetalPrompt",
+  "short_name": "MetalPrompt",
+  "description": "Prompts Suno metal, paroles, riffs et la Radio MetalPrompt 24/7.",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0C0D0F",
+  "theme_color": "#0C0D0F",
+  "lang": "fr-CA",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    { "src": "/pwa/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/pwa/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/pwa/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Forger un prompt", "short_name": "Forge", "url": "/?source=pwa", "icons": [{ "src": "/pwa/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Radio MetalPrompt", "short_name": "Radio", "url": "/?tab=galerie&source=pwa", "icons": [{ "src": "/pwa/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

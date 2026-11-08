@@ -26,6 +26,13 @@ export default function OAuthConsent({ user, onRequestAuth }) {
     })
   }, [id, user])
 
+  // Appli installée (PWA) : Android la rouvre sur la dernière page. Un vieux lien expiré → retour à l'accueil tout seul (8 nov. 2026)
+  useEffect(() => {
+    if (!error) return
+    const t = setTimeout(() => window.location.replace('/'), 4000)
+    return () => clearTimeout(t)
+  }, [error])
+
   const decide = async (approve) => {
     setBusy(true)
     const fn = approve ? supabase.auth.oauth.approveAuthorization : supabase.auth.oauth.denyAuthorization
@@ -43,7 +50,10 @@ export default function OAuthConsent({ user, onRequestAuth }) {
     <p>{L('Connecte-toi à ton compte MetalPrompt pour continuer.', 'Sign in to your MetalPrompt account to continue.')}</p>
     <button style={{ ...btn(true), flex: 'none', width: '100%' }} onClick={onRequestAuth}>{L('Se connecter', 'Sign in')}</button>
   </>)
-  else if (error) content = <p style={{ color: '#ff8080' }}>{error}</p>
+  else if (error) content = (<>
+    <p style={{ color: '#ff8080' }}>{L('Ce lien de connexion est expiré ou déjà utilisé. Relance la connexion depuis Claude si tu en as besoin.', 'This sign-in link has expired or was already used. Restart the connection from Claude if needed.')}</p>
+    <button style={{ ...btn(true), flex: 'none', width: '100%', marginTop: 12 }} onClick={() => window.location.replace('/')}>{L('Retour à MetalPrompt', 'Back to MetalPrompt')}</button>
+  </>)
   else if (!details) content = <p>⚙️</p>
   else content = (<>
     <p style={{ fontSize: '1.05rem' }}><b>{details.client?.name || details.client?.client_name || L('Une application', 'An app')}</b> {L('veut se connecter à ton compte MetalPrompt.', 'wants to connect to your MetalPrompt account.')}</p>

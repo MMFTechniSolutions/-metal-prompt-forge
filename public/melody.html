@@ -986,8 +986,9 @@ function promptPreset(txt){
     [/djent/,['hit_djent','hit_prog'],['phrygian','lydian','aeolian','dorian'],'djent'],
     [/prog(ressive)? metal|\bprog\b/,['hit_prog','hit_djent'],['dorian','lydian','melodic_minor','aeolian'],'prog'],
     [/nu.?metal/,['hit_numetal','hit_rapmetal'],['penta_min','aeolian','phrygian'],'nu metal'],
-    [/thrash/,['hit_thrash','hit_groove'],['phrygian','aeolian','penta_min','phrygian_dom'],'thrash'],
-    [/groove metal|\bgroove\b/,['hit_groove','hit_thrash','hit_numetal'],['penta_min','blues','phrygian_dom','aeolian'],'groove'],
+    // groove AVANT thrash (« groove metal, thrash metal » tombait en thrash phrygien → b2 qui frotte sur le riff, test 2026-11-08)
+    [/groove metal|\bgroove\b/,['hit_groove','hit_thrash','hit_numetal'],['penta_min','blues','aeolian'],'groove'],
+    [/thrash/,['hit_thrash','hit_groove'],['aeolian','phrygian','penta_min'],'thrash'],
     [/sludge|stoner/,['hit_stoner','hit_doom'],['blues','penta_min','dorian'],'stoner'],
     [/symphonic/,['hit_symphonic','hit_epic','hit_power'],['harmonic_minor','aeolian','melodic_minor'],'symphonique'],
     [/power metal/,['hit_power','hit_epic'],['harmonic_minor','aeolian','major'],'power metal'],

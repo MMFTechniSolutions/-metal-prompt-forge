@@ -296,8 +296,6 @@ body.embed header{display:none;} body.embed main{padding-top:14px;}
     </div>
     <div id="blendBox" style="display:none;margin:10px 0;padding:12px 14px;border:1px solid #FF6A2B55;border-radius:10px;background:#1a120d;font-size:.9rem;line-height:1.5">
       <div><strong style="color:#FF6A2B">🧪 Blend :</strong> <span id="blendName"></span></div>
-      <div style="margin-top:6px;color:#c8c8d0">Ajoute ceci à la fin de ton Style dans Suno :</div>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap"><code id="blendAdd" style="background:#0c0d0f;padding:6px 10px;border-radius:6px;color:#F2F1ED"></code><button class="bs" id="btnBlendCopy" type="button">⧉ Copier</button></div>
       <div style="margin-top:6px;color:#8a8f97;font-size:.8rem">« Générer » = nouvelles notes dans le même blend · « Blend » = un autre univers.</div>
     </div>
     <div class="hint">Clic dans la grille = pose/enlève une note (une note par colonne). Ligne dorée = fondamentale. Régénère autant de fois que tu veux — jamais deux fois pareil.</div>
@@ -307,7 +305,7 @@ body.embed header{display:none;} body.embed main{padding-top:14px;}
     </div>
     <div class="scorehead"><h2 data-en="Score">Partition</h2><button class="bs" id="btnCopyAbc" type="button">⧉ Copier (ABC)</button></div>
     <div id="scoreBox" class="scorebox"><span class="hint">Génère une mélodie pour voir la partition.</span></div>
-    <div style="margin:0 0 10px;padding:10px 12px;border-left:4px solid #FF6A2B;background:#1a120d;border-radius:8px;font-size:.88rem;line-height:1.5"><strong style="color:#FF6A2B">⚠ Important dans Suno :</strong> après l'upload, Suno colle sa propre étiquette au WAV (souvent « polka », « jazz, trompette »…). <strong>Efface-la</strong> et remplace-la par le <strong>Style de ta toune</strong> (celui du Forge, + l'ajout Blend s'il y en a un). Sinon Suno part dans cette direction-là.</div>
+    <div style="margin:0 0 10px;padding:10px 12px;border-left:4px solid #FF6A2B;background:#1a120d;border-radius:8px;font-size:.88rem;line-height:1.5"><strong style="color:#FF6A2B">⚠ Important dans Suno :</strong> après l'upload, Suno colle sa propre étiquette au WAV (souvent « polka », « jazz, trompette »…). <strong>Efface-la</strong> et remplace-la par le <strong>Style de ta toune, tel quel</strong> (celui du Forge, sans rien ajouter ni enlever). Sinon Suno part dans cette direction-là.</div>
 <p class="info">Deux fichiers pour Suno : le <strong>Beat</strong> (page Riff) + cette <strong>Mélodie</strong>. Upload les deux comme inspiration. La mélodie est exportée en son clair pour que Suno capte bien la ligne.</p>
   </div>
 </main>
@@ -1024,7 +1022,7 @@ function rerollPreset(){
   window.__mpPreset=[pr.root!=null?NAMES[pr.root]:null,pr.bpm?pr.bpm+' BPM':null,sc?(SCALE_LABEL[sc]||sc):null,pr.label||null].filter(Boolean).join(' · ');
 }
 // ── BLEND (nov. 2026) : tonalité + BPM gardés, gamme et thème tirés d'un autre univers → nouveaux mélanges.
-// Le texte à ajouter au Style décrit la couleur mélodique, jamais l'instrument (sinon Suno part sur l'instrument).
+// Le Style de départ n'est jamais modifié : le blend vit seulement dans la mélodie.
 const BLENDS=[
   ['neoclassical','neoclassical harmonic minor lead melodies','Néoclassique'],['shred','virtuosic shred lead melodies','Shred'],
   ['scandi','nordic melancholic melodies','Nordique'],['oriental','eastern phrygian dominant melodies','Oriental'],
@@ -1044,17 +1042,15 @@ function doBlend(){
   const setv=(id,v)=>{const el=$(id);if(!el||v==null)return;if([...(el.options||[])].length&&![...el.options].some(o=>o.value==String(v)))return;el.value=v;el.dispatchEvent(new Event('input'));};
   // Mesure : on garde celle du prompt; une fois sur deux, on prend celle de l'univers (et on le dit dans le Style).
   if(!window.__mpBaseMeter)window.__mpBaseMeter=(window.__mpPool&&window.__mpPool.meter)||($('meter').value==='auto'?'4/4':$('meter').value);const curMeter=window.__mpBaseMeter;const regMeter=METER_BY_REGION[reg];
-  const useMeter=regMeter&&regMeter!==curMeter&&Math.random()<0.5?regMeter:curMeter;
+  const useMeter=curMeter; // le Style de départ ne bouge pas → la mesure non plus
   setv('region',reg);setv('scale',sc);setv('meter',useMeter);
   window.__mpManual=true;   // « Générer » garde ce blend
   generate();
-  const addTxt='with '+add+(useMeter!==curMeter?', '+useMeter+' time signature':'');
   $('blendName').textContent=lbl+' · '+(SCALE_LABEL[sc]||sc)+' · '+NAMES[rootPc()]+' · '+bpm()+' BPM'+(useMeter!==curMeter?' · '+useMeter:'');
-  $('blendAdd').textContent=addTxt;$('blendBox').style.display='block';
+  $('blendBox').style.display='block';
   status('🧪 Blend '+lbl+' — tonalité et BPM gardés',false);
 }
 $('btnBlend').addEventListener('click',doBlend);
-$('btnBlendCopy').addEventListener('click',()=>{navigator.clipboard.writeText($('blendAdd').textContent).then(()=>{$('btnBlendCopy').textContent='Copié';setTimeout(()=>$('btnBlendCopy').textContent='⧉ Copier',1500);}).catch(()=>{});});
 // Dès que la personne touche elle-même gamme / thème / registre, on arrête de tirer au hasard.
 ['scale','region','octave'].forEach(id=>{const el=$(id);if(el)el.addEventListener('change',()=>{window.__mpManual=true;});});
 // init (seulement APRÈS contrôle d'accès payant)

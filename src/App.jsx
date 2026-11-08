@@ -875,6 +875,165 @@ function LandingPage({onEnter,uiLang,setUiLang,email}) {
 // ══════════════════════════════════════════
 // Remplace les champs [ ] par tes vraies infos avant publication.
 const LEGAL = {
+  privacyEn: `PRIVACY POLICY — MetalPrompt
+Last updated: November 8, 2026
+
+1. WHO WE ARE
+The MetalPrompt website (the "Service") is published by MMF Techni-Solutions, a business registered in Quebec (NEQ: 2279516308), located at 2180 rue de Rome, Trois-Rivières (Quebec) G8W 0P1, Canada. This policy complies with Quebec's Act respecting the protection of personal information in the private sector (Law 25).
+
+2. PERSON IN CHARGE OF PERSONAL INFORMATION
+François Lajoie-Levesque — mmftechnisolutions@gmail.com
+
+3. INFORMATION WE COLLECT
+• Account: email address, encrypted password.
+• Payment: subscription history, active plan (via Stripe — we never store card numbers).
+• Usage: generated prompts, preferences, history.
+• Credits & generation: credit balance, metadata of generated tracks (title, prompt, length).
+• Technical: IP address, device type, browser.
+• Gallery and Radio: the details of your submissions (title, link, submitting account) and your votes.
+• MetalPrompt Discord bot: when you use a command (/forge, /radio, /toune), Discord sends us your Discord ID, your app language and what you type in the command, only to answer it. The bot stores nothing; submissions are made on the website and follow the gallery rules.
+• AI assistant connector (Forge Pro): a secure access token (OAuth, managed by Supabase) and a tool usage log (tool, date, number of calls) to enforce limits. Your requests to the assistant go through that assistant's provider (e.g. Anthropic), under your own account and its privacy policy; we only receive what is needed to forge (style, year, lyric angle).
+Audience measurement (WITH your consent): Google Analytics, deployed via Google Tag Manager, to understand how the site is used (page views, device, source). These cookies are only set after you consent through the banner. No ad tracking. You can withdraw at any time with the "Cookies" link at the bottom of the site.
+
+4. PURPOSES
+Create and manage your account; provide the Service; process payments; communicate with you; improve and secure the Service; meet our legal obligations. We never sell your information.
+
+5. CONSENT
+By using the Service, you consent to the collection described here. You may withdraw your consent at any time.
+
+6. SERVICE PROVIDERS
+Supabase (auth / database), Stripe (payments), Vercel (hosting), Anthropic and OpenAI (analysis of band names and descriptions you type; no account data is sent), Discord (community server and MetalPrompt bot), Google (AI music generation via Lyria / Gemini API; "Sign in with Google"; Google Analytics / Google Tag Manager for audience measurement, enabled only with your consent). Some process data outside Quebec; we carry out a privacy impact assessment before any transfer outside Quebec, as required by Law 25.
+
+7. RETENTION
+Data is kept while your account is active, then for as long as our legal obligations require. You can ask us to delete your account.
+
+8. SECURITY
+Reasonable measures: encrypted passwords, restricted access, secure providers.
+
+9. YOUR RIGHTS (Law 25)
+Access, correction, withdrawal of consent / deletion, portability, and the right to complain to Quebec's Commission d'accès à l'information (CAI). To exercise these rights: mmftechnisolutions@gmail.com (answer within 30 days).
+
+10. COOKIES
+Essential cookies: strictly needed for the site to work (session, sign-in) — always on.
+Audience measurement cookies: Google Analytics (via Google Tag Manager). They are only set AFTER your explicit consent, collected through the banner shown on your first visit (Law 25 compliant). You can accept, refuse or withdraw consent at any time with the "Cookies" link at the bottom of every page.
+Installable app: if you install MetalPrompt on your device, a copy of the site files is kept there so it opens faster; no personal information is cached.
+
+11. PRIVACY INCIDENTS
+If an incident presents a risk of serious injury, we will notify the people affected and the CAI.
+
+12. CONTACT US
+mmftechnisolutions@gmail.com — MMF Techni-Solutions, 2180 rue de Rome, Trois-Rivières (Quebec) G8W 0P1, Canada.
+
+The French version prevails in case of conflict.`,
+  termsEn: `TERMS OF USE — MetalPrompt
+Last updated: November 8, 2026
+
+1. ACCEPTANCE
+By accessing the Service, published by MMF Techni-Solutions (NEQ 2279516308), you accept these terms.
+
+2. DESCRIPTION
+MetalPrompt is an AI music pre-production tool (music only): it helps you create metal prompts, riffs, structures and sounds. You can (1) generate music directly in the Service through our provider Google (Lyria model, Gemini API), or (2) export your prompts to third-party platforms (e.g. Suno AI) to generate on your own account. The Service is NOT affiliated with Suno, Google or any third-party platform; the brands mentioned belong to their owners.
+
+3. ACCOUNT
+You provide accurate information, keep your password confidential and are responsible for the activity on your account. We may suspend an account that breaks these terms.
+
+4. ACCEPTABLE USE
+Forbidden: illegal or fraudulent use, getting around limits or security, unauthorized resale, overloading or hacking the infrastructure, generating illegal content or content that infringes the rights of others. MetalPrompt creates sound inspired by a style and an era, never copies: do not use the Service to reproduce an existing work, and do not put real artist, band or song names in your prompts.
+
+5. INTELLECTUAL PROPERTY
+The Service (code, design, text, brand) belongs to MMF Techni-Solutions. The prompts you generate belong to you; you alone are responsible for how you use them on third-party platforms. Music generated INSIDE the Service: produced through Google's Lyria model (Gemini API) and subject to Google's terms for that service. In particular: (a) real artist, band, song or album names are not allowed in prompts; (b) a 100% AI-generated track generally cannot be protected by copyright — you get a right to use it, not a copyright, and you cannot claim original copyright on a raw track; (c) before distributing or monetizing a track (streaming, sales), check the terms of Google and of the target platform; (d) derivative works: if you rework the track in a creative and significant way (editing, real instruments, vocals, mixing/mastering), you create an original work you can protect and exploit — keep your session files as proof of your human contribution. You alone are responsible for following Google's terms and the applicable laws.
+
+Beats, melodies and riffs: the beats, grooves, melodies, riffs, tabs and audio or MIDI files generated or provided by the Service (including our groove and melody bank and the method that produces them) are and remain the property of MMF Techni-Solutions, to the fullest extent permitted by law. You receive a non-exclusive, worldwide, free and perpetual license to use them in your own songs, including on third-party platforms (e.g. Suno) and in works you distribute or monetize. Forbidden without our written permission: reselling, redistributing or sharing these elements on their own (outside a song), turning them into a competing bank or pack, or mass-extracting the Service's content. The songs you create with these elements belong to you, subject to our ownership of the elements themselves and to the terms of the platforms you use.
+
+6. SUBSCRIPTIONS AND CREDITS
+The prompt is free with an account. Paid features (Forge Plus, Forge Pro when offered, Studio credits) are billed by Stripe at the prices shown on the site at the time of purchase. A subscription renews automatically until you cancel it; you can cancel at any time and it stays active until the end of the period already paid. Studio credits do not expire. Reasonable usage limits (per day or per tool) may apply to protect the Service.
+
+7. AI ASSISTANT CONNECTOR (MCP)
+When offered, the Forge Pro subscription lets you link your account to a compatible AI assistant (e.g. Claude, by Anthropic) through a secure connector (OAuth). The assistant can then forge prompts, lyrics and riffs on your behalf, within the limits of your plan. If you also allow that assistant to act on a third-party platform (e.g. a Suno connector, or a browser extension that fills in Suno's fields for you), those actions happen in your own account, under that platform's terms, and you alone are responsible for what is created or started there and for the credits used. Check the content before starting a generation. You can revoke access at any time. MetalPrompt is not affiliated with Anthropic or Suno.
+
+8. CONTENT YOU SUBMIT (gallery, Radio, community)
+By submitting a song or a link (e.g. a Suno link) to the gallery, MetalPrompt Radio or our community spaces (including the Discord server and its bot), you confirm you have the right to share it and you grant us a non-exclusive, free license to display, broadcast and promote it in the Service and on our social channels for as long as it stays there. Submissions are approved before publication and may be removed at any time. We do not host your music: if it is removed from the original platform, it stops playing.
+
+9. AVAILABILITY
+The Service is provided without any guarantee of uninterrupted access; it may change, be suspended or be modified.
+
+10. LIMITATION OF LIABILITY
+The Service is provided "as is". To the extent permitted by law, we are not liable for indirect damages, data loss or results obtained on third-party platforms. No specific musical result is guaranteed. Nothing in these terms limits the mandatory rights the law gives consumers, including under Quebec's Consumer Protection Act.
+
+11. PERSONAL INFORMATION
+See the Privacy Policy, which is part of these terms.
+
+12. GOVERNING LAW
+Laws of the province of Quebec and of Canada. Competent courts of the district of Trois-Rivières, Quebec.
+
+13. CHANGES
+The version in force is the one published with its date. Continued use means acceptance.
+
+14. CONTACT
+mmftechnisolutions@gmail.com
+
+The French version prevails in case of conflict.`,
+  salesEn: `TERMS OF SALE — MetalPrompt
+Last updated: November 8, 2026
+
+1. PURPOSE
+Sale of the paid subscriptions and Studio credits of the Service, published by MMF Techni-Solutions (NEQ 2279516308), 2180 rue de Rome, Trois-Rivières (Quebec) G8W 0P1, Canada, at https://metalprompt.com.
+
+2. INFORMATION BEFORE PURCHASE (DISTANCE CONTRACT)
+Before you pay, we show: our identity and contact details, the plan description, the total price in USD (US dollars; applicable taxes shown at checkout), the billing frequency and renewal, and the cancellation and refund terms. After purchase, you receive an email confirmation that serves as your copy of the contract.
+
+3. PLANS AND PAYMENT
+Forge Plus subscription giving access to the whole Service, offered monthly (US$2.99/month). When offered, the Forge Pro plan adds the AI assistant connector (MCP); its price is shown before purchase. A "lifetime" plan (one-time payment) may be offered for a limited time during promotions; it gives access to the Service for as long as it operates. ALL PRICES ARE IN US DOLLARS (USD). If you pay with a card in another currency (e.g. CAD), your bank may charge conversion fees that are NOT collected by MetalPrompt. Payments are secured by Stripe; no full card data is stored. You authorize recurring charges until you cancel. Prices may change for future periods, with notice.
+
+3.1 FREE PROMPTS AND SUBSCRIPTION
+The prompt generator is free with an account. The subscription gives UNLIMITED access to the Studio (Melody, Riff, Beat, tabs, sheet music and WAV export), AI Lyrics and the mastering module. Exporting prompts to third-party platforms (e.g. Suno) uses no credits.
+
+3.2 STUDIO CREDITS (ONE-TIME PAYMENT)
+Studio credits come in one-time packs, with no subscription or renewal: 10 credits (US$5), 30 credits (US$10) and 50 credits (US$15). One credit gives one of the following: 1 AI Lyrics generation, 1 Melody WAV export (with sheet music), or unlocking a riff or a beat (tab or drum sheet and WAV export; a 4-clip sequence counts as 1 credit). Listening in the Studio uses no credits, and you are asked to confirm before a credit is used on a riff or a beat. Credits are added to the account linked to the email used at checkout, do not expire while the Service operates, are not transferable and have no cash value. Subscribers use no credits.
+
+4. AUTOMATIC RENEWAL
+Automatic renewal for identical periods at the current price, unless cancelled before the due date. A renewal notice is sent where the law requires it. You can turn off renewal at any time.
+
+5. CANCELLATION
+Possible at any time from your account; takes effect at the end of the period already paid, with no further charge.
+
+6. REFUNDS
+A period already started is not refunded. Unused Studio credits can be refunded on request within 30 days of purchase; a credit already used is not refundable. This policy does not restrict your legal rights: nothing here limits the cancellation, termination or refund rights given to consumers by Quebec's Consumer Protection Act or any other applicable law. In case of conflict, the law prevails. Requests: mmftechnisolutions@gmail.com.
+
+7. WARRANTIES AND LIABILITY
+Service provided "as is", no result guaranteed. This clause does not affect legal warranties or consumer rights. Only to the extent permitted by law, total liability is limited to the amount paid in the last 12 months.
+
+8. MANDATORY CONSUMER RIGHTS
+The protections of Quebec's Consumer Protection Act are of public order and apply even if a clause says otherwise. Complaints: Office de la protection du consommateur (opc.gouv.qc.ca).
+
+9. GOVERNING LAW
+Laws of Quebec and of Canada; courts of the district of Trois-Rivières, subject to the rules that protect consumers.
+
+10. CONTACT
+mmftechnisolutions@gmail.com
+
+The French version prevails in case of conflict.`,
+  legalEn: `LEGAL NOTICE — MetalPrompt
+Last updated: November 8, 2026
+
+PUBLISHER
+MMF Techni-Solutions — NEQ: 2279516308
+MetalPrompt is an independent tool, not affiliated with Suno, Inc., Anthropic, Google or any band or artist.
+Address: 2180 rue de Rome, Trois-Rivières (Quebec) G8W 0P1, Canada
+Email: mmftechnisolutions@gmail.com
+Publication manager: François Lajoie-Levesque
+
+HOSTING
+Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, United States — vercel.com
+
+THIRD-PARTY SERVICES
+Supabase (auth / database), Stripe (payments), Google (AI music generation via Lyria), Anthropic and OpenAI (analysis of band names you type), Discord (community and bot), Vercel (hosting).
+
+INTELLECTUAL PROPERTY
+The "MetalPrompt" brand, design, text and code are protected. Unauthorized reproduction is forbidden.
+
+CONTACT
+mmftechnisolutions@gmail.com`,
   privacy: `POLITIQUE DE CONFIDENTIALITÉ — MetalPrompt
 Dernière mise à jour : 8 novembre 2026
 
@@ -891,6 +1050,7 @@ François Lajoie-Levesque — mmftechnisolutions@gmail.com
 • Crédits & génération : solde de crédits, métadonnées des morceaux générés (titre, prompt, durée).
 • Technique : adresse IP, type d'appareil, navigateur.
 • Galerie et Radio : les renseignements de vos soumissions (titre, lien, compte qui soumet) et vos votes.
+• Bot Discord MetalPrompt : quand vous utilisez une commande (/forge, /radio, /toune), Discord nous transmet votre identifiant Discord, la langue de votre application et ce que vous tapez dans la commande, seulement pour y répondre. Le bot ne conserve rien ; une soumission se fait sur le site et suit les règles de la galerie.
 • Connecteur pour assistants IA (Forge Pro) : un jeton d'accès sécurisé (OAuth, géré par Supabase) et un journal d'utilisation des outils (outil, date, nombre d'appels) pour appliquer les limites. Vos demandes à l'assistant passent par le fournisseur de cet assistant (ex. Anthropic), sous votre propre compte et sa politique de confidentialité ; nous recevons seulement ce qui est nécessaire pour forger (style, année, angle des paroles).
 Mesure d'audience (AVEC votre consentement) : Google Analytics, déployé via Google Tag Manager, pour comprendre l'usage du site (pages vues, appareil, provenance). Ces témoins ne sont déposés qu'après votre consentement donné via le bandeau. Aucun suivi publicitaire. Retrait possible en tout temps via le lien « Témoins » au bas du site.
 
@@ -901,7 +1061,7 @@ Créer et gérer votre compte ; fournir le Service ; traiter les paiements ; com
 En utilisant le Service, vous consentez à la collecte décrite. Vous pouvez retirer votre consentement en tout temps.
 
 6. SOUS-TRAITANTS
-Supabase (auth / base de données), Stripe (paiements), Vercel (hébergement), Anthropic et OpenAI (analyse des noms de groupes et des descriptions saisis, aucune donnée de compte transmise), Google (génération musicale par IA via Lyria / API Gemini ; connexion « Se connecter avec Google » ; Google Analytics / Google Tag Manager pour la mesure d'audience, activés uniquement avec votre consentement). Certains traitent des données hors Québec ; nous procédons à une évaluation des facteurs relatifs à la vie privée avant toute communication hors Québec, conformément à la Loi 25.
+Supabase (auth / base de données), Stripe (paiements), Vercel (hébergement), Anthropic et OpenAI (analyse des noms de groupes et des descriptions saisis, aucune donnée de compte transmise), Discord (serveur communautaire et bot MetalPrompt), Google (génération musicale par IA via Lyria / API Gemini ; connexion « Se connecter avec Google » ; Google Analytics / Google Tag Manager pour la mesure d'audience, activés uniquement avec votre consentement). Certains traitent des données hors Québec ; nous procédons à une évaluation des facteurs relatifs à la vie privée avant toute communication hors Québec, conformément à la Loi 25.
 
 7. CONSERVATION
 Données conservées tant que le compte est actif, puis pour la durée requise par nos obligations légales. Suppression du compte possible sur demande.
@@ -950,7 +1110,7 @@ Le prompt est gratuit avec un compte. Les fonctions payantes (abonnements Forge 
 Lorsqu'il est offert, l'abonnement Forge Pro vous permet de relier votre compte à un assistant IA compatible (ex. Claude, d'Anthropic) par un connecteur sécurisé (OAuth). L'assistant peut alors forger des prompts, des paroles et des riffs en votre nom, dans les limites de votre plan. Si vous autorisez aussi cet assistant à agir sur une plateforme tierce (ex. un connecteur Suno, ou une extension de navigateur qui remplit les champs de Suno pour vous), ces actions se font dans votre propre compte, selon les conditions de cette plateforme, et vous êtes seul responsable de ce qui y est créé ou lancé et des crédits consommés. Vérifiez le contenu avant de lancer une génération. Vous pouvez retirer l'accès en tout temps. MetalPrompt n'est affilié ni à Anthropic ni à Suno.
 
 8. CONTENU QUE VOUS SOUMETTEZ (galerie, Radio, communauté)
-En soumettant une chanson ou un lien (ex. un lien Suno) à la galerie, à la Radio MetalPrompt ou à nos espaces communautaires, vous confirmez avoir le droit de le partager et vous nous accordez une licence non exclusive et gratuite pour l'afficher, le diffuser et le promouvoir dans le Service et sur nos réseaux, tant qu'il y demeure. Les soumissions sont approuvées avant publication et peuvent être retirées en tout temps. Nous n'hébergeons pas votre musique : si elle est retirée de la plateforme d'origine, elle cesse de jouer.
+En soumettant une chanson ou un lien (ex. un lien Suno) à la galerie, à la Radio MetalPrompt ou à nos espaces communautaires (dont le serveur Discord et son bot), vous confirmez avoir le droit de le partager et vous nous accordez une licence non exclusive et gratuite pour l'afficher, le diffuser et le promouvoir dans le Service et sur nos réseaux, tant qu'il y demeure. Les soumissions sont approuvées avant publication et peuvent être retirées en tout temps. Nous n'hébergeons pas votre musique : si elle est retirée de la plateforme d'origine, elle cesse de jouer.
 
 9. DISPONIBILITÉ
 Service fourni sans garantie d'absence d'interruption ; il peut évoluer, être suspendu ou modifié.
@@ -1023,7 +1183,7 @@ HÉBERGEMENT
 Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis — vercel.com
 
 SERVICES TIERS
-Supabase (auth / base de données), Stripe (paiements), Google (génération musicale par IA via Lyria), Anthropic et OpenAI (analyse des noms de groupes saisis), Vercel (hébergement).
+Supabase (auth / base de données), Stripe (paiements), Google (génération musicale par IA via Lyria), Anthropic et OpenAI (analyse des noms de groupes saisis), Discord (communauté et bot), Vercel (hébergement).
 
 PROPRIÉTÉ INTELLECTUELLE
 La marque « MetalPrompt », le design, les textes et le code sont protégés. Reproduction non autorisée interdite.
@@ -1152,7 +1312,7 @@ function LegalModal({doc,onClose,uiLang}){
           <button onClick={onClose} style={{background:"none",border:"1px solid #333",borderRadius:"4px",color:"#888",fontSize:"0.8rem",padding:"4px 10px",cursor:"pointer"}}></button>
         </div>
         {!fr&&doc!=="about"&&<div style={{fontSize:"0.6rem",color:"#777",marginBottom:"10px",fontStyle:"italic"}}>Legal documents are provided in French (Québec law).</div>}
-        <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.72rem",lineHeight:1.7,color:"#bbb"}}>{doc==="about"?(fr?LEGAL.about:LEGAL.aboutEn):LEGAL[doc]}</pre>
+        <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit",fontSize:"0.72rem",lineHeight:1.7,color:"#bbb"}}>{doc==="about"?(fr?LEGAL.about:LEGAL.aboutEn):(fr?LEGAL[doc]:(LEGAL[doc+"En"]||LEGAL[doc]))}</pre>
       </div>
     </div>
   );

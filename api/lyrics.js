@@ -15,6 +15,13 @@ const STYLE_WRITING = {
     "\n\nIMPORTANT - vocal style constraints: these lyrics are for black metal shrieks held over tremolo picking. Few words per line (4-6 max), long open vowels that can be sustained (fall, cold, moon, throne), evocative imagery. Leave room for the voice to stretch each word.",
 }
 
+// Limites de contenu (nov. 2026) : appliquées à TOUTES les paroles (site + MCP + bot).
+// Test doom 1991 : le générateur avait glissé des médicaments « qu'il n'aura plus besoin après le matin ».
+const CONTENT_LIMITS = `Content limits for every song you write. Dark metal themes are welcome: death, war, grief, horror, rage, despair, the occult.
+But NEVER depict, hint at or romanticize suicide or self-harm, not even implied: no pills or medication lined up or "not needed after tonight", no overdose, no rope or noose, no wrists or blades turned on oneself, no goodbye notes, no character planning or choosing to end their own life.
+If the theme leans that way, turn it toward survival, rage, defiance or loss instead.
+Also never: sexual content involving minors, slurs against real groups, real people's names, band names, artist names or song titles.`
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -64,6 +71,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: process.env.LYRICS_MODEL || 'claude-sonnet-4-6', // A/B : LYRICS_MODEL=claude-sonnet-5-5 dans Vercel
         max_tokens: maxTokens,
+        system: CONTENT_LIMITS,
         messages: [{ role: 'user', content: prompt }],
       }),
     })

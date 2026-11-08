@@ -921,7 +921,7 @@ En cas d'incident à risque sérieux, nous aviserons les personnes concernées e
 mmftechnisolutions@gmail.com — MMF Techni-Solutions, 2180 rue de Rome, Trois-Rivières (Québec) G8W 0P1.`,
 
   terms: `CONDITIONS D'UTILISATION — MetalPrompt
-Dernière mise à jour : 26 juin 2026
+Dernière mise à jour : 8 novembre 2026
 
 1. ACCEPTATION
 En accédant au Service, édité par MMF Techni-Solutions (NEQ 2279516308), vous acceptez les présentes conditions.
@@ -937,6 +937,8 @@ Interdit : usage illégal/frauduleux, contournement des limitations ou de la sé
 
 5. PROPRIÉTÉ INTELLECTUELLE
 Le Service (code, design, textes, marque) appartient à MMF Techni-Solutions. Les prompts que vous générez vous appartiennent ; vous êtes seul responsable de leur usage sur des plateformes tierces. Musique générée DANS le Service : produite via le modèle Lyria de Google (API Gemini), et soumise aux conditions d'utilisation de Google applicables à ce service. Notamment : (a) interdiction d'inclure des noms d'artistes, groupes, chansons ou albums réels dans les invites ; (b) une piste 100 % générée par IA n'est généralement pas protégeable par droit d'auteur — vous obtenez un droit d'usage, non un copyright, et ne pouvez pas revendiquer un copyright original sur une piste brute ; (c) avant de distribuer ou monétiser une piste (streaming, vente), vérifiez les conditions de Google et de la plateforme visée ; (d) œuvres dérivées : si vous retravaillez la piste de façon créative et significative (édition, instruments réels, voix, mixage/mastering), vous créez une œuvre originale que vous pouvez protéger et exploiter — conservez vos fichiers de session comme preuve de votre apport humain. Vous êtes seul responsable de respecter les conditions de Google et les lois applicables.
+
+Beats, mélodies et riffs : les beats, grooves, mélodies, riffs, tablatures et fichiers audio ou MIDI générés ou fournis par le Service (y compris notre banque de grooves et de mélodies et la méthode qui les produit) sont et demeurent la propriété de MMF Techni-Solutions, dans toute la mesure permise par la loi. Vous recevez une licence non exclusive, mondiale, gratuite et sans limite de durée pour les utiliser dans vos propres chansons, y compris sur des plateformes tierces (ex. Suno) et dans des œuvres que vous distribuez ou monétisez. Interdit sans notre autorisation écrite : revendre, redistribuer ou partager ces éléments seuls (hors d'une chanson), en faire une banque ou un pack concurrent, ou extraire en masse le contenu du Service. Les chansons que vous créez avec ces éléments vous appartiennent, sous réserve de notre propriété sur les éléments eux-mêmes et des conditions des plateformes utilisées.
 
 6. DISPONIBILITÉ
 Service fourni sans garantie d'absence d'interruption ; il peut évoluer, être suspendu ou modifié.

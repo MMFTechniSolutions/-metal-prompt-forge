@@ -287,11 +287,18 @@ body.embed header{display:none;} body.embed main{padding-top:14px;}
     </div>
     <div class="btn-row">
       <button class="bg" id="btnGen">🎲 Générer</button>
+      <button class="bg" id="btnBlend" title="Garde la tonalité et le BPM, tire une gamme et un style d'un autre univers">🧪 Blend</button>
       <button class="bp" id="btnPlay">▶ Écouter</button>
       <button class="bs" id="btnStop" disabled>■ Stop</button>
       <button class="bp" id="btnExport">⏺ Export mélodie (WAV clair)</button>
       <button class="bp" id="btnMidi" title="Fichier .mid à donner à Suno Studio (MIDI → audio)">🎹 Export MIDI (pour Suno)</button>
       <span class="sb"><span class="dot" id="dot"></span><span id="status">Clique « Générer »</span></span>
+    </div>
+    <div id="blendBox" style="display:none;margin:10px 0;padding:12px 14px;border:1px solid #FF6A2B55;border-radius:10px;background:#1a120d;font-size:.9rem;line-height:1.5">
+      <div><strong style="color:#FF6A2B">🧪 Blend :</strong> <span id="blendName"></span></div>
+      <div style="margin-top:6px;color:#c8c8d0">Ajoute ceci à la fin de ton Style dans Suno :</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap"><code id="blendAdd" style="background:#0c0d0f;padding:6px 10px;border-radius:6px;color:#F2F1ED"></code><button class="bs" id="btnBlendCopy" type="button">⧉ Copier</button></div>
+      <div style="margin-top:6px;color:#8a8f97;font-size:.8rem">« Générer » = nouvelles notes dans le même blend · « Blend » = un autre univers.</div>
     </div>
     <div class="hint">Clic dans la grille = pose/enlève une note (une note par colonne). Ligne dorée = fondamentale. Régénère autant de fois que tu veux — jamais deux fois pareil.</div>
     <div class="roll-wrap">
@@ -1002,7 +1009,7 @@ function applyPromptPreset(){
   const q=new URLSearchParams(location.search).get('prompt'); const pr=promptPreset(q); if(!pr)return false;
   $('family').value='metal';populateScales();
   const setv=(id,v)=>{const el=$(id);if(!el||v==null)return;if([...(el.options||[])].length&&![...el.options].some(o=>o.value==String(v)))return;el.value=v;el.dispatchEvent(new Event('input'));};
-  setv('root',pr.root);setv('bpm',pr.bpm);setv('meter',pr.meter||'auto');
+  setv('root',pr.root);setv('bpm',pr.bpm);setv('meter',pr.meter||'4/4');
   window.__mpPool=pr; window.__mpManual=false; rerollPreset(); return true;
 }
 // Fixe : tonalité + BPM (+ mesure si le prompt la donne). Au hasard dans le compatible : thème, gamme, registre, densité, caractère.
@@ -1015,6 +1022,38 @@ function rerollPreset(){
   setv('density',String(5*Math.round((40+Math.random()*30)/5)));setv('smooth',String(5*Math.round((55+Math.random()*40)/5)));
   window.__mpPreset=[pr.root!=null?NAMES[pr.root]:null,pr.bpm?pr.bpm+' BPM':null,sc?(SCALE_LABEL[sc]||sc):null,pr.label||null].filter(Boolean).join(' · ');
 }
+// ── BLEND (nov. 2026) : tonalité + BPM gardés, gamme et thème tirés d'un autre univers → nouveaux mélanges.
+// Le texte à ajouter au Style décrit la couleur mélodique, jamais l'instrument (sinon Suno part sur l'instrument).
+const BLENDS=[
+  ['neoclassical','neoclassical harmonic minor lead melodies','Néoclassique'],['shred','virtuosic shred lead melodies','Shred'],
+  ['scandi','nordic melancholic melodies','Nordique'],['oriental','eastern phrygian dominant melodies','Oriental'],
+  ['bluesy','bluesy pentatonic lead phrasing','Blues'],['flamenco','spanish flamenco phrygian melodies','Flamenco'],
+  ['japanese','japanese pentatonic melodies','Japonais'],['arabic','arabic double harmonic melodies','Arabe'],
+  ['celtic','celtic folk melodies','Celtique'],['indian','indian raga-inspired melodies','Indien'],
+  ['gypsy','gypsy hungarian minor melodies','Gypsy'],['egyptianr','ancient egyptian melodies','Égyptien'],
+  ['klezmer','klezmer freygish melodies','Klezmer'],['balkan','balkan folk melodies','Balkan'],
+  ['gothenburg','swedish melodic twin-lead harmonies','Suédois mélodique'],['dreamy','dreamy whole-tone melodies','Onirique'],
+  ['diminished','dissonant diminished melodies','Diminué']
+];
+let __lastBlend=-1;
+function doBlend(){
+  let i;do{i=Math.floor(Math.random()*BLENDS.length);}while(i===__lastBlend&&BLENDS.length>1);__lastBlend=i;
+  const [reg,add,lbl]=BLENDS[i];const R=REGIONS[reg]||{};const scs=(R.scales||[]).filter(k=>k in SCALES);
+  const sc=scs.length?scs[Math.floor(Math.random()*scs.length)]:'auto';
+  const setv=(id,v)=>{const el=$(id);if(!el||v==null)return;if([...(el.options||[])].length&&![...el.options].some(o=>o.value==String(v)))return;el.value=v;el.dispatchEvent(new Event('input'));};
+  // Mesure : on garde celle du prompt; une fois sur deux, on prend celle de l'univers (et on le dit dans le Style).
+  if(!window.__mpBaseMeter)window.__mpBaseMeter=(window.__mpPool&&window.__mpPool.meter)||($('meter').value==='auto'?'4/4':$('meter').value);const curMeter=window.__mpBaseMeter;const regMeter=METER_BY_REGION[reg];
+  const useMeter=regMeter&&regMeter!==curMeter&&Math.random()<0.5?regMeter:curMeter;
+  setv('region',reg);setv('scale',sc);setv('meter',useMeter);
+  window.__mpManual=true;   // « Générer » garde ce blend
+  generate();
+  const addTxt='with '+add+(useMeter!==curMeter?', '+useMeter+' time signature':'');
+  $('blendName').textContent=lbl+' · '+(SCALE_LABEL[sc]||sc)+' · '+NAMES[rootPc()]+' · '+bpm()+' BPM'+(useMeter!==curMeter?' · '+useMeter:'');
+  $('blendAdd').textContent=addTxt;$('blendBox').style.display='block';
+  status('🧪 Blend '+lbl+' — tonalité et BPM gardés',false);
+}
+$('btnBlend').addEventListener('click',doBlend);
+$('btnBlendCopy').addEventListener('click',()=>{navigator.clipboard.writeText($('blendAdd').textContent).then(()=>{$('btnBlendCopy').textContent='Copié';setTimeout(()=>$('btnBlendCopy').textContent='⧉ Copier',1500);}).catch(()=>{});});
 // Dès que la personne touche elle-même gamme / thème / registre, on arrête de tirer au hasard.
 ['scale','region','octave'].forEach(id=>{const el=$(id);if(el)el.addEventListener('change',()=>{window.__mpManual=true;});});
 // init (seulement APRÈS contrôle d'accès payant)

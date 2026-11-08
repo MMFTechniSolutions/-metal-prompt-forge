@@ -2055,7 +2055,7 @@ OUTPUT: ONLY raw lyrics. Zero commentary.`;
   const STUDIO={
     melodie:{lbl:L("Mélodie","Melody"),kicker:L("Inspiration mélodique","Melodic inspiration"),title:L("Mélodie","Melody"),
       sub:L("Une ligne chantable, éditable note par note, avec sa partition. 26 thèmes, 47 gammes, vrais instruments.","A singable line, editable note by note, with its sheet music. 26 themes, 47 scales, real instruments."),
-      tags:[L("Partition","Sheet music"),L("Vrais instruments","Real instruments"),"WAV"],src:()=>`/melody.html?lang=${uiLang}&embed=1`},
+      tags:[L("Partition","Sheet music"),L("Vrais instruments","Real instruments"),"WAV"],src:()=>`/melody.html?lang=${uiLang}&embed=1${styleTxt?`&prompt=${encodeURIComponent(styleTxt)}`:""}`},
     riff:{lbl:"Riff",kicker:L("La base rythmique","The rhythm foundation"),title:"Riff",
       sub:L("Guitare et basse rythmiques, sans batterie. Apprends-le avec la tablature, ou donne-le à Suno comme amorce.","Rhythm guitar and bass, no drums. Learn it from the tab, or give it to Suno as a seed."),
       tags:[L("Tablature","Tab"),L("Guitare + basse","Guitar + bass"),"WAV"],src:()=>`/riff.html?tool=riff&embed=1&lang=${uiLang}&tier=${userTier}${!isPro&&creditAccess?"&cr=1":""}${styleTxt?`&prompt=${encodeURIComponent(styleTxt)}`:""}`},

@@ -907,7 +907,7 @@ $('smooth').addEventListener('input',()=>{const v=+$('smooth').value;$('smoothLb
 $('bpm').addEventListener('input',()=>$('bpmLbl').textContent=$('bpm').value+' BPM');
 $('family').addEventListener('change',()=>{populateScales();generate();});
 ['scale','root','octave','range','bars','phrase','region','meter'].forEach(id=>{const e=$(id);if(e)e.addEventListener('change',generate);});
-$('btnGen').addEventListener('click',generate);
+$('btnGen').addEventListener('click',()=>{if(window.__mpPool&&!window.__mpManual){rerollPreset();generate();status('🎯 Calé sur ton prompt : '+window.__mpPreset,false);}else generate();});
 $('btnPlay').addEventListener('click',()=>{play().catch(e=>{status('⚠ '+e.message,false);});});
 $('btnStop').addEventListener('click',()=>{stopPlay();status('Arrêté',false);});
 $('btnExport').addEventListener('click',exportWav);
@@ -970,41 +970,53 @@ function promptPreset(txt){
   let tm=t.match(/drop\s*([a-g](?:#|b)?)(?![a-z0-9#])/)||t.match(/\b([a-g](?:#|b)?)\s*standard/);
   if(tm&&tm[1] in PC)out.root=PC[tm[1]]; else if(/standard tuning|e standard/.test(t))out.root=4;
   const mt=t.match(/\b(3\/4|6\/8|12\/8|5\/4|7\/4|5\/8|7\/8|9\/8|11\/8)\b/); if(mt)out.meter=mt[1];
+  // Chaque genre : plusieurs thèmes et gammes compatibles → tirés au hasard à chaque « Générer » (pas 75 tounes pareilles).
   const R=[
-    [/death.?doom|doom.?death|funeral doom|\bdoom\b/,'hit_doom','phrygian','doom'],
-    [/melodic deathcore/,'hit_metalcore','harmonic_minor','deathcore mélodique'],
-    [/melodic death|melodeath|gothenburg/,'hit_melodeath','harmonic_minor','death mélodique'],
-    [/deathcore/,'hit_metalcore','phrygian','deathcore'],
-    [/metalcore|post-?hardcore/,'hit_metalcore','aeolian','metalcore'],
-    [/djent/,'hit_djent','phrygian','djent'],
-    [/prog(ressive)? metal|\bprog\b/,'hit_prog','dorian','prog'],
-    [/nu.?metal/,'hit_numetal','aeolian','nu metal'],
-    [/thrash/,'hit_thrash','phrygian','thrash'],
-    [/groove metal|\bgroove\b/,'hit_groove','penta_min','groove'],
-    [/sludge|stoner/,'hit_stoner','blues','stoner'],
-    [/symphonic/,'hit_symphonic','harmonic_minor','symphonique'],
-    [/power metal/,'hit_power','harmonic_minor','power metal'],
-    [/black metal|blackgaze|atmospheric black/,'hit_blackatmo','aeolian','black metal'],
-    [/gothic/,'hit_gothic','aeolian','gothique'],
-    [/viking|folk metal|pagan/,'hit_viking','dorian','viking'],
-    [/glam|hair metal/,'hit_hair','mixolydian','glam'],
-    [/emo/,'hit_emo','aeolian','emo'],
-    [/pop.?punk/,'hit_poppunk','major','pop punk'],
-    [/rap.?metal/,'hit_rapmetal','aeolian','rap metal'],
-    [/death metal|\bdeath\b/,'hit_metalcore','phrygian','death'],
-    [/metal/,'hit_chorus','aeolian','metal'],
+    [/death.?doom|doom.?death|funeral doom|\bdoom\b/,['hit_doom','hit_gothic'],['phrygian','aeolian','harmonic_minor'],'doom'],
+    [/melodic deathcore/,['hit_metalcore','hit_melodeath','hit_emo'],['harmonic_minor','aeolian','phrygian'],'deathcore mélodique'],
+    [/melodic death|melodeath|gothenburg/,['hit_melodeath','hit_metalcore'],['harmonic_minor','aeolian','dorian'],'death mélodique'],
+    [/deathcore/,['hit_metalcore','hit_numetal','hit_djent'],['phrygian','harmonic_minor','aeolian','locrian'],'deathcore'],
+    [/metalcore|post-?hardcore/,['hit_metalcore','hit_emo','hit_chorus','hit_anthem'],['aeolian','harmonic_minor','dorian','phrygian'],'metalcore'],
+    [/djent/,['hit_djent','hit_prog'],['phrygian','lydian','aeolian','dorian'],'djent'],
+    [/prog(ressive)? metal|\bprog\b/,['hit_prog','hit_djent'],['dorian','lydian','melodic_minor','aeolian'],'prog'],
+    [/nu.?metal/,['hit_numetal','hit_rapmetal'],['penta_min','aeolian','phrygian'],'nu metal'],
+    [/thrash/,['hit_thrash','hit_groove'],['phrygian','aeolian','penta_min','phrygian_dom'],'thrash'],
+    [/groove metal|\bgroove\b/,['hit_groove','hit_thrash','hit_numetal'],['penta_min','blues','phrygian_dom','aeolian'],'groove'],
+    [/sludge|stoner/,['hit_stoner','hit_doom'],['blues','penta_min','dorian'],'stoner'],
+    [/symphonic/,['hit_symphonic','hit_epic','hit_power'],['harmonic_minor','aeolian','melodic_minor'],'symphonique'],
+    [/power metal/,['hit_power','hit_epic'],['harmonic_minor','aeolian','major'],'power metal'],
+    [/black metal|blackgaze|atmospheric black/,['hit_blackatmo','hit_epic'],['aeolian','phrygian','harmonic_minor'],'black metal'],
+    [/gothic/,['hit_gothic','hit_doom'],['aeolian','harmonic_minor','phrygian'],'gothique'],
+    [/viking|folk metal|pagan/,['hit_viking','hit_epic'],['aeolian','dorian','mixolydian'],'viking'],
+    [/glam|hair metal/,['hit_hair','hit_anthem'],['mixolydian','major','blues'],'glam'],
+    [/emo/,['hit_emo','hit_metalcore'],['aeolian','dorian','harmonic_minor'],'emo'],
+    [/pop.?punk/,['hit_poppunk','hit_anthem'],['major','mixolydian'],'pop punk'],
+    [/rap.?metal/,['hit_rapmetal','hit_numetal'],['penta_min','blues','phrygian'],'rap metal'],
+    [/death metal|\bdeath\b/,['hit_metalcore','hit_thrash'],['phrygian','harmonic_minor','locrian'],'death'],
+    [/metal/,['hit_chorus','hit_anthem','hit_metalcore'],['aeolian','harmonic_minor','phrygian','dorian'],'metal'],
   ];
-  for(const [re,reg,sc,lbl] of R){if(re.test(t)){out.region=reg;out.scale=sc;out.label=lbl;break;}}
+  for(const [re,regs,scs,lbl] of R){if(re.test(t)){out.regions=regs;out.scales=scs;out.label=lbl;break;}}
   return Object.keys(out).length?out:null;
 }
 function applyPromptPreset(){
   const q=new URLSearchParams(location.search).get('prompt'); const pr=promptPreset(q); if(!pr)return false;
-  const setv=(id,v)=>{const el=$(id);if(!el||v==null)return;if([...(el.options||[])].length&&![...el.options].some(o=>o.value==String(v)))return;el.value=v;el.dispatchEvent(new Event('input'));};
   $('family').value='metal';populateScales();
-  setv('root',pr.root);setv('bpm',pr.bpm);setv('meter',pr.meter);setv('region',pr.region);setv('scale',pr.scale);
-  window.__mpPreset=[pr.root!=null?NAMES[pr.root]:null,pr.bpm?pr.bpm+' BPM':null,pr.scale?(SCALE_LABEL[pr.scale]||pr.scale):null,pr.label||null].filter(Boolean).join(' · ');
-  return true;
+  const setv=(id,v)=>{const el=$(id);if(!el||v==null)return;if([...(el.options||[])].length&&![...el.options].some(o=>o.value==String(v)))return;el.value=v;el.dispatchEvent(new Event('input'));};
+  setv('root',pr.root);setv('bpm',pr.bpm);setv('meter',pr.meter||'auto');
+  window.__mpPool=pr; window.__mpManual=false; rerollPreset(); return true;
 }
+// Fixe : tonalité + BPM (+ mesure si le prompt la donne). Au hasard dans le compatible : thème, gamme, registre, densité, caractère.
+function rerollPreset(){
+  const pr=window.__mpPool; if(!pr)return;
+  const pick=a=>a&&a.length?a[Math.floor(Math.random()*a.length)]:null;
+  const setv=(id,v)=>{const el=$(id);if(!el||v==null)return;if([...(el.options||[])].length&&![...el.options].some(o=>o.value==String(v)))return;el.value=v;el.dispatchEvent(new Event('input'));};
+  const reg=pick(pr.regions),sc=pick(pr.scales);
+  setv('region',reg);setv('scale',sc);setv('octave',pick(['3','3','4']));
+  setv('density',String(5*Math.round((40+Math.random()*30)/5)));setv('smooth',String(5*Math.round((55+Math.random()*40)/5)));
+  window.__mpPreset=[pr.root!=null?NAMES[pr.root]:null,pr.bpm?pr.bpm+' BPM':null,sc?(SCALE_LABEL[sc]||sc):null,pr.label||null].filter(Boolean).join(' · ');
+}
+// Dès que la personne touche elle-même gamme / thème / registre, on arrête de tirer au hasard.
+['scale','region','octave'].forEach(id=>{const el=$(id);if(el)el.addEventListener('change',()=>{window.__mpManual=true;});});
 // init (seulement APRÈS contrôle d'accès payant)
 checkAccess().then(ok=>{
   if(ok){ $('gate').style.display='none'; populateRoots();populateScales();const _pp=applyPromptPreset();generate(); if(_pp&&window.__mpPreset)setTimeout(()=>status('🎯 Calé sur ton prompt : '+window.__mpPreset+' — choisis ton instrument et Génère',false),350); }

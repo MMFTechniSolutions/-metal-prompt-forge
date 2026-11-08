@@ -127,7 +127,8 @@ export function beatWords(g) {
   const parts = [];
   if (kHits.length && kHits.length <= 7) parts.push(`syncopated kick on ${joinOr(kHits)}`);
   else if (kHits.length > 7) parts.push('busy syncopated double bass kick pattern');
-  parts.push(half ? 'half-time snare on 3' : back ? `snare backbeat on 2 and 4${extra ? ' with pickup snare hits' : ''}` : 'displaced snare accents');
+  // « displaced snare accents » retiré (8 nov. 2026) : Suno jouait la caisse claire tout croche (test death 1992, François)
+  if (half) parts.push('half-time snare on 3'); else if (back) parts.push(`snare backbeat on 2 and 4${extra ? ' with pickup snare hits' : ''}`);
   if (hats.length) parts.push(hats.length > 1 ? `${hats[0]} switching to ${hats[1]}` : hats[0]);
   return parts.join(', ');
 }

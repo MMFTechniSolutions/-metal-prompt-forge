@@ -130,7 +130,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
     const tick = () => {
       const now = Date.now();
       const p = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(now).split("-").map(Number);
-      for (const h of [7]) {
+      for (const h of []) {   // bulletin éteint (voir radioSchedule.js)
         const at = torontoMs(p[0], p[1], p[2], h);
         if (now > at - 15 * 60e3 && now < at + 60 * 60e3) {
           const key = `${p[0]}-${String(p[1]).padStart(2, "0")}-${String(p[2]).padStart(2, "0")}-${String(h).padStart(2, "0")}`;

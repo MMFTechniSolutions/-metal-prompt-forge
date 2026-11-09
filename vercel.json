@@ -1,4 +1,4 @@
-{
+{"crons":[{"path":"/api/profile?op=weekly","schedule":"0 13 * * *"}],
   "rewrites": [
     {
       "source": "/discord",

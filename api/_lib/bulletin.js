@@ -130,7 +130,7 @@ export default async function bulletin(req, res) {
   if (!m || !SLOTS.includes(Number(m[4]))) return res.status(400).json({ error: 'slot invalide' });
   const at = torontoMs(+m[1], +m[2], +m[3], +m[4]);
   const T = req.query.rev === 'felix1' && slot === '2026-11-08-17' ? '-felix1' : '';   // essai unique de la nouvelle voix (à retirer)
-  if (!T && Date.now() < at - 20 * 60e3 || Date.now() > at + 4 * 3600e3) return res.status(400).json({ error: 'hors créneau' });   // pas de fabrication à volonté
+  if (!T && (Date.now() < at - 20 * 60e3 || Date.now() > at + 4 * 3600e3)) return res.status(400).json({ error: 'hors créneau' });   // pas de fabrication à volonté
   const mp3 = `bulletins/${slot}-${lang}${T}.mp3`;
   if (await exists(mp3)) return res.json({ url: pub(mp3) });
   // verrou : un seul appel fabrique ce fichier

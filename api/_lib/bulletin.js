@@ -85,7 +85,7 @@ async function newsLines(items) {
   });
   if (!r.ok) return null;
   const j = await r.json(), txt = (j.content || []).map(c => c.text || '').join('');
-  try { const o = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1)); return { fr: String(o.fr || '').slice(0, 260), en: String(o.en || '').slice(0, 260) }; } catch { return null; }
+  try { const o = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1)); return { fr: String(o.fr || '').slice(0, 200), en: String(o.en || '').slice(0, 200) }; } catch { return null; }
 }
 
 function script(lang, w, news, hour) {
@@ -128,7 +128,7 @@ export default async function bulletin(req, res) {
   const m = slot.match(/^(\d{4})-(\d{2})-(\d{2})-(\d{1,2})$/);
   if (!m || !SLOTS.includes(Number(m[4]))) return res.status(400).json({ error: 'slot invalide' });
   const at = torontoMs(+m[1], +m[2], +m[3], +m[4]);
-  if (Date.now() < at - 20 * 60e3 || Date.now() > at + 6 * 3600e3) return res.status(400).json({ error: 'hors créneau' });   // pas de fabrication à volonté
+  if (Date.now() < at - 20 * 60e3 || Date.now() > at + 4 * 3600e3) return res.status(400).json({ error: 'hors créneau' });   // pas de fabrication à volonté
   const mp3 = `bulletins/${slot}-${lang}.mp3`;
   if (await exists(mp3)) return res.json({ url: pub(mp3) });
   // verrou : un seul appel fabrique ce fichier

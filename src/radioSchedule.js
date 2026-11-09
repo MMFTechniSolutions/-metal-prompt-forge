@@ -107,10 +107,10 @@ function baseOnAir(ms, items, grille) {
 // 3 fois par jour (7 h, 12 h, 17 h, heure de Montréal) : à la fin de la toune en cours, un bulletin de
 // BULLETIN_LEN secondes passe pour tout le monde, puis la grille reprend (décalée d'autant).
 // Seulement à partir du 9 nov. 2026 7 h : rien ne change dans le passé, donc aucun saut au déploiement.
-export const BULLETIN_LEN = 40;
+export const BULLETIN_LEN = 55;   // FR ~46 s au 1er essai : marge
 const BULLETIN_HOURS = [7, 12, 17];
 // Désactivé tant que la clé ELEVENLABS_API_KEY n'est pas dans Vercel (sinon 40 s de silence) : mettre la date de départ ici
-const BULLETIN_FROM = Infinity;
+const BULLETIN_FROM = Date.UTC(2026, 10, 9, 11, 0, 0);   // allumé : 9 nov. 2026, 6 h heure de l'Est (1er bulletin à 7 h)
 let bulletinCfg = { lang: "fr", base: "" };
 export function setBulletinConfig(c) { bulletinCfg = { ...bulletinCfg, ...c }; }
 const pad = n => String(n).padStart(2, "0");

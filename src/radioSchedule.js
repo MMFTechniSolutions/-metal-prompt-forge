@@ -110,7 +110,8 @@ function baseOnAir(ms, items, grille) {
 export const BULLETIN_LEN = 55;   // FR ~46 s au 1er essai : marge
 const BULLETIN_HOURS = [];   // bulletin éteint (8 nov. 2026, trop de crédits ElevenLabs) — remettre [7] pour le rallumer
 // Désactivé tant que la clé ELEVENLABS_API_KEY n'est pas dans Vercel (sinon 40 s de silence) : mettre la date de départ ici
-const BULLETIN_FROM = Date.UTC(2026, 10, 9, 11, 0, 0);   // allumé : 9 nov. 2026, 6 h heure de l'Est (1er bulletin à 7 h)
+const BULLETIN_FROM = Date.UTC(2026, 10, 9, 3, 0, 0);   // 8 nov. 22 h ET : avancé pour l'essai de 22 h 10 (rien avant ça)
+// ancien : Date.UTC(2026, 10, 9, 11, 0, 0)   // allumé : 9 nov. 2026, 6 h heure de l'Est (1er bulletin à 7 h)
 // ── Capsules podcast « comment marche MetalPrompt » (8 nov. 2026) ──
 // 4 fois par jour, même mécanique que le bulletin : chaque auditeur entend la capsule de SA langue,
 // le créneau dure la plus longue des deux (FR/EN), donc tout le monde reste synchro.
@@ -147,6 +148,9 @@ function slotsBetween(a, b) {
       if (ms >= a && ms <= b && ms >= from && !out.some(o => o.ms === ms)) out.push({ ms, kind, key: `${p[0]}-${pad(p[1])}-${pad(p[2])}-${pad(h)}` });
     }
   }
+  // essai d'écoute demandé : une capsule le 8 nov. 2026 à 22 h 10
+  const T = Date.UTC(2026, 10, 9, 3, 10, 0);
+  if (T >= a && T <= b && !out.some(o => o.ms === T)) out.push({ ms: T, kind: "p", key: "2026-11-08-22" });
   return out.sort((x, y) => x.ms - y.ms);
 }
 export function bulletinItem(key) {

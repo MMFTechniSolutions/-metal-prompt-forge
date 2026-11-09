@@ -116,7 +116,7 @@ const BULLETIN_FROM = Date.UTC(2026, 10, 9, 11, 0, 0);   // allumé : 9 nov. 202
 // le créneau dure la plus longue des deux (FR/EN), donc tout le monde reste synchro.
 const PODCAST_HOURS = [9, 14, 20, 22];
 const PODCAST_FROM = Date.UTC(2026, 10, 9, 13, 0, 0);    // 9 nov. 2026, 8 h heure de l'Est (1re capsule à 9 h)
-const POD_FR = [["fr-a-1",130.0],["fr-a-2",127.2],["fr-a-3",126.4],["fr-a-4",132.4],["fr-a-5",125.5],["fr-a-6",130.0],["fr-a-7",129.1],["fr-b-1",135.2],["fr-b-2",138.8],["fr-b-3",134.8],["fr-b-4",135.4]];
+const POD_FR = [["fr-a-1",130.0],["fr-a-2",127.2],["fr-a-3",126.4],["fr-a-4",132.4],["fr-a-5",125.5],["fr-a-6",130.0],["fr-a-7",129.1],["fr-b-1",135.2],["fr-b-2",138.8],["fr-b-3",134.8],["fr-b-4",135.4],["fr-c-1",143.6],["fr-c-2",144.4],["fr-c-3",146.5],["fr-c-4",141.3]];
 const POD_EN = [["en-a-1",126.9],["en-a-2",126.1],["en-a-3",127.5],["en-a-4",124.4],["en-a-5",130.1],["en-a-6",126.0],["en-a-7",125.6],["en-a-8",127.6],["en-a-9",125.6],["en-a-10",126.7],["en-a-11",130.3],["en-a-12",122.3],["en-a-13",133.3],["en-a-14",124.7],["en-a-15",125.5],["en-a-16",126.6]];
 let bulletinCfg = { lang: "fr", base: "" };
 export function setBulletinConfig(c) { bulletinCfg = { ...bulletinCfg, ...c }; }
@@ -132,7 +132,8 @@ export function torontoMs(y, m, d, h) {
 function podPick(key) {
   const [y, m, d, h] = key.split("-").map(Number);
   const k = Math.round(Date.UTC(y, m - 1, d) / 864e5) * PODCAST_HOURS.length + PODCAST_HOURS.indexOf(h);
-  const fr = POD_FR[((k * 5) % POD_FR.length + POD_FR.length) % POD_FR.length], en = POD_EN[((k * 7) % POD_EN.length + POD_EN.length) % POD_EN.length];
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a), at = (arr, st) => { while (gcd(st, arr.length) !== 1) st++; return arr[((k * st) % arr.length + arr.length) % arr.length]; };
+  const fr = at(POD_FR, 7), en = at(POD_EN, 7);
   return { fr, en, len: Math.ceil(Math.max(fr[1], en[1])) + 1 };
 }
 function specialLen(s) { return s.kind === "p" ? podPick(s.key).len * 1000 : BULLETIN_LEN * 1000; }

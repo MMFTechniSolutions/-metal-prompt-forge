@@ -111,6 +111,13 @@ export const BULLETIN_LEN = 55;   // FR ~46 s au 1er essai : marge
 const BULLETIN_HOURS = [7, 12, 17];
 // Désactivé tant que la clé ELEVENLABS_API_KEY n'est pas dans Vercel (sinon 40 s de silence) : mettre la date de départ ici
 const BULLETIN_FROM = Date.UTC(2026, 10, 9, 11, 0, 0);   // allumé : 9 nov. 2026, 6 h heure de l'Est (1er bulletin à 7 h)
+// ── Capsules podcast « comment marche MetalPrompt » (8 nov. 2026) ──
+// 4 fois par jour, même mécanique que le bulletin : chaque auditeur entend la capsule de SA langue,
+// le créneau dure la plus longue des deux (FR/EN), donc tout le monde reste synchro.
+const PODCAST_HOURS = [9, 14, 20, 22];
+const PODCAST_FROM = Date.UTC(2026, 10, 9, 13, 0, 0);    // 9 nov. 2026, 8 h heure de l'Est (1re capsule à 9 h)
+const POD_FR = [["fr-a-1",130.0],["fr-a-2",127.2],["fr-a-3",126.4],["fr-a-4",132.4],["fr-a-5",125.5],["fr-a-6",130.0],["fr-a-7",129.1],["fr-b-1",135.2],["fr-b-2",138.8],["fr-b-3",134.8],["fr-b-4",135.4]];
+const POD_EN = [["en-a-1",126.9],["en-a-2",126.1],["en-a-3",127.5],["en-a-4",124.4],["en-a-5",130.1],["en-a-6",126.0],["en-a-7",125.6],["en-a-8",127.6],["en-a-9",125.6],["en-a-10",126.7],["en-a-11",130.3],["en-a-12",122.3],["en-a-13",133.3],["en-a-14",124.7],["en-a-15",125.5],["en-a-16",126.6]];
 let bulletinCfg = { lang: "fr", base: "" };
 export function setBulletinConfig(c) { bulletinCfg = { ...bulletinCfg, ...c }; }
 const pad = n => String(n).padStart(2, "0");
@@ -121,14 +128,22 @@ export function torontoMs(y, m, d, h) {
   }
   return Date.UTC(y, m - 1, d, h + 5);
 }
-// créneaux (ms, clé « AAAA-MM-JJ-HH ») entre deux instants
+// n° de capsule pour un créneau : pas « aléatoire » mais qui passe toutes les capsules (pas premiers entre eux)
+function podPick(key) {
+  const [y, m, d, h] = key.split("-").map(Number);
+  const k = Math.round(Date.UTC(y, m - 1, d) / 864e5) * PODCAST_HOURS.length + PODCAST_HOURS.indexOf(h);
+  const fr = POD_FR[((k * 5) % POD_FR.length + POD_FR.length) % POD_FR.length], en = POD_EN[((k * 7) % POD_EN.length + POD_EN.length) % POD_EN.length];
+  return { fr, en, len: Math.ceil(Math.max(fr[1], en[1])) + 1 };
+}
+function specialLen(s) { return s.kind === "p" ? podPick(s.key).len * 1000 : BULLETIN_LEN * 1000; }
+// créneaux (ms, clé « AAAA-MM-JJ-HH », sorte) entre deux instants
 function slotsBetween(a, b) {
   const out = [], day = 864e5;
   for (let t = a - day; t <= b + day; t += day) {
     const p = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(t).split("-").map(Number);
-    for (const h of BULLETIN_HOURS) {
+    for (const [hours, kind, from] of [[BULLETIN_HOURS, "b", BULLETIN_FROM], [PODCAST_HOURS, "p", PODCAST_FROM]]) for (const h of hours) {
       const ms = torontoMs(p[0], p[1], p[2], h);
-      if (ms >= a && ms <= b && !out.some(o => o.ms === ms)) out.push({ ms, key: `${p[0]}-${pad(p[1])}-${pad(p[2])}-${pad(h)}` });
+      if (ms >= a && ms <= b && ms >= from && !out.some(o => o.ms === ms)) out.push({ ms, kind, key: `${p[0]}-${pad(p[1])}-${pad(p[2])}-${pad(h)}` });
     }
   }
   return out.sort((x, y) => x.ms - y.ms);
@@ -138,38 +153,44 @@ export function bulletinItem(key) {
   return { id: "bulletin-" + key, slot: key, isBulletin: true, genre: "Annonce", title: bulletinCfg.lang === "en" ? "Weather + good news" : "Météo + bonne nouvelle",
     artist: "MetalPrompt Radio", duration: BULLETIN_LEN, audio_file: url };
 }
+export function podcastItem(key) {
+  const p = podPick(key), en = bulletinCfg.lang === "en", f = en ? p.en : p.fr;
+  return { id: "podcast-" + key, slot: key, isBulletin: true, genre: "Annonce", title: en ? "How MetalPrompt works" : "Comment marche MetalPrompt",
+    artist: "MetalPrompt Radio", duration: p.len, audio_file: `/radio/podcast/${f[0]}.mp3` };
+}
+const specialItem = s => (s.kind === "p" ? podcastItem(s.key) : bulletinItem(s.key));
 let bmemo = { key: "", list: [] };
 export function onAir(ms, items, grille) {
   if (ms < BULLETIN_FROM) return baseOnAir(ms, items, grille);
   const pk = items.map(i => i.id + ":" + i.duration + ":" + (i.approved_at || "")).join(",") + "|" + (grille || []).length;
   if (bmemo.key !== pk) bmemo = { key: pk, list: [] };
-  const L = BULLETIN_LEN * 1000, list = bmemo.list;
-  // complète la liste des bulletins jusqu'à maintenant (début réel = fin de la toune en cours au créneau)
-  let D = list.length ? list[list.length - 1].D + L : 0;
+  const list = bmemo.list;
+  // complète la liste des créneaux spéciaux jusqu'à maintenant (début réel = fin de la toune en cours au créneau)
+  let D = list.length ? list[list.length - 1].D + list[list.length - 1].L : 0;
   const from = list.length ? list[list.length - 1].slot + 1 : BULLETIN_FROM;
   for (const s of slotsBetween(from, ms)) {
     const b = baseOnAir(s.ms - D, items, grille);
-    const start = b ? b.end + D : s.ms;
-    list.push({ slot: s.ms, key: s.key, start, D });
+    const start = b ? b.end + D : s.ms, L = specialLen(s);
+    list.push({ slot: s.ms, key: s.key, kind: s.kind, start, D, L });
     D += L;
   }
   let shift = 0, prevB = null;
   for (const x of list) {
     if (x.start > ms) break;
-    if (ms < x.start + L) {
+    if (ms < x.start + x.L) {
       const after = baseOnAir(x.start - x.D + 1, items, grille);
       const before = baseOnAir(x.start - x.D - 1, items, grille);
-      return { cur: bulletinItem(x.key), start: x.start, end: x.start + L, next: after && after.cur, prev: before && before.cur,
+      return { cur: specialItem(x), start: x.start, end: x.start + x.L, next: after && after.cur, prev: before && before.cur,
         prevStart: before ? before.start + x.D : undefined, show: null };
     }
-    shift = x.D + L; prevB = x;
+    shift = x.D + x.L; prevB = x;
   }
   const a = baseOnAir(ms - shift, items, grille);
   if (!a) return a;
   const out = { ...a, start: a.start + shift, end: a.end + shift, prevStart: a.prevStart !== undefined ? a.prevStart + shift : undefined };
-  if (prevB && out.start === prevB.start + L) { out.prev = bulletinItem(prevB.key); out.prevStart = prevB.start; }
-  // le prochain créneau tombe-t-il pendant cette toune ? alors la suivante est le bulletin
+  if (prevB && out.start === prevB.start + prevB.L) { out.prev = specialItem(prevB); out.prevStart = prevB.start; }
+  // le prochain créneau tombe-t-il pendant cette toune ? alors la suivante est ce créneau
   const nx = slotsBetween(ms, out.end).find(s => !list.some(x => x.slot === s.ms));
-  if (nx) out.next = bulletinItem(nx.key);
+  if (nx) out.next = specialItem(nx);
   return out;
 }

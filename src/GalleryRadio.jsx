@@ -31,6 +31,7 @@ const CSS = `
 .mpr-onair{display:inline-flex;align-items:center;gap:6px;font:600 11px var(--mono);letter-spacing:.12em;color:var(--ember);border:1px solid #5a2a14;border-radius:999px;padding:4px 10px}
 .mpr-onair i{width:8px;height:8px;border-radius:50%;background:var(--ember)}
 .mpr-onair.live i{animation:mprp 1.2s ease-in-out infinite}
+.mpr-aud{display:inline-flex;align-items:center;gap:6px;margin-left:8px;font:600 11px var(--mono);letter-spacing:.08em;color:var(--ok);border:1px solid #1f4a2e;border-radius:999px;padding:4px 10px}
 @keyframes mprp{50%{opacity:.25}}
 @media (prefers-reduced-motion:reduce){.mpr-onair.live i{animation:none}}
 .mpr-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
@@ -147,6 +148,25 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   const [loading, setLoading] = useState(true);
   const [grille, setGrille] = useState([]);
   const [playing, setPlaying] = useState(false);       // l'auditeur a appuyé sur ▶ (le navigateur l'exige pour le son)
+  // Auditeurs en direct (9 nov. 2026) : présence Supabase Realtime, aucune fonction /api.
+  // Chaque onglet qui JOUE la radio s'annonce sur le canal « radio-live »; on compte les présences.
+  const [listeners, setListeners] = useState(0);
+  const presenceKey = useRef(Math.random().toString(36).slice(2));
+  const liveCh = useRef(null), liveReady = useRef(false);
+  useEffect(() => {
+    const ch = supabase.channel("radio-live", { config: { presence: { key: presenceKey.current } } });
+    liveCh.current = ch;
+    ch.on("presence", { event: "sync" }, () => setListeners(Object.keys(ch.presenceState()).length))
+      .subscribe(status => { liveReady.current = status === "SUBSCRIBED"; if (liveReady.current && playingRef.current) ch.track({ at: Date.now() }); });
+    return () => { liveReady.current = false; supabase.removeChannel(ch); };
+  }, []);
+  const playingRef = useRef(false);
+  useEffect(() => {
+    playingRef.current = playing;
+    const ch = liveCh.current;
+    if (!ch || !liveReady.current) return;
+    if (playing) ch.track({ at: Date.now() }); else ch.untrack();
+  }, [playing]);
   const [now, setNow] = useState(Date.now());
   const [joinedLate, setJoinedLate] = useState(false);
   const clockOff = useRef(0);                           // écart horloge locale → serveur
@@ -442,6 +462,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       <div className="mpr-head">
         <div>
           <span className={"mpr-onair" + (cur ? " live" : "")}><i />{cur ? L("EN DIRECT 24/7", "LIVE 24/7") : L("RADIO", "RADIO")}</span>
+          {listeners > 0 && <span className="mpr-aud" aria-live="polite">🎧 {listeners} {listeners > 1 ? L("auditeurs", "listeners") : L("auditeur", "listener")}</span>}
           <h2 style={{ marginTop: 8 }}>Radio <span>MetalPrompt</span> <em className="mpr-beta">BETA</em></h2>
         </div>
         <p className="mpr-betanote">{L("La radio est en bêta : des petits bugs sont possibles (coupures, changement de chanson). Dis-le-nous sur Discord, ça nous aide à l'améliorer.", "The radio is in beta: small bugs may happen (cuts, song changes). Tell us on Discord, it helps us improve it.")}</p>

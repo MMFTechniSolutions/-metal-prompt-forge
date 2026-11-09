@@ -89,24 +89,25 @@ async function newsLines(items) {
 }
 
 function script(lang, w, news, hour) {
+  // balises d'émotion pour le modèle expressif (eleven_v3) — lues comme jeu, pas comme texte
   const fr = lang === 'fr';
   const hi = fr ? (hour < 11 ? 'Bon matin' : hour < 16 ? 'Bon midi' : 'Bonne fin de journée') : (hour < 11 ? 'Good morning' : hour < 16 ? 'Good afternoon' : 'Good evening');
   const met = w.map(c => fr ? `${c.fr}, ${c.t} degrés, ${c.w[0]}` : `${c.en}, ${c.t} degrees, ${c.w[1]}`).join('. ');
-  let s = fr ? `${hi}, ici MetalPrompt Radio. La météo au pays : ${met}.` : `${hi}, this is MetalPrompt Radio. Weather across Canada: ${met}.`;
+  let s = fr ? `[excited] ${hi}, ici MetalPrompt Radio! [casual] La météo au pays : ${met}.` : `[excited] ${hi}, this is MetalPrompt Radio! [casual] Weather across Canada: ${met}.`;
   const n = news && news[lang];
-  if (n) s += fr ? ` Et la bonne nouvelle du jour : ${n}` : ` And today's good news: ${n}`;
-  s += fr ? ' On retourne au metal!' : ' Back to the metal!';
-  return s.slice(0, 600);
+  if (n) s += fr ? ` [warm] Pis la bonne nouvelle du jour : ${n}` : ` [warm] And today's good news: ${n}`;
+  s += fr ? ' [excited] Bon, assez jasé : on retourne au metal!' : ' [excited] Alright, enough talk: back to the metal!';
+  return s.slice(0, 700);
 }
 
 async function tts(text, lang) {
   const key = process.env.ELEVENLABS_API_KEY;
   if (!key) throw new Error('ELEVENLABS_API_KEY manquante');
-  const voice = lang === 'fr' ? (process.env.ELEVENLABS_VOICE_FR || 's1sIQNhphwf8VebP7Ptg') : (process.env.ELEVENLABS_VOICE_EN || '2cW6cjkWenOhW7QrnJbJ');
+  const voice = lang === 'fr' ? (process.env.ELEVENLABS_VOICE_FR || 'RBhYSNMNu6b2CGZ9Fn1M') : (process.env.ELEVENLABS_VOICE_EN || '2cW6cjkWenOhW7QrnJbJ');
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice}?output_format=mp3_44100_128`, {
-    method: 'POST', signal: AbortSignal.timeout(30000),
+    method: 'POST', signal: AbortSignal.timeout(45000),
     headers: { 'xi-api-key': key, 'content-type': 'application/json', accept: 'audio/mpeg' },
-    body: JSON.stringify({ text, model_id: 'eleven_flash_v2_5', language_code: lang }),
+    body: JSON.stringify({ text, model_id: process.env.ELEVENLABS_MODEL || 'eleven_v3', language_code: lang }),
   });
   if (!r.ok) throw new Error('tts ' + r.status + ' ' + (await r.text()).slice(0, 200));
   return Buffer.from(await r.arrayBuffer());
@@ -128,11 +129,12 @@ export default async function bulletin(req, res) {
   const m = slot.match(/^(\d{4})-(\d{2})-(\d{2})-(\d{1,2})$/);
   if (!m || !SLOTS.includes(Number(m[4]))) return res.status(400).json({ error: 'slot invalide' });
   const at = torontoMs(+m[1], +m[2], +m[3], +m[4]);
-  if (Date.now() < at - 20 * 60e3 || Date.now() > at + 4 * 3600e3) return res.status(400).json({ error: 'hors créneau' });   // pas de fabrication à volonté
-  const mp3 = `bulletins/${slot}-${lang}.mp3`;
+  const T = req.query.rev === 'felix1' && slot === '2026-11-08-17' ? '-felix1' : '';   // essai unique de la nouvelle voix (à retirer)
+  if (!T && Date.now() < at - 20 * 60e3 || Date.now() > at + 4 * 3600e3) return res.status(400).json({ error: 'hors créneau' });   // pas de fabrication à volonté
+  const mp3 = `bulletins/${slot}-${lang}${T}.mp3`;
   if (await exists(mp3)) return res.json({ url: pub(mp3) });
   // verrou : un seul appel fabrique ce fichier
-  if (!(await put(`bulletins/${slot}-${lang}.lock`, '1', 'audio/mpeg'))) {
+  if (!(await put(`bulletins/${slot}-${lang}${T}.lock`, '1', 'audio/mpeg'))) {
     // déjà en cours (fichier existe) → patience; autre erreur → on la montre
     if (/409|Duplicate|already exists/i.test(put.last || '')) return res.status(202).json({ pending: true });
     return res.status(500).json({ error: 'storage ' + (put.last || '?'), base: SUPA() ? 'ok' : 'manquante', key: KEY() ? 'ok' : 'manquante' });
@@ -149,7 +151,7 @@ export default async function bulletin(req, res) {
     return res.json({ url: pub(mp3) });
   } catch (e) {
     // échec : on enlève le verrou pour qu'un prochain appel réessaie
-    try { await fetch(`${SUPA()}/storage/v1/object/radio/bulletins/${slot}-${lang}.lock`, { method: 'DELETE', headers: { Authorization: `Bearer ${KEY()}`, apikey: KEY() } }); } catch { /* rien */ }
+    try { await fetch(`${SUPA()}/storage/v1/object/radio/bulletins/${slot}-${lang}${T}.lock`, { method: 'DELETE', headers: { Authorization: `Bearer ${KEY()}`, apikey: KEY() } }); } catch { /* rien */ }
     return res.status(500).json({ error: String(e.message || e).slice(0, 300) });
   }
 }

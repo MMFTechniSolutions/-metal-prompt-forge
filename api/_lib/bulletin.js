@@ -103,7 +103,7 @@ function script(lang, w, news, hour) {
 async function tts(text, lang) {
   const key = process.env.ELEVENLABS_API_KEY;
   if (!key) throw new Error('ELEVENLABS_API_KEY manquante');
-  const voice = lang === 'fr' ? (process.env.ELEVENLABS_VOICE_FR || 'RBhYSNMNu6b2CGZ9Fn1M') : (process.env.ELEVENLABS_VOICE_EN || '2cW6cjkWenOhW7QrnJbJ');
+  const voice = lang === 'fr' ? (process.env.ELEVENLABS_VOICE_FR || 'RBhYSNMNu6b2CGZ9Fn1M') : (process.env.ELEVENLABS_VOICE_EN || 'WhadNd3nmML09cs0hsqT');
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice}?output_format=mp3_44100_128`, {
     method: 'POST', signal: AbortSignal.timeout(45000),
     headers: { 'xi-api-key': key, 'content-type': 'application/json', accept: 'audio/mpeg' },

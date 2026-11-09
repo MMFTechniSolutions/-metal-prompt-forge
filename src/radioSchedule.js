@@ -149,8 +149,8 @@ function slotsBetween(a, b) {
     }
   }
   // essai d'écoute demandé : une capsule le 8 nov. 2026 à 22 h 10
-  const T = Date.UTC(2026, 10, 9, 3, 10, 0);
-  if (T >= a && T <= b && !out.some(o => o.ms === T)) out.push({ ms: T, kind: "p", key: "2026-11-08-22" });
+  for (const [T, key] of [[Date.UTC(2026, 10, 9, 3, 10, 0), "2026-11-08-22"], [Date.UTC(2026, 10, 9, 3, 25, 0), "2026-11-08-20"]])
+    if (T >= a && T <= b && !out.some(o => o.ms === T)) out.push({ ms: T, kind: "p", key });
   return out.sort((x, y) => x.ms - y.ms);
 }
 export function bulletinItem(key) {

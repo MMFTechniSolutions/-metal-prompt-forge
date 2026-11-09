@@ -132,7 +132,7 @@ export default async function bulletin(req, res) {
   const mp3 = `bulletins/${slot}-${lang}.mp3`;
   if (await exists(mp3)) return res.json({ url: pub(mp3) });
   // verrou : un seul appel fabrique ce fichier
-  if (!(await put(`bulletins/${slot}-${lang}.lock`, '1', 'text/plain'))) {
+  if (!(await put(`bulletins/${slot}-${lang}.lock`, '1', 'audio/mpeg'))) {
     // déjà en cours (fichier existe) → patience; autre erreur → on la montre
     if (/409|Duplicate|already exists/i.test(put.last || '')) return res.status(202).json({ pending: true });
     return res.status(500).json({ error: 'storage ' + (put.last || '?'), base: SUPA() ? 'ok' : 'manquante', key: KEY() ? 'ok' : 'manquante' });
@@ -142,7 +142,7 @@ export default async function bulletin(req, res) {
     if (!data) {
       const [w, items] = await Promise.all([weather(), goodNews().catch(() => [])]);
       data = { w, news: await newsLines(items).catch(() => null) };
-      await put(`bulletins/${slot}.json`, JSON.stringify(data), 'application/json');
+      await put(`bulletins/${slot}.json`, JSON.stringify(data), 'audio/mpeg')   // le bucket « radio » n'accepte que l'audio;
     }
     const audio = await tts(script(lang, data.w, data.news, +m[4]), lang);
     await put(mp3, audio, 'audio/mpeg');

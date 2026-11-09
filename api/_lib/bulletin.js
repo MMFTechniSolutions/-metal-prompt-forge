@@ -1,9 +1,9 @@
 // ── Bulletin radio : météo des grandes villes + bonne nouvelle (8 nov. 2026) ──
 // GET /api/profile?op=bulletin&slot=AAAA-MM-JJ-HH&lang=fr|en → { url } (fabriqué au 1er appel, gardé ensuite)
-// 3 créneaux par jour (7 h, 12 h, 17 h, heure de Montréal). Météo : Open-Meteo (gratuit, sans clé).
+// 1 créneau par jour (7 h, heure de Montréal). Météo : Open-Meteo (gratuit, sans clé).
 // Bonnes nouvelles : fils RSS publics; Claude n'écrit qu'un résumé tiré du titre/résumé fournis.
 // Voix : ElevenLabs (clé ELEVENLABS_API_KEY dans Vercel). Fichier : Supabase Storage, bucket « radio ».
-const SLOTS = [7, 12, 17];
+const SLOTS = [7];   // 1 fois par jour (crédits ElevenLabs), 9 nov. 2026
 const CITIES = [
   ['Montréal', 'Montreal', 45.50, -73.57], ['Québec', 'Quebec City', 46.81, -71.21], ['Toronto', 'Toronto', 43.65, -79.38],
   ['Ottawa', 'Ottawa', 45.42, -75.70], ['Calgary', 'Calgary', 51.05, -114.07], ['Vancouver', 'Vancouver', 49.28, -123.12],

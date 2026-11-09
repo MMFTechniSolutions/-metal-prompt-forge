@@ -108,7 +108,7 @@ function baseOnAir(ms, items, grille) {
 // BULLETIN_LEN secondes passe pour tout le monde, puis la grille reprend (décalée d'autant).
 // Seulement à partir du 9 nov. 2026 7 h : rien ne change dans le passé, donc aucun saut au déploiement.
 export const BULLETIN_LEN = 55;   // FR ~46 s au 1er essai : marge
-const BULLETIN_HOURS = [7, 12, 17];
+const BULLETIN_HOURS = [7];   // 1 fois par jour : crédits ElevenLabs
 // Désactivé tant que la clé ELEVENLABS_API_KEY n'est pas dans Vercel (sinon 40 s de silence) : mettre la date de départ ici
 const BULLETIN_FROM = Date.UTC(2026, 10, 9, 11, 0, 0);   // allumé : 9 nov. 2026, 6 h heure de l'Est (1er bulletin à 7 h)
 // ── Capsules podcast « comment marche MetalPrompt » (8 nov. 2026) ──
@@ -152,7 +152,8 @@ function slotsBetween(a, b) {
 export function bulletinItem(key) {
   const url = bulletinCfg.base ? `${bulletinCfg.base}/storage/v1/object/public/radio/bulletins/${key}-${bulletinCfg.lang === "en" ? "en" : "fr"}.mp3` : null;
   return { id: "bulletin-" + key, slot: key, isBulletin: true, genre: "Annonce", title: bulletinCfg.lang === "en" ? "Weather + good news" : "Météo + bonne nouvelle",
-    artist: "MetalPrompt Radio", duration: BULLETIN_LEN, audio_file: url };
+    artist: "MetalPrompt Radio", duration: BULLETIN_LEN, audio_file: url,
+    fallback: `/radio/podcast/${bulletinCfg.lang === "en" ? "en-a-1" : "fr-a-1"}.mp3` };   // bulletin pas fabriqué → une capsule au lieu du silence
 }
 export function podcastItem(key) {
   const p = podPick(key), en = bulletinCfg.lang === "en", f = en ? p.en : p.fr;

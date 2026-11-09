@@ -130,7 +130,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
     const tick = () => {
       const now = Date.now();
       const p = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(now).split("-").map(Number);
-      for (const h of [7, 12, 17]) {
+      for (const h of [7]) {
         const at = torontoMs(p[0], p[1], p[2], h);
         if (now > at - 15 * 60e3 && now < at + 60 * 60e3) {
           const key = `${p[0]}-${String(p[1]).padStart(2, "0")}-${String(p[2]).padStart(2, "0")}-${String(h).padStart(2, "0")}`;
@@ -255,6 +255,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       let v = 1;
       if (a.prev && isHosted(a.prev) && p < XF) v = p / XF;                       // la nouvelle monte
       if (!isHosted(a.next) && slotS - p < XF) v = Math.min(v, Math.max(0, (slotS - p) / XF)); // fondu avant une chanson Suno
+      if (a.cur.isBulletin && slotS - p < 3) v = Math.min(v, Math.max(0, (slotS - p) / 3));     // bulletin/capsule : fin en douceur
       want.push({ it: a.cur, pos: p, vol: v });
       if (a.prev && isHosted(a.prev) && p < XF) want.push({ it: a.prev, pos: (t - a.prevStart) / 1000, vol: Math.max(0, 1 - p / XF) }); // l'autre descend
     }
@@ -263,7 +264,11 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
     want.forEach(w => {
       let el = E.find(x => x.dataset.id === w.it.id && !used.has(x)) || E.find(x => !used.has(x) && !want.some(o => o.it.id === x.dataset.id));
       if (!el) return; used.add(el);
-      if (el.dataset.id !== w.it.id) { el.dataset.id = w.it.id; el.src = w.it.audio_file; el.currentTime = w.pos; }
+      if (el.dataset.id !== w.it.id) {
+        el.dataset.id = w.it.id; el.src = w.it.audio_file; el.currentTime = w.pos;
+        const fb = w.it.fallback;   // fichier introuvable (ex. bulletin pas fabriqué) → plan B
+        el.onerror = fb ? () => { el.onerror = null; el.src = fb; el.play().catch(() => {}); } : null;
+      }
       else if (el.readyState > 0 && Math.abs(el.currentTime - w.pos) > 1.5 && w.pos < (el.duration || 1e9) - 0.5) el.currentTime = w.pos;
       el.volume = Math.min(1, Math.max(0, w.vol));
       if (el.paused && !el.ended) el.play().catch(() => {});

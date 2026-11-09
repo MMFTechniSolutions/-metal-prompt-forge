@@ -116,6 +116,7 @@ async function put(path, body, type) {
   const r = await fetch(`${SUPA()}/storage/v1/object/radio/${path}`, {
     method: 'POST', headers: { Authorization: `Bearer ${KEY()}`, apikey: KEY(), 'content-type': type, 'x-upsert': 'false', 'cache-control': '31536000' }, body,
   });
+  if (!r.ok) { const t = await r.text().catch(() => ''); put.last = r.status + ' ' + t.slice(0, 200); }
   return r.ok;
 }
 const exists = async path => { try { const r = await fetch(pub(path), { method: 'HEAD' }); return r.ok; } catch { return false; } };
@@ -131,7 +132,11 @@ export default async function bulletin(req, res) {
   const mp3 = `bulletins/${slot}-${lang}.mp3`;
   if (await exists(mp3)) return res.json({ url: pub(mp3) });
   // verrou : un seul appel fabrique ce fichier
-  if (!(await put(`bulletins/${slot}-${lang}.lock`, '1', 'text/plain'))) return res.status(202).json({ pending: true });
+  if (!(await put(`bulletins/${slot}-${lang}.lock`, '1', 'text/plain'))) {
+    // déjà en cours (fichier existe) → patience; autre erreur → on la montre
+    if (/409|Duplicate|already exists/i.test(put.last || '')) return res.status(202).json({ pending: true });
+    return res.status(500).json({ error: 'storage ' + (put.last || '?'), base: SUPA() ? 'ok' : 'manquante', key: KEY() ? 'ok' : 'manquante' });
+  }
   try {
     let data = await getJson(`bulletins/${slot}.json`);
     if (!data) {

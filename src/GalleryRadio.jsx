@@ -315,7 +315,12 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
     try {
       if (!capsule.current) { capsule.current = new Audio(); capsule.current.preload = "auto"; }
       const a = capsule.current;
-      a.src = uiLang === "fr" ? "/radio/capsule-fr.mp3" : "/radio/capsule-en.mp3";
+      // Nouveauté (11 nov. 2026) : toune ajoutée depuis moins de 7 jours → capsule « Nouvelle chanson de la semaine ».
+      // Si le fichier manque, on retombe sur la capsule ordinaire.
+      const lg = uiLang === "fr" ? "fr" : "en", base = "/radio/capsule-" + lg + ".mp3";
+      const fresh = cur.created_at && (Date.now() - new Date(cur.created_at).getTime()) < 7 * 86400000;
+      a.onerror = fresh ? () => { a.onerror = null; a.src = base; a.play().catch(() => {}); } : null;
+      a.src = fresh ? "/radio/capsule-new-" + lg + ".mp3" : base;
       a.volume = 0.9; a.currentTime = 0; a.play().catch(() => {});
     } catch { /* pas de son, pas grave */ }
   }, [slot, playing]); // eslint-disable-line react-hooks/exhaustive-deps

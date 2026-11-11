@@ -399,7 +399,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       if (error.code === "23514") { setFormMsg(L("Lien refusé : Suno, Spotify, YouTube ou SoundCloud seulement.", "Link refused: Suno, Spotify, YouTube or SoundCloud only.")); return; }
       setFormMsg(L("Erreur — réessaie.", "Error — try again.")); return;
     }
-    setFormMsg(L("Merci! Ta chanson est en attente d'approbation. Une fois approuvée, tu pourras nous transmettre le MP3 si tu veux. 🤘", "Thanks! Your track is awaiting approval. Once approved, you can send us the MP3 if you want. 🤘"));
+    setFormMsg(L("Merci! Ta chanson est en attente d'approbation. Si elle est choisie, tu vas recevoir un courriel qui te demande le fichier MP3. 🤘", "Thanks! Your track is awaiting approval. If it's picked, you'll get an email asking for the MP3 file. 🤘"));
     setForm({ title: "", artist: "", genre: "Deathcore", url: "" }); setOkSong(false);
   }
 
@@ -532,7 +532,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
           {discordUrl && <a className="mpr-link" href={discordUrl} target="_blank" rel="noopener noreferrer">{L("Rejoins la communauté sur Discord →", "Join the community on Discord →")}</a>}
         </div>
         {showForm && <div className="mpr-form" style={{ marginTop: 12 }}>
-          <p className="mpr-small">{L("Gratuit avec un compte · 2 chansons par mois. Seuls les liens Suno publics jouent à la radio.", "Free with an account · 2 tracks per month. Only public Suno links play on the radio.")}</p>
+          <p className="mpr-small">{L("Gratuit avec un compte · 2 chansons par mois. Soumets ton lien Suno public. Si ta chanson est choisie, on t'envoie un courriel pour te demander le fichier MP3 : c'est lui qui joue à la radio.", "Free with an account · 2 tracks per month. Submit your public Suno link. If your track is picked, we'll email you to ask for the MP3 file: that's what plays on the radio.")}</p>
           <ol className="mpr-steps">
             <li>{L("Tu soumets le lien de ta chanson pour approbation.", "You submit your song's link for approval.")}</li>
             <li>{L("On l'écoute. Une fois approuvée, elle passe à la radio.", "We listen to it. Once approved, it goes on the radio.")}</li>

@@ -98,6 +98,10 @@ const CSS = `
 
 /* lecteur Suno caché : le son joue, l'animation prend sa place */
 .mpr-hidden-frame{position:fixed;left:0;bottom:0;width:2px;height:2px;border:0;opacity:0.01;pointer-events:none;z-index:-1}
+/* lecteur Suno affiché (11 nov. 2026) : caché, il ne partait pas tout seul sur cellulaire → on le montre, l'auditeur pèse sur ▶ au besoin */
+.mpr-suno-dock{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:70;width:min(460px,calc(100vw - 20px));background:#15171B;border:1px solid #FF6A2B;border-radius:14px;padding:8px;box-shadow:0 12px 34px rgba(0,0,0,.6)}
+.mpr-suno-dock small{display:block;font-size:12px;font-weight:600;line-height:1.3;color:#FFB36B;padding:0 4px 6px}
+.mpr-suno-dock iframe{display:block;width:100%;height:240px;border:0;border-radius:10px;background:#0C0D0F}
 .mpr-viz{height:110px;border-radius:12px;background:radial-gradient(120% 90% at 50% 100%,#2a1208 0%,var(--panel2) 60%);display:flex;align-items:flex-end;justify-content:center;gap:4px;padding:14px 12px 10px;overflow:hidden}
 .mpr-viz i{flex:1 1 0;max-width:12px;min-width:3px;height:12%;border-radius:3px 3px 1px 1px;background:linear-gradient(to top,var(--ember),var(--ember2));opacity:.35;transform-origin:bottom}
 .mpr-viz.on i{opacity:1;animation:mprbar var(--d,0.9s) ease-in-out infinite alternate;animation-delay:var(--dl,0s)}
@@ -453,7 +457,10 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       {nxt && <div className="mpr-next">{L("Prochaine : ", "Up next: ")}<b>{isJingle(nxt) ? L("annonce", "station ID") : nxt.title}</b></div>}
     </div>, pipWin.document.body)}
     <style>{CSS}</style>
-    {playing && cur && !isHosted(cur) && <iframe key={slot} className="mpr-hidden-frame" title={cur.title} src={`https://suno.com/embed/${cur.sunoId}?autoplay=1`} allow="autoplay; encrypted-media" aria-hidden="true" tabIndex={-1} />}
+    {playing && cur && !isHosted(cur) && <div className="mpr-suno-dock">
+      <small>{L("Lecteur Suno — si la toune part pas toute seule, pèse sur ▶ ici.", "Suno player — if the track doesn't start on its own, tap ▶ here.")}</small>
+      <iframe key={slot} title={cur.title} src={`https://suno.com/embed/${cur.sunoId}?autoplay=1`} allow="autoplay; encrypted-media" />
+    </div>}
     {!visible && playing && cur && <div className="mpr-mini" role="region" aria-label={L("Radio MetalPrompt en direct", "MetalPrompt Radio live")}>
       {cur.image_url ? <img src={cur.image_url} alt="" /> : <span className="ph" />}
       <button className="t" onClick={() => onOpen && onOpen()} title={L("Ouvrir la radio", "Open the radio")}>

@@ -266,7 +266,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
   const els = useRef(null), poolRef = useRef(pool), grilleRef = useRef(grille);
   poolRef.current = pool; grilleRef.current = grille;
   const getEls = () => { if (!els.current) els.current = [0, 1].map(() => { const a = new Audio(); a.preload = "auto"; a.dataset.id = ""; return a; }); return els.current; };
-  const unlock = () => getEls().forEach(a => { if (!a.src) { a.muted = true; a.play().then(() => { a.pause(); a.muted = false; }, () => { a.muted = false; }); } });
+  const unlock = () => { getEls().forEach(a => { if (!a.src) { a.muted = true; a.play().then(() => { a.pause(); a.muted = false; }, () => { a.muted = false; }); } }); unlockSuno(); };
   function syncAudio() {
     const E = getEls(), t = Date.now() + clockOff.current, a = onAir(t, poolRef.current, grilleRef.current);
     const want = [];
@@ -304,12 +304,59 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
     syncAudio(); const iv = setInterval(syncAudio, 250);
     return () => clearInterval(iv);
   }, [playing]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ── Liens Suno (11 nov. 2026) : rien d'hébergé chez nous ──
+  // Le lecteur officiel Suno (iframe) ne part pas tout seul sur cellulaire (essai du 11 nov. : silence complet).
+  // 1) On joue donc le fichier de Suno dans notre propre lecteur : départ rapide, bonne position (synchro),
+  //    et ça continue écran barré.
+  // 2) Si Suno refuse, si rien ne joue après SUNO_WAIT s, ou si ça gèle plus de SUNO_STALL s en cours de toune :
+  //    on passe au lecteur officiel Suno (iframe). Jamais 30 s d'attente dans le vide.
+  // 3) Après 2 refus de suite, on arrête d'essayer le direct pour cette visite.
+  const SUNO_WAIT = 8, SUNO_STALL = 10;
+  const SILENCE = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
+  const sunoEl = useRef(null), sunoDead = useRef(0), sunoPrimed = useRef(false);
+  const [frameSlot, setFrameSlot] = useState("");
+  const getSuno = () => { if (!sunoEl.current) { sunoEl.current = new Audio(); sunoEl.current.preload = "auto"; } return sunoEl.current; };
+  function unlockSuno() {   // doit partir d'un clic : le téléphone laisse ensuite ce lecteur changer de toune tout seul
+    if (sunoPrimed.current) return; sunoPrimed.current = true;
+    try { const a = getSuno(); if (!a.src) { a.muted = true; a.src = SILENCE; const done = () => { if ((a.src || "").startsWith("data:")) { a.pause(); a.muted = false; } }; a.play().then(done, done); } } catch { /* pas grave */ }
+  }
+  useEffect(() => {
+    const a = getSuno();
+    if (!playing || !cur || isHosted(cur) || !cur.sunoId) { a.pause(); return; }
+    if (sunoDead.current >= 2) { a.pause(); setFrameSlot(slot); return; }
+    const start = air.start;
+    const livePos = () => Math.max(0, (Date.now() + clockOff.current - start) / 1000);
+    let over = false, started = false, timer = null;
+    const toFrame = () => {   // plan B : lecteur officiel Suno
+      if (over) return; over = true; clearTimeout(timer);
+      a.onerror = a.onplaying = a.onwaiting = a.onstalled = a.onloadedmetadata = null;
+      a.pause(); a.removeAttribute("src"); try { a.load(); } catch { /* rien */ }
+      if (!started) sunoDead.current += 1;
+      setFrameSlot(slot);
+    };
+    const arm = s => { clearTimeout(timer); timer = setTimeout(toFrame, s * 1000); };
+    a.onerror = toFrame;
+    a.onplaying = () => { started = true; sunoDead.current = 0; clearTimeout(timer); };
+    a.onwaiting = a.onstalled = () => { if (!over && !a.paused) arm(started ? SUNO_STALL : SUNO_WAIT); };
+    a.onloadedmetadata = () => { const p = livePos(); if (p > 1.5 && p < (a.duration || 1e9) - 1) { try { a.currentTime = p; } catch { /* rien */ } } };
+    a.muted = false; a.volume = 1;
+    a.src = "https://cdn1.suno.ai/" + cur.sunoId + ".mp3";
+    a.play().catch(() => {});
+    arm(SUNO_WAIT);
+    return () => { over = true; clearTimeout(timer); a.onerror = a.onplaying = a.onwaiting = a.onstalled = a.onloadedmetadata = null; a.pause(); };
+  }, [slot, playing]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!playing) setFrameSlot(""); }, [playing]);
+  const sunoFrame = playing && !!cur && !isHosted(cur) && frameSlot === slot;   // l'iframe Suno sert seulement de plan B
+
   // ── Capsule « Vous écoutez MetalPrompt Radio » (8 nov. 2026) ──
   // Le lecteur Suno (iframe) prend quelques secondes à partir : une capsule de ~4 s couvre le trou au début
   // de chaque toune Suno. Rien dans la grille : juste chez l'auditeur, donc tout le monde reste synchro.
   const capsule = useRef(null), capsuleSlot = useRef("");
   useEffect(() => {
-    if (!playing || !cur || isHosted(cur) || capsuleSlot.current === slot) return;
+    if (!playing || !cur || isHosted(cur)) return;
+    const fresh = cur.created_at && (Date.now() - new Date(cur.created_at).getTime()) < 7 * 86400000;
+    if (!fresh && !sunoFrame) return;                       // capsule ordinaire : seulement pour couvrir le départ de l'iframe
+    if (capsuleSlot.current === slot) return;
     capsuleSlot.current = slot;
     if (pos > 6) return;   // arrivé en plein milieu : pas de capsule
     try {
@@ -318,12 +365,16 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       // Nouveauté (11 nov. 2026) : toune ajoutée depuis moins de 7 jours → capsule « Nouvelle chanson de la semaine ».
       // Si le fichier manque, on retombe sur la capsule ordinaire.
       const lg = uiLang === "fr" ? "fr" : "en", base = "/radio/capsule-" + lg + ".mp3";
-      const fresh = cur.created_at && (Date.now() - new Date(cur.created_at).getTime()) < 7 * 86400000;
       a.onerror = fresh ? () => { a.onerror = null; a.src = base; a.play().catch(() => {}); } : null;
       a.src = fresh ? "/radio/capsule-new-" + lg + ".mp3" : base;
       a.volume = 0.9; a.currentTime = 0; a.play().catch(() => {});
+      if (!sunoFrame && sunoEl.current) {   // lecture directe : la toune joue en dessous, baissée pendant la capsule
+        const s = sunoEl.current; s.volume = 0.25;
+        const up = () => { a.removeEventListener("ended", up); s.volume = 1; };
+        a.addEventListener("ended", up); setTimeout(up, 6000);
+      }
     } catch { /* pas de son, pas grave */ }
-  }, [slot, playing]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [slot, playing, sunoFrame]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!playing && capsule.current) capsule.current.pause(); }, [playing]);
   // écran de verrouillage : titre, pochette, bouton arrêt
   useEffect(() => {
@@ -453,7 +504,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
       {nxt && <div className="mpr-next">{L("Prochaine : ", "Up next: ")}<b>{isJingle(nxt) ? L("annonce", "station ID") : nxt.title}</b></div>}
     </div>, pipWin.document.body)}
     <style>{CSS}</style>
-    {playing && cur && !isHosted(cur) && <iframe key={slot} className="mpr-hidden-frame" title={cur.title} src={`https://suno.com/embed/${cur.sunoId}?autoplay=1`} allow="autoplay; encrypted-media" aria-hidden="true" tabIndex={-1} />}
+    {sunoFrame && <iframe key={slot} className="mpr-hidden-frame" title={cur.title} src={`https://suno.com/embed/${cur.sunoId}?autoplay=1`} allow="autoplay; encrypted-media" aria-hidden="true" tabIndex={-1} />}
     {!visible && playing && cur && <div className="mpr-mini" role="region" aria-label={L("Radio MetalPrompt en direct", "MetalPrompt Radio live")}>
       {cur.image_url ? <img src={cur.image_url} alt="" /> : <span className="ph" />}
       <button className="t" onClick={() => onOpen && onOpen()} title={L("Ouvrir la radio", "Open the radio")}>
@@ -489,7 +540,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
               </div>
               <div className={"mpr-viz" + (playing ? " on" : "")} aria-hidden="true">{BARS.map((st, i) => <i key={i} style={st} />)}</div>
               {!playing && <div className="mpr-small">{L("La radio joue en direct pour tout le monde. Touche la page (ou ▶) pour embarquer.", "The radio is live for everyone. Tap the page (or ▶) to tune in.")}</div>}
-              {playing && joinedLate && <div className="mpr-small">{L("T'embarques en cours de chanson : elle part du début pour toi, t'es en synchro dès la prochaine.", "You tuned in mid-song: it starts from the top for you, you're in sync from the next one.")}</div>}
+              {playing && joinedLate && sunoFrame && <div className="mpr-small">{L("T'embarques en cours de chanson : elle part du début pour toi, t'es en synchro dès la prochaine.", "You tuned in mid-song: it starts from the top for you, you're in sync from the next one.")}</div>}
               {dur > 0 && <div>
                 <div className="mpr-bar" role="progressbar" aria-label={L("Position en direct", "Live position")} aria-valuemin={0} aria-valuemax={Math.round(dur)} aria-valuenow={Math.round(pos)}><i style={{ width: Math.min(100, pos / dur * 100) + "%" }} /></div>
                 <div className="mpr-time"><span>{L("en direct ", "live ")}{fmt(pos)}</span><span>{L("suivante dans ", "next in ")}{fmt(Math.max(0, dur - pos))}</span></div>

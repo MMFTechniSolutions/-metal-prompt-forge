@@ -1,0 +1,14 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Test lecture Suno</title>
+<style>body{background:#0C0D0F;color:#F2F1ED;font-family:system-ui,sans-serif;padding:24px;max-width:520px;margin:auto}button{background:#FF6A2B;color:#0C0D0F;border:0;border-radius:999px;font-size:22px;font-weight:700;padding:18px 28px;width:100%;margin:18px 0}#r{font-size:22px;font-weight:700;min-height:60px}audio{width:100%}.ok{color:#5FD08A}.ko{color:#FF6A2B}p{color:#B9BDC4;line-height:1.4}</style></head><body>
+<h2>Test : fichier direct de Suno</h2>
+<p>Pèse sur le bouton. Si « Wide Awake » joue, la Radio peut jouer les liens Suno sans rien héberger.</p>
+<button id="b">▶ Jouer Wide Awake</button>
+<div id="r">En attente…</div>
+<audio id="a" controls preload="none" src="https://cdn1.suno.ai/8aff1986-181a-4a2f-910c-01f0f5d694ce.mp3"></audio>
+<script>
+const a=document.getElementById('a'),r=document.getElementById('r');let t;
+document.getElementById('b').onclick=()=>{r.className='';r.textContent='Chargement…';const t0=Date.now();a.currentTime=0;a.play().catch(e=>{r.className='ko';r.textContent='❌ Bloqué : '+e.name;});
+ clearTimeout(t);t=setTimeout(()=>{if(a.paused||a.currentTime<0.2){r.className='ko';r.textContent='❌ Rien après 10 s';}},10000);
+ a.onplaying=()=>{clearTimeout(t);r.className='ok';r.textContent='✅ Ça joue (parti en '+((Date.now()-t0)/1000).toFixed(1)+' s)';};
+ a.onerror=()=>{clearTimeout(t);r.className='ko';r.textContent='❌ Suno refuse le fichier (erreur '+(a.error?a.error.code:'?')+')';};};
+</script></body></html>

@@ -531,6 +531,7 @@ export default function GalleryRadio({ user, onRequestAuth, uiLang = "fr", disco
             <li>{L("On l'écoute. Une fois approuvée, elle passe à la radio.", "We listen to it. Once approved, it goes on the radio.")}</li>
             <li>{L("Ensuite, si tu veux (optionnel), tu pourras nous transmettre le MP3 : meilleure qualité de diffusion, fondu entre les chansons et lecture même écran barré.", "Then, if you want (optional), you can send us the MP3: better broadcast quality, crossfade between songs and playback even with the screen locked.")}</li>
           </ol>
+          <p className="mpr-small"><strong>{L("Chaque titre est choisi et écouté un par un. Les places sont limitées : priorise tes meilleures chansons, les plus travaillées.", "Every track is picked and listened to one by one. Spots are limited: send your best, most polished songs first.")}</strong></p>
           <input placeholder={L("Titre de la chanson", "Track title")} value={form.title} onChange={e => setF("title", e.target.value)} />
           <input placeholder={L("Nom d'artiste (optionnel)", "Artist name (optional)")} value={form.artist} onChange={e => setF("artist", e.target.value)} />
           <select value={form.genre} onChange={e => setF("genre", e.target.value)}>{GENRES.map(g => <option key={g} value={g}>{g}</option>)}</select>

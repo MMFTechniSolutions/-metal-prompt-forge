@@ -25,6 +25,12 @@ function Root() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Suivi des retours : note la visite du membre connecté (1 fois par chargement de page)
+  useEffect(() => {
+    if (!user?.id) return
+    supabase.rpc('touch_last_seen').then(() => {}, () => {})
+  }, [user?.id])
+
   if (loading) return (
     <div style={{ background:"#0C0D0F", minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center" }}>
       <div style={{ color:"#FF6A2B", fontSize:"1.5rem" }}>⚙️</div>

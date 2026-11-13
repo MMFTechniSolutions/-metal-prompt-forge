@@ -2154,7 +2154,7 @@ RULES:
 - Chorus repeated 3 times MAXIMUM in the whole song; each chorus repeat can vary 1 line
 OUTPUT: ONLY raw lyrics. Zero commentary.`;
     try {
-      const lyricsBody={prompt};
+      const lyricsBody={prompt,userText:[lyricsAngle||'',keywords||'']};
       if(phoneticOn&&phoneticRec?.enabled&&vocalMix==="harsh")lyricsBody.phoneticIntensity=phoneticRec.intensity;
       const res=await fetch("/api/lyrics",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(lyricsBody)});
       const data=await res.json();

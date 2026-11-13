@@ -20,7 +20,27 @@ const STYLE_WRITING = {
 const CONTENT_LIMITS = `Content limits for every song you write. Dark metal themes are welcome: death, war, grief, horror, rage, despair, the occult.
 But NEVER depict, hint at or romanticize suicide or self-harm, not even implied: no pills or medication lined up or "not needed after tonight", no overdose, no rope or noose, no wrists or blades turned on oneself, no goodbye notes, no character planning or choosing to end their own life.
 If the theme leans that way, turn it toward survival, rage, defiance or loss instead.
-Also never: sexual content involving minors, slurs against real groups, real people's names, band names, artist names or song titles.`
+Also never: sexual content involving minors, slurs against real groups, real people's names, band names, artist names or song titles.
+NO REPRODUCTION OF EXISTING LYRICS (absolute): never reproduce, quote or closely paraphrase the lyrics of any existing song, not even one recognizable line, chorus or hook, and never use a real song title as a hook or chorus line.
+If the theme, angle or keywords you are given contain a line or title from a real song, keep only the idea behind it and write entirely new words: do not reuse that wording anywhere in the lyrics.
+Every line you write must be original.`
+
+// Anti-reproduction (nov. 2026) : test MCP avec un angle = refrain connu → l'IA l'avait recopié tel quel comme refrain.
+// Vérif serveur : aucune suite de 5 mots du texte fourni par l'utilisateur (angle, mots imposés) ne doit sortir mot pour mot.
+const NGRAM = 5
+const words = (t) => String(t || '').toLowerCase().replace(/\[[^\]]*\]/g, ' ').replace(/[^a-z0-9à-ÿ']+/g, ' ').split(' ').filter(Boolean)
+function copiedRun(userText, out) {
+  const u = words(userText)
+  if (u.length < NGRAM) return ''
+  const grams = new Set()
+  for (let i = 0; i + NGRAM <= u.length; i++) grams.add(u.slice(i, i + NGRAM).join(' '))
+  const o = words(out)
+  for (let i = 0; i + NGRAM <= o.length; i++) {
+    const g = o.slice(i, i + NGRAM).join(' ')
+    if (grams.has(g)) return g
+  }
+  return ''
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -60,7 +80,10 @@ export default async function handler(req, res) {
   // Le client peut aussi envoyer body.maxTokens (borné 1200..8000).
   const maxTokens = Math.min(8000, Math.max(1200, parseInt(body.maxTokens) || 8000))
 
-  try {
+  // Texte tapé par l'utilisateur (angle, mots imposés) : sert à la vérif anti-reproduction
+  const userText = [].concat(body.userText || []).map(String).join('\n').slice(0, 2000)
+
+  const ask = async (content) => {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -72,18 +95,33 @@ export default async function handler(req, res) {
         model: process.env.LYRICS_MODEL || 'claude-sonnet-4-6', // A/B : LYRICS_MODEL=claude-sonnet-5-5 dans Vercel
         max_tokens: maxTokens,
         system: CONTENT_LIMITS,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [{ role: 'user', content }],
       }),
     })
+    return { r, data: await r.json() }
+  }
 
-    const data = await r.json()
+  try {
+    let { r, data } = await ask(prompt)
     if (!r.ok) {
       return res
         .status(r.status)
         .json({ error: data?.error?.message || 'Erreur API Anthropic' })
     }
 
-    const text = data.content?.find((b) => b.type === 'text')?.text || ''
+    let text = data.content?.find((b) => b.type === 'text')?.text || ''
+
+    // Recopie mot pour mot du texte de l'utilisateur → 1 reprise avec consigne, sinon on bloque
+    let hit = copiedRun(userText, text)
+    if (hit) {
+      ;({ r, data } = await ask(prompt + `\n\nIMPORTANT: the user's angle or keywords may quote an existing song. Do NOT reuse their wording (for example "${hit}"). Keep only the idea and write every line in brand-new words.`))
+      if (!r.ok) return res.status(r.status).json({ error: data?.error?.message || 'Erreur API Anthropic' })
+      text = data.content?.find((b) => b.type === 'text')?.text || ''
+      hit = copiedRun(userText, text)
+      if (hit) {
+        return res.status(422).json({ error: "Ton angle ressemble à des paroles existantes. Décris l'idée dans tes mots. / Your angle looks like existing lyrics — describe the idea in your own words." })
+      }
+    }
     // stop_reason peut valoir "max_tokens" si jamais c'était encore coupé (diagnostic).
     const truncated = data.stop_reason === 'max_tokens'
 

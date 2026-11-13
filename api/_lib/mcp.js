@@ -274,7 +274,7 @@ const LYRIC_RULES = `Write raw, real metal lyrics in English, like a professiona
 Method: object writing. Start from one concrete lived moment: a place, objects, the senses (sight, sound, smell, taste, touch, body). Clear point of view (I or you).
 Do: concrete scenes and nouns, uneven line lengths, near rhymes rather than perfect rhymes, plain blunt words.
 Avoid: AI-poetry words (flicker, whisper, echoes, tapestry, shadows, chains, crown, fire, darkness, throne, abyss, ethereal), abstract lines with no image, every line the same rhythm, too many perfect rhymes.
-Never name or imitate any real artist or song.
+Never name or imitate any real artist or song, and never reuse a line, hook or title from an existing song.
 Format for Suno: section tags in square brackets ([Verse], [Pre-Chorus], [Chorus], [Breakdown], [Bridge], [Outro]); breakdown lines in CAPITALS; the final chorus repeats the chorus with one twist that changes its meaning. Output ONLY the tagged lyrics, nothing else.`;
 
 async function toolParoles(args) {
@@ -295,7 +295,8 @@ async function toolParoles(args) {
     args.rhythmic ? 'Rhythmic delivery: short percussive lines of 2 to 5 words that hit on the riff accents, like a drummer would phrase them. No long sentences.' : '',
     args.structure ? `Follow this structure:\n${String(args.structure).slice(0, 1500)}` : 'Structure: [Verse] [Verse 2] [Pre-Chorus] [Chorus] [Breakdown] [Final Chorus].',
   ].filter(Boolean).join('\n');
-  const r = await call(lyricsHandler, { prompt, maxTokens: 2000 });
+  const r = await call(lyricsHandler, { prompt, maxTokens: 2000, userText: args.angle || '' });
+  if (r.status === 422 && r.data && r.data.error) return { error: r.data.error };
   if (r.status !== 200 || !r.data || !r.data.text) return { error: 'Paroles indisponibles, réessaie.' };
   return { text: r.data.text };
 }
